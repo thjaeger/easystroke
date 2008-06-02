@@ -496,7 +496,6 @@ bool SendKey::run() {
 	return true;
 }
 
-#if 1
 void Scroll::worker() {
 #define GRAB (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonPressMask, GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) == GrabSuccess)
 #define UNGRAB XUngrabPointer(dpy, CurrentTime);
@@ -517,7 +516,6 @@ void Scroll::worker() {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
 		switch (ev.type) {
-			printf("event\n");
 			case MotionNotify: {
 				int y = ev.xmotion.y;
 				if (lasty == -1) {
@@ -525,11 +523,11 @@ void Scroll::worker() {
 					break;
 				}
 				int button = 0;
-				if (y > lasty + 100) 
+				if (y > lasty + 100)
 					lasty = y;
-				if (y > lasty + 10) 
+				if (y > lasty + 10)
 					button = 5;
-				if (y < lasty - 100) 
+				if (y < lasty - 100)
 					lasty = y;
 				if (y < lasty - 10)
 					button = 4;
@@ -556,77 +554,6 @@ void Scroll::worker() {
 #undef GRAB
 #undef UNGRAB
 }
-#else
-void Scroll::worker() {
-	const unsigned int helper = (prefs().button.get().button%2)+1;
-	// We absolutely don't want to use the global dpy here, so it's probably
-	// best to shadow it
-	Display *dpy = XOpenDisplay(NULL);
-	if (!dpy)
-		return;
-
-	press();
-
-	Cursor cursor = XCreateFontCursor(dpy, XC_double_arrow);
-	if (!XGrabButton(dpy, helper, AnyModifier, ROOT, False,
-			ButtonMotionMask | ButtonPressMask,
-			GrabModeAsync, GrabModeAsync, None, cursor)) {
-		printf("Couldn't grab helper button\n");
-		return;
-	}
-	XTestFakeButtonEvent(dpy, helper, True, CurrentTime);
-
-	bool active = true;
-	int ignore_press = 1;
-	int lasty = -1;
-	while (active) {
-		XEvent ev;
-		XNextEvent(dpy, &ev);
-		switch (ev.type) {
-			case MotionNotify: {
-				int y = ev.xmotion.y;
-				if (lasty == -1) {
-					lasty = y;
-					break;
-				}
-				int button = 0;
-				if (y > lasty + 100) 
-					lasty = y;
-				if (y > lasty + 10) 
-					button = 5;
-				if (y < lasty - 100) 
-					lasty = y;
-				if (y < lasty - 10)
-					button = 4;
-				if (button) {
-					XTestFakeButtonEvent(dpy, helper, False, CurrentTime);
-					ignore_press++;
-					XTestFakeButtonEvent(dpy, button, True, CurrentTime);
-					XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-					XTestFakeButtonEvent(dpy, helper, True, CurrentTime);
-					lasty = y;
-				}
-				break; }
-			case ButtonPress:
-				printf("press: %d\n", ev.xbutton.button);
-				if (ignore_press) {
-					ignore_press--;
-					break;
-				}
-//				if (ev.xbutton.button != helper)
-//					continue;
-				active = false;
-				break;
-			default:
-				printf("Unhandled event: %d\n", ev.type);
-		}
-	}
-	XTestFakeButtonEvent(dpy, helper, False, CurrentTime);
-	release();
-	XFreeCursor(dpy, cursor);
-	XCloseDisplay(dpy);
-}
-#endif
 
 
 bool Scroll::run() {
