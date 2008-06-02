@@ -497,7 +497,7 @@ bool SendKey::run() {
 }
 
 void Scroll::worker() {
-#define GRAB (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonPressMask, GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) == GrabSuccess)
+#define GRAB (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask, GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) == GrabSuccess)
 #define UNGRAB XUngrabPointer(dpy, CurrentTime);
 	// We absolutely don't want to use the global dpy here, so it's probably
 	// best to shadow it
@@ -512,6 +512,7 @@ void Scroll::worker() {
 
 	bool active = true;
 	int lasty = -1;
+	int pressed = 0;
 	while (active) {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
@@ -533,13 +534,21 @@ void Scroll::worker() {
 					button = 4;
 				if (button) {
 					UNGRAB;
+					if (pressed)
+						XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 					XTestFakeButtonEvent(dpy, button, True, CurrentTime);
 					XTestFakeButtonEvent(dpy, button, False, CurrentTime);
 					lasty = y;
 					while (!GRAB) usleep(10000);
+					if (pressed)
+						XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
 				}
 				break; }
 			case ButtonPress:
+				if (ev.xbutton.button < 4)
+					pressed = ev.xbutton.button;
+				break;
+			case ButtonRelease:
 				if (ev.xbutton.button < 4)
 					active = false;
 				break;
