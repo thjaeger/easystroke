@@ -89,8 +89,7 @@ Actions::Actions(Win *p) :
 	(*(type_store->append()))[type.type] = KEY;
 	(*(type_store->append()))[type.type] = KEY_XTEST;
 	(*(type_store->append()))[type.type] = IGNORE;
-	if (experimental)
-		(*(type_store->append()))[type.type] = SCROLL;
+	(*(type_store->append()))[type.type] = SCROLL;
 	type_renderer.property_model() = type_store;
 	type_renderer.property_editable() = true;
 	type_renderer.property_text_column() = 0;
