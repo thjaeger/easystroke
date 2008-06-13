@@ -388,8 +388,21 @@ void Main::run() {
 					send(P_IGNORE);
 					break;
 				}
-				if (cur)
+				if (cur) {
+					/* This is going to have to wait for Xinput support.
+					if (experimental) {
+						trace->end();
+						cur.reset();
+						//grabber->ignore(3);
+						XTestFakeButtonEvent(dpy, 1, False, CurrentTime);
+						XTestFakeButtonEvent(dpy, 2, False, CurrentTime);
+						XTestFakeButtonEvent(dpy, 1, True, CurrentTime);
+
+					}
+					*/
 					break;
+				}
+
 				/* TODO
 				if (current)
 					XSetInputFocus(dpy, current, RevertToParent, ev.xbutton.time);

@@ -48,11 +48,14 @@ Prefs::Prefs(Win *parent_) : good_state(true), parent(parent_), q(sigc::mem_fun(
 	button_default_delay->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_delay_default));
 
 	if (!experimental) {
-		Gtk::Frame *frame_algo, *frame_delay;
-		parent->widgets->get_widget("frame_algo", frame_algo);
-		parent->widgets->get_widget("frame_delay", frame_delay);
-		frame_algo->hide();
-		frame_delay->hide();
+		Gtk::HBox *hbox_experimental;
+	       	parent->widgets->get_widget("hbox_experimental", hbox_experimental);
+		hbox_experimental->hide();
+	} else {
+		Gtk::Frame *frame_click;
+	       	parent->widgets->get_widget("frame_click", frame_click);
+		frame_click->hide();
+
 	}
 
 	set_button_label();
