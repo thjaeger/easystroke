@@ -329,6 +329,7 @@ char* Main::next_event() {
 void Main::run() {
 	int cur_size  = 0; // last cur size the timer saw
 	Timeout timeout;
+	int emulate = 0;
 	if (verbosity >= 2)
 		printf("Entering main loop...\n");
 	while(1) {
@@ -388,17 +389,16 @@ void Main::run() {
 					break;
 				}
 				if (cur) {
-					/* This is going to have to wait for Xinput support.
-					if (experimental) {
+					if (grabber->xinput) {
 						trace->end();
 						cur.reset();
-						//grabber->ignore(3);
-						XTestFakeButtonEvent(dpy, 1, False, CurrentTime);
-						XTestFakeButtonEvent(dpy, 2, False, CurrentTime);
-						XTestFakeButtonEvent(dpy, 1, True, CurrentTime);
+						XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
+						XTestFakeButtonEvent(dpy, 2, False, CurrentTime); //TODO
+						grabber->grab_xi(true);
+						emulate = 3;
+						XTestFakeButtonEvent(dpy, emulate, True, CurrentTime);
 
 					}
-					*/
 					break;
 				}
 
@@ -455,6 +455,14 @@ void Main::run() {
 					Trace *new_trace = init_trace();
 					delete trace;
 					trace = new_trace;
+				}
+				if (grabber->xinput && ev.type == grabber->button_up) {
+					if (emulate) {
+						XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
+						grabber->grab_xi(false);
+					}
+					emulate = 0;
+
 				}
 				break;
 		}

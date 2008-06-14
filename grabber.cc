@@ -41,11 +41,8 @@ bool Grabber::init_xi() {
 	if (!xi_dev)
 		return false;
 
-//	int dummy = 0;
 	DeviceButtonPress(xi_dev, button_down, button_events[0]);
 	DeviceButtonRelease(xi_dev, button_up, button_events[1]);
-//	DeviceMotionNotify(xi_dev, motion_notify, button_events[2]);
-//	DeviceButtonMotion(xi_dev, &dummy, button_events[3]);
 	button_events_n = 2;
 
 	return true;
@@ -109,10 +106,8 @@ void Grabber::set(State s) {
 		ENSURE(!XGrabButton(dpy, button, state, ROOT, False, 
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask, 
 					GrabModeAsync, GrabModeAsync, None, None))
-		// All we need to do here is make sure that xi events aren't passed along to the application,
-		// which - surpisingly enough - even an "empty" grab accomplishes
 		ENSURE(xinput && XGrabDeviceButton(dpy, xi_dev, button, state, NULL, ROOT, False, 
-					0, 0, GrabModeAsync, GrabModeAsync))
+					button_events_n, button_events, GrabModeAsync, GrabModeAsync))
 	}
 	if (new_goal == ALL)
 		ENSURE(!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, 
@@ -137,6 +132,7 @@ void Grabber::fake_button() {
 }
 
 // Wow, this is such a crazy hack, I'm really surprised it works
+// TODO: Check that this also works for xournal
 void Grabber::ignore(int b) {
 	// Make the X Server think the state of the button is up
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);

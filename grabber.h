@@ -15,15 +15,15 @@ class Grabber {
 		bool all; // Takes precedence over suspend
 	};
 
-
-	bool init_xi();
+public:
 	bool xinput;
-	XDevice *xi_dev;
-	XEventClass button_events[4];
-	int button_events_n;
-//	int motion_notify;
 	int button_down;
 	int button_up;
+private:
+	bool init_xi();
+	XDevice *xi_dev;
+	XEventClass button_events[2];
+	int button_events_n;
 
 	std::map<Window, std::string> wins;
 	State current;
