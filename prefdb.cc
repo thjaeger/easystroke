@@ -19,7 +19,7 @@ PrefDB::PrefDB() :
 	p(pref_p_default),
 	button(pref_button_default),
 	help(true),
-	trace(TraceStandard),
+	trace(TraceShape),
 	delay(pref_delay_default)
 {}
 
