@@ -2,10 +2,13 @@ PREFIX   = /usr/local
 DFLAGS   = #-ggdb #-pg
 OFLAGS   = -Os
 AOFLAGS  = -O3
-CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 libglademm-2.4 --cflags`
+CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 libglademm-2.4 libglademm-2.4 --cflags`
+LDFLAGS  = $(DFLAGS) -Lcellrenderertk
 TARGETS  = easystroke
 
-LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 libglademm-2.4 gthread-2.0 --cflags --libs`
+LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 libglademm-2.4 gthread-2.0 --cflags --libs`
+
+LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` /usr/lib/libboost_serialization.a /usr/lib/libglademm-2.4.a -lglade-2.0 -lxml2
 INCLUDES = 
 
 BINARY   = easystroke
@@ -28,7 +31,13 @@ include $(DEPFILES)
 
 easystroke: $(OFILES)
 	$(MAKE) -C cellrenderertk
-	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) -Lcellrenderertk -lcellrenderertk $(LIBS)
+	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS)
+	strip -s $(BINARY)
+
+static: $(OFILES)
+	$(MAKE) -C cellrenderertk
+	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS_STATIC)
+	strip -s $(BINARY)
 
 stroke.o: stroke.cc
 	$(CXX) $(CXXFLAGS) $(AOFLAGS) $(INCLUDES) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
