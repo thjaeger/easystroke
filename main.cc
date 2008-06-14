@@ -17,7 +17,6 @@
 #include <fcntl.h>
 #include <getopt.h>
 
-const char *xinput = "stylus";
 
 bool gui = true;
 bool experimental = false;

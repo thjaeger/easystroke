@@ -4,6 +4,7 @@
 #include <map>
 #include <string>
 #include <X11/Xlib.h>
+#include <X11/extensions/XInput.h>
 
 class Grabber {
 	enum Goal { NONE, BUTTON, ALL };
@@ -12,6 +13,16 @@ class Grabber {
 		bool suspend;
 		bool all; // Takes precedence over suspend
 	};
+
+
+	bool init_xi();
+	bool xinput;
+	XDevice *xi_dev;
+	XEventClass button_events[4];
+	int button_events_n;
+	int motion_notify;
+	int button_down;
+	int button_up;
 
 	std::map<Window, std::string> wins;
 	State current;

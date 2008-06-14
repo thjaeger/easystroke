@@ -9,7 +9,45 @@ Grabber::Grabber() {
 	current.all = false;
 	get_button();
 	wm_state = XInternAtom(dpy, "WM_STATE", False);
+
+	xinput = init_xi();
+
 	init(ROOT, 0);
+}
+
+bool Grabber::init_xi() {
+	if (!experimental)
+		return false;
+	int nMajor, nFEV, nFER;
+	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
+		return false;
+
+	int i, n;
+	XDeviceInfo *devs, *dev = 0;
+	devs = XListInputDevices(dpy, &n);
+	if (!devs)
+		return false;
+
+	for (i=0; i<n; ++i)
+		if (!strcasecmp(devs[i].name,"stylus") && devs[i].num_classes)
+			dev = devs + i;
+
+	if (!dev)
+		return false;
+
+	xi_dev = XOpenDevice(dpy,dev->id);
+
+	if (!xi_dev)
+		return false;
+
+	int dummy = 0;
+	DeviceButtonPress(xi_dev, button_down, button_events[0]);
+	DeviceButtonRelease(xi_dev, button_up, button_events[1]);
+	DeviceMotionNotify(xi_dev, motion_notify, button_events[2]);
+	DeviceButtonMotion(xi_dev, &dummy, button_events[3]);
+	button_events_n = 0;
+
+	return true;
 }
 
 // Fuck Xlib
@@ -56,12 +94,22 @@ void Grabber::set(State s) {
 	current = s;
 	if (old_goal == new_goal)
 		return;
-	if (old_goal == BUTTON)
+	if (old_goal == BUTTON) {
+		printf("Ungrabbing Device\n");
+		if (xinput)
+			XUngrabDeviceButton(dpy, xi_dev, button, state, NULL, ROOT);
 		XUngrabButton(dpy, button, state, ROOT);
+	}
 	if (old_goal == ALL)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (new_goal == BUTTON) {
 		while (!XGrabButton(dpy, button, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None)) {
+			printf("Grab failed, retrying...\n");
+			usleep(10000);
+		}
+		// All we need to do here is make sure that xi events aren't passed along to the application,
+		// which - surpisingly enough - even an "empty" grab accomplishes
+		while (xinput && XGrabDeviceButton(dpy, xi_dev, button, state, NULL, ROOT, False, 0, 0, GrabModeAsync, GrabModeAsync)) {
 			printf("Grab failed, retrying...\n");
 			usleep(10000);
 		}
