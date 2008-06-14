@@ -27,15 +27,6 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/xlsfonts/dsimple.h,v 1.10tsi Exp $ */
 
-/*
- * Just_display.h: This file contains the definitions needed to use the
- *                 functions in just_display.c.  It also declares the global
- *                 variables dpy, screen, and program_name which are needed to
- *                 use just_display.c.
- *
- * Written by Mark Lillibridge.   Last updated 7/1/87
- *
- * Send bugs, etc. to chariot@athena.mit.edu.
- */
+/* Stripped down to this form by Thomas Jaeger <ThJaeger@gmail.com> */
 
 Window Select_Window(Display *);

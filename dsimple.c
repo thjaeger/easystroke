@@ -27,6 +27,8 @@ from The Open Group.
 */
 /* $XFree86: xc/programs/xlsfonts/dsimple.c,v 3.8tsi Exp $ */
 
+/* Stripped down to this form by Thomas Jaeger <ThJaeger@gmail.com> */
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
