@@ -7,10 +7,11 @@
 #include <X11/extensions/XInput.h>
 
 class Grabber {
-	enum Goal { NONE, BUTTON, ALL };
+	enum Goal { NONE, BUTTON, ALL, XI };
 	struct State {
 		bool grab;
 		bool suspend;
+		bool xi;
 		bool all; // Takes precedence over suspend
 	};
 
@@ -20,7 +21,7 @@ class Grabber {
 	XDevice *xi_dev;
 	XEventClass button_events[4];
 	int button_events_n;
-	int motion_notify;
+//	int motion_notify;
 	int button_down;
 	int button_up;
 
@@ -39,6 +40,8 @@ class Grabber {
 	static Goal goal(State s) {
 		if (s.all)
 			return ALL;
+		if (s.xi)
+			return XI;
 		if (s.suspend)
 			return NONE;
 		return s.grab ? BUTTON : NONE;
@@ -59,6 +62,7 @@ public:
 		before = before_;
 		after = after_;
 	}
+	void grab_xi(bool grab = true) { State s = current; s.xi = grab; set(s); }
 	void suspend() { State s = current; s.suspend = true; set(s); }
 	void restore() { State s = current; s.suspend = false; set(s); }
 	void regrab() { suspend(); get_button(); restore(); }
