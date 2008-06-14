@@ -130,7 +130,7 @@ void Stats::on_pdf() {
 	const int B = 1;
 	Ref<ActionDB> ref(actions());
 	const int n = ref->nested_size();
-	Cairo::RefPtr<Cairo::PdfSurface> s = Cairo::PdfSurface::create("strokes.pdf", (n+1)*S, (n+1)*S);
+	Cairo::RefPtr<Cairo::PdfSurface> s = Cairo::PdfSurface::create("/tmp/strokes.pdf", (n+1)*S, (n+1)*S);
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(s);
 	int k = 1;
 	for (StrokeIterator i = ref->strokes_begin(); i; i++, k++) {
@@ -172,6 +172,6 @@ void Stats::on_pdf() {
 		}
 	}
 	}
-	system("evince strokes.pdf &");
+	system("evince /tmp/strokes.pdf &");
 }
 
