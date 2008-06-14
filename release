@@ -1,0 +1,18 @@
+#!/bin/bash
+if [ "x$1" = "x" ]; then
+  echo "Error: you forgot to supply a dist name"
+  exit 1
+fi
+DIST=easystroke-$1
+echo $DIST
+darcs dist --dist-name=$DIST
+pushd /tmp
+tar -xzf ~/easystroke/$DIST.tar.gz
+cd $DIST
+make -j2 static
+mv easystroke $DIST
+gzip $DIST
+popd
+rsync -avP /tmp/$DIST/$DIST.gz $DIST.tar.gz thjaeger@frs.sourceforge.net:uploads/
+rm -R /tmp/$DIST
+rm $DIST.tar.gz
