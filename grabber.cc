@@ -111,7 +111,7 @@ void Grabber::set(State s) {
 	}
 	if (new_goal == ALL)
 		ENSURE(!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, 
-					ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None))
+					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
 	if (new_goal == XI)
 		ENSURE(xinput && XGrabDeviceButton(dpy, xi_dev, AnyButton, AnyModifier, NULL, ROOT, False, 
 					button_events_n, button_events, GrabModeAsync, GrabModeAsync))
@@ -133,21 +133,13 @@ void Grabber::fake_button(int b) {
 	restore();
 }
 
-// Wow, this is such a crazy hack, I'm really surprised it works
 void Grabber::ignore(int b) {
-	// Make the X Server think the state of the button is up
-	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-	// ungrab
+	before();
+	XAllowEvents(dpy, ReplayPointer, CurrentTime);
+	after();
 	State s = current;
-	s.suspend = true;
 	s.all = false;
 	set(s);
-	// The button is not grabbed now, so this fake event gets passed to the app
-	before();
-	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
-	after();
-	// Resulting motion events are not reported to us, even if we re-grab right away
-	restore();
 }
 
 void Grabber::create(Window w) {
