@@ -16,7 +16,17 @@ Grabber::Grabber() {
 	init(ROOT, 0);
 }
 
+// Goddammit!
+extern "C" {
+typedef struct _XButtonInfo2 {
+	XID        klass;
+	int        length;
+	short        num_buttons;
+} XButtonInfo2;
+}
+
 bool Grabber::init_xi() {
+	xi_devs_n = 0;
 	if (!experimental)
 		return false;
 	int nMajor, nFEV, nFER;
@@ -24,28 +34,51 @@ bool Grabber::init_xi() {
 		return false;
 
 	int i, n;
-	XDeviceInfo *devs, *dev = 0;
+	XDeviceInfo *devs;
 	devs = XListInputDevices(dpy, &n);
 	if (!devs)
 		return false;
 
-	for (i=0; i<n; ++i)
-		if (!strcasecmp(devs[i].name,"stylus") && devs[i].num_classes)
-			dev = devs + i;
+	xi_devs = new XiDevice *[n];
 
-	if (!dev)
-		return false;
+	for (i=0; i<n; ++i) {
+		XDeviceInfo *dev = devs + i;
 
-	xi_dev = XOpenDevice(dpy,dev->id);
+		if (dev->use == 0 || dev->use == IsXKeyboard || dev->use == IsXPointer)
+			continue;
 
-	if (!xi_dev)
-		return false;
+		bool has_button = false;
+		for (int j = 0; j < dev->num_classes; j++)
+			if (((XButtonInfo2 *)(& dev->inputclassinfo[j]))->klass == ButtonClass)
+				has_button = true;
 
-	DeviceButtonPress(xi_dev, button_down, button_events[0]);
-	DeviceButtonRelease(xi_dev, button_up, button_events[1]);
-	button_events_n = 2;
+		if (!has_button)
+			continue;
 
-	return true;
+		printf("Opening Device %s...\n", dev->name);
+
+		XiDevice *xi_dev = new XiDevice;
+		xi_dev->dev = XOpenDevice(dpy, dev->id);
+		if (!xi_dev) {
+			delete xi_dev;
+			continue;
+		}
+
+		DeviceButtonPress(xi_dev->dev, xi_dev->button_down, xi_dev->button_events[0]);
+		DeviceButtonRelease(xi_dev->dev, xi_dev->button_up, xi_dev->button_events[1]);
+		xi_dev->button_events_n = 2;
+
+		xi_devs[xi_devs_n++] = xi_dev;
+	}
+
+	return xi_devs_n;
+}
+
+bool Grabber::is_button_up(int type) {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (type == xi_devs[i]->button_up)
+			return true;
+	return false;
 }
 
 // Fuck Xlib
@@ -94,27 +127,32 @@ void Grabber::set(State s) {
 	if (old_goal == new_goal)
 		return;
 	if (old_goal == BUTTON) {
-		if (xinput)
-		       	XUngrabDeviceButton(dpy, xi_dev, button, state, NULL, ROOT);
+		for (int i = 0; i < xi_devs_n; i++)
+		       	XUngrabDeviceButton(dpy, xi_devs[i]->dev, button, state, NULL, ROOT);
 		XUngrabButton(dpy, button, state, ROOT);
 	}
 	if (old_goal == ALL)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (old_goal == XI) 
-		XUngrabDeviceButton(dpy, xi_dev, AnyButton, AnyModifier, NULL, ROOT);
+		for (int i = 0; i < xi_devs_n; i++)
+			XUngrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT);
 	if (new_goal == BUTTON) {
 		ENSURE(!XGrabButton(dpy, button, state, ROOT, False, 
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask, 
 					GrabModeAsync, GrabModeAsync, None, None))
-		ENSURE(xinput && XGrabDeviceButton(dpy, xi_dev, button, state, NULL, ROOT, False, 
-					button_events_n, button_events, GrabModeAsync, GrabModeAsync))
+		for (int i = 0; i < xi_devs_n; i++)
+			ENSURE(xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, button, state, 
+						NULL, ROOT, False, xi_devs[i]->button_events_n, xi_devs[i]->button_events, 
+						GrabModeAsync, GrabModeAsync))
 	}
 	if (new_goal == ALL)
 		ENSURE(!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, 
 					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
 	if (new_goal == XI)
-		ENSURE(xinput && XGrabDeviceButton(dpy, xi_dev, AnyButton, AnyModifier, NULL, ROOT, False, 
-					button_events_n, button_events, GrabModeAsync, GrabModeAsync))
+		for (int i = 0; i < xi_devs_n; i++)
+			ENSURE(xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False, 
+						xi_devs[i]->button_events_n, xi_devs[i]->button_events, 
+						GrabModeAsync, GrabModeAsync))
 }
 #undef ENSURE
 

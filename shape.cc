@@ -13,8 +13,7 @@ Shape::Shape() {
 	win = XCreateSimpleWindow(dpy, root, 0, 0, w, h, 0, CopyFromParent, bg);
 	XSetWindowAttributes attr;
 	attr.override_redirect = True;
-	attr.save_under = True;
-	XChangeWindowAttributes(dpy, win, CWOverrideRedirect | CWSaveUnder, &attr);
+	XChangeWindowAttributes(dpy, win, CWOverrideRedirect, &attr);
 
 	clear();
 }

@@ -459,7 +459,7 @@ void Main::run() {
 					delete trace;
 					trace = new_trace;
 				}
-				if (grabber->xinput && ev.type == grabber->button_up) {
+				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					if (emulate) {
 						XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
 						XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;

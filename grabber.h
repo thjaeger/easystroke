@@ -17,13 +17,18 @@ class Grabber {
 
 public:
 	bool xinput;
-	int button_down;
-	int button_up;
+	bool is_button_up(int);
 private:
+	struct XiDevice {
+		int button_down;
+		int button_up;
+		XDevice *dev;
+		XEventClass button_events[2];
+		int button_events_n;
+	};
+	XiDevice **xi_devs;
+	int xi_devs_n;
 	bool init_xi();
-	XDevice *xi_dev;
-	XEventClass button_events[2];
-	int button_events_n;
 
 	std::map<Window, std::string> wins;
 	State current;
