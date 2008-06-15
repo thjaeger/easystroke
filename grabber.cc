@@ -134,7 +134,6 @@ void Grabber::fake_button(int b) {
 }
 
 // Wow, this is such a crazy hack, I'm really surprised it works
-// TODO: Check that this also works for xournal
 void Grabber::ignore(int b) {
 	// Make the X Server think the state of the button is up
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);

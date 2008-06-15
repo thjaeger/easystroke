@@ -31,7 +31,9 @@ private:
 	sigc::slot<void> before;
 	sigc::slot<void> after;
 
+public:
 	unsigned int button;
+private:
 	unsigned int state;
 
 	Atom wm_state;
