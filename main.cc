@@ -392,8 +392,9 @@ void Main::run() {
 					if (grabber->xinput) {
 						trace->end();
 						cur.reset();
-						XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
-						XTestFakeButtonEvent(dpy, 2, False, CurrentTime); //TODO
+						for (unsigned int i = 1; i <= 5; i++)
+							if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
+								XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 						grabber->grab_xi(true);
 						emulate = 3;
 						XTestFakeButtonEvent(dpy, emulate, True, CurrentTime);

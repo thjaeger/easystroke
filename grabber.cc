@@ -124,10 +124,12 @@ void Grabber::get_button() {
 	state = ref->state;
 }
 
-void Grabber::fake_button() {
+void Grabber::fake_button(int b) {
+	if (b == 0)
+		b = button;
 	suspend();
-	XTestFakeButtonEvent(dpy, button, True, CurrentTime);
-	XTestFakeButtonEvent(dpy, button, False, CurrentTime);
+	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	restore();
 }
 
