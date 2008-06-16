@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Mon Jun 16 01:33:25 2008 -->
+<!--Generated with glade3 3.4.5 on Mon Jun 16 19:26:57 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -843,7 +843,7 @@ Please place your mouse or pen in the box below and press the button that you wa
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="combobox1">
+              <widget class="GtkComboBox" id="select_button">
                 <property name="visible">True</property>
                 <property name="items" translatable="yes">Button 1
 Button 2
@@ -870,12 +870,12 @@ Button 7</property>
             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
             <property name="layout_style">GTK_BUTTONBOX_END</property>
             <child>
-              <widget class="GtkButton" id="button2">
+              <widget class="GtkButton" id="select_default">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="response_id">1</property>
+                <property name="response_id">2</property>
                 <child>
                   <widget class="GtkHBox" id="hbox6">
                     <property name="visible">True</property>
@@ -909,7 +909,7 @@ Button 7</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button1">
+              <widget class="GtkButton" id="select_cancel">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -923,13 +923,13 @@ Button 7</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button3">
+              <widget class="GtkButton" id="select_ok">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="label" translatable="yes">gtk-ok</property>
                 <property name="use_stock">True</property>
-                <property name="response_id">0</property>
+                <property name="response_id">1</property>
               </widget>
               <packing>
                 <property name="position">2</property>

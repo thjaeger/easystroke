@@ -61,7 +61,7 @@ public:
 	void create(Window w);
 	void destroy(Window w) { wins.erase(w); }
 	void get_button();
-	void fake_button(int b = 0);
+	void fake_button();
 	void ignore(int b);
 	void grab(bool grab = true) { State s = current; s.grab = grab; set(s); }
 	void grab_all(sigc::slot<void> before_, sigc::slot<void> after_) { 

@@ -162,12 +162,18 @@ void Grabber::get_button() {
 	state = ref->state;
 }
 
-void Grabber::fake_button(int b) {
+void Grabber::fake_button() {
+	ButtonInfo bi = prefs().click.get();
+	int b = bi.button;
+	if ((int)b == -1)
+		return;
 	if (b == 0)
 		b = button;
 	suspend();
+	bi.press();
 	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+	bi.release();
 	restore();
 }
 
