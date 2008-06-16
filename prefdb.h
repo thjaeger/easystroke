@@ -13,6 +13,8 @@ const int trace_n = 3;
 struct ButtonInfo {
 	guint button;
 	guint state;
+	void press();
+	void release();
 private:
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {

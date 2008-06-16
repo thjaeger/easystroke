@@ -407,6 +407,7 @@ void Main::run() {
 							XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 							emulate_grabbed = false;
 						} else {
+							emulate_info.press();
 							grabber->grab_xi(true);
 							emulate = true;
 						}
@@ -476,6 +477,7 @@ void Main::run() {
 							grabber->grab_xi(false);
 							emulate_grabbed = false;
 							emulate = false;
+							emulate_info.release();
 						} else {
 							if (!emulate_grabbed)
 								XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
@@ -626,6 +628,18 @@ struct does_that_really_make_you_happy_stupid_compiler {
 	{GDK_META_MASK, XK_Meta_L},
 };
 int n_modkeys = 10;
+
+void ButtonInfo::press() {
+	for (int i = 0; i < n_modkeys; i++)
+		if (state & modkeys[i].mask)
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), true, 0);
+}
+
+void ButtonInfo::release() {
+	for (int i = 0; i < n_modkeys; i++)
+		if (state & modkeys[i].mask)
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), false, 0);
+}
 
 void ModAction::press() {
 	for (int i = 0; i < n_modkeys; i++)
