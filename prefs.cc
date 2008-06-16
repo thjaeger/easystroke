@@ -93,55 +93,44 @@ void Prefs::write() {
 	}
 }
 
-class SelectButton : public Gtk::Dialog {
+class SelectButton {
 public:
-	SelectButton(Gtk::Window& parent) :
-		Gtk::Dialog("Select Button", parent, true),
-		event(0),
-		hbox(false, 12),
-		image(Gtk::Stock::DIALOG_INFO, Gtk::ICON_SIZE_DIALOG),
-		label("Please press the button that you want to be used for gestures in the box below.  You can also hold down modifiers.")
-	{
-		get_vbox()->set_spacing(10);
-		get_vbox()->pack_start(hbox);
-		hbox.pack_start(image);
-		label.set_line_wrap();
-		label.set_size_request(256,-1);
-		hbox.pack_start(label);
-		get_vbox()->pack_start(events);
-		events.set_events(Gdk::BUTTON_PRESS_MASK);
+	SelectButton(const Glib::RefPtr<Gnome::Glade::Xml> widgets) {
+		widgets->get_widget("dialog_select", dialog);
+		widgets->get_widget("eventbox", eventbox);
+		eventbox->set_events(Gdk::BUTTON_PRESS_MASK);
+		eventbox->signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
+
+
+		/*
 		Glib::RefPtr<Gdk::Pixbuf> pb = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB,true,8,384,256);
 		pb->fill(0x808080ff);
 		WIDGET(Gtk::Image, box, pb);
-		events.add(box);
-		events.signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
 		add_button(Gtk::Stock::CANCEL,1);
-		show_all_children();
+		*/
 	}
-	bool run2() {
+	bool run() {
 		send(P_SUSPEND_GRAB);
-		int response = run();
+		int response = dialog->run();
 		send(P_RESTORE_GRAB);
 		return response == Gtk::RESPONSE_NONE;
 	}
 	GdkEventButton *event;
 private:
+	Gtk::Dialog *dialog;
 	bool on_button_press(GdkEventButton *ev) {
 		event_ = *ev;
 		event = &event_;
-		hide();
+		dialog->hide();
 		return true;
 	}
+	Gtk::EventBox *eventbox;
 	GdkEventButton event_;
-	Gtk::HBox hbox;
-	Gtk::Image image;
-	Gtk::Label label;
-	Gtk::EventBox events;
 };
 
 void Prefs::on_select_button() {
-	SelectButton sb(parent->get_window());
-	if (!sb.run2())
+	SelectButton sb(parent->widgets);
+	if (!sb.run())
 		return;
 	{
 		Ref<ButtonInfo> ref(prefs().button);
@@ -177,8 +166,8 @@ void Prefs::on_click_changed() {
 		return;
 	}
 
-	SelectButton sb(parent->get_window());
-	if (sb.run2()) {
+	SelectButton sb(parent->widgets);
+	if (sb.run()) {
 		Ref<ButtonInfo> ref(prefs().click);
 		ref->button = sb.event->button;
 		ref->state = sb.event->state;
@@ -226,8 +215,8 @@ void Prefs::on_stroke_click_changed() {
 		return;
 	}
 
-	SelectButton sb(parent->get_window());
-	if (sb.run2()) {
+	SelectButton sb(parent->widgets);
+	if (sb.run()) {
 		Ref<ButtonInfo> ref(prefs().stroke_click);
 		ref->button = sb.event->button;
 		ref->state = sb.event->state;
