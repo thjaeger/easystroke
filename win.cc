@@ -53,7 +53,7 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty_(int size) {
 extern const char *gui_buffer;
 
 int run_dialog(const char *str) {
-	Glib::RefPtr<Gnome::Glade::Xml> xml = Gnome::Glade::Xml::create_from_buffer(gui_buffer, strlen(gui_buffer));
+	Glib::RefPtr<Gtk::Builder> xml = Gtk::Builder::create_from_string(gui_buffer);
 	Gtk::Dialog *dialog;
 	xml->get_widget(str, dialog);
 	int response = dialog->run();
@@ -63,7 +63,7 @@ int run_dialog(const char *str) {
 }
 
 Win::Win() :
-	widgets(Gnome::Glade::Xml::create_from_buffer(gui_buffer, strlen(gui_buffer))),
+	widgets(Gtk::Builder::create_from_string(gui_buffer)),
 	actions(new Actions(this)),
 	prefs(new Prefs(this)),
 	stats(new Stats(this)),

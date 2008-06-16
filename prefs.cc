@@ -95,7 +95,7 @@ void Prefs::write() {
 
 class SelectButton {
 public:
-	SelectButton(const Glib::RefPtr<Gnome::Glade::Xml> widgets) {
+	SelectButton(const Glib::RefPtr<Gtk::Builder> widgets) {
 		widgets->get_widget("dialog_select", dialog);
 		widgets->get_widget("eventbox", eventbox);
 		eventbox->set_events(Gdk::BUTTON_PRESS_MASK);

@@ -6,9 +6,9 @@ CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 libglademm-2.4 libglademm-2.4 -
 LDFLAGS  = $(DFLAGS) -Lcellrenderertk
 TARGETS  = easystroke
 
-LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 libglademm-2.4 gthread-2.0 --cflags --libs`
+LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs`
 
-LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` /usr/lib/libboost_serialization.a /usr/lib/libglademm-2.4.a -lglade-2.0 -lxml2
+LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` /usr/lib/libboost_serialization.a
 INCLUDES = 
 
 BINARY   = easystroke
@@ -25,7 +25,7 @@ clena:	clean
 
 clean:
 	$(MAKE) -C cellrenderertk clean
-	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) gui.c gui.o
+	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) gui.gb gui.c gui.o
 
 include $(DEPFILES)
 
@@ -45,7 +45,10 @@ stroke.o: stroke.cc
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) $(OFLAGS) $(INCLUDES) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
-gui.c: gui.glade
+gui.gb: gui.glade
+	gtk-builder-convert gui.glade gui.gb
+
+gui.c: gui.gb
 	echo "const char *gui_buffer = \"\\" > gui.c
-	sed 's/"/\\"/g' gui.glade | sed 's/.*/&\\n\\/' >> gui.c
+	sed 's/"/\\"/g' gui.gb | sed 's/.*/&\\n\\/' >> gui.c
 	echo "\";" >> gui.c

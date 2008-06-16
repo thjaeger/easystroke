@@ -26,7 +26,7 @@ public:
 	Glib::Dispatcher quit;
 
 //	Gtk::Statusbar status;
-	const Glib::RefPtr<Gnome::Glade::Xml> widgets;
+	const Glib::RefPtr<Gtk::Builder> widgets;
 private:
 	void on_icon_click();
 	bool on_icon_size_changed(int);
