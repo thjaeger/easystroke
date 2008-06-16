@@ -3,6 +3,7 @@
 #include <string>
 #include <set>
 #include <boost/serialization/access.hpp>
+#include <boost/serialization/version.hpp>
 
 #include "locking.h"
 
@@ -32,6 +33,10 @@ class PrefDB {
 		{ Ref<bool> ref(help); ar & *ref; }
 		{ Ref<TraceType> ref(trace); ar & *ref; }
 		{ Ref<int> ref(delay); ar & *ref; }
+		if (version == 0)
+			return;
+		{ Ref<ButtonInfo> ref(click); ar & *ref; }
+		{ Ref<ButtonInfo> ref(stroke_click); ar & *ref; }
 	}
 	std::string filename;
 public:
@@ -43,10 +48,14 @@ public:
 	Lock<bool> help;
 	Lock<TraceType> trace;
 	Lock<int> delay;
+	Lock<ButtonInfo> click;
+	Lock<ButtonInfo> stroke_click;
 
 	void read();
 	bool write() const;
 };
+
+BOOST_CLASS_VERSION(PrefDB, 1)
 
 typedef Ref<std::set<std::string> > RPrefEx;
 

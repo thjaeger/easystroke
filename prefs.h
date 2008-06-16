@@ -22,7 +22,12 @@ private:
 	void on_delay_changed();
 	void on_delay_default();
 	void on_select_button();
+	void on_click_changed();
+	void on_stroke_click_changed();
 	void on_trace_changed();
+
+	void show_click();
+	void show_stroke_click();
 
 	struct SelectRow;
 
@@ -43,7 +48,7 @@ private:
 	Glib::RefPtr<Gtk::ListStore> tm;
 	Gtk::TreeView* tv;
 
-	Gtk::ComboBox* trace;
+	Gtk::ComboBox *trace, *click, *stroke_click;
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton* spin_delay;
 	Gtk::Label* blabel;

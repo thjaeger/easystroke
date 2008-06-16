@@ -329,7 +329,8 @@ char* Main::next_event() {
 void Main::run() {
 	int cur_size  = 0; // last cur size the timer saw
 	Timeout timeout;
-	int emulate = 0;
+	bool emulate = false;
+	ButtonInfo emulate_info;
 	bool emulate_grabbed = false;
 	if (verbosity >= 2)
 		printf("Entering main loop...\n");
@@ -391,8 +392,14 @@ void Main::run() {
 				}
 				if (cur || emulate) {
 					if (grabber->xinput) {
+						if (!emulate)
+							emulate_info = prefs().stroke_click.get();
+						if (emulate_info.button == 0)
+							break;
 						trace->end();
 						cur.reset();
+						if (emulate_info.button == -1)
+							break;
 						for (unsigned int i = 1; i <= 5; i++)
 							if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
 								XTestFakeButtonEvent(dpy, i, False, CurrentTime);
@@ -401,9 +408,9 @@ void Main::run() {
 							emulate_grabbed = false;
 						} else {
 							grabber->grab_xi(true);
-							emulate = 3;
+							emulate = true;
 						}
-						XTestFakeButtonEvent(dpy, emulate, True, CurrentTime);
+						XTestFakeButtonEvent(dpy, emulate_info.button, True, CurrentTime);
 
 					}
 					break;
@@ -461,14 +468,14 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					if (emulate) {
-						XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
+						XTestFakeButtonEvent(dpy, emulate_info.button, False, CurrentTime);
 						XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 						if (bev->button == grabber->button) {
 							if (emulate_grabbed)
 								XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 							grabber->grab_xi(false);
 							emulate_grabbed = false;
-							emulate = 0;
+							emulate = false;
 						} else {
 							if (!emulate_grabbed)
 								XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);

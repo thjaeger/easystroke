@@ -12,6 +12,8 @@
 
 const double pref_p_default = 0.5;
 const ButtonInfo pref_button_default = { Button2, 0 };
+const ButtonInfo pref_click_default = { 0, 0 };
+const ButtonInfo pref_stroke_click_default = { -1, 0 };
 const int pref_delay_default = 0;
 
 PrefDB::PrefDB() :
@@ -20,7 +22,9 @@ PrefDB::PrefDB() :
 	button(pref_button_default),
 	help(true),
 	trace(TraceShape),
-	delay(pref_delay_default)
+	delay(pref_delay_default),
+	click(pref_click_default),
+	stroke_click(pref_stroke_click_default)
 {}
 
 bool PrefDB::write() const {

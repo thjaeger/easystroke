@@ -12,6 +12,8 @@ void usage() {}
 #include <set>
 #include <iostream>
 
+Glib::ustring get_button_text(ButtonInfo &bi);
+
 Prefs::Prefs(Win *parent_) : good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected)) {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_delay;
 	parent->widgets->get_widget("button_add_exception", add_exception);
@@ -19,6 +21,8 @@ Prefs::Prefs(Win *parent_) : good_state(true), parent(parent_), q(sigc::mem_fun(
 	parent->widgets->get_widget("button_default_delay", button_default_delay);
 	parent->widgets->get_widget("button_default_p", button_default_p);
 	parent->widgets->get_widget("button_remove_exception", remove_exception);
+	parent->widgets->get_widget("combo_click", click);
+	parent->widgets->get_widget("combo_stroke_click", stroke_click);
 	parent->widgets->get_widget("combo_trace", trace);
 	parent->widgets->get_widget("label_button", blabel);
 	parent->widgets->get_widget("treeview_exceptions", tv);
@@ -34,6 +38,12 @@ Prefs::Prefs(Win *parent_) : good_state(true), parent(parent_), q(sigc::mem_fun(
 
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
+
+	click->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_click_changed));
+	show_click();
+
+	stroke_click->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_stroke_click_changed));
+	show_stroke_click();
 
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
 	trace->set_active(prefs().trace.get());
@@ -51,13 +61,7 @@ Prefs::Prefs(Win *parent_) : good_state(true), parent(parent_), q(sigc::mem_fun(
 		Gtk::HBox *hbox_experimental;
 	       	parent->widgets->get_widget("hbox_experimental", hbox_experimental);
 		hbox_experimental->hide();
-	} else {
-		Gtk::Frame *frame_click;
-	       	parent->widgets->get_widget("frame_click", frame_click);
-		frame_click->hide();
-
 	}
-
 	set_button_label();
 
 	RPrefEx exceptions(prefs().exceptions);
@@ -88,6 +92,149 @@ void Prefs::write() {
 		dialog.run();
 	}
 }
+
+class SelectButton : public Gtk::Dialog {
+public:
+	SelectButton(Gtk::Window& parent) :
+		Gtk::Dialog("Select Button", parent, true),
+		event(0),
+		hbox(false, 12),
+		image(Gtk::Stock::DIALOG_INFO, Gtk::ICON_SIZE_DIALOG),
+		label("Please press the button that you want to be used for gestures in the box below.  You can also hold down modifiers.")
+	{
+		get_vbox()->set_spacing(10);
+		get_vbox()->pack_start(hbox);
+		hbox.pack_start(image);
+		label.set_line_wrap();
+		label.set_size_request(256,-1);
+		hbox.pack_start(label);
+		get_vbox()->pack_start(events);
+		events.set_events(Gdk::BUTTON_PRESS_MASK);
+		Glib::RefPtr<Gdk::Pixbuf> pb = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB,true,8,384,256);
+		pb->fill(0x808080ff);
+		WIDGET(Gtk::Image, box, pb);
+		events.add(box);
+		events.signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
+		add_button(Gtk::Stock::CANCEL,1);
+		show_all_children();
+	}
+	bool run2() {
+		send(P_SUSPEND_GRAB);
+		int response = run();
+		send(P_RESTORE_GRAB);
+		return response == Gtk::RESPONSE_NONE;
+	}
+	GdkEventButton *event;
+private:
+	bool on_button_press(GdkEventButton *ev) {
+		event_ = *ev;
+		event = &event_;
+		hide();
+		return true;
+	}
+	GdkEventButton event_;
+	Gtk::HBox hbox;
+	Gtk::Image image;
+	Gtk::Label label;
+	Gtk::EventBox events;
+};
+
+void Prefs::on_select_button() {
+	SelectButton sb(parent->get_window());
+	if (!sb.run2())
+		return;
+	{
+		Ref<ButtonInfo> ref(prefs().button);
+		ref->button = sb.event->button;
+		ref->state = sb.event->state;
+	}
+	send(P_REGRAB);
+	set_button_label();
+	write();
+}
+
+bool set_by_me = false; //TODO: Come up with something better
+
+void Prefs::show_click() {
+	Ref<ButtonInfo> ref(prefs().click);
+	if ((int)ref->button <= 0) {
+		set_by_me = true;
+		click->set_active(-ref->button);
+		set_by_me = false;
+		return;
+	}
+	click->set_title(get_button_text(*ref));
+}
+
+void Prefs::on_click_changed() {
+	if (set_by_me)
+		return;
+	int n = click->get_active_row_number();
+	if (n <= 1) {
+		Ref<ButtonInfo> ref(prefs().click);
+		ref->state = 0;
+		ref->button = -n;
+		return;
+	}
+
+	SelectButton sb(parent->get_window());
+	if (sb.run2()) {
+		Ref<ButtonInfo> ref(prefs().click);
+		ref->button = sb.event->button;
+		ref->state = sb.event->state;
+	}
+	show_click();
+}
+
+void Prefs::show_stroke_click() {
+	Ref<ButtonInfo> ref(prefs().stroke_click);
+	if ((int)ref->button <= 0) {
+		set_by_me = true;
+		stroke_click->set_active(1+ref->button);
+		set_by_me = false;
+		return;
+	}
+	if (ref->state == 0 && ref->button <= 3) {
+		set_by_me = true;
+		stroke_click->set_active(1+ref->button);
+		set_by_me = false;
+		return;
+	}
+	if (ref->state == 0 && (ref->button == 8 || ref->button == 9)) {
+		set_by_me = true;
+		stroke_click->set_active(ref->button-3);
+		set_by_me = false;
+		return;
+	}
+	stroke_click->set_title(get_button_text(*ref));
+}
+
+void Prefs::on_stroke_click_changed() {
+	if (set_by_me)
+		return;
+	int n = stroke_click->get_active_row_number();
+	if (n <= 4) {
+		Ref<ButtonInfo> ref(prefs().stroke_click);
+		ref->state = 0;
+		ref->button = n-1;
+		return;
+	}
+	if (n == 5 || n == 6) {
+		Ref<ButtonInfo> ref(prefs().stroke_click);
+		ref->state = 0;
+		ref->button = n+3;
+		return;
+	}
+
+	SelectButton sb(parent->get_window());
+	if (sb.run2()) {
+		Ref<ButtonInfo> ref(prefs().stroke_click);
+		ref->button = sb.event->button;
+		ref->state = sb.event->state;
+	}
+	show_stroke_click();
+}
+
 
 void Prefs::on_trace_changed() {
 	TraceType type = (TraceType) trace->get_active_row_number();
@@ -168,68 +315,8 @@ cleanup:
 }
 
 
-class SelectButton : public Gtk::Dialog {
-public:
-	SelectButton(Gtk::Window& parent) :
-		Gtk::Dialog("Select Button", parent, true),
-		event(0),
-		hbox(false, 12),
-		image(Gtk::Stock::DIALOG_INFO, Gtk::ICON_SIZE_DIALOG),
-		label("Please press the button that you want to be used for gestures in the box below.  You can also hold down modifiers.")
-	{
-		get_vbox()->set_spacing(10);
-		get_vbox()->pack_start(hbox);
-		hbox.pack_start(image);
-		label.set_line_wrap();
-		label.set_size_request(256,-1);
-		hbox.pack_start(label);
-		get_vbox()->pack_start(events);
-		events.set_events(Gdk::BUTTON_PRESS_MASK);
-		Glib::RefPtr<Gdk::Pixbuf> pb = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB,true,8,384,256);
-		pb->fill(0x808080ff);
-		WIDGET(Gtk::Image, box, pb);
-		events.add(box);
-		events.signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
-		add_button(Gtk::Stock::CANCEL,1);
-		show_all_children();
-	}
-	bool run2() {
-		send(P_SUSPEND_GRAB);
-		int response = run();
-		send(P_RESTORE_GRAB);
-		return response == Gtk::RESPONSE_NONE;
-	}
-	GdkEventButton *event;
-private:
-	bool on_button_press(GdkEventButton *ev) {
-		event_ = *ev;
-		event = &event_;
-		hide();
-		return true;
-	}
-	GdkEventButton event_;
-	Gtk::HBox hbox;
-	Gtk::Image image;
-	Gtk::Label label;
-	Gtk::EventBox events;
-};
 
-void Prefs::on_select_button() {
-	SelectButton sb(parent->get_window());
-	if (!sb.run2())
-		return;
-	{
-		Ref<ButtonInfo> ref(prefs().button);
-		ref->button = sb.event->button;
-		ref->state = sb.event->state;
-	}
-	send(P_REGRAB);
-	set_button_label();
-	write();
-}
-
-
-void Prefs::set_button_label() {
+Glib::ustring get_button_text(ButtonInfo &bi) {
 	struct {
 		const guint mask;
 		const char *name;
@@ -244,16 +331,19 @@ void Prefs::set_button_label() {
 		{Mod5Mask, "Mod5"}
 	};
 	int n_modnames = 8;
-
-	Ref<ButtonInfo> ref(prefs().button);
 	char button[16];
-	sprintf(button, "Button %d", ref->button);
+	sprintf(button, "Button %d", bi.button);
 	Glib::ustring str;
 	for (int i = 0; i < n_modnames; i++)
-		if (ref->state & modnames[i].mask) {
+		if (bi.state & modnames[i].mask) {
 			str += modnames[i].name;
 			str += " + ";
 		}
-	str += button;
-	blabel->set_text(str);
+	return str + button;
+}
+
+void Prefs::set_button_label() {
+
+	Ref<ButtonInfo> ref(prefs().button);
+	blabel->set_text(get_button_text(*ref));
 }
