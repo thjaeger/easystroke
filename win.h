@@ -2,7 +2,6 @@
 #define __WIN_H__
 #include "stroke.h"
 #include <gtkmm.h>
-#include <libglademm.h>
 #include "queue.h"
 
 class Actions;
