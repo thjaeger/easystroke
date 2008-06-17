@@ -64,8 +64,8 @@ public:
 	void fake_button();
 	void ignore(int b);
 	void grab(bool grab = true) { State s = current; s.grab = grab; set(s); }
-	void grab_all(sigc::slot<void> before_, sigc::slot<void> after_) { 
-		State s = current; s.all = true; set(s); 
+	void grab_all(sigc::slot<void> before_, sigc::slot<void> after_) {
+		State s = current; s.all = true; set(s);
 		before = before_;
 		after = after_;
 	}

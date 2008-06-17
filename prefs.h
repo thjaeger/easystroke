@@ -49,7 +49,7 @@ private:
 	Glib::RefPtr<Gtk::ListStore> tm;
 	Gtk::TreeView* tv;
 
-	Gtk::ComboBox *trace; 
+	Gtk::ComboBox *trace;
 	Gtk::ComboBoxText *click, *stroke_click;
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton* spin_delay;

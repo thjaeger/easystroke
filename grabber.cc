@@ -133,25 +133,25 @@ void Grabber::set(State s) {
 	}
 	if (old_goal == ALL)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-	if (old_goal == XI) 
+	if (old_goal == XI)
 		for (int i = 0; i < xi_devs_n; i++)
 			XUngrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT);
 	if (new_goal == BUTTON) {
-		ENSURE(!XGrabButton(dpy, button, state, ROOT, False, 
-					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask, 
+		ENSURE(!XGrabButton(dpy, button, state, ROOT, False,
+					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeAsync, GrabModeAsync, None, None))
 		for (int i = 0; i < xi_devs_n; i++)
-			ENSURE(xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, button, state, 
-						NULL, ROOT, False, xi_devs[i]->button_events_n, xi_devs[i]->button_events, 
+			ENSURE(xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, button, state,
+						NULL, ROOT, False, xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 						GrabModeAsync, GrabModeAsync))
 	}
 	if (new_goal == ALL)
-		ENSURE(!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, 
+		ENSURE(!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False,
 					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
 	if (new_goal == XI)
 		for (int i = 0; i < xi_devs_n; i++)
-			ENSURE(xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False, 
-						xi_devs[i]->button_events_n, xi_devs[i]->button_events, 
+			ENSURE(xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False,
+						xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 						GrabModeAsync, GrabModeAsync))
 }
 #undef ENSURE

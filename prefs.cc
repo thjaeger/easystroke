@@ -13,9 +13,9 @@ void usage() {}
 
 Glib::ustring get_button_text(ButtonInfo &bi);
 
-Prefs::Prefs(Win *parent_) : 
+Prefs::Prefs(Win *parent_) :
 	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected)),
-	have_last_click(false), have_last_stroke_click(false) 
+	have_last_click(false), have_last_stroke_click(false)
 {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_delay;
 	parent->widgets->get_widget("button_add_exception", add_exception);
