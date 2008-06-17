@@ -9,13 +9,13 @@ TARGETS  = easystroke
 LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --libs`
 
 LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --libs` /usr/lib/libboost_serialization.a
-INCLUDES = 
 
 BINARY   = easystroke
 
 CCFILES  = $(wildcard *.cc)
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) dsimple.o gui.o
 DEPFILES = $(wildcard *.Po)
+GENFILES = gui.gb gui.c
 
 all: $(TARGETS)
 
@@ -25,7 +25,7 @@ clena:	clean
 
 clean:
 	$(MAKE) -C cellrenderertk clean
-	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) gui.gb gui.c gui.o
+	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES)
 
 include $(DEPFILES)
 
@@ -39,10 +39,10 @@ static: $(OFILES)
 	strip -s $(BINARY)
 
 stroke.o: stroke.cc
-	$(CXX) $(CXXFLAGS) $(AOFLAGS) $(INCLUDES) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.cc
-	$(CXX) $(CXXFLAGS) $(OFLAGS) $(INCLUDES) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 gui.gb: gui.glade
 	gtk-builder-convert gui.glade gui.gb
