@@ -10,9 +10,13 @@
 enum TraceType { TraceStandard, TraceShape, TraceNone };
 const int trace_n = 3;
 
+#define SPECIAL_DEFAULT 1
+#define SPECIAL_IGNORE 2
+
 struct ButtonInfo {
 	guint button;
 	guint state;
+	int special;
 	void press();
 	void release();
 private:
@@ -20,8 +24,11 @@ private:
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		ar & button;
 		ar & state;
+		if (version == 0) return;
+		ar & special;
 	}
 };
+BOOST_CLASS_VERSION(ButtonInfo, 1)
 
 extern const double pref_p_default;
 extern const int pref_delay_default;

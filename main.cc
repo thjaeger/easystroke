@@ -394,15 +394,17 @@ void Main::run() {
 					if (grabber->xinput) {
 						if (!emulate)
 							emulate_info = prefs().stroke_click.get();
-						if (emulate_info.button == 0)
+						if (emulate_info.special == SPECIAL_IGNORE)
 							break;
 						trace->end();
 						cur.reset();
-						if (emulate_info.button == -1)
+						if (emulate_info.special == SPECIAL_DEFAULT)
 							break;
 						for (unsigned int i = 1; i <= 5; i++)
 							if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
 								XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+						if (grabber->button > 5)
+							XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 						if (emulate_grabbed) {
 							XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 							emulate_grabbed = false;

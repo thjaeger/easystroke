@@ -164,11 +164,9 @@ void Grabber::get_button() {
 
 void Grabber::fake_button() {
 	ButtonInfo bi = prefs().click.get();
-	int b = bi.button;
-	if ((int)b == -1)
+	if (bi.special == SPECIAL_IGNORE)
 		return;
-	if (b == 0)
-		b = button;
+	int b = (bi.special == SPECIAL_DEFAULT) ? button : bi.button;
 	suspend();
 	bi.press();
 	XTestFakeButtonEvent(dpy, b, True, CurrentTime);

@@ -11,9 +11,9 @@
 #include <X11/Xlib.h>
 
 const double pref_p_default = 0.5;
-const ButtonInfo pref_button_default = { Button2, 0 };
-const ButtonInfo pref_click_default = { 0, 0 };
-const ButtonInfo pref_stroke_click_default = { -1, 0 };
+const ButtonInfo pref_button_default = { Button2, 0, 0 };
+const ButtonInfo pref_click_default = { 0, 0, SPECIAL_DEFAULT };
+const ButtonInfo pref_stroke_click_default = { 0, 0, SPECIAL_DEFAULT };
 const int pref_delay_default = 0;
 
 PrefDB::PrefDB() :

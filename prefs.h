@@ -1,6 +1,7 @@
 #ifndef __PREFS_H__
 #define __PREFS_H__
 #include "queue.h"
+#include "prefdb.h"
 
 #include <gtkmm.h>
 
@@ -48,10 +49,14 @@ private:
 	Glib::RefPtr<Gtk::ListStore> tm;
 	Gtk::TreeView* tv;
 
-	Gtk::ComboBox *trace, *click, *stroke_click;
+	Gtk::ComboBox *trace; 
+	Gtk::ComboBoxText *click, *stroke_click;
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton* spin_delay;
 	Gtk::Label* blabel;
+
+	ButtonInfo last_click, last_stroke_click;
+	bool have_last_click, have_last_stroke_click;
 };
 
 #endif
