@@ -27,8 +27,6 @@ typedef struct _XButtonInfo2 {
 
 bool Grabber::init_xi() {
 	xi_devs_n = 0;
-	if (!experimental)
-		return false;
 	int nMajor, nFEV, nFER;
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
