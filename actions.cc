@@ -22,7 +22,8 @@ Actions::Actions(Win *p) :
 	good_state(true),
 	parent(p),
 	tv(0),
-	editing_new(false)
+	editing_new(false),
+	editing(false)
 {
 	parent->widgets->get_widget("treeview_actions", tv);
 
@@ -81,6 +82,7 @@ Actions::Actions(Win *p) :
 	Gtk::CellRendererText *name = dynamic_cast<Gtk::CellRendererText *>(tv->get_column_cell_renderer(n-1));
 	name->property_editable() = true;
 	name->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_name_edited));
+	name->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
 	Gtk::TreeView::Column *col_name = tv->get_column(n-1);
 	col_name->set_sort_column(cols.name);
 
@@ -95,6 +97,7 @@ Actions::Actions(Win *p) :
 	type_renderer.property_text_column() = 0;
 	type_renderer.property_has_entry() = false;
 	type_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_type_edited));
+	type_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
 
 	n = tv->append_column("Type", type_renderer);
 	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
@@ -122,6 +125,7 @@ void Actions::write(ActionDBRef& ref) {
 }
 
 void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new_type) {
+	editing = false;
 	tv->grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
 	Glib::ustring old_type = row[cols.type];
@@ -311,13 +315,14 @@ void Actions::on_button_new() {
 	focus(path.to_string(), 1, true);
 }
 
-struct Focus {
-	Gtk::TreeView* tv;
+struct Actions::Focus {
+	Actions *parent;
 	Gtk::TreePath path;
 	Gtk::TreeViewColumn* col;
 	bool edit;
 	bool focus() {
-		tv->set_cursor(path, *col, edit);
+		if (!parent->editing)
+			parent->tv->set_cursor(path, *col, edit);
 		delete this;
 		return false;
 	}
@@ -326,7 +331,7 @@ struct Focus {
 void Actions::focus(const Glib::ustring& path, int col, bool edit) {
 	// More C++ closure fun.
 	Focus* focus = new Focus;
-	focus->tv = tv;
+	focus->parent = this;
 	focus->path = Gtk::TreePath(path);
 	focus->col = tv->get_column(col);
 	focus->edit = edit;
@@ -334,6 +339,7 @@ void Actions::focus(const Glib::ustring& path, int col, bool edit) {
 }
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
+	editing = false;
 	Gtk::TreeRow row(*tm->get_iter(path));
 	row[cols.name] = new_text;
 	{
@@ -346,6 +352,7 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 }
 
 void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_cmd) {
+	editing = false;
 	Gtk::TreeRow row(*tm->get_iter(path));
 	ActionDBRef ref(actions());
 	row[cols.arg] = new_cmd;
@@ -359,6 +366,7 @@ void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_
 }
 
 void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
+	editing = false;
 	Gtk::TreeRow row(*tm->get_iter(path_string));
 	if (IS_KEY(row[cols.type])) {
 		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode, row[cols.type] == KEY_XTEST);
@@ -390,6 +398,10 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		(*ref)[row[cols.id]].action = boost::static_pointer_cast<Action>(ignore);
 		write(ref);
 	}
+}
+
+void Actions::on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
+	editing = true;
 }
 
 void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {

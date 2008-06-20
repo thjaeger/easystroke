@@ -21,6 +21,7 @@ private:
 	void on_type_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode);
 	void on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
+	void on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
 	class OnStroke;
 	Gtk::TreeRow get_selected_row();
@@ -53,6 +54,9 @@ private:
 		Gtk::TreeModelColumn<Glib::ustring> type;
 	};
 	Single type;
+
+	struct Focus;
+
 	Glib::RefPtr<Gtk::ListStore> type_store;
 
 	Gtk::CellRendererCombo type_renderer;
@@ -61,6 +65,7 @@ private:
 	Gtk::Button *button_record, *button_delete;
 
 	bool editing_new;
+	bool editing;
 };
 
 #endif
