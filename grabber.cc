@@ -53,7 +53,8 @@ bool Grabber::init_xi() {
 		if (!has_button)
 			continue;
 
-		printf("Opening Device %s...\n", dev->name);
+		if (verbosity >= 1)
+			printf("Opening Device %s...\n", dev->name);
 
 		XiDevice *xi_dev = new XiDevice;
 		xi_dev->dev = XOpenDevice(dpy, dev->id);
