@@ -9,5 +9,8 @@ Homepage: http://easystroke.sourceforge.net
 Package: easystroke
 Architecture: any
 Depends: libboost-serialization1.34.1 | libboost-serialization1.35.0, libgtkmm-2.4-1c2a, libxext6
-Description: <insert up to 60 chars description>
- <insert long description, indented with spaces>
+Suggests: xautomation, cellwriter
+Description: gesture recognition program
+ Easystroke is a gesture-recognition application for X11. It aims to be highly
+ configurable while at the same time providing an intuitive user interface. It
+ was designed with a Tablet PC in mind, but it also works well with a mouse.
