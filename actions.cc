@@ -88,7 +88,8 @@ Actions::Actions(Win *p) :
 
 	type_store = Gtk::ListStore::create(type);
 	(*(type_store->append()))[type.type] = COMMAND;
-//	(*(type_store->append()))[type.type] = KEY;
+	if (experimental)
+		(*(type_store->append()))[type.type] = KEY;
 	(*(type_store->append()))[type.type] = KEY_XTEST;
 	(*(type_store->append()))[type.type] = IGNORE;
 	(*(type_store->append()))[type.type] = SCROLL;
