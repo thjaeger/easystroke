@@ -2,7 +2,7 @@ Source: easystroke
 Section: unknown
 Priority: extra
 Maintainer: Thomas Jaeger <ThJaeger@gmail.com>
-Build-Depends: debhelper (>= 6), libboost-serialization-dev, libgtkmm-2.4-dev, libxtst-dev, libxi-dev, libxrandr-dev
+Build-Depends: debhelper (>= 6), libboost-serialization-dev, libgtkmm-2.4-dev, libxtst-dev, libxi-dev, libxrandr-dev, libxml2-utils
 Standards-Version: 3.7.3
 Homepage: http://easystroke.sourceforge.net
 
