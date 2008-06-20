@@ -7,8 +7,8 @@
 #include <iostream>
 #include <sstream>
 
-#define KEY "Key"
-#define KEY_XTEST "Key (XTest)"
+#define KEY "Key (SendKey)"
+#define KEY_XTEST "Key"
 #define COMMAND "Command"
 #define SCROLL "Scroll"
 #define IGNORE "Ignore"
@@ -88,7 +88,7 @@ Actions::Actions(Win *p) :
 
 	type_store = Gtk::ListStore::create(type);
 	(*(type_store->append()))[type.type] = COMMAND;
-	(*(type_store->append()))[type.type] = KEY;
+//	(*(type_store->append()))[type.type] = KEY;
 	(*(type_store->append()))[type.type] = KEY_XTEST;
 	(*(type_store->append()))[type.type] = IGNORE;
 	(*(type_store->append()))[type.type] = SCROLL;
