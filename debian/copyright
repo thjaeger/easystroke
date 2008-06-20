@@ -1,0 +1,20 @@
+This package was debianized by Thomas Jaeger <ThJaeger@gmail.com> on
+Fri, 20 Jun 2008 03:34:06 -0400.
+
+It was downloaded from <http://easystroke.sourceforge.net>
+
+Upstream Author(s): 
+
+    Thomas Jaeger <ThJaeger@gmail.com
+
+Copyright: 
+
+    Copyright (C) 2008 Thomas Jaeger
+    <likewise for another author>
+
+License:
+
+    <Put the license of the package here indented by 4 spaces>
+
+The Debian packaging is (C) 2008, Thomas Jaeger <ThJaeger@gmail.com> and
+is licensed under the GPL, see `/usr/share/common-licenses/GPL'.

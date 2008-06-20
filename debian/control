@@ -1,0 +1,13 @@
+Source: easystroke
+Section: unknown
+Priority: extra
+Maintainer: Thomas Jaeger <ThJaeger@gmail.com>
+Build-Depends: debhelper (>= 6), g++, libboost-serialization-dev, libgtkmm-2.4-dev, libxtst-dev, libxi-dev, libxrandr-dev
+Standards-Version: 3.7.3
+Homepage: http://easystroke.sourceforge.net
+
+Package: easystroke
+Architecture: any
+Depends: libboost-serialization1.34.1 | libboost-serialization1.35.0, libgtkmm-2.4-1c2a, libxext6
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
