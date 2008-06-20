@@ -1,5 +1,5 @@
 OFLAGS   = -Os
-CXXFLAGS = -Wall `pkg-config gtkmm-2.4 libglademm-2.4 --cflags` $(OFLAGS)
+CXXFLAGS = -Wall `pkg-config gtkmm-2.4 --cflags` $(OFLAGS)
 CFLAGS   = -Wall `pkg-config gtk+-2.0 --cflags` $(OFLAGS)
 DEFINES  = 
 
