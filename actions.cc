@@ -341,11 +341,11 @@ void Actions::focus(int id, int col, bool edit) {
 	focus->id = id;
 	focus->col = tv->get_column(col);
 	focus->edit = edit;
+	editing = false;
 	Glib::signal_timeout().connect(sigc::mem_fun(*focus, &Focus::focus), 0, Glib::PRIORITY_LOW);
 }
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
-	editing = false;
 	Gtk::TreeRow row(*tm->get_iter(path));
 	{
 		ActionDBRef ref(actions());
@@ -358,7 +358,6 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 }
 
 void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_cmd) {
-	editing = false;
 	Gtk::TreeRow row(*tm->get_iter(path));
 	ActionDBRef ref(actions());
 	row[cols.arg] = new_cmd;
@@ -372,7 +371,6 @@ void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_
 }
 
 void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
-	editing = false;
 	Gtk::TreeRow row(*tm->get_iter(path_string));
 	if (IS_KEY(row[cols.type])) {
 		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode, row[cols.type] == KEY_XTEST);
