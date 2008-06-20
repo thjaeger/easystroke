@@ -27,7 +27,7 @@ private:
 	Gtk::TreeRow get_selected_row();
 
 	void update_arg(Glib::ustring);
-	void focus(const Glib::ustring& path, int col, bool edit);
+	void focus(int id, int col, bool edit);
 
 	bool good_state;
 	void write(ActionDBRef&);
