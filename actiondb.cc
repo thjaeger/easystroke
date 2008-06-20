@@ -22,7 +22,8 @@ BOOST_CLASS_EXPORT(SendKey)
 BOOST_CLASS_EXPORT(Scroll)
 BOOST_CLASS_EXPORT(Ignore)
 
-template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {}
+template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {
+}
 
 template<class Archive> void Command::serialize(Archive & ar, const unsigned int version) {
 	ar & boost::serialization::base_object<Action>(*this);
@@ -56,6 +57,8 @@ template<class Archive> void StrokeSet::serialize(Archive & ar, const unsigned i
 template<class Archive> void StrokeInfo::serialize(Archive & ar, const unsigned int version) {
 	ar & strokes;
 	ar & action;
+	if (version == 0) return;
+	ar & name;
 }
 
 using namespace std;
@@ -65,11 +68,21 @@ bool Command::run() {
 	return true;
 }
 
-inline ostream& operator<<(ostream& output, const Action& c) {
-	return c.show(output);
-}
+ActionDB::ActionDB() : filename(config_dir+"actions"), current_id(0) {}
 
-ActionDB::ActionDB() : filename(config_dir+"actions") {}
+template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
+	if (version >= 1) {
+		ar & strokes;
+		current_id = strokes.size();
+		return;
+	}
+	std::map<std::string, StrokeInfo> strokes2;
+	ar & strokes2;
+	for (std::map<std::string, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i) {
+		i->second.name = i->first;
+		add(i->second);
+	}
+}
 
 void ActionDB::read() {
 	try {
@@ -98,46 +111,25 @@ bool ActionDB::write() const {
 	}
 }
 
-bool ActionDB::remove(const string& name) {
-	if (!has(name))
-		return false;
-	strokes.erase(name);
-	return true;
+bool ActionDB::remove(int id) {
+	return strokes.erase(id);
 }
 
-bool ActionDB::rename(const string& name, const string& name2) {
-	if (!has(name))
-		return false;
-	if (has(name2))
-		return false;
-	strokes[name2] = strokes[name];
-	strokes.erase(name);
-	write();
-	return true;
+int ActionDB::add(StrokeInfo &si) {
+	strokes[current_id] = si;
+	return current_id++;
 }
 
-bool ActionDB::addCmd(RStroke stroke, const string& name, const string& cmd) {
-	if (has(name))
-		return false;
-	strokes[name].strokes.clear();
+
+int ActionDB::addCmd(RStroke stroke, const string& name, const string& cmd) {
+	StrokeInfo si;
 	if (stroke)
-		strokes[name].strokes.insert(stroke);
-	strokes[name].action = Command::create(cmd);
-	write();
-	return true;
+		si.strokes.insert(stroke);
+	si.name = name;
+	si.action = Command::create(cmd);
+	return add(si);
 }
 
-bool ActionDB::changeCmd(const string& name, const string& cmd) {
-	RCommand c = boost::dynamic_pointer_cast<Command>(strokes[name].action);
-	if (c && c->cmd == cmd)
-		return true;
-	if (c)
-		c->cmd = cmd;
-	else
-		strokes[name].action = Command::create(cmd);
-	write();
-	return true;
-}
 
 int ActionDB::nested_size() const {
 	int size = 0;
@@ -157,11 +149,12 @@ Ranking ActionDB::handle(RStroke s) {
 		if (!i.stroke())
 			continue;
 		double score = Stroke::compare(s, i.stroke());
-		r.r.insert(pair<double, pair<string, RStroke> >(score, pair<string, RStroke>(i.name(), i.stroke())));
+		r.r.insert(pair<double, pair<std::string, RStroke> >(score, pair<std::string, RStroke>(strokes[i.id()].name, i.stroke())));
 		if (score >= r.score) {
 			r.score = score;
 			if (score >= 0.7) {
-				r.name = i.name();
+				r.id = i.id();
+				r.name = strokes[r.id].name;
 				r.action = i.action();
 				success = true;
 			}

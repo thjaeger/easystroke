@@ -4,6 +4,8 @@
 #include <map>
 #include <set>
 #include <boost/serialization/access.hpp>
+#include <boost/serialization/version.hpp>
+#include <boost/serialization/split_member.hpp>
 #include <iostream>
 
 #include "stroke.h"
@@ -27,7 +29,6 @@ class Action {
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
 	virtual bool run() = 0;
-        virtual std::ostream& show(std::ostream& output) const { return output; }
 	virtual ~Action() {};
 };
 
@@ -108,20 +109,23 @@ public:
 	StrokeInfo() {};
 	StrokeSet strokes;
 	RAction action;
+	std::string name;
 };
+BOOST_CLASS_VERSION(StrokeInfo, 1)
 
 
 struct Ranking {
 	RStroke stroke;
 	RAction action;
 	double score;
+	int id;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
 };
 
 class StrokeIterator {
-	const std::map<std::string, StrokeInfo> &names;
-	std::map<std::string, StrokeInfo>::const_iterator i;
+	const std::map<int, StrokeInfo> &ids;
+	std::map<int, StrokeInfo>::const_iterator i;
 	const StrokeSet *strokes;
 	StrokeSet::const_iterator j;
 	void init_j() {
@@ -132,7 +136,7 @@ class StrokeIterator {
 		while (1) {
 			while (j == strokes->end()) {
 				i++;
-				if (i == names.end())
+				if (i == ids.end())
 					return;
 				init_j();
 			}
@@ -145,21 +149,21 @@ public:
 	// This is why C++ sucks balls. It's really easy to shoot yourself in
 	// the foot even if you know what you're doing.  In this case I forgot
 	// the `&'.  Took me 2 hours to figure out what was going wrong.
-	StrokeIterator(const std::map<std::string, StrokeInfo> &names_) : names(names_) {
-		i = names.begin();
-		if (i == names.end())
+	StrokeIterator(const std::map<int, StrokeInfo> &ids_) : ids(ids_) {
+		i = ids.begin();
+		if (i == ids.end())
 			return;
 		init_j();
 		next();
 	}
 	operator bool() {
-		return i != names.end() && j != strokes->end();
+		return i != ids.end() && j != strokes->end();
 	}
 	void operator++(int) {
 		j++;
 		next();
 	}
-	const std::string& name() {
+	const int& id() {
 		return i->first;
 	}
 	// Guaranteed to be dereferencable
@@ -174,40 +178,42 @@ public:
 
 class ActionDB {
 	friend class boost::serialization::access;
-	std::map<std::string, StrokeInfo> strokes;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
+	std::map<int, StrokeInfo> strokes;
+	template<class Archive> void load(Archive & ar, const unsigned int version);
+	template<class Archive> void save(Archive & ar, const unsigned int version) const {
 		ar & strokes;
 	}
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
+
 	std::string filename;
+	int current_id;
+	int add(StrokeInfo &);
 public:
 	ActionDB();
-	typedef std::map<std::string, StrokeInfo>::const_iterator const_iterator;
+	typedef std::map<int, StrokeInfo>::const_iterator const_iterator;
 	const const_iterator begin() const { return strokes.begin(); }
 	const const_iterator end() const { return strokes.end(); }
 	StrokeIterator strokes_begin() { return StrokeIterator(strokes); }
 
-	StrokeInfo &operator[](const std::string &name) { return strokes[name]; }
+	StrokeInfo &operator[](int id) { return strokes[id]; }
 
 	void read();
 	bool write() const;
 
-	bool has(const std::string& name) const { return strokes.find(name) != strokes.end(); }
-	bool remove(const std::string& name);
-	bool rename(const std::string& name, const std::string& name2);
+	int size() const { return strokes.size(); }
+	bool remove(int id);
 	int nested_size() const;
-	bool addCmd(RStroke, const std::string& name, const std::string& cmd);
-	bool changeCmd(const std::string& name, const std::string& cmd);
+	int addCmd(RStroke, const std::string& name, const std::string& cmd);
 	Ranking handle(RStroke);
 };
+BOOST_CLASS_VERSION(ActionDB, 1)
 
 class LActionDB : public Lock<ActionDB> {
 public:
 	void read() { Ref<ActionDB> ref(*this); ref->read(); }
 	Ranking handle(RStroke s) { Ref<ActionDB> ref(*this); return ref->handle(s); }
-	bool remove(const std::string& name) { Ref<ActionDB> ref(*this); return ref->remove(name); }
-	bool rename(const std::string& name, const std::string& name2) { Ref<ActionDB> ref(*this); return ref->rename(name, name2); }
-	bool addCmd(RStroke s, const std::string& name, const std::string& cmd) { Ref<ActionDB> ref(*this); return ref->addCmd(s, name, cmd); }
-	bool changeCmd(const std::string& name, const std::string& cmd) { Ref<ActionDB> ref(*this); return ref->changeCmd(name, cmd); }
+	bool remove(int id) { Ref<ActionDB> ref(*this); return ref->remove(id); }
+	int addCmd(RStroke s, const std::string& name, const std::string& cmd) { Ref<ActionDB> ref(*this); return ref->addCmd(s, name, cmd); }
 };
 
 LActionDB& actions();
