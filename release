@@ -5,14 +5,36 @@ if [ "x$1" = "x" ]; then
 fi
 DIST=easystroke-$1
 echo $DIST
+
+mkdir upload
+
+# tar.gz
 darcs dist --dist-name=$DIST
-pushd /tmp
-tar -xzf ~/easystroke/$DIST.tar.gz
+mv $DIST.tar.gz upload
+
+# binary .gz
+mkdir build
+pushd build
+tar -xzf ../upload/$DIST.tar.gz
 cd $DIST
 make -j2 static
 mv easystroke $DIST
 gzip $DIST
+mv $DIST.gz ../../upload
 popd
-rsync -avP /tmp/$DIST/$DIST.gz $DIST.tar.gz thjaeger@frs.sourceforge.net:uploads/
-rm -R /tmp/$DIST
-rm $DIST.tar.gz
+rm -R build
+
+# .deb
+mkdir build
+pushd build
+tar -xzf ../upload/$DIST.tar.gz
+cd $DIST
+chmod +x debian/rules
+dpkg-buildpackage -rfakeroot -uc -us -j2
+cd ..
+mv *.deb ../upload
+popd
+rm -R build
+
+#rsync -avP upload/* thjaeger@frs.sourceforge.net:uploads/
+#rm -R upload
