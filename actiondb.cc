@@ -72,15 +72,19 @@ ActionDB::ActionDB() : filename(config_dir+"actions"), current_id(0) {}
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version >= 1) {
-		ar & strokes;
-		current_id = strokes.size();
+		std::map<int, StrokeInfo> strokes2;
+		ar & strokes2;
+		for (std::map<int, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i)
+			add(i->second);
 		return;
-	}
-	std::map<std::string, StrokeInfo> strokes2;
-	ar & strokes2;
-	for (std::map<std::string, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i) {
-		i->second.name = i->first;
-		add(i->second);
+	} else {
+		std::map<std::string, StrokeInfo> strokes2;
+		ar & strokes2;
+		for (std::map<std::string, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i) {
+			i->second.name = i->first;
+			add(i->second);
+		}
+		return;
 	}
 }
 
