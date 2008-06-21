@@ -1,4 +1,10 @@
-easystroke (0.1.1-1) unstable; urgency=low
+easystroke (0.1.1-2) hardy; urgency=low
+
+  * Minor packaging changes
+
+ -- Thomas Jaeger <ThJaeger@gmail.com>  Sat, 21 Jun 2008 13:03:55 -0400
+
+easystroke (0.1.1-1) hardy; urgency=low
 
   * Initial release
 
