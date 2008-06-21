@@ -83,6 +83,7 @@ Actions::Actions(Win *p) :
 	name->property_editable() = true;
 	name->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_name_edited));
 	name->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
+	name->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 	Gtk::TreeView::Column *col_name = tv->get_column(n-1);
 	col_name->set_sort_column(cols.name);
 
@@ -99,6 +100,7 @@ Actions::Actions(Win *p) :
 	type_renderer.property_has_entry() = false;
 	type_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_type_edited));
 	type_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
+	type_renderer.signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 
 	n = tv->append_column("Type", type_renderer);
 	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
@@ -126,59 +128,61 @@ void Actions::write(ActionDBRef& ref) {
 }
 
 void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new_type) {
-	editing = false;
 	tv->grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
 	Glib::ustring old_type = row[cols.type];
-	if (old_type == new_type)
-		return;
-#define IS_KEY(str) (str == KEY || str == KEY_XTEST)
-	bool both_keys = IS_KEY(new_type) && IS_KEY(old_type);
-	row[cols.type] = new_type;
-	int id = row[cols.id];
 	bool edit = true;
-	if (both_keys) {
-		ActionDBRef ref(actions());
-		RSendKey key = boost::dynamic_pointer_cast<SendKey>((*ref)[id].action);
-		if (key) {
-			key->xtest = row[cols.type] == KEY_XTEST;
-			write(ref);
-		}
-		edit = false;
+	if (old_type == new_type) {
+		edit = editing_new;
 	} else {
-		if (new_type == COMMAND) {
-			Glib::ustring cmd_save = row[cols.cmd_save];
-			row[cols.arg] = cmd_save;
-			if (cmd_save != "")
-				edit = false;
+#define IS_KEY(str) (str == KEY || str == KEY_XTEST)
+		bool both_keys = IS_KEY(new_type) && IS_KEY(old_type);
+		row[cols.type] = new_type;
+		int id = row[cols.id];
+		if (both_keys) {
+			ActionDBRef ref(actions());
+			RSendKey key = boost::dynamic_pointer_cast<SendKey>((*ref)[id].action);
+			if (key) {
+				key->xtest = row[cols.type] == KEY_XTEST;
+				write(ref);
+			}
+			edit = false;
+		} else {
+			if (new_type == COMMAND) {
+				Glib::ustring cmd_save = row[cols.cmd_save];
+				row[cols.arg] = cmd_save;
+				if (cmd_save != "")
+					edit = false;
 
-			ActionDBRef ref(actions());
-			(*ref)[id].action.reset();
-			write(ref);
+				ActionDBRef ref(actions());
+				(*ref)[id].action.reset();
+				write(ref);
+			}
+			if (old_type == COMMAND) {
+				row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
+				update_arg(new_type);
+			}
+			if (new_type == SCROLL) {
+				row[cols.arg] = "No Modifiers";
+				update_arg(new_type);
+				ActionDBRef ref(actions());
+				(*ref)[id].action = Scroll::create((Gdk::ModifierType)0);
+				write(ref);
+				edit = false;
+			}
+			if (new_type == IGNORE) {
+				row[cols.arg] = "No Modifiers";
+				update_arg(new_type);
+				ActionDBRef ref(actions());
+				(*ref)[id].action = Ignore::create((Gdk::ModifierType)0);
+				write(ref);
+				edit = false;
+			}
 		}
-		if (old_type == COMMAND) {
-			row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
-			update_arg(new_type);
-		}
-		if (new_type == SCROLL) {
-			row[cols.arg] = "No Modifiers";
-			update_arg(new_type);
-			ActionDBRef ref(actions());
-			(*ref)[id].action = Scroll::create((Gdk::ModifierType)0);
-			write(ref);
-			edit = false;
-		}
-		if (new_type == IGNORE) {
-			row[cols.arg] = "No Modifiers";
-			update_arg(new_type);
-			ActionDBRef ref(actions());
-			(*ref)[id].action = Ignore::create((Gdk::ModifierType)0);
-			write(ref);
-			edit = false;
-		}
+		row[cols.type] = new_type;
 	}
-	row[cols.type] = new_type;
-	tv->set_cursor(Gtk::TreePath(path), *tv->get_column(3), edit);
+	editing_new = false;
+	focus(row[cols.id], 3, edit);
 }
 
 void Actions::on_button_delete() {
@@ -354,7 +358,6 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 	}
 	row[cols.name] = new_text;
 	focus(row[cols.id], 2, editing_new);
-	editing_new = false;
 }
 
 void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_cmd) {
@@ -402,6 +405,10 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		(*ref)[row[cols.id]].action = boost::static_pointer_cast<Action>(ignore);
 		write(ref);
 	}
+}
+
+void Actions::on_something_editing_canceled() {
+	editing_new = false;
 }
 
 void Actions::on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {

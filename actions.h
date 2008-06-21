@@ -22,6 +22,7 @@ private:
 	void on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode);
 	void on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
+	void on_something_editing_canceled();
 	void on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
 	class OnStroke;
 	Gtk::TreeRow get_selected_row();
