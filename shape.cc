@@ -31,7 +31,8 @@ void Shape::draw(Point p, Point q) {
 	XGCValues gcv;
 	gcv.foreground = 0;
 	gcv.line_width = WIDTH;
-	GC gc = XCreateGC(dpy, pm, GCForeground | GCLineWidth, &gcv);
+	gcv.cap_style = CapRound;
+	GC gc = XCreateGC(dpy, pm, GCCapStyle | GCForeground | GCLineWidth, &gcv);
 	XFillRectangle(dpy, pm, gc, 0, 0, w, h);
 	XSetForeground(dpy, gc, 1);
 	XDrawLine(dpy, pm, gc, p.x-x, p.y-y, q.x-x, q.y-y);
