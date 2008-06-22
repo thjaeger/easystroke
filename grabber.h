@@ -53,11 +53,12 @@ private:
 			return NONE;
 		return s.grab ? BUTTON : NONE;
 	}
+	std::string get_wm_state(Window w);
 public:
 	Grabber();
 	void init(Window w, int depth);
 	bool has_wm_state(Window w);
-	void update(Window w) { grab(!RPrefEx(prefs().exceptions)->count(wins[w])); }
+	void update(Window w) { grab(!RPrefEx(prefs().exceptions)->count(get_wm_state(w))); }
 	void create(Window w);
 	void destroy(Window w) { wins.erase(w); }
 	void get_button();

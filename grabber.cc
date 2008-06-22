@@ -183,13 +183,18 @@ void Grabber::ignore(int b) {
 	set(s);
 }
 
-void Grabber::create(Window w) {
+std::string Grabber::get_wm_state(Window w) {
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
-		return;
-	wins[w] = ch.res_name;
+		return "";
+	std::string ans = ch.res_name;
 	XFree(ch.res_name);
 	XFree(ch.res_class);
+	return ans;
+}
+
+void Grabber::create(Window w) {
+	wins[w] = ""; // TODO: Make this a set
 	XSetWindowAttributes attr;
 	attr.event_mask = EnterWindowMask;
 	XChangeWindowAttributes(dpy, w, CWEventMask, &attr);
