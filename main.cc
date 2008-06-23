@@ -442,8 +442,10 @@ void Main::run() {
 				if (!cur)
 					break;
 				{
-					int state = ev.xbutton.state & (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask);
-					if (state & (state-1))
+					int state = ev.xbutton.state
+					       	& (Button1Mask|Button2Mask|Button3Mask|Button4Mask|Button5Mask)
+						& ~(1 << (ev.xbutton.button+7));
+					if (state)
 						break;
 				}
 				if (button_stroke) {
