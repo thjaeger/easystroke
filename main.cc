@@ -289,6 +289,9 @@ void Main::create_config_dir() {
 void Main::handle_stroke(int button) {
 	if (!button)
 		trace->end();
+	if (is_gesture && !cur->valid()) {
+		is_gesture = false;
+	}
 	if (!is_gesture && button) {
 		is_gesture = true;
 		cur->clear();
