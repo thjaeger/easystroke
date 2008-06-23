@@ -480,7 +480,6 @@ void Main::run() {
 				break;
 
 			case DestroyNotify:
-				grabber->destroy(ev.xdestroywindow.window);
 				break;
 			default:
 				if (randr && ev.type == event_basep) {

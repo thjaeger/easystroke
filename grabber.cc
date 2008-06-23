@@ -194,7 +194,6 @@ std::string Grabber::get_wm_state(Window w) {
 }
 
 void Grabber::create(Window w) {
-	wins[w] = ""; // TODO: Make this a set
 	XSetWindowAttributes attr;
 	attr.event_mask = EnterWindowMask;
 	XChangeWindowAttributes(dpy, w, CWEventMask, &attr);

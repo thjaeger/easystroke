@@ -1,7 +1,6 @@
 #ifndef __GRABBER_H__
 #define __GRABBER_H__
 #include "prefdb.h"
-#include <map>
 #include <string>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput.h>
@@ -30,7 +29,6 @@ private:
 	int xi_devs_n;
 	bool init_xi();
 
-	std::map<Window, std::string> wins;
 	State current;
 
 	sigc::slot<void> before;
@@ -60,7 +58,6 @@ public:
 	bool has_wm_state(Window w);
 	void update(Window w) { grab(!RPrefEx(prefs().exceptions)->count(get_wm_state(w))); }
 	void create(Window w);
-	void destroy(Window w) { wins.erase(w); }
 	void get_button();
 	void fake_button();
 	void ignore(int b);
