@@ -12,6 +12,7 @@ const int trace_n = 3;
 
 #define SPECIAL_DEFAULT 1
 #define SPECIAL_IGNORE 2
+#define SPECIAL_ACTION 3
 
 struct ButtonInfo {
 	guint button;

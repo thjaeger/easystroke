@@ -132,7 +132,7 @@ int ignore_button;
 class Main {
 	std::string parse_args_and_init_gtk(int argc, char **argv);
 	void create_config_dir();
-	void handle_stroke();
+	void handle_stroke(int button);
 	char* next_event();
 	void usage(char *me, bool good);
 
@@ -145,13 +145,14 @@ class Main {
 	int fdr;
 	int event_basep;
 	bool randr;
+	bool button_stroke;
 public:
 	Main(int argc, char **argv);
 	void run();
 	~Main();
 };
 
-Main::Main(int argc, char **argv) : gtk_thread(0), kit(0), trace(0), is_gesture(false) {
+Main::Main(int argc, char **argv) : gtk_thread(0), kit(0), trace(0), is_gesture(false), button_stroke(false) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("trefoil.svg");
@@ -285,15 +286,16 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
+void Main::handle_stroke(int button) {
+	if (!button)
+		trace->end();
+	if (!is_gesture && button) {
+		is_gesture = true;
+		cur->clear();
+	}
 
-void Main::handle_stroke() {
-	trace->end();
 	if (is_gesture) {
-		if (!cur->valid()) {
-			cur.reset();
-			return;
-		}
-		RStroke s = Stroke::create(*cur);
+		RStroke s = Stroke::create(*cur, button);
 		if (verbosity >= 3)
 			s->print();
 		if (gui) {
@@ -307,7 +309,8 @@ void Main::handle_stroke() {
 	} else {
 		grabber->fake_button();
 	}
-	cur.reset();
+	if (!button)
+		cur.reset();
 }
 
 char* Main::next_event() {
@@ -357,7 +360,7 @@ void Main::run() {
 			if (*ret == P_TIMEOUT) {
 				if (cur->size() != cur_size)
 					continue;
-				handle_stroke();
+				handle_stroke(0);
 			}
 			if (*ret == P_IGNORE) {
 				grabber->ignore(ignore_button);
@@ -370,7 +373,7 @@ void Main::run() {
 
 		switch(ev.type) {
 			case MotionNotify:
-				if (!cur)
+				if (!cur || button_stroke)
 					break;
 				Trace::Point p;
 				p.x = ev.xmotion.x;
@@ -390,39 +393,46 @@ void Main::run() {
 					send(P_IGNORE);
 					break;
 				}
-				if (cur || emulate) {
-					if (grabber->xinput) {
-						if (!emulate)
-							emulate_info = prefs().stroke_click.get();
-						if (emulate_info.special == SPECIAL_IGNORE)
-							break;
-						trace->end();
-						cur.reset();
-						if (emulate_info.special == SPECIAL_DEFAULT)
-							break;
-						for (unsigned int i = 1; i <= 5; i++)
-							if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
-								XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-						if (grabber->button > 5)
-							XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
-						if (emulate_grabbed) {
-							XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-							emulate_grabbed = false;
-						} else {
-							emulate_info.press();
-							grabber->grab_xi(true);
-							emulate = true;
-						}
-						XTestFakeButtonEvent(dpy, emulate_info.button, True, CurrentTime);
-
-					}
+				if (!cur && !emulate && !button_stroke) {
+					orig.x = ev.xbutton.x;
+					orig.y = ev.xbutton.y;
+					is_gesture = false;
+					cur = PreStroke::create();
 					break;
 				}
+				if (!emulate)
+					emulate_info = prefs().stroke_click.get();
+				if (emulate_info.special == SPECIAL_IGNORE)
+					break;
+				if (button_stroke || emulate_info.special == SPECIAL_ACTION) {
+					if (!button_stroke) { 
+						button_stroke = true;
+						trace->end();
+					}
+					handle_stroke(ev.xbutton.button);
+					break;
+				}
+				trace->end();
+				cur.reset();
+				if (emulate_info.special == SPECIAL_DEFAULT)
+					break;
+				if (grabber->xinput) {
+					for (unsigned int i = 1; i <= 5; i++)
+						if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
+							XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+					if (grabber->button > 5)
+						XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+					if (emulate_grabbed) {
+						XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+						emulate_grabbed = false;
+					} else {
+						emulate_info.press();
+						grabber->grab_xi(true);
+						emulate = true;
+					}
+					XTestFakeButtonEvent(dpy, emulate_info.button, True, CurrentTime);
 
-				orig.x = ev.xbutton.x;
-				orig.y = ev.xbutton.y;
-				is_gesture = false;
-				cur = PreStroke::create();
+				}
 				break;
 
 			case ButtonRelease:
@@ -433,11 +443,16 @@ void Main::run() {
 					if (state & (state-1))
 						break;
 				}
+				if (button_stroke) {
+					button_stroke = false;
+					cur.reset();
+					break;
+				}
 				if (prefs().delay.get()) {
 					cur_size = cur->size();
 					timeout.reset();
 				} else {
-					handle_stroke();
+					handle_stroke(0);
 				}
 				break;
 

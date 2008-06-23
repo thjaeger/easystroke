@@ -45,6 +45,7 @@ Prefs::Prefs(Win *parent_) :
 	align->add(*stroke_click);
 	stroke_click->append_text("Abort Stroke");
 	stroke_click->append_text("Ignore");
+	stroke_click->append_text("Action");
 	stroke_click->append_text("Button 1");
 	stroke_click->append_text("Button 2");
 	stroke_click->append_text("Button 3");
@@ -280,13 +281,13 @@ void Prefs::show_stroke_click() {
 	}
 	if (ref->state == 0 && ref->button <= 3) {
 		set_by_me = true;
-		stroke_click->set_active(1+ref->button);
+		stroke_click->set_active(2+ref->button);
 		set_by_me = false;
 		return;
 	}
 	if (ref->state == 0 && (ref->button == 8 || ref->button == 9)) {
 		set_by_me = true;
-		stroke_click->set_active(ref->button-3);
+		stroke_click->set_active(ref->button-2);
 		set_by_me = false;
 		return;
 	}
@@ -310,35 +311,35 @@ void Prefs::on_stroke_click_changed() {
 	int n = stroke_click->get_active_row_number();
 	if (n == -1)
 		return;
-	if (n <= 1) {
+	if (n <= 2) {
 		{
 		Ref<ButtonInfo> ref(prefs().stroke_click);
-		ref->special = n + 1;
+		ref->special = n+1;
 		}
 		write();
 		return;
 	}
-	if (n <= 4) {
+	if (n <= 5) {
 		{
 		Ref<ButtonInfo> ref(prefs().stroke_click);
 		ref->state = 0;
-		ref->button = n-1;
+		ref->button = n-2;
 		ref->special = 0;
 		}
 		write();
 		return;
 	}
-	if (n == 5 || n == 6) {
+	if (n == 6 || n == 7) {
 		{
 		Ref<ButtonInfo> ref(prefs().stroke_click);
 		ref->state = 0;
-		ref->button = n+3;
+		ref->button = n+2;
 		ref->special = 0;
 		}
 		write();
 		return;
 	}
-	if (n == 7 && have_last_stroke_click) {
+	if (n == 8 && have_last_stroke_click) {
 		{
 		Ref<ButtonInfo> ref(prefs().stroke_click);
 		*ref = last_stroke_click;

@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/serialization/access.hpp>
+#include <boost/serialization/version.hpp>
 
 #define STROKE_SIZE 64
 
@@ -52,21 +53,26 @@ class Stroke {
 	static Integral diff_integral(RStroke a, RStroke b);
 	static void integral2(RStroke a, RStroke b, double &int_x, double &int_y, double &int_dx, double &int_dy);
 	double length() const;
+	int size() const { return points.size(); }
 
-	Stroke(PreStroke &s);
+	Stroke(PreStroke &s, int button_);
 
         Glib::RefPtr<Gdk::Pixbuf> draw_(int) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb;
 	std::vector<Point> points;
+	int button;
+
 	static Glib::RefPtr<Gdk::Pixbuf> drawEmpty_(int);
 	static Glib::RefPtr<Gdk::Pixbuf> pbEmpty;
 
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		ar & points;
+		if (version == 0) return;
+		ar & button;
 	}
 public:
-	Stroke() {}
-	static RStroke create(PreStroke &s) { return RStroke(new Stroke(s)); }
+	Stroke() : button(0) {}
+	static RStroke create(PreStroke &s, int button_) { return RStroke(new Stroke(s, button_)); }
 
         Glib::RefPtr<Gdk::Pixbuf> draw(int size) const;
 	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert = true) const;
@@ -80,6 +86,7 @@ public:
 	void print() const;
 	void normalize();
 };
+BOOST_CLASS_VERSION(Stroke, 1)
 
 class PreStroke {
 	friend class Stroke;

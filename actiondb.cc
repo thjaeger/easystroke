@@ -153,6 +153,8 @@ Ranking ActionDB::handle(RStroke s) {
 		if (!i.stroke())
 			continue;
 		double score = Stroke::compare(s, i.stroke());
+		if (score < -1.5)
+			continue;
 		r.r.insert(pair<double, pair<std::string, RStroke> >(score, pair<std::string, RStroke>(strokes[i.id()].name, i.stroke())));
 		if (score >= r.score) {
 			r.score = score;

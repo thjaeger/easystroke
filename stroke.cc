@@ -16,14 +16,16 @@ inline bool close(double x, double y) {
 inline double sqr(double x) { return x*x; };
 
 
-Stroke::Stroke(PreStroke &s) {
+Stroke::Stroke(PreStroke &s, int button_) : button(button_) {
 	if (!s.valid()) {
-		printf("Error: Trying to create an invalid stroke\n");
-		exit(-1);
+		if (!button) {
+			printf("Error: Trying to create an invalid stroke\n");
+			exit(-1);
+		}
+	} else {
+		points = s.points;
+		normalize();
 	}
-
-	points = s.points;
-	normalize();
 
 }
 
@@ -85,6 +87,7 @@ void Stroke::normalize() {
 }
 
 void Stroke::print() const {
+	printf("button: %d\n", button);
 	for (vector<Point>::const_iterator i = points.begin(); i != points.end(); i++) {
 		printf("pt: (%f, %f) at %f\n", i->x, i->y, i->time);
 	}
@@ -291,7 +294,15 @@ double Stroke::compare(RStroke a, RStroke b) {
 
 double Stroke::compare(RStroke a_, RStroke b_, double p) {
 	if (!a_ || !b_)
-		return 0;
+		return -2;
+	if (a_->button != b_->button)
+		return -2;
+	if (a_->size() == 0 || b_->size() == 0) {
+		if (a_->size() == 0 && b_->size() == 0)
+			return 1;
+		else
+			return -2;
+	}
 	if (1) {
 		double ab_x, ab_y, dab_x, dab_y;
 		integral2(a_, b_, ab_x, ab_y, dab_x, dab_y);
@@ -344,5 +355,5 @@ RStroke Stroke::trefoil() {
 		double r = exp(1.0 + sin(6.0*pi*i/n)) + 2.0;
 		s.add(r*cos(phi), r*sin(phi));
 	}
-	return Stroke::create(s);
+	return Stroke::create(s, 0);
 }
