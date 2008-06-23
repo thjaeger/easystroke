@@ -71,6 +71,13 @@ bool Grabber::is_button_up(int type) {
 	return false;
 }
 
+bool Grabber::is_button_down(int type) {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (type == xi_devs[i]->button_down)
+			return true;
+	return false;
+}
+
 // Fuck Xlib
 bool Grabber::has_wm_state(Window w) {
 	Atom actual_type_return;

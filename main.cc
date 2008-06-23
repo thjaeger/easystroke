@@ -147,15 +147,15 @@ class Main {
 	int fdr;
 	int event_basep;
 	bool randr;
-	bool button_stroke;
 	GrabState grab_state;
+	bool xinput_works;
 public:
 	Main(int argc, char **argv);
 	void run();
 	~Main();
 };
 
-Main::Main(int argc, char **argv) : gtk_thread(0), kit(0), trace(0), is_gesture(false), button_stroke(false), grab_state(GS_IDLE) {
+Main::Main(int argc, char **argv) : gtk_thread(0), kit(0), trace(0), is_gesture(false), grab_state(GS_IDLE), xinput_works(false) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("trefoil.svg");
@@ -402,6 +402,7 @@ void Main::run() {
 					cur = PreStroke::create();
 					grab_state = GS_STROKE;
 					stroke_click = prefs().stroke_click.get();
+					xinput_works = false;
 					break;
 				}
 				if (grab_state == GS_IDLE)
@@ -413,6 +414,18 @@ void Main::run() {
 					trace->end();
 
 				if (stroke_click.special == SPECIAL_ACTION) {
+					if (grab_state != GS_ACTION) {
+						if (xinput_works) {
+							XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
+							XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+							grabber->grab_xi();
+							XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+						} else {
+							printf("warning: Xinput extension not working correctly\n");
+						}
+					}
+					if (grab_state == GS_ACTION && xinput_works)
+						break;
 					grab_state = GS_ACTION;
 					handle_stroke(ev.xbutton.button);
 					break;
@@ -425,7 +438,7 @@ void Main::run() {
 					printf("Something went wrong\n");
 					exit(-1);
 				}
-				if (grabber->xinput) {
+				if (xinput_works) {
 					for (unsigned int i = 1; i <= 5; i++)
 						if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
 							XTestFakeButtonEvent(dpy, i, False, CurrentTime);
@@ -440,7 +453,8 @@ void Main::run() {
 					grab_state = GS_EMULATE;
 					XTestFakeButtonEvent(dpy, stroke_click.button, True, CurrentTime);
 				} else {
-					//TODO ???
+					printf("warning: Xinput extension not working correctly\n");
+					grab_state = GS_IDLE;
 				}
 				break;
 
@@ -484,10 +498,20 @@ void Main::run() {
 					delete trace;
 					trace = new_trace;
 				}
+				if (grabber->xinput && grabber->is_button_down(ev.type)) {
+					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+					if (grab_state == GS_STROKE && bev->button == grabber->button) {
+						xinput_works = true;
+					}
+					if (grab_state == GS_ACTION && xinput_works) {
+						handle_stroke(bev->button);
+						XTestFakeButtonEvent(dpy, bev->button, False, CurrentTime);
+					}
+				}
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					if (grab_state == GS_EMULATE || grab_state == GS_EMULATE_GRABBED) {
-						XTestFakeButtonEvent(dpy, stroke_click.button, False, CurrentTime);
 						XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+						XTestFakeButtonEvent(dpy, stroke_click.button, False, CurrentTime);
 						if (bev->button == grabber->button) {
 							if (grab_state == GS_EMULATE_GRABBED)
 								XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
@@ -501,6 +525,10 @@ void Main::run() {
 										GrabModeAsync, None, None);
 							grab_state = GS_EMULATE_GRABBED;
 						}
+					}
+					if (grab_state == GS_ACTION && xinput_works) {
+						XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+						grabber->grab_xi(false);
 					}
 
 				}

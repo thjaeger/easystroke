@@ -17,6 +17,7 @@ class Grabber {
 public:
 	bool xinput;
 	bool is_button_up(int);
+	bool is_button_down(int);
 private:
 	struct XiDevice {
 		int button_down;
