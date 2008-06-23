@@ -16,15 +16,6 @@ Grabber::Grabber() {
 	init(ROOT, 0);
 }
 
-// Goddammit!
-extern "C" {
-typedef struct _XButtonInfo2 {
-	XID        klass;
-	int        length;
-	short        num_buttons;
-} XButtonInfo2;
-}
-
 bool Grabber::init_xi() {
 	xi_devs_n = 0;
 	int nMajor, nFEV, nFER;
@@ -47,7 +38,7 @@ bool Grabber::init_xi() {
 
 		bool has_button = false;
 		for (int j = 0; j < dev->num_classes; j++)
-			if (((XButtonInfo2 *)(& dev->inputclassinfo[j]))->klass == ButtonClass)
+			if (dev->inputclassinfo[j].c_class == ButtonClass)
 				has_button = true;
 
 		if (!has_button)
