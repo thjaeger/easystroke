@@ -675,28 +675,31 @@ struct does_that_really_make_you_happy_stupid_compiler {
 };
 int n_modkeys = 10;
 
+guint mod_state = 0;
+
+void set_mod_state(int new_state) {
+	for (int i = 0; i < n_modkeys; i++) {
+		guint mask = modkeys[i].mask;
+		if ((mod_state & mask) ^ (new_state & mask))
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), new_state & mask, 0);
+	}
+	mod_state = new_state;
+}
+
 void ButtonInfo::press() {
-	for (int i = 0; i < n_modkeys; i++)
-		if (state & modkeys[i].mask)
-			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), true, 0);
+	set_mod_state(state);
 }
 
 void ButtonInfo::release() {
-	for (int i = 0; i < n_modkeys; i++)
-		if (state & modkeys[i].mask)
-			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), false, 0);
+	set_mod_state(0);
 }
 
 void ModAction::press() {
-	for (int i = 0; i < n_modkeys; i++)
-		if (mods & modkeys[i].mask)
-			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), true, 0);
+	set_mod_state(mods);
 }
 
 void ModAction::release() {
-	for (int i = 0; i < n_modkeys; i++)
-		if (mods & modkeys[i].mask)
-			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), false, 0);
+	set_mod_state(0);
 }
 
 bool Ignore::run() {
