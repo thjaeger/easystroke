@@ -463,7 +463,7 @@ void Main::run() {
 				break;
 
 			case EnterNotify:
-				if (ev.xcrossing.mode != NotifyNormal)
+				if (ev.xcrossing.mode == NotifyGrab)
 					break;
 				if (ev.xcrossing.detail == NotifyInferior)
 					break;
