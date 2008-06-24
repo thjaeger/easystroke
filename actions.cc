@@ -252,7 +252,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	label.set_line_wrap();
 	label.set_size_request(200,-1);
 	hbox.pack_start(label);
-	dialog.add_button("_Delete Current",0);
+	dialog.add_button("_Delete Current",0)->set_sensitive(actions().get()[row[cols.id]].strokes.size());
 	dialog.add_button(Gtk::Stock::CANCEL,1);
 	dialog.show_all_children();
 
