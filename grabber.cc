@@ -168,7 +168,7 @@ void Grabber::fake_button() {
 	bi.press();
 	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-	bi.release();
+	clear_mods();
 	restore();
 }
 

@@ -17,7 +17,6 @@
 #include <fcntl.h>
 #include <getopt.h>
 
-
 bool gui = true;
 bool experimental = false;
 int verbosity = 0;
@@ -134,7 +133,7 @@ class Main {
 
 	std::string parse_args_and_init_gtk(int argc, char **argv);
 	void create_config_dir();
-	void handle_stroke(int button);
+	void handle_stroke(int button, bool clear = true);
 	char* next_event();
 	void usage(char *me, bool good);
 
@@ -289,7 +288,7 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-void Main::handle_stroke(int button) {
+void Main::handle_stroke(int button, bool clear) {
 	if (is_gesture && !cur->valid()) {
 		is_gesture = false;
 	}
@@ -310,6 +309,8 @@ void Main::handle_stroke(int button) {
 			win->icon_push(s);
 		} else
 			actions().handle(s);
+		if (clear)
+			clear_mods();
 	} else {
 		grabber->fake_button();
 	}
@@ -427,7 +428,7 @@ void Main::run() {
 					if (grab_state == GS_ACTION && xinput_works)
 						break;
 					grab_state = GS_ACTION;
-					handle_stroke(ev.xbutton.button);
+					handle_stroke(ev.xbutton.button, !xinput_works);
 					break;
 				}
 				if (stroke_click.special == SPECIAL_DEFAULT) {
@@ -504,19 +505,19 @@ void Main::run() {
 						xinput_works = true;
 					}
 					if (grab_state == GS_ACTION && xinput_works) {
-						handle_stroke(bev->button);
 						XTestFakeButtonEvent(dpy, bev->button, False, CurrentTime);
+						handle_stroke(bev->button, false);
 					}
 				}
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
+					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (grab_state == GS_EMULATE || grab_state == GS_EMULATE_GRABBED) {
-						XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 						XTestFakeButtonEvent(dpy, stroke_click.button, False, CurrentTime);
 						if (bev->button == grabber->button) {
 							if (grab_state == GS_EMULATE_GRABBED)
 								XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+							clear_mods();
 							grabber->grab_xi(false);
-							stroke_click.release();
 							grab_state = GS_IDLE;
 						} else {
 							if (grab_state == GS_EMULATE)
@@ -526,7 +527,8 @@ void Main::run() {
 							grab_state = GS_EMULATE_GRABBED;
 						}
 					}
-					if (grab_state == GS_ACTION && xinput_works) {
+					if (grab_state == GS_ACTION && xinput_works && bev->button == grabber->button) {
+						clear_mods();
 						XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 						grabber->grab_xi(false);
 					}
@@ -558,7 +560,6 @@ bool SendKey::run() {
 		press();
 		XTestFakeKeyEvent(dpy, code, true, 0);
 		XTestFakeKeyEvent(dpy, code, false, 0);
-		release();
 		return true;
 	}
 
@@ -645,7 +646,7 @@ void Scroll::worker() {
 		}
 	}
 	UNGRAB;
-	release();
+	clear_mods();
 	XFreeCursor(dpy, cursor);
 	XCloseDisplay(dpy);
 #undef GRAB
@@ -690,20 +691,16 @@ void ButtonInfo::press() {
 	set_mod_state(state);
 }
 
-void ButtonInfo::release() {
-	set_mod_state(0);
-}
-
 void ModAction::press() {
 	set_mod_state(mods);
 }
 
-void ModAction::release() {
+void clear_mods() {
 	set_mod_state(0);
 }
 
 bool Ignore::run() {
-	grabber->grab_all(sigc::mem_fun(*this, &Ignore::press), sigc::mem_fun(*this, &Ignore::release));
+	grabber->grab_all(sigc::mem_fun(*this, &Ignore::press), sigc::ptr_fun(clear_mods));
 	ignore = true;
 	return true;
 }

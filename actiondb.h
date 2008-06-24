@@ -51,7 +51,6 @@ protected:
 	Gdk::ModifierType mods;
 	ModAction(Gdk::ModifierType mods_) : mods(mods_) {}
 	void press();
-	void release();
 public:
 	virtual const Glib::ustring get_label() const;
 };

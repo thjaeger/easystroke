@@ -17,6 +17,8 @@ extern std::string config_dir;
 extern int verbosity;
 extern bool experimental;
 
+void clear_mods();
+
 extern "C" {
 struct _XDisplay;
 typedef struct _XDisplay Display;
