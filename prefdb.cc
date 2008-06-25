@@ -11,20 +11,16 @@
 #include <X11/Xlib.h>
 
 const double pref_p_default = 0.5;
-const ButtonInfo pref_button_default = { Button2, 0, 0 };
-const ButtonInfo pref_click_default = { 0, 0, SPECIAL_DEFAULT };
-const ButtonInfo pref_stroke_click_default = { 0, 0, SPECIAL_DEFAULT };
+const ButtonInfo pref_button_default = { Button2, 0 };
 const int pref_delay_default = 0;
 
 PrefDB::PrefDB() :
 	filename(config_dir+"preferences"),
 	p(pref_p_default),
 	button(pref_button_default),
-	help(true),
 	trace(TraceShape),
 	delay(pref_delay_default),
-	click(pref_click_default),
-	stroke_click(pref_stroke_click_default)
+	cds_stroke(false)
 {}
 
 bool PrefDB::write() const {

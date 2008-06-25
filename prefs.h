@@ -23,12 +23,8 @@ private:
 	void on_delay_changed();
 	void on_delay_default();
 	void on_select_button();
-	void on_click_changed();
-	void on_stroke_click_changed();
 	void on_trace_changed();
-
-	void show_click();
-	void show_stroke_click();
+	void on_cds_stroke_changed();
 
 	struct SelectRow;
 
@@ -54,9 +50,7 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton* spin_delay;
 	Gtk::Label* blabel;
-
-	ButtonInfo last_click, last_stroke_click;
-	bool have_last_click, have_last_stroke_click;
+	Gtk::CheckButton *cds_stroke;
 };
 
 #endif

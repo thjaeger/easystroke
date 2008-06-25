@@ -12,8 +12,7 @@ void usage() {}
 #include <iostream>
 
 Prefs::Prefs(Win *parent_) :
-	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected)),
-	have_last_click(false), have_last_stroke_click(false)
+	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected))
 {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_delay;
 	parent->widgets->get_widget("button_add_exception", add_exception);
@@ -26,31 +25,7 @@ Prefs::Prefs(Win *parent_) :
 	parent->widgets->get_widget("treeview_exceptions", tv);
 	parent->widgets->get_widget("scale_p", scale_p);
 	parent->widgets->get_widget("spin_delay", spin_delay);
-
-	// I love glade.
-	Gtk::Alignment *align;
-
-	parent->widgets->get_widget("alignment_click", align);
-	click = Gtk::manage(new Gtk::ComboBoxText());
-	align->add(*click);
-	click->append_text("Default");
-	click->append_text("Ignore");
-	click->append_text("Select...");
-	click->show();
-
-	parent->widgets->get_widget("alignment_stroke_click", align);
-	stroke_click = Gtk::manage(new Gtk::ComboBoxText());
-	align->add(*stroke_click);
-	stroke_click->append_text("Abort Stroke");
-	stroke_click->append_text("Ignore");
-	stroke_click->append_text("Action");
-	stroke_click->append_text("Button 1");
-	stroke_click->append_text("Button 2");
-	stroke_click->append_text("Button 3");
-	stroke_click->append_text("Button 8");
-	stroke_click->append_text("Button 9");
-	stroke_click->append_text("Select...");
-	stroke_click->show();
+	parent->widgets->get_widget("check_cds_stroke", cds_stroke);
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -62,14 +37,11 @@ Prefs::Prefs(Win *parent_) :
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
-	click->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_click_changed));
-	show_click();
-
-	stroke_click->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_stroke_click_changed));
-	show_stroke_click();
-
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
 	trace->set_active(prefs().trace.get());
+
+	cds_stroke->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_cds_stroke_changed));
+	cds_stroke->set_active(prefs().cds_stroke.get());
 
 	double p = prefs().p.get();
 	scale_p->set_value(p);
@@ -124,11 +96,11 @@ SelectButton::SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo 
 	widgets->get_widget("toggle_control", toggle_control);
 	widgets->get_widget("toggle_super", toggle_super);
 	widgets->get_widget("select_button", select_button);
-	select_button->set_active(bi.special ? -1 : bi.button-1);
-	toggle_shift->set_active(!bi.special && (bi.state & GDK_SHIFT_MASK));
-	toggle_control->set_active(!bi.special && (bi.state & GDK_CONTROL_MASK));
-	toggle_alt->set_active(!bi.special && (bi.state & GDK_MOD1_MASK));
-	toggle_super->set_active(!bi.special && (bi.state & GDK_MOD4_MASK));
+	select_button->set_active(bi.button-1);
+	toggle_shift->set_active(bi.button && (bi.state & GDK_SHIFT_MASK));
+	toggle_control->set_active(bi.button && (bi.state & GDK_CONTROL_MASK));
+	toggle_alt->set_active(bi.button && (bi.state & GDK_MOD1_MASK));
+	toggle_super->set_active(bi.button && (bi.state & GDK_MOD4_MASK));
 
 	Gtk::Button *select_default;
 	widgets->get_widget("select_default", select_default);
@@ -199,161 +171,11 @@ void Prefs::on_select_button() {
 		Ref<ButtonInfo> ref(prefs().button);
 		ref->button = sb.event.button;
 		ref->state = sb.event.state;
-		ref->special = 0;
 	}
 	send(P_REGRAB);
 	set_button_label();
 	write();
 }
-
-bool set_by_me = false; //TODO: Come up with something better
-
-void Prefs::show_click() {
-	Ref<ButtonInfo> ref(prefs().click);
-	if (ref->special) {
-		set_by_me = true;
-		click->set_active(ref->special - 1);
-		set_by_me = false;
-		return;
-	}
-	set_by_me = true;
-	if (have_last_click)
-		click->remove_text(last_click.get_button_text());
-	last_click = *ref;
-	click->remove_text("Select...");
-	click->append_text(last_click.get_button_text());
-	click->append_text("Select...");
-	click->set_active(2);
-	set_by_me = false;
-	have_last_click = true;
-}
-
-void Prefs::on_click_changed() {
-	if (set_by_me)
-		return;
-	int n = click->get_active_row_number();
-	if (n == -1)
-		return;
-	if (n <= 1) {
-		{
-		Ref<ButtonInfo> ref(prefs().click);
-		ref->special = n + 1;
-		}
-		write();
-		return;
-	}
-	if (n == 2 && have_last_click) {
-		{
-		Ref<ButtonInfo> ref(prefs().click);
-		*ref = last_click;
-		}
-		write();
-		return;
-	}
-
-	SelectButton sb(parent->widgets, prefs().click.get());
-	if (sb.run()) {
-		{
-		Ref<ButtonInfo> ref(prefs().click);
-		ref->button = sb.event.button;
-		ref->state = sb.event.state;
-		ref->special = 0;
-		}
-		write();
-	}
-	show_click();
-}
-
-void Prefs::show_stroke_click() {
-	Ref<ButtonInfo> ref(prefs().stroke_click);
-	if (ref->special) {
-		set_by_me = true;
-		stroke_click->set_active(ref->special-1);
-		set_by_me = false;
-		return;
-	}
-	if (ref->state == 0 && ref->button <= 3) {
-		set_by_me = true;
-		stroke_click->set_active(2+ref->button);
-		set_by_me = false;
-		return;
-	}
-	if (ref->state == 0 && (ref->button == 8 || ref->button == 9)) {
-		set_by_me = true;
-		stroke_click->set_active(ref->button-2);
-		set_by_me = false;
-		return;
-	}
-	stroke_click->set_title(ref->get_button_text());
-	set_by_me = true;
-	if (have_last_stroke_click) {
-		stroke_click->remove_text(last_stroke_click.get_button_text());
-	}
-	last_stroke_click = *ref;
-	stroke_click->remove_text("Select...");
-	stroke_click->append_text(last_stroke_click.get_button_text());
-	stroke_click->append_text("Select...");
-	stroke_click->set_active(7);
-	set_by_me = false;
-	have_last_stroke_click = true;
-}
-
-void Prefs::on_stroke_click_changed() {
-	if (set_by_me)
-		return;
-	int n = stroke_click->get_active_row_number();
-	if (n == -1)
-		return;
-	if (n <= 2) {
-		{
-		Ref<ButtonInfo> ref(prefs().stroke_click);
-		ref->special = n+1;
-		}
-		write();
-		return;
-	}
-	if (n <= 5) {
-		{
-		Ref<ButtonInfo> ref(prefs().stroke_click);
-		ref->state = 0;
-		ref->button = n-2;
-		ref->special = 0;
-		}
-		write();
-		return;
-	}
-	if (n == 6 || n == 7) {
-		{
-		Ref<ButtonInfo> ref(prefs().stroke_click);
-		ref->state = 0;
-		ref->button = n+2;
-		ref->special = 0;
-		}
-		write();
-		return;
-	}
-	if (n == 8 && have_last_stroke_click) {
-		{
-		Ref<ButtonInfo> ref(prefs().stroke_click);
-		*ref = last_stroke_click;
-		}
-		write();
-		return;
-	}
-
-	SelectButton sb(parent->widgets, prefs().stroke_click.get());
-	if (sb.run()) {
-		{
-		Ref<ButtonInfo> ref(prefs().stroke_click);
-		ref->button = sb.event.button;
-		ref->state = sb.event.state;
-		ref->special = 0;
-		}
-		write();
-	}
-	show_stroke_click();
-}
-
 
 void Prefs::on_trace_changed() {
 	TraceType type = (TraceType) trace->get_active_row_number();
@@ -363,6 +185,11 @@ void Prefs::on_trace_changed() {
 		return;
 	prefs().trace.set(type);
 	send(P_UPDATE_TRACE);
+	write();
+}
+
+void Prefs::on_cds_stroke_changed() {
+	prefs().cds_stroke.set(cds_stroke->get_active());
 	write();
 }
 

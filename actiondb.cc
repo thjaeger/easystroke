@@ -76,7 +76,6 @@ bool Command::run() {
 
 ButtonInfo Button::get_button_info() const {
 	ButtonInfo bi;
-	bi.special = 0;
 	bi.button = button;
 	bi.state = mods;
 	return bi;

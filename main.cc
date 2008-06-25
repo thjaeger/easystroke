@@ -292,10 +292,8 @@ void Main::create_config_dir() {
 void Main::handle_stroke(int button, bool clear) {
 	if (!is_gesture)
 		cur->clear();
-	/* TODO
-	if (...)
+	if (!prefs().cds_stroke.get())
 		cur->clear();
-	 */
 	RStroke s = Stroke::create(*cur, button);
 	if (verbosity >= 3)
 		s->print();
@@ -493,7 +491,7 @@ void Main::run() {
 				if (grabber->xinput && grabber->is_button_down(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (grab_state == GS_STROKE && bev->button == grabber->button) {
-						//xinput_works = true;
+						xinput_works = true;
 					}
 					if (grab_state == GS_ACTION && xinput_works && bev->time != click_time) {
 						XTestFakeButtonEvent(dpy, bev->button, False, CurrentTime);
