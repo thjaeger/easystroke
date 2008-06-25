@@ -449,8 +449,7 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 		return;
 	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
 	(*ref)[row[cols.id]].action = bt;
-	bi = bt->get_button_info();
-	row[cols.arg] = get_button_text(bi);
+	row[cols.arg] = bt->get_label();
 	write(ref);
 
 }

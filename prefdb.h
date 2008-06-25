@@ -19,6 +19,7 @@ struct ButtonInfo {
 	guint state;
 	int special;
 	void press();
+	Glib::ustring get_button_text();
 private:
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {

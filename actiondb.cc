@@ -74,12 +74,17 @@ bool Command::run() {
 	return true;
 }
 
-ButtonInfo Button::get_button_info() {
+ButtonInfo Button::get_button_info() const {
 	ButtonInfo bi;
 	bi.special = 0;
 	bi.button = button;
 	bi.state = mods;
 	return bi;
+}
+
+
+const Glib::ustring Button::get_label() const {
+	return get_button_info().get_button_text();
 }
 
 ActionDB::ActionDB() : filename(config_dir+"actions"), current_id(0) {}

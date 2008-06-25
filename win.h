@@ -62,7 +62,4 @@ private:
 	sigc::connection handler;
 };
 
-Glib::ustring get_button_text(ButtonInfo &bi);
-
-
 #endif

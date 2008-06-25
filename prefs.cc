@@ -11,8 +11,6 @@ void usage() {}
 #include <set>
 #include <iostream>
 
-Glib::ustring get_button_text(ButtonInfo &bi);
-
 Prefs::Prefs(Win *parent_) :
 	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected)),
 	have_last_click(false), have_last_stroke_click(false)
@@ -219,12 +217,11 @@ void Prefs::show_click() {
 		return;
 	}
 	set_by_me = true;
-	if (have_last_click) {
-		click->remove_text(get_button_text(last_click));
-	}
+	if (have_last_click)
+		click->remove_text(last_click.get_button_text());
 	last_click = *ref;
 	click->remove_text("Select...");
-	click->append_text(get_button_text(last_click));
+	click->append_text(last_click.get_button_text());
 	click->append_text("Select...");
 	click->set_active(2);
 	set_by_me = false;
@@ -287,14 +284,14 @@ void Prefs::show_stroke_click() {
 		set_by_me = false;
 		return;
 	}
-	stroke_click->set_title(get_button_text(*ref));
+	stroke_click->set_title(ref->get_button_text());
 	set_by_me = true;
 	if (have_last_stroke_click) {
-		stroke_click->remove_text(get_button_text(last_stroke_click));
+		stroke_click->remove_text(last_stroke_click.get_button_text());
 	}
 	last_stroke_click = *ref;
 	stroke_click->remove_text("Select...");
-	stroke_click->append_text(get_button_text(last_stroke_click));
+	stroke_click->append_text(last_stroke_click.get_button_text());
 	stroke_click->append_text("Select...");
 	stroke_click->set_active(7);
 	set_by_me = false;
@@ -436,34 +433,9 @@ cleanup:
 	XCloseDisplay(dpy);
 }
 
-Glib::ustring get_button_text(ButtonInfo &bi) {
-	struct {
-		const guint mask;
-		const char *name;
-	} modnames[] = {
-		{ShiftMask, "Shift"},
-		{LockMask, "Caps"},
-		{ControlMask, "Control"},
-		{Mod1Mask, "Mod1"},
-		{Mod2Mask, "Mod2"},
-		{Mod3Mask, "Mod3"},
-		{Mod4Mask, "Mod4"},
-		{Mod5Mask, "Mod5"}
-	};
-	int n_modnames = 8;
-	char button[16];
-	sprintf(button, "Button %d", bi.button);
-	Glib::ustring str;
-	for (int i = 0; i < n_modnames; i++)
-		if (bi.state & modnames[i].mask) {
-			str += modnames[i].name;
-			str += " + ";
-		}
-	return str + button;
-}
 
 void Prefs::set_button_label() {
 
 	Ref<ButtonInfo> ref(prefs().button);
-	blabel->set_text(get_button_text(*ref));
+	blabel->set_text(ref->get_button_text());
 }

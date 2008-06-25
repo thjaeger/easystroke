@@ -105,9 +105,10 @@ class Button : public ModAction {
 	guint button;
 public:
 	Button() {}
-	ButtonInfo get_button_info();
+	ButtonInfo get_button_info() const;
 	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
 	virtual bool run();
+	virtual const Glib::ustring get_label() const;
 };
 
 class StrokeSet : public std::set<RStroke> {
