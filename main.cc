@@ -130,7 +130,7 @@ int ignore_button;
 int press_button = 0;
 
 class Main {
-	enum GrabState { GS_IDLE, GS_STROKE, GS_EMULATE, GS_EMULATE_GRABBED, GS_ACTION };
+	enum GrabState { GS_IDLE, GS_STROKE, GS_ACTION };
 
 	std::string parse_args_and_init_gtk(int argc, char **argv);
 	void create_config_dir();
@@ -290,37 +290,29 @@ void Main::create_config_dir() {
 }
 
 void Main::handle_stroke(int button, bool clear) {
-	if (is_gesture && !cur->valid()) {
-		is_gesture = false;
-	}
-	if (!is_gesture && button) {
-		is_gesture = true;
+	if (!is_gesture)
 		cur->clear();
-	}
-
-	if (is_gesture) {
-		RStroke s = Stroke::create(*cur, button);
-		if (verbosity >= 3)
-			s->print();
-		if (gui) {
-			if (!stroke_action()(s)) {
-				Ranking ranking = actions().handle(s);
-				win->stroke_push(ranking);
-			}
-			win->icon_push(s);
-		} else
-			actions().handle(s);
-		if (clear) {
-			if (press_button) {
-				XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig.x, orig.y, CurrentTime);
-				XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-				XTestFakeButtonEvent(dpy, press_button, False, CurrentTime);
-				press_button = 0;
-			}
-			clear_mods();
+	/* TODO
+	if (...)
+		cur->clear();
+	 */
+	RStroke s = Stroke::create(*cur, button);
+	if (verbosity >= 3)
+		s->print();
+	if (gui) {
+		if (!stroke_action()(s)) {
+			Ranking ranking = actions().handle(s);
+			win->stroke_push(ranking);
 		}
-	} else {
-		grabber->fake_button();
+		win->icon_push(s);
+	} else
+		actions().handle(s);
+	if (clear) {
+		if (press_button) {
+			grabber->fake_button(press_button);
+			press_button = 0;
+		}
+		clear_mods();
 	}
 }
 
@@ -343,7 +335,6 @@ char* Main::next_event() {
 void Main::run() {
 	int cur_size  = 0; // last cur size the timer saw
 	Timeout timeout;
-	ButtonInfo stroke_click;
 	guint emulated_button = 0;
 	Time click_time = 0;
 	if (verbosity >= 2)
@@ -405,9 +396,9 @@ void Main::run() {
 					send(P_IGNORE);
 					break;
 				}
-				if (xinput_works && (grab_state == GS_ACTION 
-						|| grab_state == GS_EMULATE || grab_state == GS_EMULATE_GRABBED))
+				if (grab_state == GS_ACTION && xinput_works)
 					break;
+
 				if (ev.xbutton.button == grabber->button) {
 					if (current)
 						XSetInputFocus(dpy, current, RevertToParent, ev.xbutton.time);
@@ -416,69 +407,47 @@ void Main::run() {
 					is_gesture = false;
 					cur = PreStroke::create();
 					grab_state = GS_STROKE;
-					stroke_click = prefs().stroke_click.get();
 					xinput_works = false;
 					break;
 				}
 				if (grab_state == GS_IDLE)
 					break;
-				if (stroke_click.special == SPECIAL_IGNORE)
-					break;
+//				if (stroke_click.special == SPECIAL_IGNORE)
+//					break;
 
 				if (grab_state == GS_STROKE)
 					trace->end();
 
-				if (stroke_click.special == SPECIAL_ACTION) {
-					if (grab_state != GS_ACTION) {
-						if (xinput_works) {
-							click_time = ev.xbutton.time;
-							XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
-							XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
-							grabber->grab_xi();
-							XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-						} else {
-							printf("warning: Xinput extension not working correctly\n");
-						}
-					}
-					if (grab_state == GS_ACTION && xinput_works)
-						break;
-					grab_state = GS_ACTION;
-					handle_stroke(ev.xbutton.button, !xinput_works);
-					if (!press_button)
-						break;
-					XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-					XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-					emulated_button = press_button;
-					press_button = 0;
-					XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-					break;
-				}
-				if (stroke_click.special == SPECIAL_DEFAULT) {
-					grab_state = GS_IDLE;
-					break;
-				}
-				if (stroke_click.special) {
-					printf("Something went wrong\n");
-					exit(-1);
-				}
-				if (xinput_works) {
-					for (unsigned int i = 1; i <= 5; i++)
-						if (i == ev.xbutton.button || (ev.xbutton.state & (1 << (i+7))))
-							XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-					if (grabber->button > 5)
+				if (grab_state != GS_ACTION) {
+					if (xinput_works) {
+						click_time = ev.xbutton.time;
+						XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
 						XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
-					if (grab_state == GS_EMULATE_GRABBED) {
-						XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+						grabber->grab_xi();
+						XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 					} else {
-						stroke_click.press();
-						grabber->grab_xi(true);
+						printf("warning: Xinput extension not working correctly\n");
 					}
-					grab_state = GS_EMULATE;
-					XTestFakeButtonEvent(dpy, stroke_click.button, True, CurrentTime);
-				} else {
-					printf("warning: Xinput extension not working correctly\n");
-					grab_state = GS_IDLE;
 				}
+				grab_state = GS_ACTION;
+				handle_stroke(ev.xbutton.button, false);
+				if (!press_button) {
+					clear_mods();
+					break;
+				}
+				if (!xinput_works) {
+					XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
+					XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+					grabber->fake_button(press_button);
+					press_button = 0;
+					grab_state = GS_IDLE;
+					break;
+				}
+				XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+				XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
+				emulated_button = press_button;
+				press_button = 0;
+				XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 				break;
 
 			case ButtonRelease:
@@ -524,7 +493,7 @@ void Main::run() {
 				if (grabber->xinput && grabber->is_button_down(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (grab_state == GS_STROKE && bev->button == grabber->button) {
-						xinput_works = true;
+						//xinput_works = true;
 					}
 					if (grab_state == GS_ACTION && xinput_works && bev->time != click_time) {
 						XTestFakeButtonEvent(dpy, bev->button, False, CurrentTime);
@@ -544,22 +513,6 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-					if (grab_state == GS_EMULATE || grab_state == GS_EMULATE_GRABBED) {
-						XTestFakeButtonEvent(dpy, stroke_click.button, False, CurrentTime);
-						if (bev->button == grabber->button) {
-							if (grab_state == GS_EMULATE_GRABBED)
-								XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-							clear_mods();
-							grabber->grab_xi(false);
-							grab_state = GS_IDLE;
-						} else {
-							if (grab_state == GS_EMULATE)
-								XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, 
-										ButtonPressMask, GrabModeAsync, 
-										GrabModeAsync, None, None);
-							grab_state = GS_EMULATE_GRABBED;
-						}
-					}
 					if (grab_state == GS_ACTION && xinput_works) {
 						if (bev->button == grabber->button) {
 							clear_mods();

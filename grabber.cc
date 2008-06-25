@@ -159,13 +159,8 @@ void Grabber::get_button() {
 	state = ref->state;
 }
 
-void Grabber::fake_button() {
-	ButtonInfo bi = prefs().click.get();
-	if (bi.special == SPECIAL_IGNORE)
-		return;
-	int b = (bi.special == SPECIAL_DEFAULT) ? button : bi.button;
+void Grabber::fake_button(int b) {
 	suspend();
-	bi.press();
 	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	clear_mods();

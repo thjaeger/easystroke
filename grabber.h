@@ -60,7 +60,7 @@ public:
 	void update(Window w) { grab(!RPrefEx(prefs().exceptions)->count(get_wm_state(w))); }
 	void create(Window w);
 	void get_button();
-	void fake_button();
+	void fake_button(int b);
 	void ignore(int b);
 	void grab(bool grab = true) { State s = current; s.grab = grab; set(s); }
 	void grab_all(sigc::slot<void> before_, sigc::slot<void> after_) {

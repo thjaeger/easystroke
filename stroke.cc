@@ -17,12 +17,7 @@ inline double sqr(double x) { return x*x; };
 
 
 Stroke::Stroke(PreStroke &s, int button_) : button(button_) {
-	if (!s.valid()) {
-		if (!button) {
-			printf("Error: Trying to create an invalid stroke\n");
-			exit(-1);
-		}
-	} else {
+	if (s.valid()) {
 		points = s.points;
 		normalize();
 	}
