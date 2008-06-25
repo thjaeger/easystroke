@@ -417,6 +417,11 @@ void Main::run() {
 					trace->end();
 
 				if (grab_state != GS_ACTION) {
+					if (gui && stroke_action()) {
+						handle_stroke(ev.xbutton.button);
+						grab_state = GS_IDLE;
+						break;
+					}
 					if (xinput_works) {
 						click_time = ev.xbutton.time;
 						XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);

@@ -6,6 +6,10 @@
 class StrokeAction : private Lock<boost::shared_ptr<sigc::slot<void, RStroke> > > {
 	typedef Ref<boost::shared_ptr<sigc::slot<void, RStroke> > > R;
 public:
+	operator bool() {
+		R ref(*this);
+		return *ref;
+	}
 	bool operator()(RStroke s) {
 		R ref(*this);
 		if (!(*ref))
