@@ -429,16 +429,15 @@ void Main::run() {
 				}
 				grab_state = GS_ACTION;
 				handle_stroke(ev.xbutton.button, false);
-				if (!press_button) {
-					clear_mods();
+				if (!press_button)
 					break;
-				}
 				if (!xinput_works) {
 					XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
 					XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 					grabber->fake_button(press_button);
 					press_button = 0;
 					grab_state = GS_IDLE;
+					clear_mods();
 					break;
 				}
 				XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
@@ -449,6 +448,10 @@ void Main::run() {
 				break;
 
 			case ButtonRelease:
+				if (!xinput_works && grab_state == GS_ACTION && ev.xbutton.button == grabber->button) {
+					clear_mods();
+					break;
+				}
 				if (grab_state != GS_STROKE)
 					break;
 				trace->end();
