@@ -155,6 +155,8 @@ void Stats::on_pdf() {
 				ctx->fill();
 				ctx->restore();
 			}
+			if (score < -1.5)
+				continue;
 			Glib::ustring str = Glib::ustring::format(std::fixed, std::setprecision(2), score);
 			Cairo::TextExtents te;
 			ctx->get_text_extents(str, te);
