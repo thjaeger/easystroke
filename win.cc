@@ -5,10 +5,9 @@
 
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
+	ctx->set_line_width(2);
+	x++; y++; w -= 2; h -= 2;
 	if (size()) {
-		ctx->set_line_width(2);
-		x++; y++;
-		w -= 2; h -= 2;
 		bool first = true;
 		for (std::vector<Point>::const_iterator j = points.begin(); j!=points.end();j++) {
 			if (first) {
@@ -23,6 +22,16 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 			ctx->stroke();
 			ctx->move_to(w*j->x+x,h*j->y+y);
 		}
+	} else if (!button) {
+		if (invert)
+			ctx->set_source_rgba(1, 0, 0, 1);
+		else
+			ctx->set_source_rgba(0, 0, 1, 1);
+		ctx->move_to(x+w/3, y+h/3);
+		ctx->line_to(x+2*w/3, y+2*h/3);
+		ctx->move_to(x+w/3, y+2*h/3);
+		ctx->line_to(x+2*w/3, y+h/3);
+		ctx->stroke();
 	}
 	if (!button)
 		return;
@@ -31,7 +40,7 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	else
 		ctx->set_source_rgba(1, 0, 0, 0.8);
 	Glib::ustring str = Glib::ustring::format(button);
-	ctx->set_font_size(h/2);
+	ctx->set_font_size(h*0.6);
 	Cairo::TextExtents te;
 	ctx->get_text_extents(str, te);
 	ctx->move_to(x+w/2 - te.x_bearing - te.width/2, y+h/2 - te.y_bearing - te.height/2);
