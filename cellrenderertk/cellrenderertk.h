@@ -40,7 +40,8 @@ GType gtk_cell_renderer_tk_cell_mode_get_type (void) G_GNUC_CONST;
 typedef enum
 {
   GTK_CELL_RENDERER_TK_CELL_MODE_TEXT,
-  GTK_CELL_RENDERER_TK_CELL_MODE_KEY
+  GTK_CELL_RENDERER_TK_CELL_MODE_KEY,
+  GTK_CELL_RENDERER_TK_CELL_MODE_POPUP
 } GtkCellRendererTKMode;
 
 

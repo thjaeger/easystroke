@@ -8,6 +8,7 @@ class Actions;
 class Prefs;
 class Stats;
 class Ranking;
+class ButtonInfo;
 
 // Convenience macro for on-the-fly creation of widgets
 #define WIDGET(TYPE, NAME, ARGS...) TYPE &NAME = *Gtk::manage(new TYPE(ARGS))
@@ -44,4 +45,24 @@ private:
 	RStroke current_icon;
 	Queue<RStroke> icon_queue;
 };
+
+class SelectButton {
+public:
+	SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo bi, bool def=true);
+	~SelectButton();
+	bool run();
+	GdkEventButton event;
+private:
+	Gtk::Dialog *dialog;
+	bool on_button_press(GdkEventButton *ev);
+
+	Gtk::EventBox *eventbox;
+	Gtk::ToggleButton *toggle_shift, *toggle_control, *toggle_alt, *toggle_super;
+	Gtk::ComboBox *select_button;
+	sigc::connection handler;
+};
+
+Glib::ustring get_button_text(ButtonInfo &bi);
+
+
 #endif

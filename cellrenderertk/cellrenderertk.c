@@ -193,7 +193,7 @@ gtk_cell_renderer_tk_class_init (GtkCellRendererTKClass *cell_accel_class)
 		  PROP_CELL_MODE,
 		  g_param_spec_enum ("cell-mode",
 			  P_("Cell Mode"),
-			  P_("For now, TEXT or ACCEL"),
+			  P_("For now, TEXT, ACCEL, POPUP"),
 //			  GTK_TYPE_CELL_RENDERER_TK_CELL_MODE,
 			  GTK_TYPE_CELL_RENDERER_MODE, // Fuck gtk's object system!
 			  GTK_CELL_RENDERER_TK_CELL_MODE_TEXT,
@@ -529,6 +529,11 @@ gtk_cell_renderer_tk_start_editing (GtkCellRenderer      *cell,
   
   celltext = GTK_CELL_RENDERER_TEXT (cell);
   accel = GTK_CELL_RENDERER_TK (cell);
+
+
+  if (accel->cell_mode == GTK_CELL_RENDERER_TK_CELL_MODE_POPUP) {
+    return 0;
+  }
 
   if (accel->cell_mode == GTK_CELL_RENDERER_TK_CELL_MODE_TEXT)
 	  return GTK_CELL_RENDERER_TK_GET_CLASS(accel)->base_start_editing(cell, event, widget, path, background_area, cell_area, flags);

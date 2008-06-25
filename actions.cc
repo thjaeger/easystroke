@@ -3,6 +3,7 @@
 #include "win.h"
 #include "strokeaction.h"
 #include "main.h"
+#include "prefdb.h"
 
 #include <iostream>
 #include <sstream>
@@ -12,6 +13,7 @@
 #define COMMAND "Command"
 #define SCROLL "Scroll"
 #define IGNORE "Ignore"
+#define BUTTON "Button"
 
 class ActionDBRef : public Ref<ActionDB> {
 public:
@@ -72,6 +74,11 @@ Actions::Actions(Win *p) :
 				row[cols.arg] = ignore->get_label();
 				row[cols.type] = IGNORE;
 			}
+			RButton button = boost::dynamic_pointer_cast<Button>(si.action);
+			if (button) {
+				row[cols.arg] = button->get_label();
+				row[cols.type] = BUTTON;
+			}
 		}
 	}
 
@@ -94,6 +101,7 @@ Actions::Actions(Win *p) :
 	(*(type_store->append()))[type.type] = KEY_XTEST;
 	(*(type_store->append()))[type.type] = IGNORE;
 	(*(type_store->append()))[type.type] = SCROLL;
+	(*(type_store->append()))[type.type] = BUTTON;
 	type_renderer.property_model() = type_store;
 	type_renderer.property_editable() = true;
 	type_renderer.property_text_column() = 0;
@@ -177,6 +185,14 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 				(*ref)[id].action = Ignore::create((Gdk::ModifierType)0);
 				write(ref);
 				edit = false;
+			}
+			if (new_type == BUTTON) {
+				row[cols.arg] = "";
+				update_arg(new_type);
+				ActionDBRef ref(actions());
+				(*ref)[id].action = Button::create((Gdk::ModifierType)0, 0);
+				write(ref);
+				edit = true;
 			}
 		}
 		row[cols.type] = new_type;
@@ -297,11 +313,15 @@ void Actions::on_selection_changed() {
 }
 
 void Actions::update_arg(Glib::ustring str) {
-	GtkCellRendererTKMode mode = (IS_KEY(str) || str == SCROLL || str == IGNORE) ?
-		GTK_CELL_RENDERER_TK_CELL_MODE_KEY :
-		GTK_CELL_RENDERER_TK_CELL_MODE_TEXT;
-// 	Fuck it, I'm not going to figure out how to make GtkCellRendererTKMode a proper GObject.
-//	accel_renderer.property_cell_mode() = mode
+	GtkCellRendererTKMode mode;
+	if (IS_KEY(str) || str == SCROLL || str == IGNORE)
+		mode = 	GTK_CELL_RENDERER_TK_CELL_MODE_KEY;
+	else if (str == BUTTON)
+		mode = GTK_CELL_RENDERER_TK_CELL_MODE_POPUP;
+	else
+		mode = GTK_CELL_RENDERER_TK_CELL_MODE_TEXT;
+	// 	Fuck it, I'm not going to figure out how to make GtkCellRendererTKMode a proper GObject.
+	//	accel_renderer.property_cell_mode() = mode
 	g_object_set(G_OBJECT(accel_renderer.gobj()), "cell-mode", mode, NULL);
 }
 
@@ -417,6 +437,22 @@ void Actions::on_something_editing_started(Gtk::CellEditable* editable, const Gl
 
 void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
 	tv->grab_focus();
+	Gtk::TreeRow row(*tm->get_iter(path));
+	focus(row[cols.id],3,false);
+	if (row[cols.type] != Glib::ustring(BUTTON))
+		return;
+	ActionDBRef ref(actions());
+	RButton bt = boost::static_pointer_cast<Button>((*ref)[row[cols.id]].action);
+	ButtonInfo bi = bt->get_button_info();
+	SelectButton sb(parent->widgets, bi, false);
+	if (!sb.run())
+		return;
+	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
+	(*ref)[row[cols.id]].action = bt;
+	bi = bt->get_button_info();
+	row[cols.arg] = get_button_text(bi);
+	write(ref);
+
 }
 
 const Glib::ustring SendKey::get_label() const {

@@ -118,84 +118,80 @@ void Prefs::write() {
 	}
 }
 
-class SelectButton {
-public:
-	SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo bi) {
-		widgets->get_widget("dialog_select", dialog);
-		widgets->get_widget("eventbox", eventbox);
-		widgets->get_widget("toggle_shift", toggle_shift);
-		widgets->get_widget("toggle_alt", toggle_alt);
-		widgets->get_widget("toggle_control", toggle_control);
-		widgets->get_widget("toggle_super", toggle_super);
-		widgets->get_widget("select_button", select_button);
-		select_button->set_active(bi.special ? -1 : bi.button-1);
-		toggle_shift->set_active(!bi.special && (bi.state & GDK_SHIFT_MASK));
-		toggle_control->set_active(!bi.special && (bi.state & GDK_CONTROL_MASK));
-		toggle_alt->set_active(!bi.special && (bi.state & GDK_MOD1_MASK));
-		toggle_super->set_active(!bi.special && (bi.state & GDK_MOD4_MASK));
-		if (!eventbox->get_children().size()) {
-			eventbox->set_events(Gdk::BUTTON_PRESS_MASK);
+SelectButton::SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo bi, bool def) {
+	widgets->get_widget("dialog_select", dialog);
+	widgets->get_widget("eventbox", eventbox);
+	widgets->get_widget("toggle_shift", toggle_shift);
+	widgets->get_widget("toggle_alt", toggle_alt);
+	widgets->get_widget("toggle_control", toggle_control);
+	widgets->get_widget("toggle_super", toggle_super);
+	widgets->get_widget("select_button", select_button);
+	select_button->set_active(bi.special ? -1 : bi.button-1);
+	toggle_shift->set_active(!bi.special && (bi.state & GDK_SHIFT_MASK));
+	toggle_control->set_active(!bi.special && (bi.state & GDK_CONTROL_MASK));
+	toggle_alt->set_active(!bi.special && (bi.state & GDK_MOD1_MASK));
+	toggle_super->set_active(!bi.special && (bi.state & GDK_MOD4_MASK));
 
-			Glib::RefPtr<Gdk::Pixbuf> pb = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB,true,8,400,200);
-			pb->fill(0x808080ff);
-			WIDGET(Gtk::Image, box, pb);
-			eventbox->add(box);
-			box.show();
-		}
-		handler = eventbox->signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
+	Gtk::Button *select_default;
+	widgets->get_widget("select_default", select_default);
+	select_default->set_sensitive(def);
+	
+	if (!eventbox->get_children().size()) {
+		eventbox->set_events(Gdk::BUTTON_PRESS_MASK);
+
+		Glib::RefPtr<Gdk::Pixbuf> pb = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB,true,8,400,200);
+		pb->fill(0x808080ff);
+		WIDGET(Gtk::Image, box, pb);
+		eventbox->add(box);
+		box.show();
 	}
+	handler = eventbox->signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
+}
 
-	~SelectButton() {
-		handler.disconnect();
-	}
+SelectButton::~SelectButton() {
+	handler.disconnect();
+}
 
-	bool run() {
-		send(P_SUSPEND_GRAB);
-		int response;
-	        do {
-			response = dialog->run();
-		} while (response == 0);
-		dialog->hide();
-		send(P_RESTORE_GRAB);
-		switch (response) {
-			case 1: // Okay
-				event.button = select_button->get_active_row_number() + 1;
-				if (!event.button)
-					return false;
-				event.state = 0;
-				if (toggle_shift->get_active())
-					event.state |= GDK_SHIFT_MASK;
-				if (toggle_control->get_active())
-					event.state |= GDK_CONTROL_MASK;
-				if (toggle_alt->get_active())
-					event.state |= GDK_MOD1_MASK;
-				if (toggle_super->get_active())
-					event.state |= GDK_MOD4_MASK;
-				return true;
-			case 2: // Default
-				event.button = 2;
-				event.state = 0;
-				return true;
-			case 3: // Click - all the work has already been done
-				return true;
-			case -1: // Cancel
-			default: // Something went wrong
+bool SelectButton::run() {
+	send(P_SUSPEND_GRAB);
+	int response;
+	do {
+		response = dialog->run();
+	} while (response == 0);
+	dialog->hide();
+	send(P_RESTORE_GRAB);
+	switch (response) {
+		case 1: // Okay
+			event.button = select_button->get_active_row_number() + 1;
+			if (!event.button)
 				return false;
-		}
+			event.state = 0;
+			if (toggle_shift->get_active())
+				event.state |= GDK_SHIFT_MASK;
+			if (toggle_control->get_active())
+				event.state |= GDK_CONTROL_MASK;
+			if (toggle_alt->get_active())
+				event.state |= GDK_MOD1_MASK;
+			if (toggle_super->get_active())
+				event.state |= GDK_MOD4_MASK;
+			return true;
+		case 2: // Default
+			event.button = prefs().button.get().button;
+			event.state = 0;
+			return true;
+		case 3: // Click - all the work has already been done
+			return true;
+		case -1: // Cancel
+		default: // Something went wrong
+			return false;
 	}
-	GdkEventButton event;
-private:
-	Gtk::Dialog *dialog;
-	bool on_button_press(GdkEventButton *ev) {
-		event = *ev;
-		dialog->response(3);
-		return true;
-	}
-	Gtk::EventBox *eventbox;
-	Gtk::ToggleButton *toggle_shift, *toggle_control, *toggle_alt, *toggle_super;
-	Gtk::ComboBox *select_button;
-	sigc::connection handler;
-};
+}
+
+bool SelectButton::on_button_press(GdkEventButton *ev) {
+	event = *ev;
+	dialog->response(3);
+	return true;
+}
 
 void Prefs::on_select_button() {
 	SelectButton sb(parent->widgets, prefs().button.get());
@@ -439,8 +435,6 @@ void Prefs::select_worker() {
 cleanup:
 	XCloseDisplay(dpy);
 }
-
-
 
 Glib::ustring get_button_text(ButtonInfo &bi) {
 	struct {

@@ -10,18 +10,21 @@
 
 #include "stroke.h"
 #include "locking.h"
+#include "prefdb.h"
 
 class Action;
 class Command;
 class SendKey;
 class Scroll;
 class Ignore;
+class Button;
 
 typedef boost::shared_ptr<Action> RAction;
 typedef boost::shared_ptr<Command> RCommand;
 typedef boost::shared_ptr<SendKey> RSendKey;
 typedef boost::shared_ptr<Scroll> RScroll;
 typedef boost::shared_ptr<Ignore> RIgnore;
+typedef boost::shared_ptr<Button> RButton;
 
 class Action {
 	friend class boost::serialization::access;
@@ -92,6 +95,18 @@ class Ignore : public ModAction {
 public:
 	Ignore() {}
 	static RIgnore create(Gdk::ModifierType mods) { return RIgnore(new Ignore(mods)); }
+	virtual bool run();
+};
+
+class Button : public ModAction {
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+	Button(Gdk::ModifierType mods, guint button_) : ModAction(mods), button(button_) {}
+	guint button;
+public:
+	Button() {}
+	ButtonInfo get_button_info();
+	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
 	virtual bool run();
 };
 

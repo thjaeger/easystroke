@@ -704,3 +704,9 @@ bool Ignore::run() {
 	ignore = true;
 	return true;
 }
+
+bool Button::run() {
+	printf("button!\n");
+	//TODO
+	return true;
+}

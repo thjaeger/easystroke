@@ -21,6 +21,7 @@ BOOST_CLASS_EXPORT(ModAction)
 BOOST_CLASS_EXPORT(SendKey)
 BOOST_CLASS_EXPORT(Scroll)
 BOOST_CLASS_EXPORT(Ignore)
+BOOST_CLASS_EXPORT(Button)
 
 template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {
 }
@@ -50,6 +51,11 @@ template<class Archive> void Ignore::serialize(Archive & ar, const unsigned int 
 	ar & boost::serialization::base_object<ModAction>(*this);
 }
 
+template<class Archive> void Button::serialize(Archive & ar, const unsigned int version) {
+	ar & boost::serialization::base_object<ModAction>(*this);
+	ar & button;
+}
+
 template<class Archive> void StrokeSet::serialize(Archive & ar, const unsigned int version) {
 	ar & boost::serialization::base_object<std::set<RStroke> >(*this);
 }
@@ -66,6 +72,14 @@ using namespace std;
 bool Command::run() {
 	system(cmd.c_str());
 	return true;
+}
+
+ButtonInfo Button::get_button_info() {
+	ButtonInfo bi;
+	bi.special = 0;
+	bi.button = button;
+	bi.state = mods;
+	return bi;
 }
 
 ActionDB::ActionDB() : filename(config_dir+"actions"), current_id(0) {}
