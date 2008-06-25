@@ -405,8 +405,12 @@ void Main::run() {
 					send(P_IGNORE);
 					break;
 				}
-				if (ev.xbutton.button == grabber->button && grab_state != GS_EMULATE) {
-					XSetInputFocus(dpy, current, RevertToParent, ev.xbutton.time);
+				if (xinput_works && (grab_state == GS_ACTION 
+						|| grab_state == GS_EMULATE || grab_state == GS_EMULATE_GRABBED))
+					break;
+				if (ev.xbutton.button == grabber->button) {
+					if (current)
+						XSetInputFocus(dpy, current, RevertToParent, ev.xbutton.time);
 					orig.x = ev.xbutton.x;
 					orig.y = ev.xbutton.y;
 					is_gesture = false;
@@ -561,6 +565,7 @@ void Main::run() {
 							clear_mods();
 							XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 							grabber->grab_xi(false);
+							grab_state = GS_IDLE;
 						} else if (emulated_button) {
 							XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
 							emulated_button = 0;
