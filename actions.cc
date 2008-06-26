@@ -438,7 +438,6 @@ void Actions::on_something_editing_started(Gtk::CellEditable* editable, const Gl
 void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
 	tv->grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
-	focus(row[cols.id],3,false);
 	if (row[cols.type] != Glib::ustring(BUTTON))
 		return;
 	ActionDBRef ref(actions());
