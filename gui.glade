@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Wed Jun 25 18:04:35 2008 -->
+<!--Generated with glade3 3.4.5 on Wed Jun 25 20:38:11 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -817,7 +817,10 @@ Button 5
 Button 6
 Button 7
 Button 8
-Button 9</property>
+Button 9
+Button 10
+Button 11
+Button 12</property>
               </widget>
               <packing>
                 <property name="position">4</property>
