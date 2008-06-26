@@ -22,6 +22,8 @@ private:
 	void on_p_default();
 	void on_delay_changed();
 	void on_delay_default();
+	void on_radius_changed();
+	void on_radius_default();
 	void on_select_button();
 	void on_trace_changed();
 	void on_cds_stroke_changed();
@@ -48,7 +50,7 @@ private:
 	Gtk::ComboBox *trace;
 	Gtk::ComboBoxText *click, *stroke_click;
 	Gtk::HScale* scale_p;
-	Gtk::SpinButton* spin_delay;
+	Gtk::SpinButton *spin_delay, *spin_radius;
 	Gtk::Label* blabel;
 	Gtk::CheckButton *cds_stroke;
 };

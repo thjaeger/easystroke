@@ -14,7 +14,7 @@ void usage() {}
 Prefs::Prefs(Win *parent_) :
 	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected))
 {
-	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_delay;
+	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_delay, *button_default_radius;
 	parent->widgets->get_widget("button_add_exception", add_exception);
 	parent->widgets->get_widget("button_button", bbutton);
 	parent->widgets->get_widget("button_default_delay", button_default_delay);
@@ -26,6 +26,8 @@ Prefs::Prefs(Win *parent_) :
 	parent->widgets->get_widget("scale_p", scale_p);
 	parent->widgets->get_widget("spin_delay", spin_delay);
 	parent->widgets->get_widget("check_cds_stroke", cds_stroke);
+	parent->widgets->get_widget("spin_radius", spin_radius);
+	parent->widgets->get_widget("button_default_radius", button_default_radius);
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -51,6 +53,10 @@ Prefs::Prefs(Win *parent_) :
 	spin_delay->set_value(prefs().delay.get());
 	spin_delay->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_delay_changed));
 	button_default_delay->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_delay_default));
+
+	spin_radius->set_value(prefs().radius.get());
+	spin_radius->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_radius_changed));
+	button_default_radius->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_radius_default));
 
 	if (!experimental) {
 		Gtk::HBox *hbox_experimental;
@@ -209,6 +215,15 @@ void Prefs::on_p_changed() {
 
 void Prefs::on_p_default() {
 	scale_p->set_value(pref_p_default);
+}
+
+void Prefs::on_radius_changed() {
+	prefs().radius.set(spin_radius->get_value());
+	write();
+}
+
+void Prefs::on_radius_default() {
+	spin_radius->set_value(pref_radius_default);
 }
 
 void Prefs::on_selected(std::string &str) {

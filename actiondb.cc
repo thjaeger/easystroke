@@ -164,6 +164,7 @@ Ranking ActionDB::handle(RStroke s) {
 	Ranking r;
 	r.stroke = s;
 	r.score = -1;
+	r.id = -2;
 	bool success = false;
 	if (!s)
 		return r;

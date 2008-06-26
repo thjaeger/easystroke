@@ -13,6 +13,7 @@
 const double pref_p_default = 0.5;
 const ButtonInfo pref_button_default = { Button2, 0 };
 const int pref_delay_default = 0;
+const int pref_radius_default = 10;
 
 PrefDB::PrefDB() :
 	filename(config_dir+"preferences"),
@@ -20,7 +21,8 @@ PrefDB::PrefDB() :
 	button(pref_button_default),
 	trace(TraceShape),
 	delay(pref_delay_default),
-	cds_stroke(false)
+	cds_stroke(false),
+	radius(pref_radius_default)
 {}
 
 bool PrefDB::write() const {

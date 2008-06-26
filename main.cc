@@ -387,7 +387,7 @@ void Main::run() {
 				p.x = ev.xmotion.x;
 				p.y = ev.xmotion.y;
 				cur->add(p.x, p.y);
-				if (!is_gesture && ((sqr(p.x-orig.x)+sqr(p.y-orig.y)) > 100)) {
+				if (!is_gesture && ((sqr(p.x-orig.x)+sqr(p.y-orig.y)) > sqr(prefs().radius.get()))) {
 					is_gesture = true;
 					trace->start(orig);
 				}

@@ -31,6 +31,7 @@ BOOST_CLASS_VERSION(ButtonInfo, 2)
 
 extern const double pref_p_default;
 extern const int pref_delay_default;
+extern const int pref_radius_default;
 
 class PrefDB {
 	friend class boost::serialization::access;
@@ -52,6 +53,7 @@ class PrefDB {
 		}
 		if (version <= 1) return;
 		{ Ref<bool> ref(cds_stroke); ar & *ref; }
+		{ Ref<int> ref(radius); ar & *ref; }
 	}
 	std::string filename;
 public:
@@ -63,6 +65,7 @@ public:
 	Lock<TraceType> trace;
 	Lock<int> delay;
 	Lock<bool> cds_stroke;
+	Lock<int> radius;
 
 	void read();
 	bool write() const;
