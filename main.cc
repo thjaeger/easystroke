@@ -424,47 +424,47 @@ void Main::run() {
 				if (grab_state == GS_STROKE)
 					trace->end();
 
-				if (grab_state != GS_ACTION) {
-					if (gui && stroke_action()) {
-						handle_stroke(ev.xbutton.button);
-						grab_state = GS_IDLE;
-						break;
-					}
-					if (xinput_works) {
-						click_time = ev.xbutton.time;
-						XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
-						XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
-						grabber->grab_xi();
-						XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
-					} else {
-						printf("warning: Xinput extension not working correctly\n");
-					}
-				}
-				grab_state = GS_ACTION;
-				handle_stroke(ev.xbutton.button, false);
-				if (!press_button)
+				if (gui && stroke_action()) {
+					handle_stroke(ev.xbutton.button);
+					grab_state = GS_IDLE;
 					break;
+				}
+
 				if (!xinput_works) {
+					if (grab_state != GS_ACTION)
+						printf("warning: Xinput extension not working correctly\n");
+					grab_state = GS_ACTION;
+					handle_stroke(ev.xbutton.button, false);
+					if (!press_button)
+						break;
 					XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
 					XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 					grabber->fake_button(press_button);
 					press_button = 0;
 					grab_state = GS_IDLE;
 					clear_mods();
-					break;
+				} else { // xinput is working!
+					click_time = ev.xbutton.time;
+					XTestFakeButtonEvent(dpy, ev.xbutton.button, False, CurrentTime);
+					XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+					grabber->grab_xi();
+					grab_state = GS_ACTION;
+					handle_stroke(ev.xbutton.button, false);
+					if (!press_button) {
+						XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, 
+								GrabModeAsync, GrabModeAsync, None, None);
+						break;
+					}
+					if (emulated_button) {
+						printf("Warning: This should not happen\n");
+						XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
+						emulated_button = 0;
+					}
+					XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
+					emulated_button = press_button;
+					press_button = 0;
+					XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 				}
-
-				if (emulated_button) {
-					printf("Warning: This should not happen\n");
-					XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
-					emulated_button = 0;
-				}
-				// TODO: We might grab and immediately ungrab here - not good
-				XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-				XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-				emulated_button = press_button;
-				press_button = 0;
-				XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 				break;
 
 			case ButtonRelease:
