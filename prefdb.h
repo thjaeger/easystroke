@@ -39,14 +39,14 @@ class PrefDB {
 		{ Ref<std::set<std::string> > ref(exceptions); ar & *ref; }
 		{ Ref<double> ref(p); ar & *ref; }
 		{ Ref<ButtonInfo> ref(button); ar & *ref; }
-		if (version <= 1) { 
-			bool help; 
-			ar & help; 
+		if (version <= 1) {
+			bool help;
+			ar & help;
 		}
 		{ Ref<TraceType> ref(trace); ar & *ref; }
 		{ Ref<int> ref(delay); ar & *ref; }
 		if (version == 1) {
-			ButtonInfo foo; 
+			ButtonInfo foo;
 			ar & foo;
 			ar & foo;
 			return;

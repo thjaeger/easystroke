@@ -451,7 +451,7 @@ void Main::run() {
 					grab_state = GS_ACTION;
 					handle_stroke(ev.xbutton.button, false);
 					if (!press_button) {
-						XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, 
+						XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 								GrabModeAsync, GrabModeAsync, None, None);
 						break;
 					}
@@ -546,7 +546,6 @@ void Main::run() {
 							grab_state = GS_IDLE;
 						}
 					}
-
 				}
 				break;
 		}

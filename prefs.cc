@@ -111,7 +111,7 @@ SelectButton::SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo 
 	Gtk::Button *select_default;
 	widgets->get_widget("select_default", select_default);
 	select_default->set_sensitive(def);
-	
+
 	if (!eventbox->get_children().size()) {
 		eventbox->set_events(Gdk::BUTTON_PRESS_MASK);
 
