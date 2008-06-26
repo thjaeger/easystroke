@@ -184,6 +184,11 @@ Ranking ActionDB::handle(RStroke s) {
 			}
 		}
 	}
+	if (!success && s->trivial()) {
+		r.id = -1;
+		r.name = "button press (default)";
+		success = true;
+	}
 	if (success) {
 		if (verbosity >= 1)
 			cout << "Excecuting Action " << r.name << "..." << endl;

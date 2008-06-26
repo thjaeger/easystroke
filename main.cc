@@ -300,11 +300,15 @@ void Main::handle_stroke(int button, bool clear) {
 	if (gui) {
 		if (!stroke_action()(s)) {
 			Ranking ranking = actions().handle(s);
+			if (ranking.id == -1)
+				grabber->fake_button(grabber->button);
 			win->stroke_push(ranking);
 		}
 		win->icon_push(s);
-	} else
-		actions().handle(s);
+	} else {
+		if (actions().handle(s).id == -1)
+			grabber->fake_button(grabber->button);
+	}
 	if (clear) {
 		if (press_button) {
 			grabber->fake_button(press_button);
