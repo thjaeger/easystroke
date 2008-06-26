@@ -453,6 +453,13 @@ void Main::run() {
 					clear_mods();
 					break;
 				}
+
+				if (emulated_button) {
+					printf("Warning: This should not happen\n");
+					XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
+					emulated_button = 0;
+				}
+				// TODO: We might grab and immediately ungrab here - not good
 				XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 				XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
 				emulated_button = press_button;
@@ -528,14 +535,15 @@ void Main::run() {
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (grab_state == GS_ACTION && xinput_works) {
+						if (emulated_button) {
+							XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
+							emulated_button = 0;
+						}
 						if (bev->button == grabber->button) {
 							clear_mods();
 							XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 							grabber->grab_xi(false);
 							grab_state = GS_IDLE;
-						} else if (emulated_button) {
-							XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
-							emulated_button = 0;
 						}
 					}
 
