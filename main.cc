@@ -347,6 +347,7 @@ void Main::run() {
 		if (ret) {
 			if (*ret == P_QUIT) {
 				alive = false;
+				gui = false;
 				continue;
 			}
 			if (*ret == P_REGRAB)
