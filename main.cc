@@ -292,7 +292,7 @@ void Main::create_config_dir() {
 void Main::handle_stroke(int button, bool clear) {
 	if (!is_gesture)
 		cur->clear();
-	if (!prefs().cds_stroke.get())
+	if (button && !prefs().cds_stroke.get())
 		cur->clear();
 	RStroke s = Stroke::create(*cur, button);
 	if (verbosity >= 3)
