@@ -80,7 +80,6 @@ int run_dialog(const char *str) {
 	Gtk::Dialog *dialog;
 	xml->get_widget(str, dialog);
 	int response = dialog->run();
-//	printf("par: %x\n", dialog->get_parent());
 	dialog->hide();
 	return response;
 }
@@ -90,7 +89,6 @@ Win::Win() :
 	actions(new Actions(this)),
 	prefs(new Prefs(this)),
 	stats(new Stats(this)),
-//	button_help("Show Help"),
 	icon_queue(sigc::mem_fun(*this, &Win::on_icon_changed))
 {
 	current_icon = Stroke::trefoil();
@@ -128,18 +126,6 @@ void Win::stroke_push(Ranking& r) {
 	stats->stroke_push(r);
 }
 
-/*
-void Win::on_help_toggled() {
-	bool active = button_help.get_active();
-	if (active)
-		status.show();
-	else
-		status.hide();
-	prefs().help.set(active);
-	prefs().write();
-}
-*/
-
 void Win::on_icon_changed(RStroke s) {
 	current_icon = s;
 	on_icon_size_changed(icon->get_size());
@@ -157,4 +143,20 @@ bool Win::on_icon_size_changed(int size) {
 		return true;
 	icon->set(current_icon->draw(size));
 	return true;
+}
+
+FormatLabel::FormatLabel(Glib::RefPtr<Gtk::Builder> builder, Glib::ustring name, ...) {
+	builder->get_widget(name, label);
+	oldstring = label->get_label();
+	char newstring[256];
+	va_list argp;
+	va_start(argp, name);
+	vsnprintf(newstring, 255, oldstring.c_str(), argp);
+	va_end(argp);
+	label->set_label(newstring);
+	label->set_use_markup();
+}
+
+FormatLabel::~FormatLabel() {
+	label->set_text(oldstring);
 }

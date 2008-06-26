@@ -62,4 +62,13 @@ private:
 	sigc::connection handler;
 };
 
+class FormatLabel {
+public:
+	FormatLabel(Glib::RefPtr<Gtk::Builder>, Glib::ustring, ...);
+	~FormatLabel();
+private:
+	Glib::ustring oldstring;
+	Gtk::Label *label;
+};
+
 #endif

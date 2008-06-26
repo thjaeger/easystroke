@@ -202,21 +202,23 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 }
 
 void Actions::on_button_delete() {
-	if (1) {
-		int n = tv->get_selection()->count_selected_rows();
-		std::stringstream msg;
-		if (n == 1)
-			msg << "Action \"" << get_selected_row()[cols.name] << "\" is";
-		else
-			msg << n << " actions are";
-		msg << " about to be deleted.";
-		Gtk::MessageDialog dialog(parent->get_window(), msg.str(), false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_OK_CANCEL, true);
-	if (dialog.run() != Gtk::RESPONSE_OK)
+	int n = tv->get_selection()->count_selected_rows();
+
+	std::stringstream msg;
+	if (n == 1)
+		msg << "Action \"" << get_selected_row()[cols.name] << "\" is";
+	else
+		msg << n << " actions are";
+
+	Gtk::Dialog *dialog;
+	parent->widgets->get_widget("dialog_delete", dialog);
+	FormatLabel foo(parent->widgets, "label_delete", msg.str().c_str());
+
+	bool ok = dialog->run() == 1;
+	dialog->hide();
+	if (!ok)
 		return;
-	} else {
-		if (run_dialog("dialog_delete") != 1)
-			return;
-	}
+
 	// complete craziness
 	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
 	std::vector<Gtk::TreeRowReference> refs;
@@ -250,34 +252,29 @@ public:
 		si.strokes.clear();
 		si.strokes.insert(s);
 		parent->write(ref);
-		dialog->hide();
+		dialog->response(0);
 		Glib::RefPtr<Gdk::Pixbuf> pb2 = s->draw(STROKE_SIZE);
 		pb = pb2;
 	}
 };
 
 void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
-	Gtk::Dialog dialog("Record Stroke", parent->get_window(), true);
-	Gtk::HBox hbox(false,12);
-	dialog.get_vbox()->set_spacing(30);
-	dialog.get_vbox()->pack_start(hbox);
-	Gtk::Image image(Gtk::Stock::DIALOG_INFO, Gtk::ICON_SIZE_DIALOG);
-	hbox.pack_start(image);
+	Gtk::Dialog *dialog;
+	parent->widgets->get_widget("dialog_record", dialog);
 	Gtk::TreeRow row(*tm->get_iter(path));
-	Gtk::Label label("The next stroke will be associated with the action \"" + row[cols.name] + "\".");
-	label.set_line_wrap();
-	label.set_size_request(200,-1);
-	hbox.pack_start(label);
-	dialog.add_button("_Delete Current",0)->set_sensitive(actions().get()[row[cols.id]].strokes.size());
-	dialog.add_button(Gtk::Stock::CANCEL,1);
-	dialog.show_all_children();
+	FormatLabel foo(parent->widgets, "label_record", Glib::ustring(row[cols.name]).c_str());
 
-	OnStroke ps(this, &dialog, row[cols.id], row[cols.stroke]);
+	Gtk::Button *del;
+	parent->widgets->get_widget("button_delete_current", del);
+	del->set_sensitive(actions().get()[row[cols.id]].strokes.size());
+
+	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
 	stroke_action().set(sigc::mem_fun(ps, &OnStroke::run));
 
-	int response = dialog.run();
+	int response = dialog->run();
+	dialog->hide();
 	stroke_action().erase();
-	if (response != 0)
+	if (response != 1)
 		return;
 
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
