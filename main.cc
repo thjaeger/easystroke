@@ -339,13 +339,16 @@ void Main::run() {
 	Timeout timeout;
 	guint emulated_button = 0;
 	Time click_time = 0;
+	bool alive = true;
 	if (verbosity >= 2)
 		printf("Entering main loop...\n");
-	while(1) {
+	while (alive || grab_state != GS_IDLE) {
 		char *ret = next_event();
 		if (ret) {
-			if (*ret == P_QUIT)
-				break;
+			if (*ret == P_QUIT) {
+				alive = false;
+				continue;
+			}
 			if (*ret == P_REGRAB)
 				grabber->regrab();
 			if (*ret == P_SUSPEND_GRAB)
