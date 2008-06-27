@@ -273,6 +273,8 @@ void Main::handle_stroke(int button, bool clear) {
 		}
 		clear_mods();
 	}
+	if (!clear)
+		ignore = false;
 }
 
 char* Main::next_event() {
@@ -422,6 +424,9 @@ void Main::run() {
 					break;
 				trace->end();
 				handle_stroke(0);
+				if (ignore)
+					grabber->grab_all();
+				ignore = false;
 				grab_state = GS_IDLE;
 				break;
 
@@ -653,7 +658,6 @@ void clear_mods() {
 
 bool Ignore::run() {
 	press();
-	grabber->grab_all();
 	ignore = true;
 	return true;
 }
