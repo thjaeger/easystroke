@@ -52,7 +52,7 @@ class PrefDB {
 			return;
 		}
 		if (version <= 1) return;
-		{ Ref<bool> ref(cds_stroke); ar & *ref; }
+		{ Ref<bool> ref(advanced_ignore); ar & *ref; }
 		{ Ref<int> ref(radius); ar & *ref; }
 	}
 	std::string filename;
@@ -64,7 +64,7 @@ public:
 	Lock<ButtonInfo> button;
 	Lock<TraceType> trace;
 	Lock<int> delay;
-	Lock<bool> cds_stroke;
+	Lock<bool> advanced_ignore;
 	Lock<int> radius;
 
 	void read();

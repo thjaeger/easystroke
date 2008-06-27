@@ -25,7 +25,7 @@ Prefs::Prefs(Win *parent_) :
 	parent->widgets->get_widget("treeview_exceptions", tv);
 	parent->widgets->get_widget("scale_p", scale_p);
 	parent->widgets->get_widget("spin_delay", spin_delay);
-	parent->widgets->get_widget("check_cds_stroke", cds_stroke);
+	parent->widgets->get_widget("check_advanced_ignore", advanced_ignore);
 	parent->widgets->get_widget("spin_radius", spin_radius);
 	parent->widgets->get_widget("button_default_radius", button_default_radius);
 
@@ -42,8 +42,8 @@ Prefs::Prefs(Win *parent_) :
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
 	trace->set_active(prefs().trace.get());
 
-	cds_stroke->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_cds_stroke_changed));
-	cds_stroke->set_active(prefs().cds_stroke.get());
+	advanced_ignore->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_advanced_ignore_changed));
+	advanced_ignore->set_active(prefs().advanced_ignore.get());
 
 	double p = prefs().p.get();
 	scale_p->set_value(p);
@@ -194,8 +194,8 @@ void Prefs::on_trace_changed() {
 	write();
 }
 
-void Prefs::on_cds_stroke_changed() {
-	prefs().cds_stroke.set(cds_stroke->get_active());
+void Prefs::on_advanced_ignore_changed() {
+	prefs().advanced_ignore.set(advanced_ignore->get_active());
 	write();
 }
 

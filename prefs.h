@@ -26,7 +26,7 @@ private:
 	void on_radius_default();
 	void on_select_button();
 	void on_trace_changed();
-	void on_cds_stroke_changed();
+	void on_advanced_ignore_changed();
 
 	struct SelectRow;
 
@@ -52,7 +52,7 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_delay, *spin_radius;
 	Gtk::Label* blabel;
-	Gtk::CheckButton *cds_stroke;
+	Gtk::CheckButton *advanced_ignore;
 };
 
 #endif

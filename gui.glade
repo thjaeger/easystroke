@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Thu Jun 26 00:12:05 2008 -->
+<!--Generated with glade3 3.4.5 on Thu Jun 26 21:04:28 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -175,12 +175,17 @@
                           <widget class="GtkHBox" id="hbox1">
                             <property name="visible">True</property>
                             <child>
-                              <widget class="GtkCheckButton" id="check_cds_stroke">
+                              <widget class="GtkCheckButton" id="check_advanced_ignore">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="label" translatable="yes">???</property>
                                 <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
+                                <child>
+                                  <widget class="GtkLabel" id="label15">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">Ignore strokes leading up to advanced gestures.</property>
+                                  </widget>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -196,7 +201,7 @@
                                 <property name="label" translatable="yes">(See Documentation)</property>
                                 <property name="relief">GTK_RELIEF_NONE</property>
                                 <property name="response_id">0</property>
-                                <property name="uri">http://easystroke.wiki.sourceforge.net/FeatureClickDuringStroke#content</property>
+                                <property name="uri">http://easystroke.wiki.sourceforge.net/FeatureAdvancedGestures#content</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -216,7 +221,8 @@
                             <child>
                               <widget class="GtkLabel" id="label14">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">radius</property>
+                                <property name="label" translatable="yes">Treat it as a click if the cursor isn't moved more 
+than this many pixels away from the original position.</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -308,7 +314,7 @@
                         <child>
                           <widget class="GtkLabel" id="label13">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Method to show strokes on the screen</property>
+                            <property name="label" translatable="yes">Method to show strokes on the screen.</property>
                           </widget>
                         </child>
                         <child>
