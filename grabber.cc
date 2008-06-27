@@ -168,9 +168,8 @@ void Grabber::fake_button(int b) {
 }
 
 void Grabber::ignore(int b) {
-	before();
 	XAllowEvents(dpy, ReplayPointer, CurrentTime);
-	after();
+	clear_mods();
 	State s = current;
 	s.all = false;
 	set(s);

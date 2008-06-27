@@ -266,7 +266,7 @@ void Main::handle_stroke(int button, bool clear) {
 		if (actions().handle(s).id == -1)
 			grabber->fake_button(grabber->button);
 	}
-	if (clear) {
+	if (clear && !ignore) {
 		if (press_button) {
 			grabber->fake_button(press_button);
 			press_button = 0;
@@ -652,7 +652,8 @@ void clear_mods() {
 }
 
 bool Ignore::run() {
-	grabber->grab_all(sigc::mem_fun(*this, &Ignore::press), sigc::ptr_fun(clear_mods));
+	press();
+	grabber->grab_all();
 	ignore = true;
 	return true;
 }

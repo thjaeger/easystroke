@@ -32,9 +32,6 @@ private:
 
 	State current;
 
-	sigc::slot<void> before;
-	sigc::slot<void> after;
-
 public:
 	unsigned int button;
 private:
@@ -63,10 +60,8 @@ public:
 	void fake_button(int b);
 	void ignore(int b);
 	void grab(bool grab = true) { State s = current; s.grab = grab; set(s); }
-	void grab_all(sigc::slot<void> before_, sigc::slot<void> after_) {
+	void grab_all() {
 		State s = current; s.all = true; set(s);
-		before = before_;
-		after = after_;
 	}
 	void grab_xi(bool grab = true) { State s = current; s.xi = grab; set(s); }
 	void suspend() { State s = current; s.suspend = true; set(s); }
