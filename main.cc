@@ -465,6 +465,7 @@ void Main::run() {
 			case ButtonRelease:
 				if (!xinput_works && grab_state == GS_ACTION && ev.xbutton.button == grabber->button) {
 					clear_mods();
+					grab_state = GS_IDLE;
 					break;
 				}
 				if (grab_state != GS_STROKE)
