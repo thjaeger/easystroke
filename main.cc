@@ -140,7 +140,6 @@ class Main {
 
 	Glib::Thread *gtk_thread;
 	Gtk::Main *kit;
-	Atom wm_delete;
 	Trace *trace;
 	RPreStroke cur;
 	bool is_gesture;
@@ -177,8 +176,6 @@ Main::Main(int argc, char **argv) : gtk_thread(0), kit(0), trace(0), is_gesture(
 	XSetWindowAttributes attr;
 	attr.event_mask = SubstructureNotifyMask;
 	XChangeWindowAttributes(dpy, ROOT, CWEventMask, &attr);
-
-	wm_delete = XInternAtom(dpy, "WM_DELETE_WINDOW", false);
 
 	prefs().read();
 	grabber = new Grabber;
@@ -481,8 +478,6 @@ void Main::run() {
 				break;
 
 			case ClientMessage:
-				if((Atom)ev.xclient.data.l[0] == wm_delete)
-					win->quit();
 				break;
 
 			case EnterNotify:
