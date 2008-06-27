@@ -14,17 +14,15 @@ void usage() {}
 Prefs::Prefs(Win *parent_) :
 	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected))
 {
-	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_delay, *button_default_radius;
+	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_radius;
 	parent->widgets->get_widget("button_add_exception", add_exception);
 	parent->widgets->get_widget("button_button", bbutton);
-	parent->widgets->get_widget("button_default_delay", button_default_delay);
 	parent->widgets->get_widget("button_default_p", button_default_p);
 	parent->widgets->get_widget("button_remove_exception", remove_exception);
 	parent->widgets->get_widget("combo_trace", trace);
 	parent->widgets->get_widget("label_button", blabel);
 	parent->widgets->get_widget("treeview_exceptions", tv);
 	parent->widgets->get_widget("scale_p", scale_p);
-	parent->widgets->get_widget("spin_delay", spin_delay);
 	parent->widgets->get_widget("check_advanced_ignore", advanced_ignore);
 	parent->widgets->get_widget("spin_radius", spin_radius);
 	parent->widgets->get_widget("button_default_radius", button_default_radius);
@@ -49,10 +47,6 @@ Prefs::Prefs(Win *parent_) :
 	scale_p->set_value(p);
 	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
 	button_default_p->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_p_default));
-
-	spin_delay->set_value(prefs().delay.get());
-	spin_delay->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_delay_changed));
-	button_default_delay->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_delay_default));
 
 	spin_radius->set_value(prefs().radius.get());
 	spin_radius->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_radius_changed));
@@ -197,15 +191,6 @@ void Prefs::on_trace_changed() {
 void Prefs::on_advanced_ignore_changed() {
 	prefs().advanced_ignore.set(advanced_ignore->get_active());
 	write();
-}
-
-void Prefs::on_delay_changed() {
-	prefs().delay.set(spin_delay->get_value());
-	write();
-}
-
-void Prefs::on_delay_default() {
-	spin_delay->set_value(pref_delay_default);
 }
 
 void Prefs::on_p_changed() {

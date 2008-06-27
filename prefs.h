@@ -20,8 +20,6 @@ private:
 	void on_remove();
 	void on_p_changed();
 	void on_p_default();
-	void on_delay_changed();
-	void on_delay_default();
 	void on_radius_changed();
 	void on_radius_default();
 	void on_select_button();
@@ -50,7 +48,7 @@ private:
 	Gtk::ComboBox *trace;
 	Gtk::ComboBoxText *click, *stroke_click;
 	Gtk::HScale* scale_p;
-	Gtk::SpinButton *spin_delay, *spin_radius;
+	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
 	Gtk::CheckButton *advanced_ignore;
 };

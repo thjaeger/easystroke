@@ -12,7 +12,6 @@
 
 const double pref_p_default = 0.5;
 const ButtonInfo pref_button_default = { Button2, 0 };
-const int pref_delay_default = 0;
 const int pref_radius_default = 16;
 
 PrefDB::PrefDB() :
@@ -20,7 +19,6 @@ PrefDB::PrefDB() :
 	p(pref_p_default),
 	button(pref_button_default),
 	trace(TraceShape),
-	delay(pref_delay_default),
 	advanced_ignore(false),
 	radius(pref_radius_default)
 {}

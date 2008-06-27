@@ -30,7 +30,6 @@ private:
 BOOST_CLASS_VERSION(ButtonInfo, 2)
 
 extern const double pref_p_default;
-extern const int pref_delay_default;
 extern const int pref_radius_default;
 
 class PrefDB {
@@ -44,7 +43,10 @@ class PrefDB {
 			ar & help;
 		}
 		{ Ref<TraceType> ref(trace); ar & *ref; }
-		{ Ref<int> ref(delay); ar & *ref; }
+		if (version <= 2) {
+			int delay;
+			ar & delay;
+		}
 		if (version == 1) {
 			ButtonInfo foo;
 			ar & foo;
@@ -63,7 +65,6 @@ public:
 	Lock<double> p;
 	Lock<ButtonInfo> button;
 	Lock<TraceType> trace;
-	Lock<int> delay;
 	Lock<bool> advanced_ignore;
 	Lock<int> radius;
 
@@ -71,7 +72,7 @@ public:
 	bool write() const;
 };
 
-BOOST_CLASS_VERSION(PrefDB, 2)
+BOOST_CLASS_VERSION(PrefDB, 3)
 
 typedef Ref<std::set<std::string> > RPrefEx;
 

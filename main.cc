@@ -61,46 +61,6 @@ void run_gui() {
 	send(P_QUIT);
 }
 
-class Timeout {
-	int fd[2];
-	bool active;
-	int delay;
-	void wait() {
-		active = true;
-		fd_set fds;
-		FD_ZERO(&fds);
-		FD_SET(fd[0], &fds);
-		int n = fd[0] + 1;
-		while (1) {
-			struct timeval tv;
-			tv.tv_sec = 0;
-			tv.tv_usec = delay;
-			if (select(n, &fds, 0, 0, &tv) == 0)
-				break;
-			char buffer[2];
-			read(fd[0], buffer, 1);
-		}
-		active = false;
-		send(P_TIMEOUT);
-	}
-public:
-	Timeout() : active(false) {
-		pipe(fd);
-		fcntl(fd[0], F_SETFL, O_NONBLOCK);
-	}
-	void reset() {
-		if (active)
-			write(fd[1], "x", 1);
-		else {
-			delay = prefs().delay.get() * 1000;
-			if (!delay)
-				return;
-			Glib::Thread::create(sigc::mem_fun(*this, &Timeout::wait), false);
-		}
-
-	}
-};
-
 void quit(int) {
 	if (gui)
 		win->quit();
@@ -332,8 +292,6 @@ char* Main::next_event() {
 }
 
 void Main::run() {
-	int cur_size  = 0; // last cur size the timer saw
-	Timeout timeout;
 	guint emulated_button = 0;
 	Time click_time = 0;
 	bool alive = true;
@@ -361,11 +319,6 @@ void Main::run() {
 				Trace *new_trace = init_trace();
 				delete trace;
 				trace = new_trace;
-			}
-			if (*ret == P_TIMEOUT) {
-				if (cur->size() != cur_size)
-					continue;
-				handle_stroke(0);
 			}
 			if (*ret == P_IGNORE) {
 				grabber->ignore(ignore_button);
@@ -468,12 +421,7 @@ void Main::run() {
 				if (grab_state != GS_STROKE)
 					break;
 				trace->end();
-				if (prefs().delay.get()) {
-					cur_size = cur->size();
-					timeout.reset();
-				} else {
-					handle_stroke(0);
-				}
+				handle_stroke(0);
 				grab_state = GS_IDLE;
 				break;
 
