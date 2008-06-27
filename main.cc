@@ -455,11 +455,6 @@ void Main::run() {
 								GrabModeAsync, GrabModeAsync, None, None);
 						break;
 					}
-					if (emulated_button) {
-						printf("Warning: This should not happen\n");
-						XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
-						emulated_button = 0;
-					}
 					XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
 					emulated_button = press_button;
 					press_button = 0;
