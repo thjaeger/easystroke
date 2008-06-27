@@ -55,28 +55,3 @@ PrefDB& prefs() {
 	return prefs_;
 }
 
-Glib::ustring ButtonInfo::get_button_text() {
-	struct {
-		const guint mask;
-		const char *name;
-	} modnames[] = {
-		{ShiftMask, "Shift"},
-		{LockMask, "Caps"},
-		{ControlMask, "Control"},
-		{Mod1Mask, "Mod1"},
-		{Mod2Mask, "Mod2"},
-		{Mod3Mask, "Mod3"},
-		{Mod4Mask, "Mod4"},
-		{Mod5Mask, "Mod5"}
-	};
-	int n_modnames = 8;
-	char name[16];
-	sprintf(name, "Button %d", button);
-	Glib::ustring str;
-	for (int i = 0; i < n_modnames; i++)
-		if (state & modnames[i].mask) {
-			str += modnames[i].name;
-			str += " + ";
-		}
-	return str + name;
-}

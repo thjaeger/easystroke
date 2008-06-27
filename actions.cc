@@ -466,3 +466,10 @@ const Glib::ustring ModAction::get_label() const {
 	Glib::ustring label = Gtk::AccelGroup::get_label(0, mods);
 	return label.substr(0,label.size()-1);
 }
+
+Glib::ustring ButtonInfo::get_button_text() {
+	Glib::ustring str = Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
+	char name[16];
+	sprintf(name, "Button %d", button);
+	return str + name;
+}

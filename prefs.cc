@@ -262,7 +262,6 @@ cleanup:
 
 
 void Prefs::set_button_label() {
-
 	Ref<ButtonInfo> ref(prefs().button);
 	blabel->set_text(ref->get_button_text());
 }
