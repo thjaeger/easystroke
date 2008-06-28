@@ -9,7 +9,6 @@
 #define P_RESTORE_GRAB 'r'
 #define P_UPDATE_CURRENT 'u'
 #define P_UPDATE_TRACE 't'
-#define P_IGNORE 'i'
 
 void send(char);
 extern std::string config_dir;

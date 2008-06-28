@@ -60,7 +60,6 @@ class Stroke {
         Glib::RefPtr<Gdk::Pixbuf> draw_(int) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb;
 	std::vector<Point> points;
-	int button;
 
 	static Glib::RefPtr<Gdk::Pixbuf> drawEmpty_(int);
 	static Glib::RefPtr<Gdk::Pixbuf> pbEmpty;
@@ -71,6 +70,8 @@ class Stroke {
 		ar & button;
 	}
 public:
+	int button;
+
 	Stroke() : button(0) {}
 	static RStroke create(PreStroke &s, int button_) { return RStroke(new Stroke(s, button_)); }
 
