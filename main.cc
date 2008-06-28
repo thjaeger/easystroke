@@ -11,7 +11,6 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xrandr.h>
-#include <X11/cursorfont.h>
 
 #include <signal.h>
 #include <fcntl.h>
@@ -138,6 +137,7 @@ class ActionHandler : public Handler {
 	ActionHandler(RStroke s) : stroke(s) {}
 	static Handler *do_press(RStroke s, guint b) {
 		handle_stroke(s, b, false);
+		scroll = false; //TODO
 		if (!press_button)
 			return 0;
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
@@ -189,6 +189,54 @@ public:
 		return new IdleHandler;
 	}
 };
+
+class ScrollHandler : public Handler {
+	int lasty;
+	int pressed;
+public:
+	ScrollHandler() : lasty(-255), pressed(0) {
+		grabber->grab_pointer();
+	}
+	virtual void motion(int x, int y, Time t) {
+		if (lasty == -1) {
+			lasty = y;
+			return;
+		}
+		int button = 0;
+		if (y > lasty + 100)
+			lasty = y;
+		if (y > lasty + 10)
+			button = 5;
+		if (y < lasty - 100)
+			lasty = y;
+		if (y < lasty - 10)
+			button = 4;
+		if (button) {
+			grabber->suspend();
+			if (pressed)
+				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+			XTestFakeButtonEvent(dpy, button, True, CurrentTime);
+			XTestFakeButtonEvent(dpy, button, False, CurrentTime);
+			lasty = y;
+			grabber->restore();
+			if (pressed)
+				XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
+		}
+	}
+	virtual Handler *press(guint b, int x, int y, Time t) {
+		if (b != 4 && b != 5)
+			pressed = b;
+		return 0;
+	}
+	virtual Handler *release(guint b, int x, int y) {
+		if (b == 4 || b == 5)
+			return 0;
+		clear_mods();
+		grabber->grab_pointer(false);
+		return new IdleHandler;
+	}
+};
+
 
 Handler *IdleHandler::press(guint b, int x, int y, Time t) {
 	if (b != grabber->button)
@@ -245,9 +293,14 @@ Handler *StrokeHandler::release(guint b, int x, int y) {
 	RStroke s = finish(b);
 
 	handle_stroke(s, 0);
-	if (ignore)
+	if (ignore) {
+		ignore = false;
 		return new IgnoreHandler;
-	ignore = false;
+	}
+	if (scroll) {
+		scroll = false;
+		return new ScrollHandler;
+	}
 	return new IdleHandler;
 }
 
@@ -256,6 +309,7 @@ ActionXiHandler::ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), click_
 	XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 	grabber->grab_xi();
 	handle_stroke(stroke, b, false);
+	scroll = false; // TODO
 	if (!press_button) {
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 				GrabModeAsync, GrabModeAsync, None, None);
@@ -272,6 +326,7 @@ Handler *ActionXiHandler::xi_press(guint b, int x, int y, Time t) {
 		return 0;
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	handle_stroke(stroke, b, false);
+	scroll = false; // TODO
 	if (!press_button)
 		return 0;
 	if (emulated_button) {
@@ -645,76 +700,9 @@ bool SendKey::run() {
 	return true;
 }
 
-void Scroll::worker() {
-#define GRAB (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask, GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) == GrabSuccess)
-#define UNGRAB XUngrabPointer(dpy, CurrentTime);
-	// We absolutely don't want to use the global dpy here, so it's probably
-	// best to shadow it
-	Display *dpy = XOpenDisplay(NULL);
-	if (!dpy)
-		return;
-
-	press(); // NB: this uses the global display
-
-	Cursor cursor = XCreateFontCursor(dpy, XC_double_arrow);
-	bool active = GRAB;
-
-	int lasty = -1;
-	int pressed = 0;
-	while (active) {
-		XEvent ev;
-		XNextEvent(dpy, &ev);
-		switch (ev.type) {
-			case MotionNotify: {
-				int y = ev.xmotion.y;
-				if (lasty == -1) {
-					lasty = y;
-					break;
-				}
-				int button = 0;
-				if (y > lasty + 100)
-					lasty = y;
-				if (y > lasty + 10)
-					button = 5;
-				if (y < lasty - 100)
-					lasty = y;
-				if (y < lasty - 10)
-					button = 4;
-				if (button) {
-					UNGRAB;
-					if (pressed)
-						XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
-					XTestFakeButtonEvent(dpy, button, True, CurrentTime);
-					XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-					lasty = y;
-					while (!GRAB) usleep(10000);
-					if (pressed)
-						XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
-				}
-				break; }
-			case ButtonPress:
-				if (ev.xbutton.button < 4)
-					pressed = ev.xbutton.button;
-				break;
-			case ButtonRelease:
-				if (ev.xbutton.button < 4)
-					active = false;
-				break;
-			default:
-				printf("Unhandled event\n");
-		}
-	}
-	UNGRAB;
-	clear_mods();
-	XFreeCursor(dpy, cursor);
-	XCloseDisplay(dpy);
-#undef GRAB
-#undef UNGRAB
-}
-
-
 bool Scroll::run() {
-	Glib::Thread::create(sigc::mem_fun(*this, &Scroll::worker), false);
+	press();
+	scroll = true;
 	return true;
 }
 

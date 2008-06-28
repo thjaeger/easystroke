@@ -4,13 +4,15 @@
 #include <string>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput.h>
+#include <X11/cursorfont.h>
 
 class Grabber {
-	enum Goal { NONE, BUTTON, ALL, XI };
+	enum Goal { NONE, BUTTON, ALL, XI, POINTER };
 	struct State {
 		bool grab;
 		bool suspend;
 		bool xi;
+		bool pointer;
 		bool all; // Takes precedence over suspend
 	};
 
@@ -31,6 +33,7 @@ private:
 	bool init_xi();
 
 	State current;
+	Cursor cursor;
 
 public:
 	unsigned int button;
@@ -43,15 +46,18 @@ private:
 	static Goal goal(State s) {
 		if (s.all)
 			return ALL;
-		if (s.xi)
-			return XI;
 		if (s.suspend)
 			return NONE;
+		if (s.pointer)
+			return POINTER;
+		if (s.xi)
+			return XI;
 		return s.grab ? BUTTON : NONE;
 	}
 	std::string get_wm_state(Window w);
 public:
 	Grabber();
+	~Grabber();
 	void init(Window w, int depth);
 	bool has_wm_state(Window w);
 	void update(Window w) { grab(!RPrefEx(prefs().exceptions)->count(get_wm_state(w))); }
@@ -64,6 +70,7 @@ public:
 		State s = current; s.all = true; set(s);
 	}
 	void grab_xi(bool grab = true) { State s = current; s.xi = grab; set(s); }
+	void grab_pointer(bool grab = true) { State s = current; s.pointer = grab; set(s); }
 	void suspend() { State s = current; s.suspend = true; set(s); }
 	void restore() { State s = current; s.suspend = false; set(s); }
 	void regrab() { suspend(); get_button(); restore(); }
