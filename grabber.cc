@@ -156,7 +156,7 @@ void Grabber::set(State s) {
 					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
 	if (new_goal == XI)
 		for (int i = 0; i < xi_devs_n; i++)
-			ENSURE(!xinput || XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False,
+			ENSURE(!xinput || !XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False,
 						xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 						GrabModeAsync, GrabModeAsync))
 	if (new_goal == POINTER) {
