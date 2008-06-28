@@ -135,18 +135,7 @@ class ActionHandler : public Handler {
 	RStroke stroke;
 
 	ActionHandler(RStroke s) : stroke(s) {}
-	static Handler *do_press(RStroke s, guint b) {
-		handle_stroke(s, b, false);
-		scroll = false; //TODO
-		if (!press_button)
-			return 0;
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
-		grabber->fake_button(press_button);
-		press_button = 0;
-		clear_mods();
-		return new IdleHandler;
-	}
+	static Handler *do_press(RStroke s, guint b);
 public:
 	static Handler *create(RStroke s, guint b) {
 		Handler *h = do_press(s, b);
@@ -192,10 +181,16 @@ public:
 
 class ScrollHandler : public Handler {
 	int lasty;
-	int pressed;
+	guint pressed;
+	int ignore_release;
 public:
-	ScrollHandler() : lasty(-255), pressed(0) {
+	ScrollHandler() : lasty(-255), pressed(0), ignore_release(0) {
 		grabber->grab_pointer();
+	}
+	ScrollHandler(guint b) : lasty(-255), pressed(b), ignore_release(1) {
+		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+		grabber->grab_pointer();
+		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 	}
 	virtual void motion(int x, int y, Time t) {
 		if (lasty == -1) {
@@ -229,8 +224,12 @@ public:
 		return 0;
 	}
 	virtual Handler *release(guint b, int x, int y) {
-		if (b == 4 || b == 5)
+		if (b != pressed)
 			return 0;
+		if (ignore_release) {
+			ignore_release--;
+			return 0;
+		}
 		clear_mods();
 		grabber->grab_pointer(false);
 		return new IdleHandler;
@@ -301,6 +300,23 @@ Handler *StrokeHandler::release(guint b, int x, int y) {
 		scroll = false;
 		return new ScrollHandler;
 	}
+	return new IdleHandler;
+}
+
+Handler *ActionHandler::do_press(RStroke s, guint b) {
+	handle_stroke(s, b, false);
+	if (scroll) {
+		scroll = false;
+		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+		return new ScrollHandler(b);
+	}
+	if (!press_button)
+		return 0;
+	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+	XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+	grabber->fake_button(press_button);
+	press_button = 0;
+	clear_mods();
 	return new IdleHandler;
 }
 
