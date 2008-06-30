@@ -184,9 +184,7 @@ void Grabber::fake_button(int b) {
 void Grabber::ignore(int b) {
 	XAllowEvents(dpy, ReplayPointer, CurrentTime);
 	clear_mods();
-	State s = current;
-	s.all = false;
-	set(s);
+	grab_all(false);
 }
 
 std::string Grabber::get_wm_state(Window w) {

@@ -56,6 +56,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 void run_gui() {
 	win = new Win;
 	Gtk::Main::run();
+	gui = false;
 	delete win;
 	send(P_QUIT);
 }
@@ -97,6 +98,7 @@ public:
 	virtual Handler *xi_press(guint b, int x, int y, Time t) { return 0; }
 	virtual Handler *xi_release(guint b, int x, int y) { return 0;}
 	virtual bool idle() { return false; }
+	virtual void cancel() {}
 };
 
 class IdleHandler : public Handler {
@@ -155,6 +157,9 @@ public:
 		clear_mods();
 		return new IdleHandler;
 	}
+	virtual void cancel() {
+		clear_mods();
+	}
 
 };
 
@@ -166,6 +171,7 @@ public:
 	ActionXiHandler(RStroke s, guint b, Time t);
 	virtual Handler *xi_press(guint b, int x, int y, Time t);
 	virtual Handler *xi_release(guint b, int x, int y);
+	virtual void cancel();
 };
 
 class IgnoreHandler : public Handler {
@@ -176,6 +182,10 @@ public:
 	virtual Handler *press(guint b, int x, int y, Time t) {
 		grabber->ignore(b);
 		return new IdleHandler;
+	}
+	virtual void cancel() {
+		clear_mods();
+		grabber->grab_all(false);
 	}
 };
 
@@ -233,6 +243,10 @@ public:
 		clear_mods();
 		grabber->grab_pointer(false);
 		return new IdleHandler;
+	}
+	virtual void cancel() {
+		clear_mods();
+		grabber->grab_pointer(false);
 	}
 };
 
@@ -369,6 +383,16 @@ Handler *ActionXiHandler::xi_release(guint b, int x, int y) {
 		return new IdleHandler;
 	}
 	return 0;
+}
+
+void ActionXiHandler::cancel() {
+	if (emulated_button) {
+		XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
+		emulated_button = 0;
+	}
+	clear_mods();
+	XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+	grabber->grab_xi(false);
 }
 
 Handler *handler;
@@ -577,8 +601,14 @@ void Main::run() {
 		char *ret = next_event();
 		if (ret) {
 			if (*ret == P_QUIT) {
-				alive = false;
-				gui = false;
+				if (alive) {
+					alive = false;
+				} else {
+					printf("Forcing easystroke to quit\n");
+					handler->cancel();
+					delete handler;
+					handler = new IdleHandler;
+				}
 				continue;
 			}
 			if (*ret == P_REGRAB)

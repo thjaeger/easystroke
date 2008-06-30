@@ -66,9 +66,7 @@ public:
 	void fake_button(int b);
 	void ignore(int b);
 	void grab(bool grab = true) { State s = current; s.grab = grab; set(s); }
-	void grab_all() {
-		State s = current; s.all = true; set(s);
-	}
+	void grab_all(bool grab = true) { State s = current; s.all = grab; set(s); }
 	void grab_xi(bool grab = true) { State s = current; s.xi = grab; set(s); }
 	void grab_pointer(bool grab = true) { State s = current; s.pointer = grab; set(s); }
 	void suspend() { State s = current; s.suspend = true; set(s); }
