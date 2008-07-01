@@ -39,7 +39,7 @@ bool Grabber::init_xi() {
 	for (i=0; i<n; ++i) {
 		XDeviceInfo *dev = devs + i;
 
-		if (dev->use == 0 || dev->use == IsXKeyboard || dev->use == IsXPointer)
+		if (dev->use == IsXKeyboard || dev->use == IsXPointer)
 			continue;
 
 		bool has_button = false;
@@ -55,7 +55,8 @@ bool Grabber::init_xi() {
 
 		XiDevice *xi_dev = new XiDevice;
 		xi_dev->dev = XOpenDevice(dpy, dev->id);
-		if (!xi_dev) {
+		if (!xi_dev->dev) {
+			printf("Opening Device %s failed.\n", dev->name);
 			delete xi_dev;
 			continue;
 		}

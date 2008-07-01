@@ -103,6 +103,9 @@ public:
 
 class IdleHandler : public Handler {
 public:
+	IdleHandler() {
+		if (verbosity >= 2) printf("Switching to Idle mode\n");
+	}
 	virtual Handler *press(guint b, int x, int y, Time t);
 	virtual bool idle() { return true; }
 };
@@ -118,6 +121,7 @@ class StrokeHandler : public Handler {
 	RStroke finish(guint b);
 public:
 	StrokeHandler(int x, int y) : is_gesture(false), xinput_works(false), orig_x(x), orig_y(y) {
+		if (verbosity >= 2) printf("Switching to Stroke mode\n");
 		cur = PreStroke::create();
 		cur->add(orig_x, orig_y);
 	}
@@ -140,6 +144,7 @@ class ActionHandler : public Handler {
 	static Handler *do_press(RStroke s, guint b);
 public:
 	static Handler *create(RStroke s, guint b) {
+		if (verbosity >= 2) printf("Switching to Action mode\n");
 		Handler *h = do_press(s, b);
 		if (h)
 			return h;
@@ -177,6 +182,7 @@ public:
 class IgnoreHandler : public Handler {
 public:
 	IgnoreHandler() {
+		if (verbosity >= 2) printf("Switching to Ignore mode\n");
 		grabber->grab_all();
 	}
 	virtual Handler *press(guint b, int x, int y, Time t) {
@@ -195,6 +201,7 @@ class ScrollHandler : public Handler {
 	int ignore_release;
 public:
 	ScrollHandler() : lasty(-255), pressed(0), ignore_release(0) {
+		if (verbosity >= 2) printf("Switching to Scroll mode\n");
 		grabber->grab_pointer();
 	}
 	ScrollHandler(guint b) : lasty(-255), pressed(b), ignore_release(1) {
@@ -335,6 +342,7 @@ Handler *ActionHandler::do_press(RStroke s, guint b) {
 }
 
 ActionXiHandler::ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), click_time(t), emulated_button(0) {
+	if (verbosity >= 2) printf("Switching to ActionXi mode\n");
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 	grabber->grab_xi();
