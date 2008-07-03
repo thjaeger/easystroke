@@ -88,7 +88,7 @@ bool scroll = false;
 int press_button = 0;
 Trace *trace = 0;
 
-void handle_stroke(RStroke stroke, int button, bool clear = true);
+void handle_stroke(RStroke stroke, int button);
 
 class Handler {
 public:
@@ -321,11 +321,17 @@ Handler *StrokeHandler::release(guint b, int x, int y) {
 		scroll = false;
 		return new ScrollHandler;
 	}
+	if (press_button) {
+		grabber->fake_button(press_button);
+		press_button = 0;
+	}
+	clear_mods();
 	return new IdleHandler;
 }
 
 Handler *ActionHandler::do_press(RStroke s, guint b) {
-	handle_stroke(s, b, false);
+	handle_stroke(s, b);
+	ignore = false;
 	if (scroll) {
 		scroll = false;
 		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
@@ -346,7 +352,8 @@ ActionXiHandler::ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), click_
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 	grabber->grab_xi();
-	handle_stroke(stroke, b, false);
+	handle_stroke(stroke, b);
+	ignore = false;
 	scroll = false; // TODO
 	if (!press_button) {
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
@@ -363,7 +370,8 @@ Handler *ActionXiHandler::xi_press(guint b, int x, int y, Time t) {
 	if (t == click_time)
 		return 0;
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-	handle_stroke(stroke, b, false);
+	handle_stroke(stroke, b);
+	ignore = false;
 	scroll = false; // TODO
 	if (!press_button)
 		return 0;
@@ -556,7 +564,7 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-void handle_stroke(RStroke s, int button, bool clear) {
+void handle_stroke(RStroke s, int button) {
 	s->button = button;
 	if (verbosity >= 3)
 		s->print();
@@ -572,15 +580,6 @@ void handle_stroke(RStroke s, int button, bool clear) {
 		if (actions().handle(s).id == -1)
 			grabber->fake_button(grabber->button);
 	}
-	if (clear && !ignore) {
-		if (press_button) {
-			grabber->fake_button(press_button);
-			press_button = 0;
-		}
-		clear_mods();
-	}
-	if (!handler->idle())
-		ignore = false;
 }
 
 char* Main::next_event() {
