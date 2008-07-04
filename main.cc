@@ -189,15 +189,21 @@ class ScrollHandler : public Handler {
 	guint pressed, pressed2;
 	int ignore_release; //TODO sanitize
 public:
-	ScrollHandler() : lasty(-255), pressed(0), pressed2(2), ignore_release(0) {
-		grabber->grab_pointer();
+	ScrollHandler() : lasty(-255), pressed(0), pressed2(0) {
 	}
-	ScrollHandler(guint b, guint b2) : lasty(-255), pressed(b), pressed2(b2), ignore_release(2) {
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-		XTestFakeButtonEvent(dpy, b2, False, CurrentTime);
+	ScrollHandler(guint b, guint b2) : lasty(-255), pressed(b), pressed2(b2) {
+	}
+	virtual void init() {
+		if (pressed2) {
+			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
+		}
 		grabber->grab_pointer();
-		XTestFakeButtonEvent(dpy, b2, True, CurrentTime);
-		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+		if (pressed2) {
+			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
+			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
+			replace_child(new WaitForClickHandler(pressed));
+		}
 	}
 	virtual void motion(int x, int y, Time t) {
 		if (lasty == -1) {
@@ -236,10 +242,6 @@ public:
 	virtual void release(guint b, int x, int y) {
 		if (b != pressed && b != pressed2)
 			return;
-		if (ignore_release) {
-			ignore_release--;
-			return;
-		}
 		if (pressed2) {
 			if (b == pressed) { // scroll button released, continue with Action
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
