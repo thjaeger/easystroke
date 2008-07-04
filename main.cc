@@ -361,6 +361,7 @@ public:
 			scroll = false;
 			XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 			grabber->grab_xi(false, false);
+			button = b;
 			replace_child(new ScrollHandler(b, grabber->button));
 			return;
 		}
@@ -377,6 +378,8 @@ public:
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 	}
 	virtual void resume() {
+		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
+		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 		grabber->grab_xi();
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 	}
