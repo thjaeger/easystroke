@@ -100,8 +100,7 @@ public:
 	virtual void release(guint b, int x, int y) {}
 	virtual void xi_press(guint b, int x, int y, Time t) {}
 	virtual void xi_release(guint b, int x, int y) {}
-	virtual void supsend() {}
-	virtual void resume() {}
+	virtual std::string name() { return "Error!"; }
 public:
 	Handler() : child(0), parent(0) {}
 	void handle_motion(int x, int y, Time t) {
@@ -138,25 +137,29 @@ public:
 		if (child)
 			delete child;
 		child = c;
-		if (c) {
+		if (child)
 			c->parent = this;
-			c->init();
+		if (verbosity >= 2) {
+			std::string stack;
+			for (Handler *h = child ? child : this; h; h=h->parent) {
+				stack = h->name() + " " + stack;
+			}
+			std::cout << "New event handling stack: " << stack << std::endl;
 		}
+		if (child)
+			c->init();
 
 	}
 	virtual void init() {}
 	virtual bool idle() {
 		return false;
 	}
-	virtual ~Handler() {
-		replace_child(0);
-	}
+	virtual ~Handler() { }
 };
 
 class IgnoreHandler : public Handler {
 public:
 	IgnoreHandler() {
-		if (verbosity >= 2) printf("Switching to Ignore mode\n");
 		grabber->grab_all();
 	}
 	virtual void press(guint b, int x, int y, Time t) {
@@ -167,6 +170,7 @@ public:
 		clear_mods();
 		grabber->grab_all(false);
 	}
+	virtual std::string name() { return "Ignore"; }
 };
 
 class ScrollHandler : public Handler {
@@ -175,7 +179,6 @@ class ScrollHandler : public Handler {
 	int ignore_release;
 public:
 	ScrollHandler() : lasty(-255), pressed(0), pressed2(2), ignore_release(0) {
-		if (verbosity >= 2) printf("Switching to Scroll mode\n");
 		grabber->grab_pointer();
 	}
 	ScrollHandler(guint b, guint b2) : lasty(-255), pressed(b), pressed2(b2), ignore_release(1) {
@@ -228,6 +231,7 @@ public:
 		clear_mods();
 		grabber->grab_pointer(false);
 	}
+	virtual std::string name() { return "Scroll"; }
 };
 
 class ActionHandler : public Handler {
@@ -274,6 +278,7 @@ public:
 		clear_mods();
 	}
 
+	virtual std::string name() { return "Action"; }
 };
 
 class ActionXiHandler : public Handler {
@@ -284,7 +289,6 @@ class ActionXiHandler : public Handler {
 	int button; // just for initialization
 public:
 	ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), click_time(0), emulated_button(0), button(b) {
-		if (verbosity >= 2) printf("Switching to ActionXi mode\n");
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 	}
@@ -341,6 +345,7 @@ public:
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 		grabber->grab_xi(false);
 	}
+	virtual std::string name() { return "Action (Xi)"; }
 };
 
 Trace::Point orig; // TODO
@@ -425,10 +430,10 @@ protected:
 	}
 public:
 	StrokeHandler(int x, int y) : is_gesture(false), xinput_works(false), orig_x(x), orig_y(y) {
-		if (verbosity >= 2) printf("Switching to Stroke mode\n");
 		cur = PreStroke::create();
 		cur->add(orig_x, orig_y);
 	}
+	virtual std::string name() { return "Stroke"; }
 };
 
 class IdleHandler : public Handler {
@@ -442,12 +447,10 @@ protected:
 	}
 
 public:
-	IdleHandler() {
-		if (verbosity >= 2) printf("Switching to Idle mode\n");
-	}
 	virtual bool idle() {
 		return true;
 	}
+	virtual std::string name() { return "Idle"; }
 };
 
 class Main {
