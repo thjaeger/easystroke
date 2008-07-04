@@ -100,6 +100,7 @@ protected:
 	virtual void release(guint b, int x, int y) {}
 	virtual void xi_press(guint b, int x, int y, Time t) {}
 	virtual void xi_release(guint b, int x, int y) {}
+	virtual void resume() {}
 	virtual std::string name() { return "Error!"; }
 public:
 	Handler *parent;
@@ -135,6 +136,7 @@ public:
 			xi_release(b,x,y);
 	}
 	void replace_child(Handler *c) {
+		bool had_child = child;
 		if (child)
 			delete child;
 		child = c;
@@ -149,7 +151,8 @@ public:
 		}
 		if (child)
 			child->init();
-
+		if (!child && had_child)
+			resume();
 	}
 	virtual void init() {}
 	virtual bool idle() {
@@ -356,7 +359,10 @@ public:
 		ignore = false;
 		if (scroll) {
 			scroll = false;
+			XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+			grabber->grab_xi(false, false);
 			replace_child(new ScrollHandler(b, grabber->button));
+			return;
 		}
 		if (!press_button)
 			return;
@@ -368,6 +374,10 @@ public:
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
 		emulated_button = press_button;
 		press_button = 0;
+		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+	}
+	virtual void resume() {
+		grabber->grab_xi();
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 	}
 	virtual void xi_release(guint b, int x, int y) {

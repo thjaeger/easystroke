@@ -33,6 +33,7 @@ private:
 	bool init_xi();
 
 	State current;
+	Goal cur_goal;
 	Cursor cursor;
 
 public:
@@ -42,7 +43,7 @@ private:
 
 	Atom wm_state;
 
-	void set(State);
+	void set();
 	static Goal goal(State s) {
 		if (s.all)
 			return ALL;
@@ -65,12 +66,12 @@ public:
 	void get_button();
 	void fake_button(int b);
 	void ignore(int b);
-	void grab(bool grab = true) { State s = current; s.grab = grab; set(s); }
-	void grab_all(bool grab = true) { State s = current; s.all = grab; set(s); }
-	void grab_xi(bool grab = true) { State s = current; s.xi = grab; set(s); }
-	void grab_pointer(bool grab = true) { State s = current; s.pointer = grab; set(s); }
-	void suspend() { State s = current; s.suspend = true; set(s); }
-	void restore() { State s = current; s.suspend = false; set(s); }
+	void grab(bool grab = true) { current.grab = grab; set(); }
+	void grab_all(bool grab = true) { current.all = grab; set(); }
+	void grab_xi(bool grab = true, bool apply = true) { current.xi = grab; if (apply) set(); }
+	void grab_pointer(bool grab = true) { current.pointer = grab; set(); }
+	void suspend() { current.suspend = true; set(); }
+	void restore() { current.suspend = false; set(); }
 	void regrab() { suspend(); get_button(); restore(); }
 };
 

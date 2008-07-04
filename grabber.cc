@@ -11,6 +11,7 @@ Grabber::Grabber() {
 	current.all = false;
 	current.xi = false;
 	current.pointer = false;
+	cur_goal = NONE;
 	get_button();
 	wm_state = XInternAtom(dpy, "WM_STATE", False);
 
@@ -128,10 +129,10 @@ void Grabber::init(Window w, int depth) {
 }
 
 #define ENSURE(p) while (!(p)) { printf("Grab failed, retrying...\n"); usleep(10000); }
-void Grabber::set(State s) {
-	Goal old_goal = goal(current);
-	Goal new_goal = goal(s);
-	current = s;
+void Grabber::set() {
+	Goal old_goal = cur_goal;
+	Goal new_goal = goal(current);
+	cur_goal = new_goal; //TODO rename
 	if (old_goal == new_goal)
 		return;
 	if (old_goal == BUTTON) {
