@@ -139,7 +139,7 @@ public:
 			delete child;
 		child = c;
 		if (child)
-			c->parent = this;
+			child->parent = this;
 		if (verbosity >= 2) {
 			std::string stack;
 			for (Handler *h = child ? child : this; h; h=h->parent) {
@@ -148,7 +148,7 @@ public:
 			std::cout << "New event handling stack: " << stack << std::endl;
 		}
 		if (child)
-			c->init();
+			child->init();
 
 	}
 	virtual void init() {}
@@ -188,7 +188,6 @@ public:
 class ScrollHandler : public Handler {
 	int lasty;
 	guint pressed, pressed2;
-	int ignore_release; //TODO sanitize
 public:
 	ScrollHandler() : lasty(-255), pressed(0), pressed2(0) {
 	}
@@ -221,23 +220,25 @@ public:
 		if (y < lasty - 10)
 			button = 4;
 		if (button) {
-			grabber->suspend();
+			lasty = y;
 			if (pressed)
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 			if (pressed2)
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
+			grabber->suspend();
 			XTestFakeButtonEvent(dpy, button, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-			lasty = y;
 			grabber->restore();
 			if (pressed2)
 				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
-			if (pressed)
+			if (pressed) {
 				XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
+				replace_child(new WaitForClickHandler(pressed));
+			}
 		}
 	}
 	virtual void press(guint b, int x, int y, Time t) {
-		if (b != 4 && b != 5)
+		if (b != 4 && b != 5 && !pressed)
 			pressed = b;
 	}
 	virtual void release(guint b, int x, int y) {
@@ -321,25 +322,27 @@ class ActionXiHandler : public Handler {
 	Time click_time;
 	int emulated_button;
 
-	int button; // just for initialization
+	guint button; // just for initialization
 public:
-	ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), click_time(0), emulated_button(0), button(b) {
+	ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), click_time(t), emulated_button(0), button(b) {
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 	}
 	virtual void init() {
-		grabber->grab_xi();
 		handle_stroke(stroke, button);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
 			replace_child(new ScrollHandler(button, grabber->button));
+			return;
 		}
 		if (!press_button) {
+			grabber->grab_xi();
 			XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 					GrabModeAsync, GrabModeAsync, None, None);
 			return;
 		}
+		grabber->grab_xi();
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
 		emulated_button = press_button;
 		press_button = 0;
