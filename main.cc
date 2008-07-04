@@ -154,7 +154,7 @@ public:
 	virtual bool idle() {
 		return false;
 	}
-	virtual ~Handler() { }
+	virtual ~Handler() {}
 };
 
 class IgnoreHandler : public Handler {
@@ -173,17 +173,30 @@ public:
 	virtual std::string name() { return "Ignore"; }
 };
 
+class WaitForClickHandler : public Handler {
+	guint button;
+public:
+	WaitForClickHandler(guint b) : button(b) {}
+	virtual void press(guint b, int x, int y, Time t) {
+		if (b == button)
+			parent->replace_child(0);
+	}
+	virtual std::string name() { return "WaitForClick"; }
+};
+
 class ScrollHandler : public Handler {
 	int lasty;
 	guint pressed, pressed2;
-	int ignore_release;
+	int ignore_release; //TODO sanitize
 public:
 	ScrollHandler() : lasty(-255), pressed(0), pressed2(2), ignore_release(0) {
 		grabber->grab_pointer();
 	}
-	ScrollHandler(guint b, guint b2) : lasty(-255), pressed(b), pressed2(b2), ignore_release(1) {
+	ScrollHandler(guint b, guint b2) : lasty(-255), pressed(b), pressed2(b2), ignore_release(2) {
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+		XTestFakeButtonEvent(dpy, b2, False, CurrentTime);
 		grabber->grab_pointer();
+		XTestFakeButtonEvent(dpy, b2, True, CurrentTime);
 		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 	}
 	virtual void motion(int x, int y, Time t) {
@@ -204,10 +217,14 @@ public:
 			grabber->suspend();
 			if (pressed)
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+			if (pressed2)
+				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
 			XTestFakeButtonEvent(dpy, button, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, button, False, CurrentTime);
 			lasty = y;
 			grabber->restore();
+			if (pressed2)
+				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 			if (pressed)
 				XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
 		}
@@ -217,15 +234,29 @@ public:
 			pressed = b;
 	}
 	virtual void release(guint b, int x, int y) {
-		if (b != pressed)
+		if (b != pressed && b != pressed2)
 			return;
 		if (ignore_release) {
 			ignore_release--;
 			return;
 		}
-		clear_mods();
-		grabber->grab_pointer(false);
-		parent->replace_child(0);
+		if (pressed2) {
+			if (b == pressed) { // scroll button released, continue with Action
+				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
+				grabber->grab_pointer(false);
+				// Make sure event handling continues as usual
+				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
+				parent->replace_child(new WaitForClickHandler(pressed2));
+			} else { // gesture button released, bail out
+				printf("Error: not implemented\n");
+				exit(-1);
+			}
+		} else {
+			clear_mods();
+			grabber->grab_pointer(false);
+			parent->replace_child(0);
+		}
 	}
 	virtual void cancel() {
 		clear_mods();
@@ -243,7 +274,6 @@ class ActionHandler : public Handler {
 		ignore = false;
 		if (scroll) {
 			scroll = false;
-			XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 			replace_child(new ScrollHandler(button, grabber->button));
 			return;
 		}
