@@ -17,6 +17,7 @@
 #include <getopt.h>
 
 bool gui = true;
+extern bool no_xi;
 bool experimental = false;
 int verbosity = 0;
 
@@ -93,8 +94,7 @@ void handle_stroke(RStroke stroke, int button);
 class Handler {
 protected:
 	Handler *child;
-	Handler *parent;
-public:
+protected:
 	virtual void motion(int x, int y, Time t) {}
 	virtual void press(guint b, int x, int y, Time t) {}
 	virtual void release(guint b, int x, int y) {}
@@ -102,6 +102,7 @@ public:
 	virtual void xi_release(guint b, int x, int y) {}
 	virtual std::string name() { return "Error!"; }
 public:
+	Handler *parent;
 	Handler() : child(0), parent(0) {}
 	void handle_motion(int x, int y, Time t) {
 		if (child)
@@ -251,8 +252,10 @@ public:
 				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 				parent->replace_child(new WaitForClickHandler(pressed2));
 			} else { // gesture button released, bail out
-				printf("Error: not implemented\n");
-				exit(-1);
+				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
+				grabber->grab_pointer(false);
+				parent->parent->replace_child(0);
 			}
 		} else {
 			clear_mods();
@@ -328,7 +331,10 @@ public:
 		grabber->grab_xi();
 		handle_stroke(stroke, button);
 		ignore = false;
-		scroll = false; // TODO
+		if (scroll) {
+			scroll = false;
+			replace_child(new ScrollHandler(button, grabber->button));
+		}
 		if (!press_button) {
 			XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 					GrabModeAsync, GrabModeAsync, None, None);
@@ -346,7 +352,8 @@ public:
 		handle_stroke(stroke, b);
 		ignore = false;
 		if (scroll) {
-			scroll = false; // TODO
+			scroll = false;
+			replace_child(new ScrollHandler(b, grabber->button));
 		}
 		if (!press_button)
 			return;
@@ -377,7 +384,7 @@ public:
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 		grabber->grab_xi(false);
 	}
-	virtual std::string name() { return "Action (Xi)"; }
+	virtual std::string name() { return "ActionXi"; }
 };
 
 Trace::Point orig; // TODO
@@ -399,10 +406,8 @@ class StrokeHandler : public Handler {
 	}
 protected:
 	virtual void xi_press(guint b, int x, int y, Time t) {
-#if 1
 		if (b == grabber->button)
 			xinput_works = true;
-#endif
 	}
 
 	virtual void motion(int x, int y, Time t) {
@@ -551,6 +556,7 @@ void Main::usage(char *me, bool good) {
 	printf("Usage: %s [OPTION]...\n", me);
 	printf("  -c, --config-dir       Directory for config files\n");
 	printf("      --display          X Server to contact\n");
+	printf("  -x  --no-xi            Don't use the Xinput extension\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
 	printf("  -n, --no-gui           Don't start the gui\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
@@ -562,6 +568,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"display",1,0,'d'},
 		{"help",0,0,'h'},
 		{"no-gui",1,0,'n'},
+		{"no-xi",1,0,'x'},
 		{0,0,0,0}
 	};
 	static struct option long_opts2[] = {
@@ -569,6 +576,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"display",1,0,'d'},
 		{"experimental",0,0,'e'},
 		{"no-gui",0,0,'n'},
+		{"no-xi",0,0,'x'},
 		{"verbose",0,0,'v'},
 		{0,0,0,0}
 	};
@@ -576,7 +584,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	char opt;
 	// parse --display here, before Gtk::Main(...) takes it away from us
 	opterr = 0;
-	while ((opt = getopt_long(argc, argv, "nh", long_opts1, 0)) != -1)
+	while ((opt = getopt_long(argc, argv, "nhx", long_opts1, 0)) != -1)
 		switch (opt) {
 			case 'd':
 				display = optarg;
@@ -586,6 +594,10 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 				break;
 			case 'h':
 				usage(argv[0], true);
+				break;
+			case 'x':
+				no_xi = true;
+				break;
 		}
 	optind = 1;
 	opterr = 1;
@@ -595,7 +607,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		kit = new Gtk::Main(argc, argv);
 	oldHandler = XSetErrorHandler(xErrorHandler);
 
-	while ((opt = getopt_long(argc, argv, "c:env", long_opts2, 0)) != -1) {
+	while ((opt = getopt_long(argc, argv, "c:envx", long_opts2, 0)) != -1) {
 		switch (opt) {
 			case 'c':
 				config_dir = optarg;
@@ -608,6 +620,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 				break;
 			case 'd':
 			case 'n':
+			case 'x':
 				break;
 			default:
 				usage(argv[0], false);

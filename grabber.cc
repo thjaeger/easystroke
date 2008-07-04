@@ -3,6 +3,8 @@
 #include <X11/extensions/XTest.h>
 #include <X11/Xutil.h>
 
+bool no_xi = false;
+
 Grabber::Grabber() {
 	current.grab = false;
 	current.suspend = false;
@@ -24,6 +26,8 @@ Grabber::~Grabber() {
 
 bool Grabber::init_xi() {
 	xi_devs_n = 0;
+	if (no_xi)
+		return false;
 	int nMajor, nFEV, nFER;
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
