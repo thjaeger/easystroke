@@ -135,6 +135,8 @@ void Grabber::set() {
 	cur_goal = new_goal; //TODO rename
 	if (old_goal == new_goal)
 		return;
+	if (verbosity >= 2)
+		printf("set: %d\n", new_goal);
 	if (old_goal == BUTTON) {
 		for (int i = 0; i < xi_devs_n; i++)
 		       	XUngrabDeviceButton(dpy, xi_devs[i]->dev, button, state, NULL, ROOT);

@@ -69,7 +69,7 @@ public:
 	void grab(bool grab = true) { current.grab = grab; set(); }
 	void grab_all(bool grab = true) { current.all = grab; set(); }
 	void grab_xi(bool grab = true, bool apply = true) { current.xi = grab; if (apply) set(); }
-	void grab_pointer(bool grab = true) { current.pointer = grab; set(); }
+	void grab_pointer(bool grab = true, bool apply = true) { current.pointer = grab; if (apply) set(); }
 	void suspend() { current.suspend = true; set(); }
 	void restore() { current.suspend = false; set(); }
 	void regrab() { suspend(); get_button(); restore(); }

@@ -158,7 +158,10 @@ public:
 	virtual bool idle() {
 		return false;
 	}
-	virtual ~Handler() {}
+	virtual ~Handler() {
+		if (child)
+			delete child;
+	}
 };
 
 class IgnoreHandler : public Handler {
@@ -258,7 +261,7 @@ public:
 			} else { // gesture button released, bail out
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
-				grabber->grab_pointer(false);
+				grabber->grab_pointer(false, false);
 				parent->parent->replace_child(0);
 			}
 		} else {
