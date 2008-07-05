@@ -840,6 +840,34 @@ bool SendKey::run() {
 	return true;
 }
 
+bool Button::run() {
+	if (1) {
+		press();
+		press_button = button;
+		return true;
+	}
+	if (!current)
+		return true;
+	// Doesn't work!
+	XButtonEvent ev;
+	ev.type = ButtonPress;  /* ButtonPress or ButtonRelease */
+	ev.display = dpy;	/* Display the event was read from */
+	ev.window = current;	/* ``event'' window it is reported relative to */
+	ev.root = ROOT;		/* ROOT window that the event occurred on */
+	ev.time = CurrentTime;	/* milliseconds */
+	XTranslateCoordinates(dpy, ROOT, current, orig.x, orig.y, &ev.x, &ev.y, &ev.subwindow);
+	ev.x_root = orig.x;	/* coordinates relative to root */
+	ev.y_root = orig.y;	/* coordinates relative to root */
+	ev.state = mods;	/* key or button mask */
+	ev.button = button;     /* detail */
+	ev.same_screen = true;	/* same screen flag */
+
+	XSendEvent(dpy, current, True, ButtonPressMask, (XEvent *)&ev);
+	ev.type = ButtonRelease;/* ButtonPress or ButtonRelease */
+	XSendEvent(dpy, current, True, ButtonReleaseMask, (XEvent *)&ev);
+	return true;
+}
+
 bool Scroll::run() {
 	press();
 	scroll = true;
@@ -892,8 +920,3 @@ bool Ignore::run() {
 	return true;
 }
 
-bool Button::run() {
-	press();
-	press_button = button;
-	return true;
-}
