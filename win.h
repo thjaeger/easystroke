@@ -32,6 +32,7 @@ private:
 	bool on_icon_size_changed(int);
 	void on_icon_changed(RStroke s);
 	void on_help_toggled();
+	void show_popup(guint, guint32);
 
 	Gtk::Window *win;
 	Actions *actions;

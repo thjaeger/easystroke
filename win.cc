@@ -95,9 +95,7 @@ Win::Win() :
 	icon = Gtk::StatusIcon::create("");
 	icon->signal_size_changed().connect(sigc::mem_fun(*this, &Win::on_icon_size_changed));
 	icon->signal_activate().connect(sigc::mem_fun(*this, &Win::on_icon_click));
-	void (Gtk::Menu::*f)(guint, guint32);
-	f = &Gtk::Menu::popup;
-	icon->signal_popup_menu().connect(sigc::mem_fun(menu, f));
+	icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
 
 	quit.connect(sigc::ptr_fun(&Gtk::Main::quit));
 
@@ -120,6 +118,10 @@ Win::~Win() {
 	delete actions;
 	delete prefs;
 	delete stats;
+}
+
+void Win::show_popup(guint button, guint32 activate_time) {
+	icon->popup_menu_at_position(menu, button, activate_time);
 }
 
 void Win::stroke_push(Ranking& r) {
