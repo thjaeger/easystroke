@@ -825,10 +825,8 @@ bool SendKey::run() {
 	ev.display = dpy;	/* Display the event was read from */
 	ev.window = current;	/* ``event'' window it is reported relative to */
 	ev.root = ROOT;		/* ROOT window that the event occurred on */
-	ev.subwindow = 0;	/* child window */
 	ev.time = CurrentTime;	/* milliseconds */
-	ev.x = orig.x;		/* pointer x, y coordinates in event window */
-	ev.y = orig.y;		/* pointer x, y coordinates in event window */
+	XTranslateCoordinates(dpy, ROOT, current, orig.x, orig.y, &ev.x, &ev.y, &ev.subwindow);
 	ev.x_root = orig.x;	/* coordinates relative to root */
 	ev.y_root = orig.y;	/* coordinates relative to root */
 	ev.state = mods;	/* key or button mask */
