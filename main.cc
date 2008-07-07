@@ -820,6 +820,7 @@ void Main::run() {
 				break;
 		}
 		} catch (GrabFailedException) {
+			printf("Error: a grab failed.  Resetting\n");
 			handler->replace_child(0);
 		}
 	}
