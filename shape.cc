@@ -49,14 +49,15 @@ void Shape::start_() {
 
 void Shape::end_() {
 	XUnmapWindow(dpy, win);
+	XFlush(dpy);
 	Glib::Thread::create(sigc::mem_fun(*this, &Shape::defer_clear), false);
 }
 
 void Shape::defer_clear() {
-	usleep(200*1000);
+	usleep(100*1000);
 	// This is a big leap of faith. We're trusting Xlib's thread safety here.
 	clear();
-	usleep(200*1000);
+	usleep(100*1000);
 	clear_mutex.unlock();
 }
 
