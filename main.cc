@@ -166,16 +166,15 @@ public:
 
 class IgnoreHandler : public Handler {
 public:
-	IgnoreHandler() {
-		grabber->grab_all();
+	void init() {
+		grabber->grab(Grabber::ALL);
 	}
 	virtual void press(guint b, int x, int y, Time t) {
 		grabber->ignore(b);
 		parent->replace_child(0);
 	}
-	virtual void cancel() {
+	virtual ~IgnoreHandler() {
 		clear_mods();
-		grabber->grab_all(false);
 	}
 	virtual std::string name() { return "Ignore"; }
 };
@@ -204,7 +203,7 @@ public:
 			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
 		}
-		grabber->grab_pointer();
+		grabber->grab(Grabber::POINTER);
 		if (pressed2) {
 			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
@@ -234,7 +233,7 @@ public:
 			grabber->suspend();
 			XTestFakeButtonEvent(dpy, button, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-			grabber->restore();
+			grabber->resume();
 			if (pressed2)
 				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 			if (pressed) {
@@ -254,25 +253,21 @@ public:
 			if (b == pressed) { // scroll button released, continue with Action
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
-				grabber->grab_pointer(false);
 				// Make sure event handling continues as usual
 				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 				parent->replace_child(new WaitForClickHandler(pressed2));
 			} else { // gesture button released, bail out
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
-				grabber->grab_pointer(false, false);
 				parent->parent->replace_child(0);
 			}
 		} else {
 			clear_mods();
-			grabber->grab_pointer(false);
 			parent->replace_child(0);
 		}
 	}
-	virtual void cancel() {
+	virtual ~ScrollHandler() {
 		clear_mods();
-		grabber->grab_pointer(false);
 	}
 	virtual std::string name() { return "Scroll"; }
 };
@@ -343,16 +338,13 @@ public:
 			return;
 		}
 		if (!press_button) {
-			grabber->grab_xi();
-			XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
-					GrabModeAsync, GrabModeAsync, None, None);
+			grabber->grab(Grabber::XI_ALL);
 			return;
 		}
-		grabber->grab_xi();
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
 		emulated_button = press_button;
 		press_button = 0;
-		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+		grabber->grab(Grabber::XI_ALL);
 	}
 	virtual void xi_press(guint b, int x, int y, Time t) {
 		if (t == click_time)
@@ -362,8 +354,7 @@ public:
 		ignore = false;
 		if (scroll) {
 			scroll = false;
-			XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-			grabber->grab_xi(false, false);
+			grabber->grab(Grabber::XI); //TODO: Does this make sense?
 			button = b;
 			replace_child(new ScrollHandler(b, grabber->button));
 			return;
@@ -374,17 +365,16 @@ public:
 			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
 			emulated_button = 0;
 		}
-		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
+		grabber->grab(Grabber::XI);
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
+		grabber->grab(Grabber::XI_ALL);
 		emulated_button = press_button;
 		press_button = 0;
-		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 	}
 	virtual void resume() {
 		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
 		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
-		grabber->grab_xi();
-		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+		grabber->grab(Grabber::XI_ALL);
 	}
 	virtual void xi_release(guint b, int x, int y) {
 		if (emulated_button) {
@@ -400,8 +390,6 @@ public:
 			emulated_button = 0;
 		}
 		clear_mods();
-		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-		grabber->grab_xi(false);
 	}
 	virtual std::string name() { return "ActionXi"; }
 };
@@ -553,7 +541,7 @@ Main::Main(int argc, char **argv) : gtk_thread(0), kit(0) {
 
 	prefs().read();
 	grabber = new Grabber;
-	grabber->grab();
+	grabber->grab(Grabber::BUTTON);
 
 	int error_basep;
 	randr = XRRQueryExtension(dpy, &event_basep, &error_basep);
@@ -728,7 +716,7 @@ void Main::run() {
 			if (*ret == P_SUSPEND_GRAB)
 				grabber->suspend();
 			if (*ret == P_RESTORE_GRAB)
-				grabber->restore();
+				grabber->resume();
 			if (*ret == P_UPDATE_CURRENT) {
 				prefs().write();
 				grabber->update(current);
