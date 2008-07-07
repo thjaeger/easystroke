@@ -70,7 +70,16 @@ template<class Archive> void StrokeInfo::serialize(Archive & ar, const unsigned 
 using namespace std;
 
 bool Command::run() {
-	system(cmd.c_str());
+	if (cmd == "")
+		return false;
+	pid_t pid = fork();
+	switch (pid) {
+		case 0:
+			execlp("/bin/sh", "sh", "-c", cmd.c_str(), NULL);
+			exit(1);
+		case -1:
+			printf("Error: can't execute command %s: fork failed\n", cmd.c_str());
+	}
 	return true;
 }
 
