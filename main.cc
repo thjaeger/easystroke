@@ -756,7 +756,7 @@ void Main::run() {
 			case KeyPress:
 				if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
 					break;
-				printf("Escape pressed: Resetting\n");
+				printf("Escape pressed: Resetting...\n");
 				handler->replace_child(0);
 				for (int i = 1; i <= 32; i++)
 					XTestFakeButtonEvent(dpy, i, False, CurrentTime);

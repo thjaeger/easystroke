@@ -182,19 +182,19 @@ void Grabber::set() {
 	if (grabbed == ALL)
 		if (!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False,
 					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
-			throw new GrabFailedException;
+			throw GrabFailedException();
 	if (IS_XI(grabbed))
 		for (int i = 0; i < xi_devs_n; i++)
 			if (xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False,
 						xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 						GrabModeAsync, GrabModeAsync))
-				throw new GrabFailedException;
+				throw GrabFailedException();
 	if (grabbed == POINTER) {
 		int i = 0;
 		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask,
 					GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) != GrabSuccess) {
 			if (++i > 10)
-				throw new GrabFailedException;
+				throw GrabFailedException();
 			usleep(10000);
 		}
 	}
