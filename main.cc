@@ -95,12 +95,13 @@ class Handler {
 protected:
 	Handler *child;
 protected:
+	virtual void grab() {}
 	virtual void motion(int x, int y, Time t) {}
 	virtual void press(guint b, int x, int y, Time t) {}
 	virtual void release(guint b, int x, int y) {}
 	virtual void xi_press(guint b, int x, int y, Time t) {}
 	virtual void xi_release(guint b, int x, int y) {}
-	virtual void resume() {}
+	virtual void resume() { grab(); }
 	virtual std::string name() { return "Error!"; }
 public:
 	Handler *parent;
@@ -154,7 +155,7 @@ public:
 		if (!child && had_child)
 			resume();
 	}
-	virtual void init() {}
+	virtual void init() { grab(); }
 	virtual bool idle() {
 		return false;
 	}
@@ -166,7 +167,7 @@ public:
 
 class IgnoreHandler : public Handler {
 public:
-	void init() {
+	void grab() {
 		grabber->grab(Grabber::ALL);
 	}
 	virtual void press(guint b, int x, int y, Time t) {
@@ -297,12 +298,17 @@ public:
 	ActionHandler(RStroke s, guint b) : stroke(s), button(b) {}
 
 	virtual void init() {
+		grabber->grab(Grabber::BUTTON);
 		do_press();
 	}
 
 	virtual void press(guint b, int x, int y, Time t) {
 		button = b;
 		do_press();
+	}
+
+	virtual void resume() {
+		grabber->grab(Grabber::BUTTON);
 	}
 
 	virtual void release(guint b, int x, int y) {
@@ -489,7 +495,9 @@ protected:
 			XSetInputFocus(dpy, current, RevertToParent, t);
 		replace_child(new StrokeHandler(x, y));
 	}
-
+	virtual void grab() {
+		grabber->grab(Grabber::BUTTON);
+	}
 public:
 	virtual bool idle() {
 		return true;
