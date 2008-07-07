@@ -55,4 +55,8 @@ public:
 	void regrab() { suspend(); get_button(); resume(); }
 };
 
+class GrabFailedException : public std::exception {
+	virtual const char* what() const throw() { return "Grab Failed"; }
+};
+
 #endif

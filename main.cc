@@ -717,6 +717,7 @@ void Main::run() {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
 
+		try {
 		switch(ev.type) {
 			case MotionNotify:
 				if (handler->top()->only_xi())
@@ -817,6 +818,9 @@ void Main::run() {
 					last_time = mev->time;
 				}
 				break;
+		}
+		} catch (GrabFailedException) {
+			handler->replace_child(0);
 		}
 	}
 }

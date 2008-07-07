@@ -136,7 +136,6 @@ void Grabber::init(Window w, int depth) {
 	XFree(ch);
 }
 
-#define ENSURE(p) while (!(p)) { printf("Grab failed, retrying...\n"); usleep(10000); }
 #define IS_XI(s) ((s) == XI || (s) == XI_ALL)
 void Grabber::set() {
 	State old = grabbed;
@@ -168,28 +167,38 @@ void Grabber::set() {
 		XUngrabPointer(dpy, CurrentTime);
 	}
 	if (grabbed == BUTTON) {
-		ENSURE(XGrabButton(dpy, button, state, ROOT, False,
-					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeAsync, GrabModeAsync, None, None))
-		for (int i = 0; i < xi_devs_n; i++)
-			ENSURE(!xinput || !XGrabDeviceButton(dpy, xi_devs[i]->dev, button, state,
-						NULL, ROOT, False, xi_devs[i]->button_events_n, xi_devs[i]->button_events,
-						GrabModeAsync, GrabModeAsync))
+		while (!XGrabButton(dpy, button, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+					GrabModeAsync, GrabModeAsync, None, None)) {
+			printf("Error: Grab failed, retrying in 10 seconds...\n");
+			sleep(10);
+		}
+		if (xinput)
+			for (int i = 0; i < xi_devs_n; i++)
+				if (XGrabDeviceButton(dpy, xi_devs[i]->dev, button, state, NULL, ROOT, False,
+							xi_devs[i]->button_events_n, xi_devs[i]->button_events,
+							GrabModeAsync, GrabModeAsync))
+					printf("Warning: Grabbing button %d on an xi device failed\n", button);
 	}
 	if (grabbed == ALL)
-		ENSURE(XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False,
+		if (!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False,
 					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
+			throw new GrabFailedException;
 	if (IS_XI(grabbed))
 		for (int i = 0; i < xi_devs_n; i++)
-			ENSURE(!xinput || !XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False,
+			if (xinput && XGrabDeviceButton(dpy, xi_devs[i]->dev, AnyButton, AnyModifier, NULL, ROOT, False,
 						xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 						GrabModeAsync, GrabModeAsync))
+				throw new GrabFailedException;
 	if (grabbed == POINTER) {
-		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask, GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) != GrabSuccess)
+		int i = 0;
+		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask,
+					GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) != GrabSuccess) {
+			if (++i > 10)
+				throw new GrabFailedException;
 			usleep(10000);
+		}
 	}
 }
-#undef ENSURE
 #undef IS_XI
 
 void Grabber::get_button() {
