@@ -758,7 +758,7 @@ void Main::run() {
 					break;
 				printf("Escape pressed: Resetting...\n");
 				handler->replace_child(0);
-				for (int i = 1; i <= 32; i++)
+				for (int i = 1; i <= 9; i++)
 					XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 				break;
 
@@ -820,7 +820,7 @@ void Main::run() {
 				break;
 		}
 		} catch (GrabFailedException) {
-			printf("Error: a grab failed.  Resetting\n");
+			printf("Error: A grab failed.  Resetting...\n");
 			handler->replace_child(0);
 		}
 	}
