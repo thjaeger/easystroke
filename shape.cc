@@ -42,12 +42,12 @@ void Shape::draw(Point p, Point q) {
 	XFreePixmap(dpy, pm);
 }
 
-void Shape::start() {
+void Shape::start_() {
 	clear_mutex.lock();
 	XMapRaised(dpy, win);
 }
 
-void Shape::end() {
+void Shape::end_() {
 	XUnmapWindow(dpy, win);
 	Glib::Thread::create(sigc::mem_fun(*this, &Shape::defer_clear), false);
 }

@@ -7,13 +7,13 @@ class Shape : public Trace {
 	Window win;
 private:
 	virtual void draw(Point p, Point q);
-	virtual void start();
+	virtual void start_();
+	virtual void end_();
 	void clear();
 	void defer_clear();
 	Glib::Mutex clear_mutex;
 public:
 	Shape();
-	virtual void end();
 	virtual ~Shape();
 };
 

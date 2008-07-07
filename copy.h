@@ -8,10 +8,10 @@ class Copy : public Trace {
 	GC gc;
 private:
 	virtual void draw(Point p, Point q) { XDrawLine(dpy, win, gc, p.x, p.y, q.x, q.y); }
-	virtual void start() { XMapRaised(dpy, win); }
+	virtual void start_() { XMapRaised(dpy, win); }
+	virtual void end_() { XUnmapWindow(dpy, win); }
 public:
 	Copy();
-	virtual void end() { XUnmapWindow(dpy, win); }
 	virtual ~Copy() { XFreeGC(dpy, gc); XDestroyWindow(dpy, win); }
 };
 

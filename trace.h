@@ -11,21 +11,24 @@ public:
 	struct Point { int x; int y; };
 private:
 	Point last;
+	bool active;
 protected:
 	virtual void draw(Point p, Point q) = 0;
-	virtual void start() = 0;
+	virtual void start_() = 0;
+	virtual void end_() = 0;
 public:
-	void start(Point p) { last = p; start(); }
-	virtual void end() = 0;
+	Trace() : active(false) {}
+	void start(Point p) { last = p; active = true; start_(); }
+	void end() { if (!active) return; active = false; end_(); }
 	void draw(Point p) { draw(last, p); last = p; }
 	virtual ~Trace() {}
 };
 
 class Trivial : public Trace {
 	virtual void draw(Point p, Point q) {}
-	virtual void start() {}
+	virtual void start_() {}
+	virtual void end_() {}
 public:
-	virtual void end() {}
 };
 
 #endif
