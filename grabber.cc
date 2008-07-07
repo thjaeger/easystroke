@@ -66,7 +66,10 @@ bool Grabber::init_xi() {
 
 		DeviceButtonPress(xi_dev->dev, xi_dev->button_down, xi_dev->button_events[0]);
 		DeviceButtonRelease(xi_dev->dev, xi_dev->button_up, xi_dev->button_events[1]);
-		xi_dev->button_events_n = 2;
+		DeviceButtonMotion(xi_dev->dev, xi_dev->button_motion, xi_dev->button_events[2]);
+		XEventClass dummy;
+		DeviceMotionNotify(xi_dev->dev, xi_dev->button_motion, dummy);
+		xi_dev->button_events_n = 3;
 
 		xi_devs[xi_devs_n++] = xi_dev;
 	}
@@ -84,6 +87,13 @@ bool Grabber::is_button_up(int type) {
 bool Grabber::is_button_down(int type) {
 	for (int i = 0; i < xi_devs_n; i++)
 		if (type == xi_devs[i]->button_down)
+			return true;
+	return false;
+}
+
+bool Grabber::is_motion(int type) {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (type == xi_devs[i]->button_motion)
 			return true;
 	return false;
 }

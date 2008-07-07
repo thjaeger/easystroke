@@ -12,12 +12,14 @@ public:
 	bool xinput;
 	bool is_button_up(int);
 	bool is_button_down(int);
+	bool is_motion(int);
 private:
 	struct XiDevice {
 		int button_down;
 		int button_up;
+		int button_motion;
 		XDevice *dev;
-		XEventClass button_events[2];
+		XEventClass button_events[3];
 		int button_events_n;
 	};
 	XiDevice **xi_devs;
