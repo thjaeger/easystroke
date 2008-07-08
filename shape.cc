@@ -49,7 +49,6 @@ void Shape::start_() {
 
 void Shape::end_() {
 	XUnmapWindow(dpy, win);
-	XFlush(dpy);
 	Glib::Thread::create(sigc::mem_fun(*this, &Shape::defer_clear), false);
 }
 

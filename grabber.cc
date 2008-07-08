@@ -168,7 +168,7 @@ void Grabber::set() {
 	}
 	if (grabbed == BUTTON) {
 		while (!XGrabButton(dpy, button, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeAsync, GrabModeAsync, None, None)) {
+					GrabModeSync, GrabModeAsync, None, None)) {
 			printf("Error: Grab failed, retrying in 10 seconds...\n");
 			sleep(10);
 		}

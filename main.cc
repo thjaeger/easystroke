@@ -109,7 +109,7 @@ public:
 	}
 	virtual void motion(int x, int y, Time t) {}
 	virtual void press(guint b, int x, int y, Time t) {}
-	virtual void release(guint b, int x, int y) {}
+	virtual void release(guint b, int x, int y, Time t) {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
 		if (child)
@@ -222,7 +222,7 @@ public:
 		if (b != 4 && b != 5 && !pressed)
 			pressed = b;
 	}
-	virtual void release(guint b, int x, int y) {
+	virtual void release(guint b, int x, int y, Time t) {
 		if (b != pressed && b != pressed2)
 			return;
 		if (pressed2) {
@@ -288,7 +288,7 @@ public:
 		grabber->grab(Grabber::BUTTON);
 	}
 
-	virtual void release(guint b, int x, int y) {
+	virtual void release(guint b, int x, int y, Time t) {
 		if (b != grabber->button)
 			return;
 		clear_mods();
@@ -356,7 +356,7 @@ public:
 		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 		grabber->grab(Grabber::XI_ALL);
 	}
-	virtual void release(guint b, int x, int y) {
+	virtual void release(guint b, int x, int y, Time t) {
 		if (emulated_button) {
 			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
 			emulated_button = 0;
@@ -381,15 +381,41 @@ class StrokeHandler : public Handler {
 	RPreStroke cur;
 	bool is_gesture;
 	int orig_x, orig_y;
+	float speed;
+	Time last_t;
+	int last_x, last_y;
 
 	RStroke finish(guint b) {
 		trace->end();
-
+		XFlush(dpy);
+		XAllowEvents(dpy, GrabModeAsync, CurrentTime);
 		if (!is_gesture)
 			cur->clear();
 		if (b && prefs().advanced_ignore.get())
 			cur->clear();
 		return Stroke::create(*cur, b);
+	}
+
+	bool calc_speed(int x, int y, Time t) {
+		int dt = t - last_t;
+		float c = exp(dt/-250.0);
+		if (dt) {
+			float dist = hypot(x-last_x, y-last_y);
+			speed = c * speed + (1-c) * dist/dt;
+		} else {
+			speed = c * speed;
+		}
+		last_x = x;
+		last_y = y;
+		last_t = t;
+
+		if (speed >= 0.05)
+			return false;
+		printf("speed: %f\n", speed);
+		trace->end();
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		parent->replace_child(0);
+		return true;
 	}
 protected:
 	virtual void motion(int x, int y, Time t) {
@@ -405,10 +431,13 @@ protected:
 		p.y = y;
 		if (is_gesture)
 			trace->draw(p);
+		calc_speed(x,y,t);
 	}
 
 	virtual void press(guint b, int x, int y, Time t) {
 		if (b == grabber->button)
+			return;
+		if (calc_speed(x,y,t))
 			return;
 		RStroke s = finish(b);
 
@@ -426,7 +455,9 @@ protected:
 		}
 	}
 
-	virtual void release(guint b, int x, int y) {
+	virtual void release(guint b, int x, int y, Time t) {
+		if (calc_speed(x,y,t))
+			return;
 		RStroke s = finish(b);
 
 		handle_stroke(s, 0);
@@ -448,7 +479,8 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(int x, int y) : is_gesture(false), orig_x(x), orig_y(y) {
+	StrokeHandler(int x, int y, Time t) : is_gesture(false), orig_x(x), orig_y(y), 
+			speed(0.2), last_t(t), last_x(x), last_y(y) {
 		cur = PreStroke::create();
 		cur->add(orig_x, orig_y);
 	}
@@ -463,7 +495,7 @@ protected:
 		if (current)
 			XSetInputFocus(dpy, current, RevertToParent, t);
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeAsync);
-		replace_child(new StrokeHandler(x, y));
+		replace_child(new StrokeHandler(x, y, t));
 	}
 	virtual void grab() {
 		grabber->grab(Grabber::BUTTON);
@@ -747,7 +779,7 @@ void Main::run() {
 					xinput_pressed = false;
 				if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
 					break;
-				handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
+				handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
 				last_type = ButtonRelease;
 				last_time = ev.xbutton.time;
 				last_button = ev.xbutton.button;
@@ -804,7 +836,7 @@ void Main::run() {
 						xinput_pressed = false;
 					if (last_type == ButtonRelease && last_time == bev->time && last_button == bev->button)
 						break;
-					handler->top()->release(bev->button, bev->x, bev->y);
+					handler->top()->release(bev->button, bev->x, bev->y, bev->time);
 					last_type = ButtonRelease;
 					last_time = bev->time;
 					last_button = bev->button;
