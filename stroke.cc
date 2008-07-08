@@ -45,7 +45,7 @@ void Stroke::normalize() {
 				first = false;
 				continue;
 			}
-			total += sqrt(sqr(i->x-lastx) + sqr(i->y-lasty));
+			total += hypot(i->x-lastx, i->y-lasty);
 			i->time = total;
 			lastx = i->x;
 			lasty = i->y;
@@ -100,7 +100,7 @@ double Stroke::length() const {
 			first = false;
 			continue;
 		}
-		length += sqrt(sqr(i->x-lastx) + sqr(i->y-lasty));
+		length += hypot(i->x-lastx, i->y-lasty);
 		lastx = i->x;
 		lasty = i->y;
 	}

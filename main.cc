@@ -82,8 +82,6 @@ Trace *init_trace() {
 	}
 }
 
-inline int sqr(int x) { return x*x; }
-
 Window current = 0;
 Grabber *grabber = 0;
 bool ignore = false;
@@ -420,7 +418,7 @@ class StrokeHandler : public Handler {
 protected:
 	virtual void motion(int x, int y, Time t) {
 		cur->add(x,y,t);
-		if (!is_gesture && ((sqr(x-orig.x)+sqr(y-orig.y)) > sqr(prefs().radius.get()))) {
+		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get()) {
 			is_gesture = true;
 			bool first = true;
 			for (std::vector<Stroke::Point>::iterator i = cur->points.begin(); i != cur->points.end(); i++) {
