@@ -387,7 +387,7 @@ class StrokeHandler : public Handler {
 	RStroke finish(guint b) {
 		trace->end();
 		XFlush(dpy);
-		XAllowEvents(dpy, GrabModeAsync, CurrentTime);
+		XAllowEvents(dpy, AsyncPointer, CurrentTime);
 		if (!is_gesture)
 			cur->clear();
 		if (b && prefs().advanced_ignore.get())
@@ -410,7 +410,6 @@ class StrokeHandler : public Handler {
 
 		if (speed >= 0.04)
 			return false;
-		printf("speed: %f\n", speed);
 		trace->end();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		parent->replace_child(0);
@@ -433,12 +432,12 @@ protected:
 					trace->draw(p);
 				}
 			}
-		}
-		Trace::Point p;
-		p.x = x;
-		p.y = y;
-		if (is_gesture)
+		} else if (is_gesture) {
+			Trace::Point p;
+			p.x = x;
+			p.y = y;
 			trace->draw(p);
+		}
 		calc_speed(x,y,t);
 	}
 
