@@ -86,7 +86,7 @@ Window current = 0;
 Grabber *grabber = 0;
 bool ignore = false;
 bool scroll = false;
-int press_button = 0;
+guint press_button = 0;
 Trace *trace = 0;
 
 void handle_stroke(RStroke stroke, int button);
@@ -110,6 +110,7 @@ public:
 	virtual void motion(int x, int y, Time t) {}
 	virtual void press(guint b, int x, int y, Time t) {}
 	virtual void release(guint b, int x, int y, Time t) {}
+	virtual void press_repeated() {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
 		if (child)
@@ -383,6 +384,7 @@ class StrokeHandler : public Handler {
 	float speed;
 	Time last_t;
 	int last_x, last_y;
+	bool repeated;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -416,6 +418,9 @@ class StrokeHandler : public Handler {
 		return true;
 	}
 protected:
+	virtual void press_repeated() {
+		repeated = true;
+	}
 	virtual void motion(int x, int y, Time t) {
 		cur->add(x,y,t);
 		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get()) {
@@ -478,7 +483,7 @@ protected:
 			parent->replace_child(new ScrollHandler);
 			return;
 		}
-		if (press_button) {
+		if (press_button && !(!repeated && xinput_pressed && press_button == grabber->button)) {
 			grabber->fake_button(press_button);
 			press_button = 0;
 		}
@@ -486,7 +491,7 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y) {
+	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y), repeated(false) {
 		orig.x = x; orig.y = y;
 		cur = PreStroke::create();
 		cur->add(x,y,t);
@@ -685,13 +690,13 @@ void handle_stroke(RStroke s, int button) {
 		if (!stroke_action()(s)) {
 			Ranking ranking = actions().handle(s);
 			if (ranking.id == -1)
-				grabber->fake_button(grabber->button);
+				press_button = grabber->button;
 			win->stroke_push(ranking);
 		}
 		win->icon_push(s);
 	} else {
 		if (actions().handle(s).id == -1)
-			grabber->fake_button(grabber->button);
+			press_button = grabber->button;
 	}
 }
 
@@ -761,8 +766,9 @@ void Main::run() {
 			case MotionNotify:
 				if (handler->top()->only_xi())
 					break;
-				if (last_type == MotionNotify && last_time == ev.xmotion.time)
+				if (last_type == MotionNotify && last_time == ev.xmotion.time) {
 					break;
+				}
 				handler->top()->motion(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
 				last_type = MotionNotify;
 				last_time = ev.xmotion.time;
@@ -771,8 +777,10 @@ void Main::run() {
 			case ButtonPress:
 				if (handler->top()->only_xi())
 					break;
-				if (last_type == ButtonPress && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
+				if (last_type == ButtonPress && last_time == ev.xbutton.time && last_button == ev.xbutton.button) {
+					handler->top()->press_repeated();
 					break;
+				}
 				handler->top()->press(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
 				last_type = ButtonPress;
 				last_time = ev.xbutton.time;
@@ -782,11 +790,11 @@ void Main::run() {
 			case ButtonRelease:
 				if (handler->top()->only_xi())
 					break;
-				if (ev.xbutton.button == grabber->button)
-					xinput_pressed = false;
 				if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
 					break;
 				handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+				if (ev.xbutton.button == grabber->button)
+					xinput_pressed = false;
 				last_type = ButtonRelease;
 				last_time = ev.xbutton.time;
 				last_button = ev.xbutton.button;
@@ -830,8 +838,10 @@ void Main::run() {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (bev->button == grabber->button)
 						xinput_pressed = true;
-					if (last_type == ButtonPress && last_time == bev->time && last_button == bev->button)
+					if (last_type == ButtonPress && last_time == bev->time && last_button == bev->button) {
+						handler->top()->press_repeated();
 						break;
+					}
 					handler->top()->press(bev->button, bev->x, bev->y, bev->time);
 					last_type = ButtonPress;
 					last_time = bev->time;
@@ -839,11 +849,11 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-					if (bev->button == grabber->button)
-						xinput_pressed = false;
 					if (last_type == ButtonRelease && last_time == bev->time && last_button == bev->button)
 						break;
 					handler->top()->release(bev->button, bev->x, bev->y, bev->time);
+					if (bev->button == grabber->button)
+						xinput_pressed = false;
 					last_type = ButtonRelease;
 					last_time = bev->time;
 					last_button = bev->button;
