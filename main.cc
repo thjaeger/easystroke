@@ -11,6 +11,7 @@
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xrandr.h>
+#include <X11/Xproto.h>
 
 #include <signal.h>
 #include <fcntl.h>
@@ -39,7 +40,8 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	if (dpy != dpy2) {
 		return oldHandler(dpy2, e);
 	}
-
+	if (verbosity == 0 && e->error_code == BadWindow && e->request_code == X_ChangeWindowAttributes)
+		return 0;
 	char text[64];
 	XGetErrorText(dpy, e->error_code, text, sizeof text);
 	char msg[16];
