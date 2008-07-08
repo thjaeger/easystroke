@@ -131,9 +131,7 @@ public:
 			resume();
 	}
 	virtual void init() { grab(); }
-	virtual bool idle() {
-		return false;
-	}
+	virtual bool idle() { return false; }
 	virtual bool only_xi() { return false; }
 	virtual ~Handler() {
 		if (child)
@@ -496,31 +494,38 @@ public:
 		cur = PreStroke::create();
 		cur->add(x,y,t);
 	}
+	~StrokeHandler() {
+		trace->end();
+		XAllowEvents(dpy, AsyncPointer, CurrentTime);
+	}
 	virtual std::string name() { return "Stroke"; }
 };
 
 class IdleHandler : public Handler {
 protected:
+	virtual void init() {
+		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeSync, GrabModeAsync);
+		grab();
+	}
 	virtual void press(guint b, int x, int y, Time t) {
 		if (b != grabber->button)
 			return;
 		if (current)
 			XSetInputFocus(dpy, current, RevertToParent, t);
-		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeAsync);
 		replace_child(new StrokeHandler(x, y, t));
 	}
 	virtual void grab() {
 		grabber->grab(Grabber::BUTTON);
 	}
 	virtual void resume() {
-		XUngrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT);
 		grab();
 	}
 public:
-	virtual bool idle() {
-		return true;
-	}
+	virtual bool idle() { return true; }
 	virtual std::string name() { return "Idle"; }
+	virtual ~IdleHandler() {
+		XUngrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT);
+	}
 };
 
 class Main {
@@ -803,6 +808,9 @@ void Main::run() {
 			case KeyPress:
 				if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
 					break;
+				XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
+				if (handler->top()->idle())
+					break;
 				printf("Escape pressed: Resetting...\n");
 				handler->replace_child(0);
 				for (int i = 1; i <= 9; i++)
@@ -998,4 +1006,3 @@ bool Ignore::run() {
 	ignore = true;
 	return true;
 }
-
