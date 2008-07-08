@@ -380,7 +380,6 @@ Trace::Point orig;
 class StrokeHandler : public Handler {
 	RPreStroke cur;
 	bool is_gesture;
-	int orig_x, orig_y;
 	float speed;
 	Time last_t;
 	int last_x, last_y;
@@ -409,7 +408,7 @@ class StrokeHandler : public Handler {
 		last_y = y;
 		last_t = t;
 
-		if (speed >= 0.05)
+		if (speed >= 0.04)
 			return false;
 		printf("speed: %f\n", speed);
 		trace->end();
@@ -419,14 +418,23 @@ class StrokeHandler : public Handler {
 	}
 protected:
 	virtual void motion(int x, int y, Time t) {
-		Trace::Point p;
-		cur->add(x, y);
-		if (!is_gesture && ((sqr(x-orig_x)+sqr(y-orig_y)) > sqr(prefs().radius.get()))) {
+		cur->add(x,y,t);
+		if (!is_gesture && ((sqr(x-orig.x)+sqr(y-orig.y)) > sqr(prefs().radius.get()))) {
 			is_gesture = true;
-			orig.x = orig_x;
-			orig.y = orig_y;
-			trace->start(orig);
+			bool first = true;
+			for (std::vector<Stroke::Point>::iterator i = cur->points.begin(); i != cur->points.end(); i++) {
+				Trace::Point p;
+				p.x = i->x;
+				p.y = i->y;
+				if (first) {
+					trace->start(p);
+					first = false;
+				} else {
+					trace->draw(p);
+				}
+			}
 		}
+		Trace::Point p;
 		p.x = x;
 		p.y = y;
 		if (is_gesture)
@@ -479,10 +487,10 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(int x, int y, Time t) : is_gesture(false), orig_x(x), orig_y(y), 
-			speed(0.2), last_t(t), last_x(x), last_y(y) {
+	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y) {
+		orig.x = x; orig.y = y;
 		cur = PreStroke::create();
-		cur->add(orig_x, orig_y);
+		cur->add(x,y,t);
 	}
 	virtual std::string name() { return "Stroke"; }
 };

@@ -93,20 +93,14 @@ BOOST_CLASS_VERSION(Stroke, 1)
 class PreStroke {
 	friend class Stroke;
 	typedef Stroke::Point Point;
-	std::vector<Point> points;
 	PreStroke() {}
 public:
+	std::vector<Point> points;
 	static RPreStroke create() { return RPreStroke(new PreStroke()); }
 
 	void add(double x, double y, double time) {
 		Point p = {x, y, time};
 		points.push_back(p);
-	}
-
-	void add(double x, double y) {
-		if (points.empty())
-			add(x,y,0); else
-			add(x,y, points.back().time + 1);
 	}
 
 	void clear() { points.clear(); }

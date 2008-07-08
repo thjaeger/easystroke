@@ -348,7 +348,7 @@ RStroke Stroke::trefoil() {
 	for (int i = 0; i<=n; i++) {
 		double phi = pi*(-4.0*i/n)-2.7;
 		double r = exp(1.0 + sin(6.0*pi*i/n)) + 2.0;
-		s.add(r*cos(phi), r*sin(phi));
+		s.add(r*cos(phi), r*sin(phi), i);
 	}
 	return Stroke::create(s, 0);
 }
