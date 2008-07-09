@@ -592,7 +592,7 @@ protected:
 	virtual void press(guint b, int x, int y, Time t) {
 		if (b != grabber->button)
 			return;
-		if (current && prefs().activate.get())
+		if (current)
 			activate_window(current, t);
 		replace_child(new StrokeHandler(x, y, t));
 	}

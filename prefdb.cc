@@ -21,8 +21,7 @@ PrefDB::PrefDB() :
 	trace(TraceShape),
 	advanced_ignore(false),
 	radius(pref_radius_default),
-	ignore_grab(false),
-	activate(true)
+	ignore_grab(false)
 {}
 
 bool PrefDB::write() const {

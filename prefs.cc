@@ -36,7 +36,6 @@ void Check::on_changed() {
 
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected)),
-	activate("check_activate", prefs().activate),
 	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
 	ignore_grab("check_ignore_grab", prefs().ignore_grab)
 {

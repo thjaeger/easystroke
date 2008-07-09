@@ -50,7 +50,7 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
-	Check activate, advanced_ignore, ignore_grab;
+	Check advanced_ignore, ignore_grab;
 };
 
 #endif
