@@ -56,6 +56,15 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 
 }
 
+
+void xi_warn() {
+	static bool warned = false;
+	if (warned)
+		return;
+	printf("warning: Xinput extension not working correctly\n");
+	warned = true;
+}
+
 void run_gui() {
 	win = new Win;
 	Gtk::Main::run();
@@ -436,6 +445,10 @@ protected:
 		repeated = true;
 	}
 	virtual void motion(int x, int y, Time t) {
+		if (!repeated && xinput_pressed && !prefs().ignore_grab.get()) {
+			parent->replace_child(0);
+			return;
+		}
 		cur->add(x,y,t);
 		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get()) {
 			is_gesture = true;
@@ -476,7 +489,7 @@ protected:
 		if (xinput_pressed) {
 			parent->replace_child(new ActionXiHandler(s, b, t));
 		} else {
-			printf("warning: Xinput extension not working correctly\n");
+			xi_warn();
 			parent->replace_child(new ActionHandler(s, b));
 		}
 	}
@@ -513,10 +526,17 @@ public:
 		if (xinput_pressed)
 			have_xi = true;
 		XEvent ev;
-		if (!have_xi)
+		if (!have_xi) {
 			have_xi = XCheckIfEvent(dpy, &ev, &is_xi_press, (XPointer)&t);
-		if (!have_xi)
+			if (have_xi)
+				repeated = true;
+		}
+		if (have_xi) {
+			xinput_pressed = true;
+		} else {
 			XAllowEvents(dpy, AsyncPointer, CurrentTime);
+			xi_warn();
+		}
 	}
 	~StrokeHandler() {
 		trace->end();
