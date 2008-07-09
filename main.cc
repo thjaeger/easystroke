@@ -376,6 +376,18 @@ public:
 
 Trace::Point orig;
 
+Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
+	Time *t = (Time *)arg;
+	if (!grabber->xinput)
+		return false;
+	if (!grabber->is_button_down(ev->type))
+		return false;
+	XDeviceButtonEvent* bev = (XDeviceButtonEvent *)ev;
+	if (bev->button != grabber->button)
+		return false;
+	return bev->time == *t;
+}
+
 class StrokeHandler : public Handler {
 	RPreStroke cur;
 	bool is_gesture;
@@ -383,11 +395,13 @@ class StrokeHandler : public Handler {
 	Time last_t;
 	int last_x, last_y;
 	bool repeated;
+	bool have_xi;
 
 	RStroke finish(guint b) {
 		trace->end();
 		XFlush(dpy);
-		XAllowEvents(dpy, AsyncPointer, CurrentTime);
+		if (have_xi)
+			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 		if (!is_gesture)
 			cur->clear();
 		if (b && prefs().advanced_ignore.get())
@@ -396,6 +410,8 @@ class StrokeHandler : public Handler {
 	}
 
 	bool calc_speed(int x, int y, Time t) {
+		if (!have_xi)
+			return false;
 		int dt = t - last_t;
 		float c = exp(dt/-250.0);
 		if (dt) {
@@ -489,14 +505,23 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y), repeated(false) {
+	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y), 
+	repeated(false), have_xi(false) {
 		orig.x = x; orig.y = y;
 		cur = PreStroke::create();
 		cur->add(x,y,t);
+		if (xinput_pressed)
+			have_xi = true;
+		XEvent ev;
+		if (!have_xi)
+			have_xi = XCheckIfEvent(dpy, &ev, &is_xi_press, (XPointer)&t);
+		if (!have_xi)
+			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 	}
 	~StrokeHandler() {
 		trace->end();
-		XAllowEvents(dpy, AsyncPointer, CurrentTime);
+		if (have_xi)
+			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 	}
 	virtual std::string name() { return "Stroke"; }
 };

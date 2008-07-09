@@ -20,7 +20,8 @@ PrefDB::PrefDB() :
 	button(pref_button_default),
 	trace(TraceShape),
 	advanced_ignore(false),
-	radius(pref_radius_default)
+	radius(pref_radius_default),
+	ignore_grab(false)
 {}
 
 bool PrefDB::write() const {

@@ -25,6 +25,7 @@ private:
 	void on_select_button();
 	void on_trace_changed();
 	void on_advanced_ignore_changed();
+	void on_ignore_grab_changed();
 
 	struct SelectRow;
 
@@ -50,7 +51,7 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
-	Gtk::CheckButton *advanced_ignore;
+	Gtk::CheckButton *advanced_ignore, *ignore_grab;
 };
 
 #endif

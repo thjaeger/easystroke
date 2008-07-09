@@ -26,6 +26,7 @@ Prefs::Prefs(Win *parent_) :
 	parent->widgets->get_widget("check_advanced_ignore", advanced_ignore);
 	parent->widgets->get_widget("spin_radius", spin_radius);
 	parent->widgets->get_widget("button_default_radius", button_default_radius);
+	parent->widgets->get_widget("check_ignore_grab", ignore_grab);
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -42,6 +43,9 @@ Prefs::Prefs(Win *parent_) :
 
 	advanced_ignore->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_advanced_ignore_changed));
 	advanced_ignore->set_active(prefs().advanced_ignore.get());
+
+	ignore_grab->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_ignore_grab_changed));
+	ignore_grab->set_active(prefs().ignore_grab.get());
 
 	double p = prefs().p.get();
 	scale_p->set_value(p);
@@ -190,6 +194,11 @@ void Prefs::on_trace_changed() {
 
 void Prefs::on_advanced_ignore_changed() {
 	prefs().advanced_ignore.set(advanced_ignore->get_active());
+	write();
+}
+
+void Prefs::on_ignore_grab_changed() {
+	prefs().ignore_grab.set(ignore_grab->get_active());
 	write();
 }
 
