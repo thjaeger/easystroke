@@ -5,7 +5,6 @@
 #include <X11/Xutil.h>
 extern "C" {
 #include "dsimple.h"
-void usage() {}
 }
 
 #include <set>
