@@ -569,7 +569,7 @@ public:
 class IdleHandler : public Handler {
 protected:
 	virtual void init() {
-		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeSync, GrabModeAsync);
+		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		grab();
 	}
 	virtual void press(guint b, int x, int y, Time t) {
