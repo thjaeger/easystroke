@@ -20,19 +20,18 @@ public:
 	ActionDBRef(LActionDB& db) : Ref<ActionDB>(db) {}
 };
 
-Actions::Actions(Win *p) :
+Actions::Actions() :
 	good_state(true),
-	parent(p),
 	tv(0),
 	editing_new(false),
 	editing(false)
 {
-	parent->widgets->get_widget("treeview_actions", tv);
+	widgets->get_widget("treeview_actions", tv);
 
 	Gtk::Button *button_add = 0;
-	parent->widgets->get_widget("button_add_action", button_add);
-	parent->widgets->get_widget("button_delete_action", button_delete);
-	parent->widgets->get_widget("button_record", button_record);
+	widgets->get_widget("button_add_action", button_add);
+	widgets->get_widget("button_delete_action", button_delete);
+	widgets->get_widget("button_record", button_record);
 	button_record->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_record));
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
@@ -130,7 +129,7 @@ void Actions::write(ActionDBRef& ref) {
 		return;
 	good_state = ref->write();
 	if (!good_state) {
-		Gtk::MessageDialog dialog(parent->get_window(), "Couldn't save actions.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save actions.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 		dialog.run();
 	}
 }
@@ -211,8 +210,8 @@ void Actions::on_button_delete() {
 		msg << n << " actions are";
 
 	Gtk::Dialog *dialog;
-	parent->widgets->get_widget("dialog_delete", dialog);
-	FormatLabel foo(parent->widgets, "label_delete", msg.str().c_str());
+	widgets->get_widget("dialog_delete", dialog);
+	FormatLabel foo(widgets, "label_delete", msg.str().c_str());
 
 	bool ok = dialog->run() == 1;
 	dialog->hide();
@@ -260,12 +259,12 @@ public:
 
 void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
 	Gtk::Dialog *dialog;
-	parent->widgets->get_widget("dialog_record", dialog);
+	widgets->get_widget("dialog_record", dialog);
 	Gtk::TreeRow row(*tm->get_iter(path));
-	FormatLabel foo(parent->widgets, "label_record", Glib::ustring(row[cols.name]).c_str());
+	FormatLabel foo(widgets, "label_record", Glib::ustring(row[cols.name]).c_str());
 
 	Gtk::Button *del;
-	parent->widgets->get_widget("button_delete_current", del);
+	widgets->get_widget("button_delete_current", del);
 	del->set_sensitive(actions().get()[row[cols.id]].strokes.size());
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
@@ -440,7 +439,7 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	ActionDBRef ref(actions());
 	RButton bt = boost::static_pointer_cast<Button>((*ref)[row[cols.id]].action);
 	ButtonInfo bi = bt->get_button_info();
-	SelectButton sb(parent->widgets, bi, false);
+	SelectButton sb(bi, false);
 	if (!sb.run())
 		return;
 	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));

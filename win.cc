@@ -3,6 +3,8 @@
 #include "stats.h"
 #include "win.h"
 
+Glib::RefPtr<Gtk::Builder> widgets;
+
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	ctx->set_line_width(2);
@@ -84,13 +86,12 @@ int run_dialog(const char *str) {
 	return response;
 }
 
-Win::Win() :
-	widgets(Gtk::Builder::create_from_string(gui_buffer)),
-	actions(new Actions(this)),
-	prefs(new Prefs(this)),
-	stats(new Stats(this)),
-	icon_queue(sigc::mem_fun(*this, &Win::on_icon_changed))
-{
+Win::Win() : icon_queue(sigc::mem_fun(*this, &Win::on_icon_changed)) {
+	widgets = Gtk::Builder::create_from_string(gui_buffer),
+	actions = new Actions;
+	prefs = new Prefs;
+	stats = new Stats;
+
 	current_icon = Stroke::trefoil();
 	icon = Gtk::StatusIcon::create("");
 	icon->signal_size_changed().connect(sigc::mem_fun(*this, &Win::on_icon_size_changed));

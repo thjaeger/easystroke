@@ -5,11 +5,17 @@
 
 #include <gtkmm.h>
 
-class Win;
+class Check {
+	Lock<bool> &b;
+	Gtk::CheckButton *check;
+public:
+	Check(const Glib::ustring &, Lock<bool> &);
+	void on_changed();
+};
 
 class Prefs {
 public:
-	Prefs(Win *);
+	Prefs();
 	virtual ~Prefs() {}
 private:
 	void select_worker();
@@ -24,15 +30,8 @@ private:
 	void on_radius_default();
 	void on_select_button();
 	void on_trace_changed();
-	void on_advanced_ignore_changed();
-	void on_ignore_grab_changed();
 
 	struct SelectRow;
-
-	bool good_state;
-	void write();
-
-	Win* parent;
 
 	Queue<std::string> q;
 
@@ -51,7 +50,7 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
-	Gtk::CheckButton *advanced_ignore, *ignore_grab;
+	Check activate, advanced_ignore, ignore_grab;
 };
 
 #endif

@@ -397,6 +397,26 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	return bev->time == *t;
 }
 
+Atom _NET_ACTIVE_WINDOW;
+
+void activate_window(Window w, Time t) {
+	if (_NET_ACTIVE_WINDOW == None) {
+		XSetInputFocus(dpy, current, RevertToParent, t);
+		return;
+	}
+	XClientMessageEvent ev;
+	ev.type = ClientMessage;
+	ev.window = w;
+	ev.message_type = _NET_ACTIVE_WINDOW;
+	ev.format = 32;
+	ev.data.l[0] = 0; // 1 app, 2 pager
+	ev.data.l[1] = t;
+	ev.data.l[2] = 0;
+	ev.data.l[3] = 0;
+	ev.data.l[4] = 0;
+	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
+}
+
 class StrokeHandler : public Handler {
 	RPreStroke cur;
 	bool is_gesture;
@@ -555,8 +575,8 @@ protected:
 	virtual void press(guint b, int x, int y, Time t) {
 		if (b != grabber->button)
 			return;
-		if (current)
-			XSetInputFocus(dpy, current, RevertToParent, t);
+		if (current && prefs().activate.get())
+			activate_window(current, t);
 		replace_child(new StrokeHandler(x, y, t));
 	}
 	virtual void grab() {
@@ -633,6 +653,8 @@ Main::Main(int argc, char **argv) : gtk_thread(0), kit(0) {
 	fdr = fds[0];
 	fcntl(fdr, F_SETFL, O_NONBLOCK);
 	fdw = fds[1];
+
+	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", True);
 }
 
 void Main::usage(char *me, bool good) {

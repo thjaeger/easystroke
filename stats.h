@@ -4,11 +4,10 @@
 #include "queue.h"
 
 class Ranking;
-class Win;
 
 class Stats {
 public:
-	Stats(Win *);
+	Stats();
 	void stroke_push(Ranking&);
 	virtual ~Stats();
 private:

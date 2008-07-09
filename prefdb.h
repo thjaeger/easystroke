@@ -58,6 +58,7 @@ class PrefDB {
 		{ Ref<int> ref(radius); ar & *ref; }
 		if (version <= 3) return;
 		{ Ref<bool> ref(ignore_grab); ar & *ref; }
+		{ Ref<bool> ref(activate); ar & *ref; }
 	}
 	std::string filename;
 public:
@@ -70,6 +71,7 @@ public:
 	Lock<bool> advanced_ignore;
 	Lock<int> radius;
 	Lock<bool> ignore_grab;
+	Lock<bool> activate;
 
 	void read();
 	bool write() const;

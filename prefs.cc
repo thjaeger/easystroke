@@ -11,22 +11,46 @@ void usage() {}
 #include <set>
 #include <iostream>
 
-Prefs::Prefs(Win *parent_) :
-	good_state(true), parent(parent_), q(sigc::mem_fun(*this, &Prefs::on_selected))
+bool good_state = true;
+
+void write_prefs() {
+	if (!good_state)
+		return;
+	good_state = prefs().write();
+	if (!good_state) {
+		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+		dialog.run();
+	}
+}
+
+Check::Check(const Glib::ustring &name, Lock<bool> &b_) : b(b_) {
+	widgets->get_widget(name, check);
+	check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
+	check->set_active(b.get());
+}
+
+void Check::on_changed() {
+	b.set(check->get_active());
+	write_prefs();
+}
+
+Prefs::Prefs() :
+	q(sigc::mem_fun(*this, &Prefs::on_selected)),
+	activate("check_activate", prefs().activate),
+	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
+	ignore_grab("check_ignore_grab", prefs().ignore_grab)
 {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_radius;
-	parent->widgets->get_widget("button_add_exception", add_exception);
-	parent->widgets->get_widget("button_button", bbutton);
-	parent->widgets->get_widget("button_default_p", button_default_p);
-	parent->widgets->get_widget("button_remove_exception", remove_exception);
-	parent->widgets->get_widget("combo_trace", trace);
-	parent->widgets->get_widget("label_button", blabel);
-	parent->widgets->get_widget("treeview_exceptions", tv);
-	parent->widgets->get_widget("scale_p", scale_p);
-	parent->widgets->get_widget("check_advanced_ignore", advanced_ignore);
-	parent->widgets->get_widget("spin_radius", spin_radius);
-	parent->widgets->get_widget("button_default_radius", button_default_radius);
-	parent->widgets->get_widget("check_ignore_grab", ignore_grab);
+	widgets->get_widget("button_add_exception", add_exception);
+	widgets->get_widget("button_button", bbutton);
+	widgets->get_widget("button_default_p", button_default_p);
+	widgets->get_widget("button_remove_exception", remove_exception);
+	widgets->get_widget("combo_trace", trace);
+	widgets->get_widget("label_button", blabel);
+	widgets->get_widget("treeview_exceptions", tv);
+	widgets->get_widget("scale_p", scale_p);
+	widgets->get_widget("spin_radius", spin_radius);
+	widgets->get_widget("button_default_radius", button_default_radius);
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -41,12 +65,6 @@ Prefs::Prefs(Win *parent_) :
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
 	trace->set_active(prefs().trace.get());
 
-	advanced_ignore->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_advanced_ignore_changed));
-	advanced_ignore->set_active(prefs().advanced_ignore.get());
-
-	ignore_grab->signal_toggled().connect(sigc::mem_fun(*this, &Prefs::on_ignore_grab_changed));
-	ignore_grab->set_active(prefs().ignore_grab.get());
-
 	double p = prefs().p.get();
 	scale_p->set_value(p);
 	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
@@ -58,7 +76,7 @@ Prefs::Prefs(Win *parent_) :
 
 	if (!experimental) {
 		Gtk::HBox *hbox_experimental;
-	       	parent->widgets->get_widget("hbox_experimental", hbox_experimental);
+	       	widgets->get_widget("hbox_experimental", hbox_experimental);
 		hbox_experimental->hide();
 	}
 	set_button_label();
@@ -82,17 +100,7 @@ struct Prefs::SelectRow {
 	}
 };
 
-void Prefs::write() {
-	if (!good_state)
-		return;
-	good_state = prefs().write();
-	if (!good_state) {
-		Gtk::MessageDialog dialog(parent->get_window(), "Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
-		dialog.run();
-	}
-}
-
-SelectButton::SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo bi, bool def) {
+SelectButton::SelectButton(ButtonInfo bi, bool def) {
 	widgets->get_widget("dialog_select", dialog);
 	widgets->get_widget("eventbox", eventbox);
 	widgets->get_widget("toggle_shift", toggle_shift);
@@ -168,7 +176,7 @@ bool SelectButton::on_button_press(GdkEventButton *ev) {
 }
 
 void Prefs::on_select_button() {
-	SelectButton sb(parent->widgets, prefs().button.get());
+	SelectButton sb(prefs().button.get());
 	if (!sb.run())
 		return;
 	{
@@ -178,7 +186,7 @@ void Prefs::on_select_button() {
 	}
 	send(P_REGRAB);
 	set_button_label();
-	write();
+	write_prefs();
 }
 
 void Prefs::on_trace_changed() {
@@ -189,22 +197,12 @@ void Prefs::on_trace_changed() {
 		return;
 	prefs().trace.set(type);
 	send(P_UPDATE_TRACE);
-	write();
-}
-
-void Prefs::on_advanced_ignore_changed() {
-	prefs().advanced_ignore.set(advanced_ignore->get_active());
-	write();
-}
-
-void Prefs::on_ignore_grab_changed() {
-	prefs().ignore_grab.set(ignore_grab->get_active());
-	write();
+	write_prefs();
 }
 
 void Prefs::on_p_changed() {
 	prefs().p.set(scale_p->get_value());
-	write();
+	write_prefs();
 }
 
 void Prefs::on_p_default() {
@@ -213,7 +211,7 @@ void Prefs::on_p_default() {
 
 void Prefs::on_radius_changed() {
 	prefs().radius.set(spin_radius->get_value());
-	write();
+	write_prefs();
 }
 
 void Prefs::on_radius_default() {

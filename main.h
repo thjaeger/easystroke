@@ -25,4 +25,7 @@ typedef struct _XDisplay Display;
 extern Display *dpy;
 #define ROOT (DefaultRootWindow(dpy))
 
+class Win;
+extern Win* win;
+
 #endif

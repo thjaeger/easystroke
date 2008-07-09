@@ -15,6 +15,8 @@ class ButtonInfo;
 
 int run_dialog(const char *);
 
+extern Glib::RefPtr<Gtk::Builder> widgets;
+
 class Win {
 public:
 	Win();
@@ -25,8 +27,6 @@ public:
 
 	Glib::Dispatcher quit;
 
-//	Gtk::Statusbar status;
-	const Glib::RefPtr<Gtk::Builder> widgets;
 private:
 	void on_icon_click();
 	bool on_icon_size_changed(int);
@@ -40,7 +40,6 @@ private:
 	Stats *stats;
 
 	Gtk::Menu menu;
-//	Gtk::ToggleButton button_help;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
 	RStroke current_icon;
@@ -49,7 +48,7 @@ private:
 
 class SelectButton {
 public:
-	SelectButton(const Glib::RefPtr<Gtk::Builder> widgets, ButtonInfo bi, bool def=true);
+	SelectButton(ButtonInfo bi, bool def=true);
 	~SelectButton();
 	bool run();
 	GdkEventButton event;

@@ -10,11 +10,11 @@ public:
 
 void Stats::stroke_push(Ranking &r) { r_queue->push(r); }
 
-Stats::Stats(Win *parent) : r_queue(new RankingQueue(sigc::mem_fun(*this, &Stats::on_stroke))) {
+Stats::Stats() : r_queue(new RankingQueue(sigc::mem_fun(*this, &Stats::on_stroke))) {
 	Gtk::Button *button_matrix;
-	parent->widgets->get_widget("button_matrix", button_matrix);
-	parent->widgets->get_widget("treeview_recent", recent_view);
-	parent->widgets->get_widget("treeview_ranking", ranking_view);
+	widgets->get_widget("button_matrix", button_matrix);
+	widgets->get_widget("treeview_recent", recent_view);
+	widgets->get_widget("treeview_ranking", ranking_view);
 
 	button_matrix->signal_clicked().connect(sigc::mem_fun(*this, &Stats::on_pdf));
 

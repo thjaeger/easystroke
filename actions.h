@@ -9,7 +9,7 @@ class ActionDBRef;
 
 class Actions {
 public:
-	Actions(Win *);
+	Actions();
 private:
 	void on_button_delete();
 	void on_button_new();
@@ -32,8 +32,6 @@ private:
 
 	bool good_state;
 	void write(ActionDBRef&);
-
-	Win *parent;
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
