@@ -120,6 +120,7 @@ public:
 	virtual void press(guint b, int x, int y, Time t) {}
 	virtual void release(guint b, int x, int y, Time t) {}
 	virtual void press_repeated() {}
+	virtual void pressure() {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
 		if (child)
@@ -480,6 +481,11 @@ class StrokeHandler : public Handler {
 protected:
 	virtual void press_repeated() {
 		repeated = true;
+	}
+	virtual void pressure() {
+		trace->end();
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		parent->replace_child(0);
 	}
 	virtual void motion(int x, int y, Time t) {
 		if (!repeated && xinput_pressed && !prefs().ignore_grab.get()) {
@@ -955,6 +961,8 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_motion(ev.type)) {
 					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
+					if (mev->axis_data[2] >= 192)
+						handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)
 						break;
 					handler->top()->motion(mev->x, mev->y, mev->time);
