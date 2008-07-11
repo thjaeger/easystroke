@@ -98,7 +98,7 @@ bool scroll = false;
 guint press_button = 0;
 Trace *trace = 0;
 
-void handle_stroke(RStroke stroke, int button);
+void handle_stroke(RStroke stroke, int trigger, int button);
 
 class Handler {
 protected:
@@ -264,7 +264,7 @@ class ActionHandler : public Handler {
 	guint button;
 
 	void do_press() {
-		handle_stroke(stroke, button);
+		handle_stroke(stroke, grabber->button, button);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -314,14 +314,15 @@ class ActionXiHandler : public Handler {
 	RStroke stroke;
 	int emulated_button;
 
-	guint button; // just for initialization
+	guint button;
+	guint button2;
 public:
-	ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), emulated_button(0), button(b) {
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
+	ActionXiHandler(RStroke s, guint b, Time t) : stroke(s), emulated_button(0), button(b), button2(grabber->button) {
+		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
+		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
 	}
 	virtual void init() {
-		handle_stroke(stroke, button);
+		handle_stroke(stroke, button2, button);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -339,8 +340,12 @@ public:
 		press_button = 0;
 	}
 	virtual void press(guint b, int x, int y, Time t) {
+		printf("%d, %d, %d\n", b, button, button2);
+		if (button2)
+			return;
+		button2 = b;
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-		handle_stroke(stroke, b);
+		handle_stroke(stroke, button, button2);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -366,11 +371,17 @@ public:
 		grabber->grab(Grabber::XI_ALL);
 	}
 	virtual void release(guint b, int x, int y, Time t) {
+		printf("%d, %d, %d\n", b, button, button2);
+		if (b != button && b != button2)
+			return;
+		if (b == button)
+			button = button2;
+		button2 = 0;
 		if (emulated_button) {
 			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
 			emulated_button = 0;
 		}
-		if (b == grabber->button)
+		if (!button && !button2)
 			parent->replace_child(0);
 	}
 	virtual ~ActionXiHandler() {
@@ -453,7 +464,7 @@ class StrokeHandler : public Handler {
 			cur->clear();
 		if (b && prefs().advanced_ignore.get())
 			cur->clear();
-		return Stroke::create(*cur, b);
+		return Stroke::create(*cur, grabber->button, b);
 	}
 
 	bool calc_speed(int x, int y, Time t) {
@@ -524,7 +535,7 @@ protected:
 		RStroke s = finish(b);
 
 		if (gui && stroke_action()) {
-			handle_stroke(s, b);
+			handle_stroke(s, grabber->button, b);
 			parent->replace_child(0);
 			return;
 		}
@@ -542,7 +553,7 @@ protected:
 			return;
 		RStroke s = finish(b);
 
-		handle_stroke(s, 0);
+		handle_stroke(s, grabber->button, 0);
 		if (ignore) {
 			ignore = false;
 			parent->replace_child(new IgnoreHandler);
@@ -780,21 +791,22 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-void handle_stroke(RStroke s, int button) {
-	s->button = button;
+void handle_stroke(RStroke s, int trigger, int button) {
+	s->trigger = trigger;
+	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 3)
 		s->print();
 	if (gui) {
 		if (!stroke_action()(s)) {
 			Ranking ranking = actions().handle(s);
 			if (ranking.id == -1)
-				press_button = grabber->button;
+				press_button = trigger;
 			win->stroke_push(ranking);
 		}
 		win->icon_push(s);
 	} else {
 		if (actions().handle(s).id == -1)
-			press_button = grabber->button;
+			press_button = trigger;
 	}
 }
 

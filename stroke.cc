@@ -13,15 +13,15 @@ inline bool close(double x, double y) {
 	return diff < eps;
 }
 
+int get_default_button() { return prefs().button.get().button; }
+
 inline double sqr(double x) { return x*x; };
 
-
-Stroke::Stroke(PreStroke &s, int button_) : button(button_) {
+Stroke::Stroke(PreStroke &s, int trigger_, int button_) : trigger(trigger_), button(button_) {
 	if (s.valid()) {
 		points = s.points;
 		normalize();
 	}
-
 }
 
 void Stroke::normalize() {
@@ -291,7 +291,8 @@ double Stroke::compare(RStroke a_, RStroke b_, double p) {
 	if (!a_ || !b_)
 		return -2;
 	if (a_->button != b_->button)
-		return -2;
+		if (!(a_->button == b_->trigger && b_->button == a_->trigger))
+			return -2;
 	if (a_->size() == 0 || b_->size() == 0) {
 		if (a_->size() == 0 && b_->size() == 0)
 			return 1;
@@ -350,5 +351,5 @@ RStroke Stroke::trefoil() {
 		double r = exp(1.0 + sin(6.0*pi*i/n)) + 2.0;
 		s.add(r*cos(phi), r*sin(phi), i);
 	}
-	return Stroke::create(s, 0);
+	return Stroke::create(s, 0, 0);
 }

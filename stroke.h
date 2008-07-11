@@ -30,6 +30,8 @@ public:
 	virtual operator bool() = 0;
 };
 
+int get_default_button();
+
 class PreStroke;
 class Stroke {
 	friend class PreStroke;
@@ -55,7 +57,7 @@ class Stroke {
 	double length() const;
 	int size() const { return points.size(); }
 
-	Stroke(PreStroke &s, int button_);
+	Stroke(PreStroke &s, int trigger_, int button_);
 
         Glib::RefPtr<Gdk::Pixbuf> draw_(int) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb;
@@ -68,12 +70,18 @@ class Stroke {
 		ar & points;
 		if (version == 0) return;
 		ar & button;
+		if (version >= 2)
+			ar & trigger;
+		if (!trigger)
+			trigger = get_default_button();
 	}
+
 public:
+	int trigger;
 	int button;
 
-	Stroke() : button(0) {}
-	static RStroke create(PreStroke &s, int button_) { return RStroke(new Stroke(s, button_)); }
+	Stroke() : trigger(0), button(0) {}
+	static RStroke create(PreStroke &s, int trigger_, int button_) { return RStroke(new Stroke(s, trigger_, button_)); }
 
         Glib::RefPtr<Gdk::Pixbuf> draw(int size) const;
 	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert = true) const;
@@ -88,7 +96,7 @@ public:
 	void normalize();
 	bool trivial() const { return size() == 0 && button == 0; }
 };
-BOOST_CLASS_VERSION(Stroke, 1)
+BOOST_CLASS_VERSION(Stroke, 2)
 
 class PreStroke {
 	friend class Stroke;
