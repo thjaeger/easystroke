@@ -6,9 +6,11 @@
 #include <X11/extensions/XInput.h>
 #include <X11/cursorfont.h>
 
+
 class Grabber {
 public:
 	enum State { NONE, BUTTON, ALL, XI, XI_ALL, POINTER };
+	static const char *state_name[6];
 	bool xinput;
 	bool is_button_up(int);
 	bool is_button_down(int);

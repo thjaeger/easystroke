@@ -5,6 +5,8 @@
 
 bool no_xi = false;
 
+const char *Grabber::state_name[6] = { "None", "Button", "All", "Xi", "Xi_all", "Pointer" };
+
 Grabber::Grabber() {
 	current = BUTTON;
 	suspended = false;
@@ -167,7 +169,7 @@ void Grabber::set() {
 	if (old == grabbed)
 		return;
 	if (verbosity >= 2)
-		printf("grabbing: %d\n", grabbed);
+		printf("grabbing: %s\n", state_name[grabbed]);
 
 	if (old == XI_ALL)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
