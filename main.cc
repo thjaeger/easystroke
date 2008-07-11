@@ -17,8 +17,6 @@
 #include <fcntl.h>
 #include <getopt.h>
 
-// TODO: _NET_WM_STATE(ATOM) = _NET_WM_STATE_FULLSCREEN
-
 bool gui = true;
 extern bool no_xi;
 bool experimental = false;
@@ -409,41 +407,30 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	return bev->time == *t;
 }
 
-Atom _NET_ACTIVE_WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK;
+Atom _NET_ACTIVE_WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN;
 
-void activate_window(Window w, Time t) {
-#if 0
-	if (_NET_ACTIVE_WINDOW == None) {
-		XSetInputFocus(dpy, current, RevertToParent, t);
-		return;
-	}
-	XClientMessageEvent ev;
-	ev.type = ClientMessage;
-	ev.window = w;
-	ev.message_type = _NET_ACTIVE_WINDOW;
-	ev.format = 32;
-	ev.data.l[0] = 0; // 1 app, 2 pager
-	ev.data.l[1] = t;
-	ev.data.l[2] = 0;
-	ev.data.l[3] = 0;
-	ev.data.l[4] = 0;
-	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
-#else
-	Atom window_type = None;
+Atom get_atom(Window w, Atom prop) {
 	Atom actual_type;
 	int actual_format;
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
 
-	if (XGetWindowProperty(dpy, w, _NET_WM_WINDOW_TYPE, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format, 
-				&nitems, &bytes_after, &prop_return) == Success && prop_return) {
-		window_type = *(Atom *)prop_return;
-		XFree(prop_return);
-	}
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format, 
+				&nitems, &bytes_after, &prop_return) != Success)
+		return None;
+	if (!prop_return)
+		return None;
+	Atom atom = *(Atom *)prop_return;
+	XFree(prop_return);
+	return atom;
+}
 
-	if (window_type != _NET_WM_WINDOW_TYPE_DOCK)
+void activate_window(Window w, Time t) {
+	Atom window_type = get_atom(w, _NET_WM_WINDOW_TYPE);
+	Atom wm_state = get_atom(w, _NET_WM_STATE);
+
+	if (window_type != _NET_WM_WINDOW_TYPE_DOCK && wm_state != _NET_WM_STATE_FULLSCREEN)
 		XSetInputFocus(dpy, current, RevertToParent, t);
-#endif
 }
 
 class StrokeHandler : public Handler {
@@ -715,6 +702,8 @@ Main::Main(int argc, char **argv) : gtk_thread(0), kit(0) {
 	ATOM = XInternAtom(dpy, "ATOM", True);
 	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
 	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", True);
+	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", True);
+	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", True);
 }
 
 void Main::usage(char *me, bool good) {
