@@ -600,6 +600,18 @@ public:
 	virtual std::string name() { return "Stroke"; }
 };
 
+class WorkaroundHandler : public Handler {
+public:
+	virtual void press(guint b, int x, int y, Time t) {
+		if (b != grabber->button)
+			return;
+		RPreStroke p = PreStroke::create();
+		RStroke s = Stroke::create(*p, grabber->button, 1);
+		parent->replace_child(new ActionXiHandler(s, 1, t));
+	}
+	virtual std::string name() { return "Workaround"; }
+};
+
 class IdleHandler : public Handler {
 protected:
 	virtual void init() {
@@ -607,16 +619,14 @@ protected:
 		grab();
 	}
 	virtual void press(guint b, int x, int y, Time t) {
-		bool workaround = false;
 		if (b != grabber->button)
 			if (b != 1)
 				return;
 			else { // b == 1
-				workaround = grabber->get_device_button_state() & ~2;
-				if (workaround) {
+				if (grabber->get_device_button_state() & ~2) {
 					XAllowEvents(dpy, AsyncPointer, t);
-					if (verbosity >= 2)
-						printf("Using timing workaround\n");
+					replace_child(new WorkaroundHandler);
+					return;
 				} else {
 					XAllowEvents(dpy, ReplayPointer, t);
 					return;
