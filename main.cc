@@ -813,7 +813,8 @@ void handle_stroke(RStroke s, int trigger, int button) {
 			Ranking ranking = actions().handle(s);
 			if (ranking.id == -1)
 				press_button = trigger;
-			win->stroke_push(ranking);
+			if (ranking.id != -1 || prefs().show_clicks.get())
+				win->stroke_push(ranking);
 		}
 		win->icon_push(s);
 	} else {

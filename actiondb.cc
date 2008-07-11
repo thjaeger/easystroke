@@ -196,7 +196,7 @@ Ranking ActionDB::handle(RStroke s) {
 	}
 	if (!success && s->trivial()) {
 		r.id = -1;
-		r.name = "button press (default)";
+		r.name = "click (default)";
 		success = true;
 	}
 	if (success) {

@@ -59,6 +59,7 @@ class PrefDB {
 		if (version <= 3) return;
 		{ Ref<bool> ref(ignore_grab); ar & *ref; }
 		{ Ref<bool> ref(timing_workaround); ar & *ref; }
+		{ Ref<bool> ref(show_clicks); ar & *ref; }
 	}
 	std::string filename;
 public:
@@ -72,6 +73,7 @@ public:
 	Lock<int> radius;
 	Lock<bool> ignore_grab;
 	Lock<bool> timing_workaround;
+	Lock<bool> show_clicks;
 
 	void read();
 	bool write() const;

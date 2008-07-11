@@ -22,7 +22,8 @@ PrefDB::PrefDB() :
 	advanced_ignore(false),
 	radius(pref_radius_default),
 	ignore_grab(false),
-	timing_workaround(false)
+	timing_workaround(false),
+	show_clicks(true)
 {}
 
 bool PrefDB::write() const {

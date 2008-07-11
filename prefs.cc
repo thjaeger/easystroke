@@ -37,7 +37,8 @@ Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected)),
 	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
 	ignore_grab("check_ignore_grab", prefs().ignore_grab),
-	timing_workaround("check_timing_workaround", prefs().timing_workaround)
+	timing_workaround("check_timing_workaround", prefs().timing_workaround),
+	show_clicks("check_show_clicks", prefs().show_clicks)
 {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_radius;
 	widgets->get_widget("button_add_exception", add_exception);
