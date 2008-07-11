@@ -13,6 +13,7 @@ public:
 	bool is_button_up(int);
 	bool is_button_down(int);
 	bool is_motion(int);
+	unsigned int get_device_button_state();
 private:
 	struct XiDevice {
 		int button_down;
@@ -34,6 +35,7 @@ public:
 	unsigned int button;
 private:
 	unsigned int state;
+	bool timing_workaround;
 
 	Atom wm_state;
 

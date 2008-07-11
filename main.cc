@@ -17,6 +17,8 @@
 #include <fcntl.h>
 #include <getopt.h>
 
+// TODO: _NET_WM_STATE(ATOM) = _NET_WM_STATE_FULLSCREEN
+
 bool gui = true;
 extern bool no_xi;
 bool experimental = false;
@@ -340,7 +342,6 @@ public:
 		press_button = 0;
 	}
 	virtual void press(guint b, int x, int y, Time t) {
-		printf("%d, %d, %d\n", b, button, button2);
 		if (button2)
 			return;
 		button2 = b;
@@ -371,7 +372,6 @@ public:
 		grabber->grab(Grabber::XI_ALL);
 	}
 	virtual void release(guint b, int x, int y, Time t) {
-		printf("%d, %d, %d\n", b, button, button2);
 		if (b != button && b != button2)
 			return;
 		if (b == button)
@@ -607,8 +607,21 @@ protected:
 		grab();
 	}
 	virtual void press(guint b, int x, int y, Time t) {
+		bool workaround = false;
 		if (b != grabber->button)
-			return;
+			if (b != 1)
+				return;
+			else { // b == 1
+				workaround = grabber->get_device_button_state() & ~2;
+				if (workaround) {
+					XAllowEvents(dpy, AsyncPointer, t);
+					if (verbosity >= 2)
+						printf("Using timing workaround\n");
+				} else {
+					XAllowEvents(dpy, ReplayPointer, t);
+					return;
+				}
+			}
 		if (current)
 			activate_window(current, t);
 		replace_child(new StrokeHandler(x, y, t));

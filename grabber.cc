@@ -6,7 +6,7 @@
 bool no_xi = false;
 
 Grabber::Grabber() {
-	state = BUTTON;
+	current = BUTTON;
 	suspended = false;
 	active = true;
 	grabbed = NONE;
@@ -98,6 +98,30 @@ bool Grabber::is_motion(int type) {
 	return false;
 }
 
+
+unsigned int Grabber::get_device_button_state() {
+	unsigned int mask = 0;
+	for (int i = 0; i < xi_devs_n; i++) {
+		XDeviceState *state = XQueryDeviceState(dpy, xi_devs[i]->dev);
+		if (!state)
+			continue;
+		XInputClass *c = state->data;
+		for (int j = 0; j < state->num_classes; j++) {
+			if (c->c_class == ButtonClass) {
+				XButtonState *b = (XButtonState *)c;
+				mask |= b->buttons[0];
+				mask |= ((unsigned int)b->buttons[1]) << 8;
+				mask |= ((unsigned int)b->buttons[2]) << 16;
+				mask |= ((unsigned int)b->buttons[3]) << 24;
+			}
+			c = (XInputClass *)((char *)c + c->length);
+		}
+		XFreeDeviceState(state);
+	}
+
+	return mask;
+}
+
 // Fuck Xlib
 bool Grabber::has_wm_state(Window w) {
 	Atom actual_type_return;
@@ -157,6 +181,8 @@ void Grabber::set() {
 		for (int i = 0; i < xi_devs_n; i++)
 		       	XUngrabDeviceButton(dpy, xi_devs[i]->dev, button, state, NULL, ROOT);
 		XUngrabButton(dpy, button, state, ROOT);
+		if (timing_workaround)
+			XUngrabButton(dpy, 1, state, ROOT);
 	}
 	if (old == ALL)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
@@ -178,6 +204,10 @@ void Grabber::set() {
 							xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 							GrabModeAsync, GrabModeAsync))
 					printf("Warning: Grabbing button %d on an xi device failed\n", button);
+		timing_workaround = prefs().timing_workaround.get() && button != 1;
+		if (timing_workaround)
+			XGrabButton(dpy, 1, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+					GrabModeSync, GrabModeAsync, None, None);
 	}
 	if (grabbed == ALL)
 		if (!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False,

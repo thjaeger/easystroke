@@ -36,7 +36,8 @@ void Check::on_changed() {
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected)),
 	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
-	ignore_grab("check_ignore_grab", prefs().ignore_grab)
+	ignore_grab("check_ignore_grab", prefs().ignore_grab),
+	timing_workaround("check_timing_workaround", prefs().timing_workaround)
 {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_radius;
 	widgets->get_widget("button_add_exception", add_exception);
