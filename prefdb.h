@@ -29,8 +29,9 @@ private:
 };
 BOOST_CLASS_VERSION(ButtonInfo, 2)
 
-extern const double pref_p_default;
-extern const int pref_radius_default;
+extern const double default_p;
+extern const int default_radius;
+extern const int default_pressure_threshold;
 
 class PrefDB {
 	friend class boost::serialization::access;
@@ -60,6 +61,8 @@ class PrefDB {
 		{ Ref<bool> ref(ignore_grab); ar & *ref; }
 		{ Ref<bool> ref(timing_workaround); ar & *ref; }
 		{ Ref<bool> ref(show_clicks); ar & *ref; }
+		{ Ref<bool> ref(pressure_abort); ar & *ref; }
+		{ Ref<int> ref(pressure_threshold); ar & *ref; }
 	}
 	std::string filename;
 public:
@@ -74,6 +77,8 @@ public:
 	Lock<bool> ignore_grab;
 	Lock<bool> timing_workaround;
 	Lock<bool> show_clicks;
+	Lock<bool> pressure_abort;
+	Lock<int> pressure_threshold;
 
 	void read();
 	bool write() const;

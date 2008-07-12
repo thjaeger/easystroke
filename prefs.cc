@@ -33,14 +33,44 @@ void Check::on_changed() {
 	write_prefs();
 }
 
+Pressure::Pressure() : 
+	Check("check_pressure_abort", prefs().pressure_abort),
+	spin("spin_pressure_threshold", "button_default_pressure_threshold", 
+			prefs().pressure_threshold, default_pressure_threshold)
+{}
+
+void Pressure::on_changed() {
+	Check::on_changed();
+	spin.spin->set_sensitive(b.get());
+	spin.button->set_sensitive(b.get());
+}
+
+Spin::Spin(const Glib::ustring &name, const Glib::ustring &default_name, Lock<int> &i_, const int def_) : i(i_), def(def_) {
+	widgets->get_widget(name, spin);
+	widgets->get_widget(default_name, button);
+	spin->set_value(i.get());
+	spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
+	button->signal_clicked().connect(sigc::mem_fun(*this, &Spin::on_default));
+}
+
+void Spin::on_changed() {
+	i.set(spin->get_value());
+	write_prefs();
+}
+
+void Spin::on_default() {
+	spin->set_value(def);
+}
+
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected)),
 	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
 	ignore_grab("check_ignore_grab", prefs().ignore_grab),
 	timing_workaround("check_timing_workaround", prefs().timing_workaround),
-	show_clicks("check_show_clicks", prefs().show_clicks)
+	show_clicks("check_show_clicks", prefs().show_clicks),
+	radius("spin_radius", "button_default_radius", prefs().radius, default_radius)
 {
-	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *button_default_radius;
+	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);
 	widgets->get_widget("button_default_p", button_default_p);
@@ -49,8 +79,6 @@ Prefs::Prefs() :
 	widgets->get_widget("label_button", blabel);
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("scale_p", scale_p);
-	widgets->get_widget("spin_radius", spin_radius);
-	widgets->get_widget("button_default_radius", button_default_radius);
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -69,10 +97,6 @@ Prefs::Prefs() :
 	scale_p->set_value(p);
 	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
 	button_default_p->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_p_default));
-
-	spin_radius->set_value(prefs().radius.get());
-	spin_radius->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_radius_changed));
-	button_default_radius->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_radius_default));
 
 	if (!experimental) {
 		Gtk::HBox *hbox_experimental;
@@ -206,16 +230,7 @@ void Prefs::on_p_changed() {
 }
 
 void Prefs::on_p_default() {
-	scale_p->set_value(pref_p_default);
-}
-
-void Prefs::on_radius_changed() {
-	prefs().radius.set(spin_radius->get_value());
-	write_prefs();
-}
-
-void Prefs::on_radius_default() {
-	spin_radius->set_value(pref_radius_default);
+	scale_p->set_value(default_p);
 }
 
 void Prefs::on_selected(std::string &str) {

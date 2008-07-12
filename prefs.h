@@ -6,11 +6,31 @@
 #include <gtkmm.h>
 
 class Check {
+protected:
 	Lock<bool> &b;
 	Gtk::CheckButton *check;
+	virtual void on_changed();
 public:
 	Check(const Glib::ustring &, Lock<bool> &);
+};
+
+class Spin {
+	friend class Pressure;
+	Lock<int> &i;
+	const int def;
+	Gtk::SpinButton *spin;
+	Gtk::Button *button;
 	void on_changed();
+	void on_default();
+public:
+	Spin(const Glib::ustring &, const Glib::ustring &, Lock<int> &, const int);
+};
+
+class Pressure : public Check {
+	virtual void on_changed();
+	Spin spin;
+public:
+	Pressure();
 };
 
 class Prefs {
@@ -26,8 +46,6 @@ private:
 	void on_remove();
 	void on_p_changed();
 	void on_p_default();
-	void on_radius_changed();
-	void on_radius_default();
 	void on_select_button();
 	void on_trace_changed();
 
@@ -51,6 +69,8 @@ private:
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
 	Check advanced_ignore, ignore_grab, timing_workaround, show_clicks;
+	Spin radius;
+	Pressure pressure;
 };
 
 #endif

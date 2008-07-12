@@ -471,6 +471,8 @@ class StrokeHandler : public Handler {
 
 		if (speed >= 0.04)
 			return false;
+		if (verbosity >= 2)
+			printf("Aborting stroke...\n");
 		trace->end();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		parent->replace_child(0);
@@ -487,6 +489,8 @@ protected:
 	}
 	virtual void motion(int x, int y, Time t) {
 		if (!repeated && xinput_pressed && !prefs().ignore_grab.get()) {
+			if (verbosity >= 2)
+				printf("Ignoring xi-only stroke\n");
 			parent->replace_child(0);
 			return;
 		}
@@ -986,8 +990,9 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_motion(ev.type)) {
 					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-					if (mev->axis_data[2] >= 192)
-						handler->top()->pressure();
+					if (prefs().pressure_abort.get())
+						if (mev->axis_data[2] >= prefs().pressure_threshold.get())
+						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)
 						break;
 					handler->top()->motion(mev->x, mev->y, mev->time);

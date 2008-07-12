@@ -10,20 +10,23 @@
 
 #include <X11/Xlib.h>
 
-const double pref_p_default = 0.5;
-const ButtonInfo pref_button_default = { Button2, 0 };
-const int pref_radius_default = 16;
+const double default_p = 0.5;
+const ButtonInfo default_button = { Button2, 0 };
+const int default_radius = 16;
+const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
 	filename(config_dir+"preferences"),
-	p(pref_p_default),
-	button(pref_button_default),
+	p(default_p),
+	button(default_button),
 	trace(TraceShape),
 	advanced_ignore(false),
-	radius(pref_radius_default),
+	radius(default_radius),
 	ignore_grab(false),
 	timing_workaround(false),
-	show_clicks(true)
+	show_clicks(true),
+	pressure_abort(false),
+	pressure_threshold(default_pressure_threshold)
 {}
 
 bool PrefDB::write() const {
