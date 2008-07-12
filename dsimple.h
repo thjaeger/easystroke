@@ -29,4 +29,4 @@ from The Open Group.
 
 /* Stripped down to this form by Thomas Jaeger <ThJaeger@gmail.com> */
 
-Window Select_Window(Display *);
+Window Select_Window(Display *, int);

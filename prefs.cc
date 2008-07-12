@@ -268,7 +268,7 @@ void Prefs::select_worker() {
 	Display *dpy = XOpenDisplay(NULL);
 	if (!dpy)
 		return;
-	Window w = Select_Window(dpy);
+	Window w = Select_Window(dpy, True);
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		goto cleanup;

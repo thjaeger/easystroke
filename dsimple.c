@@ -39,14 +39,14 @@ from The Open Group.
  */
 
 #include "dsimple.h"
+#include "clientwin.h"
 #include <stdio.h>
 
 /*
  * Routine to let user select a window using the mouse
  */
 
-Window Select_Window(dpy)
-    Display *dpy;
+Window Select_Window(Display *dpy, int descend)
 {
   int status;
   Cursor cursor;
@@ -62,8 +62,9 @@ Window Select_Window(dpy)
 			ButtonPressMask|ButtonReleaseMask, GrabModeSync,
 			GrabModeAsync, root, cursor, CurrentTime);
   if (status != GrabSuccess) {
-	  fprintf(stderr, "Can't grab the mouse.");
-	  goto cleanup;
+	  printf("Error: Select_Window: Can't grab the mouse.");
+	  XFreeCursor(cursor);
+	  return None;
   }
 
   /* Let the user select a window... */
@@ -85,9 +86,13 @@ Window Select_Window(dpy)
        break;
     }
   } 
-cleanup:
+
   XUngrabPointer(dpy, CurrentTime);      /* Done with pointer */
+
+  if (!descend || (target_win == root))
+    return(target_win);
+
+  target_win = Find_Client(dpy, root, target_win);
 
   return(target_win);
 }
-
