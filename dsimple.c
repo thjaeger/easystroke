@@ -63,7 +63,7 @@ Window Select_Window(Display *dpy, int descend)
 			GrabModeAsync, root, cursor, CurrentTime);
   if (status != GrabSuccess) {
 	  printf("Error: Select_Window: Can't grab the mouse.");
-	  XFreeCursor(cursor);
+	  XFreeCursor(dpy, cursor);
 	  return None;
   }
 
@@ -88,6 +88,7 @@ Window Select_Window(Display *dpy, int descend)
   } 
 
   XUngrabPointer(dpy, CurrentTime);      /* Done with pointer */
+  XFreeCursor(dpy, cursor);
 
   if (!descend || (target_win == root))
     return(target_win);
