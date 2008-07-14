@@ -937,6 +937,7 @@ void Main::run() {
 				handler->replace_child(0);
 				for (int i = 1; i <= 9; i++)
 					XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+				XAllowEvents(dpy, AsyncPointer, CurrentTime);
 				break;
 
 			case ClientMessage:
