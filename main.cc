@@ -170,9 +170,9 @@ class WaitForButtonHandler : public Handler {
 public:
 	WaitForButtonHandler(guint b, bool d) : button(b), down(d) {}
 	virtual void press(guint b, int x, int y, Time t) {
+		XAllowEvents(dpy, AsyncPointer, t);
 		if (!down)
 			return;
-		XAllowEvents(dpy, AsyncPointer, t);
 		if (b == button)
 			parent->replace_child(0);
 	}
