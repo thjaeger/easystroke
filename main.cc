@@ -164,16 +164,25 @@ public:
 	virtual std::string name() { return "Ignore"; }
 };
 
-class WaitForClickHandler : public Handler {
+class WaitForButtonHandler : public Handler {
 	guint button;
+	bool down;
 public:
-	WaitForClickHandler(guint b) : button(b) {}
+	WaitForButtonHandler(guint b, bool d) : button(b), down(d) {}
 	virtual void press(guint b, int x, int y, Time t) {
+		if (!down)
+			return;
 		XAllowEvents(dpy, AsyncPointer, t);
 		if (b == button)
 			parent->replace_child(0);
 	}
-	virtual std::string name() { return "WaitForClick"; }
+	virtual void release(guint b, int x, int y, Time t) {
+		if (down)
+			return;
+		if (b == button)
+			parent->replace_child(0);
+	}
+	virtual std::string name() { return "WaitForButton"; }
 };
 
 class AbstractScrollHandler : public Handler {
@@ -219,7 +228,7 @@ public:
 		if (pressed2) {
 			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
-			replace_child(new WaitForClickHandler(pressed2));
+			replace_child(new WaitForButtonHandler(pressed2, true));
 		}
 	}
 	virtual void fake_button(int b) {
@@ -235,7 +244,7 @@ public:
 			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 		if (pressed) {
 			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
-			replace_child(new WaitForClickHandler(pressed));
+			replace_child(new WaitForButtonHandler(pressed, true));
 		}
 	}
 	virtual void press(guint b, int x, int y, Time t) {
@@ -257,7 +266,7 @@ public:
 				} else {
 					grabber->grab(Grabber::BUTTON);
 					XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
-					parent->replace_child(new WaitForClickHandler(pressed2));
+					parent->replace_child(new WaitForButtonHandler(pressed2, true));
 				}
 			} else { // gesture button released, bail out
 				clear_mods();
@@ -329,6 +338,23 @@ public:
 	virtual std::string name() { return "Action"; }
 };
 
+class ScrollXiHandler : public AbstractScrollHandler {
+protected:
+	void fake_button(int b) {
+		grabber->suspend();
+		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+		grabber->resume();
+	}
+public:
+	virtual void release(guint b, int x, int y, Time t) {
+		Handler *p = parent;
+		p->replace_child(0);
+		p->release(b,x,y,t);
+	}
+	virtual std::string name() { return "ScrollXi"; }
+};
+
 class ActionXiHandler : public Handler {
 	RStroke stroke;
 	int emulated_button;
@@ -345,16 +371,19 @@ public:
 		ignore = false;
 		if (scroll) {
 			scroll = false;
-			replace_child(new ScrollHandler(button, grabber->button));
+			Handler *h = new ScrollXiHandler;
+			replace_child(h);
+			h->replace_child(new WaitForButtonHandler(button2, false));
 			return;
 		}
 		if (!press_button) {
 			grabber->grab(Grabber::XI_ALL);
 			return;
 		}
-		grabber->grab(Grabber::XI);
+		grabber->suspend();
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
 		grabber->grab(Grabber::XI_ALL);
+		grabber->resume();
 		emulated_button = press_button;
 		press_button = 0;
 	}
@@ -362,12 +391,15 @@ public:
 		if (button2)
 			return;
 		button2 = b;
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
 		handle_stroke(stroke, button, button2);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
-			replace_child(new ScrollHandler(button2, button));
+			Handler *h = new ScrollXiHandler;
+			replace_child(h);
+			// Why do we not need this?
+//			h->replace_child(new WaitForButtonHandler(button2, false));
 			return;
 		}
 		if (!press_button)
@@ -376,9 +408,9 @@ public:
 			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
 			emulated_button = 0;
 		}
-		grabber->grab(Grabber::XI);
+		grabber->suspend();
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-		grabber->grab(Grabber::XI_ALL);
+		grabber->resume();
 		emulated_button = press_button;
 		press_button = 0;
 	}
@@ -826,7 +858,7 @@ void Main::create_config_dir() {
 void handle_stroke(RStroke s, int trigger, int button) {
 	s->trigger = trigger;
 	s->button = (button == trigger) ? 0 : button;
-	if (verbosity >= 3)
+	if (verbosity >= 4)
 		s->print();
 	if (gui) {
 		if (!stroke_action()(s)) {
@@ -907,6 +939,8 @@ void Main::run() {
 		try {
 		switch(ev.type) {
 			case MotionNotify:
+				if (verbosity >= 3)
+					printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
 				if (handler->top()->only_xi())
 					break;
 				if (last_type == MotionNotify && last_time == ev.xmotion.time) {
@@ -918,6 +952,8 @@ void Main::run() {
 				break;
 
 			case ButtonPress:
+				if (verbosity >= 3)
+					printf("Press: %d\n", ev.xbutton.button);
 				if (handler->top()->only_xi())
 					break;
 				if (last_type == ButtonPress && last_time == ev.xbutton.time && last_button == ev.xbutton.button) {
@@ -931,6 +967,8 @@ void Main::run() {
 				break;
 
 			case ButtonRelease:
+				if (verbosity >= 3)
+					printf("Release: %d\n", ev.xbutton.button);
 				if (handler->top()->only_xi())
 					break;
 				if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
@@ -983,6 +1021,8 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_button_down(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+					if (verbosity >= 3)
+						printf("Press (Xi): %d\n", bev->button);
 					if (bev->button == grabber->button)
 						xinput_pressed = true;
 					if (last_type == ButtonPress && last_time == bev->time && last_button == bev->button) {
@@ -996,6 +1036,8 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_button_up(ev.type)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+					if (verbosity >= 3)
+						printf("Release (Xi): %d\n", bev->button);
 					if (last_type == ButtonRelease && last_time == bev->time && last_button == bev->button)
 						break;
 					handler->top()->release(bev->button, bev->x, bev->y, bev->time);
@@ -1007,6 +1049,8 @@ void Main::run() {
 				}
 				if (grabber->xinput && grabber->is_motion(ev.type)) {
 					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
+					if (verbosity >= 3)
+						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
 					if (prefs().pressure_abort.get())
 						if (mev->axis_data[2] >= prefs().pressure_threshold.get())
 						       handler->top()->pressure();

@@ -9,8 +9,8 @@
 
 class Grabber {
 public:
-	enum State { NONE, BUTTON, ALL, XI, XI_ALL, POINTER };
-	static const char *state_name[6];
+	enum State { NONE, BUTTON, ALL, XI_ALL, POINTER };
+	static const char *state_name[5];
 	bool xinput;
 	bool is_button_up(int);
 	bool is_button_down(int);
@@ -43,6 +43,7 @@ private:
 
 	void set();
 	std::string get_wm_state(Window w);
+	void grab_xi(bool);
 public:
 	Grabber();
 	~Grabber();
@@ -56,7 +57,7 @@ public:
 	void grab(State s) { current = s; set(); }
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }
-	void regrab() { suspend(); get_button(); resume(); }
+	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
 };
 
 class GrabFailedException : public std::exception {
