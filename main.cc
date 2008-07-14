@@ -176,26 +176,12 @@ public:
 	virtual std::string name() { return "WaitForClick"; }
 };
 
-class ScrollHandler : public Handler {
+class AbstractScrollHandler : public Handler {
 	int lasty;
-	guint pressed, pressed2;
+protected:
+	AbstractScrollHandler() : lasty(-255) {}
+	virtual void fake_button(int b) = 0;
 public:
-	ScrollHandler() : lasty(-255), pressed(0), pressed2(0) {
-	}
-	ScrollHandler(guint b, guint b2) : lasty(-255), pressed(b), pressed2(b2) {
-	}
-	virtual void init() {
-		if (pressed2) {
-			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
-			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
-		}
-		grabber->grab(Grabber::POINTER);
-		if (pressed2) {
-			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
-			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
-			replace_child(new WaitForClickHandler(pressed2));
-		}
-	}
 	virtual void motion(int x, int y, Time t) {
 		if (lasty == -1) {
 			lasty = y;
@@ -212,20 +198,44 @@ public:
 			button = 4;
 		if (button) {
 			lasty = y;
-			if (pressed)
-				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
-			if (pressed2)
-				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
-			grabber->suspend();
-			XTestFakeButtonEvent(dpy, button, True, CurrentTime);
-			XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-			grabber->resume();
-			if (pressed2)
-				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
-			if (pressed) {
-				XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
-				replace_child(new WaitForClickHandler(pressed));
-			}
+			fake_button(button);
+		}
+	}
+};
+
+class ScrollHandler : public AbstractScrollHandler {
+	guint pressed, pressed2;
+public:
+	ScrollHandler() : pressed(0), pressed2(0) {
+	}
+	ScrollHandler(guint b, guint b2) : pressed(b), pressed2(b2) {
+	}
+	virtual void init() {
+		if (pressed2) {
+			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
+		}
+		grabber->grab(Grabber::POINTER);
+		if (pressed2) {
+			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
+			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
+			replace_child(new WaitForClickHandler(pressed2));
+		}
+	}
+	virtual void fake_button(int b) {
+		if (pressed)
+			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
+		if (pressed2)
+			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
+		grabber->suspend();
+		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+		grabber->resume();
+		if (pressed2)
+			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
+		if (pressed) {
+			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
+			replace_child(new WaitForClickHandler(pressed));
 		}
 	}
 	virtual void press(guint b, int x, int y, Time t) {
