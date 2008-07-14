@@ -9,7 +9,7 @@
 
 class Grabber {
 public:
-	enum State { NONE, BUTTON, ALL, XI_ALL, POINTER };
+	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, POINTER };
 	static const char *state_name[5];
 	bool xinput;
 	bool is_button_up(int);
@@ -22,9 +22,10 @@ private:
 		int button_up;
 		int button_motion;
 		XDevice *dev;
-		XEventClass button_events[3];
-		int button_events_n;
+		XEventClass events[4];
 	};
+	int button_events_n;
+	int all_events_n;
 	XiDevice **xi_devs;
 	int xi_devs_n;
 	bool init_xi();
@@ -58,6 +59,7 @@ public:
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }
 	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
+	void grab_xi_devs(bool);
 };
 
 class GrabFailedException : public std::exception {

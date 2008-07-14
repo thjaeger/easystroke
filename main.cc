@@ -152,7 +152,7 @@ public:
 class IgnoreHandler : public Handler {
 public:
 	void grab() {
-		grabber->grab(Grabber::ALL);
+		grabber->grab(Grabber::ALL_SYNC);
 	}
 	virtual void press(guint b, int x, int y, Time t) {
 		grabber->ignore(b);
@@ -346,6 +346,9 @@ protected:
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		grabber->resume();
 	}
+	void grab() {
+		grabber->grab(Grabber::ALL_ASYNC);
+	}
 public:
 	virtual void release(guint b, int x, int y, Time t) {
 		Handler *p = parent;
@@ -367,6 +370,7 @@ public:
 		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
 	}
 	virtual void init() {
+		grabber->grab_xi_devs(true);
 		handle_stroke(stroke, button2, button);
 		ignore = false;
 		if (scroll) {
@@ -377,12 +381,12 @@ public:
 			return;
 		}
 		if (!press_button) {
-			grabber->grab(Grabber::XI_ALL);
+			grabber->grab(Grabber::ALL_ASYNC);
 			return;
 		}
 		grabber->suspend();
 		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-		grabber->grab(Grabber::XI_ALL);
+		grabber->grab(Grabber::ALL_ASYNC);
 		grabber->resume();
 		emulated_button = press_button;
 		press_button = 0;
@@ -415,7 +419,7 @@ public:
 		press_button = 0;
 	}
 	virtual void resume() {
-		grabber->grab(Grabber::XI_ALL);
+		grabber->grab(Grabber::ALL_ASYNC);
 	}
 	virtual void release(guint b, int x, int y, Time t) {
 		if (b != button && b != button2)
@@ -436,6 +440,7 @@ public:
 			emulated_button = 0;
 		}
 		clear_mods();
+		grabber->grab_xi_devs(false);
 	}
 	virtual bool only_xi() { return true; }
 	virtual std::string name() { return "ActionXi"; }
