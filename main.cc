@@ -169,6 +169,7 @@ class WaitForClickHandler : public Handler {
 public:
 	WaitForClickHandler(guint b) : button(b) {}
 	virtual void press(guint b, int x, int y, Time t) {
+		XAllowEvents(dpy, AsyncPointer, t);
 		if (b == button)
 			parent->replace_child(0);
 	}
@@ -239,9 +240,17 @@ public:
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
 				// Make sure event handling continues as usual
-				XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
-				parent->replace_child(new WaitForClickHandler(pressed2));
+				Handler *p = parent;
+				if (p->only_xi()) {
+					p->replace_child(0);
+					p->release(b,x,y,t);
+				} else {
+					grabber->grab(Grabber::BUTTON);
+					XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
+					parent->replace_child(new WaitForClickHandler(pressed2));
+				}
 			} else { // gesture button released, bail out
+				clear_mods();
 				XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
 				parent->parent->replace_child(0);
@@ -348,8 +357,7 @@ public:
 		ignore = false;
 		if (scroll) {
 			scroll = false;
-			button = b;
-			replace_child(new ScrollHandler(b, grabber->button));
+			replace_child(new ScrollHandler(button2, button));
 			return;
 		}
 		if (!press_button)
@@ -365,8 +373,6 @@ public:
 		press_button = 0;
 	}
 	virtual void resume() {
-		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-		XTestFakeButtonEvent(dpy, grabber->button, False, CurrentTime);
 		grabber->grab(Grabber::XI_ALL);
 	}
 	virtual void release(guint b, int x, int y, Time t) {

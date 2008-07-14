@@ -205,7 +205,7 @@ void Grabber::set() {
 						xi_devs[i]->button_events_n, xi_devs[i]->button_events,
 						GrabModeAsync, GrabModeAsync))
 				printf("Warning: Grabbing button %d on an xi device failed\n", button);
-		timing_workaround = prefs().timing_workaround.get() && button != 1;
+		timing_workaround = button != 1 && prefs().timing_workaround.get();
 		if (timing_workaround)
 			XGrabButton(dpy, 1, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
