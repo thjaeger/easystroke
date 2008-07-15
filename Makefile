@@ -13,7 +13,7 @@ LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.
 BINARY   = easystroke
 
 CCFILES  = $(wildcard *.cc)
-CFILES  = $(wildcard *.c)
+CFILES  = clientwin.c dsimple.c gui.c
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES)) 
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c
