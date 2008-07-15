@@ -185,30 +185,70 @@ public:
 	virtual std::string name() { return "WaitForButton"; }
 };
 
+inline float abs(float x) { return x > 0 ? x : -x; }
+
 class AbstractScrollHandler : public Handler {
-	int lasty;
+	int last_x, last_y;
+	Time last_t;
+	float offset_x, offset_y;
+
 protected:
-	AbstractScrollHandler() : lasty(-255) {}
-	virtual void fake_button(int b) = 0;
+	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {}
+	virtual void fake_button(int b1, int n1, int b2, int n2) {
+		grabber->suspend();
+		for (int i = 0; i<n1; i++) {
+			XTestFakeButtonEvent(dpy, b1, True, CurrentTime);
+			XTestFakeButtonEvent(dpy, b1, False, CurrentTime);
+		}
+		for (int i = 0; i<n2; i++) {
+			XTestFakeButtonEvent(dpy, b2, True, CurrentTime);
+			XTestFakeButtonEvent(dpy, b2, False, CurrentTime);
+		}
+		grabber->resume();
+	}
+	static float curve(float v) {
+		return v * exp(log(abs(v))/3);
+	}
 public:
 	virtual void motion(int x, int y, Time t) {
-		if (lasty == -1) {
-			lasty = y;
+		if (!last_t || abs(x-last_x) > 100 || abs(y-last_y) > 100) {
+			last_x = x;
+			last_y = y;
+			last_t = t;
 			return;
 		}
-		int button = 0;
-		if (y > lasty + 100)
-			lasty = y;
-		if (y > lasty + 10)
-			button = 5;
-		if (y < lasty - 100)
-			lasty = y;
-		if (y < lasty - 10)
-			button = 4;
-		if (button) {
-			lasty = y;
-			fake_button(button);
+		if (t == last_t)
+			return;
+		offset_x += curve(float(x-last_x)/float(t-last_t))*float(t-last_t)/10.0;
+		offset_y += curve(float(y-last_y)/float(t-last_t))*float(t-last_t)/5.0;
+		last_x = x;
+		last_y = y;
+		last_t = t;
+		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
+		if (abs(offset_x) > 1.0) {
+			n1 = floor(abs(offset_x));
+			if (offset_x > 0) {
+				b1 = 7;
+				offset_x -= n1;
+			} else {
+				b1 = 6;
+				offset_x += n1;
+			}
 		}
+		if (abs(offset_y) > 1.0) {
+			if (abs(offset_y) < 1.0)
+				return;
+			n2 = floor(abs(offset_y));
+			if (offset_y > 0) {
+				b2 = 5;
+				offset_y -= n2;
+			} else {
+				b2 = 4;
+				offset_y += n2;
+			}
+		}
+		if (n1 || n2)
+			fake_button(b1,n1, b2,n2);
 	}
 };
 
@@ -231,15 +271,12 @@ public:
 			replace_child(new WaitForButtonHandler(pressed2, true));
 		}
 	}
-	virtual void fake_button(int b) {
+	virtual void fake_button(int b1, int n1, int b2, int n2) {
 		if (pressed)
 			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 		if (pressed2)
 			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
-		grabber->suspend();
-		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-		grabber->resume();
+		AbstractScrollHandler::fake_button(b1,n1, b2,n2);
 		if (pressed2)
 			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 		if (pressed) {
@@ -340,12 +377,6 @@ public:
 
 class ScrollXiHandler : public AbstractScrollHandler {
 protected:
-	void fake_button(int b) {
-		grabber->suspend();
-		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-		grabber->resume();
-	}
 	void grab() {
 		grabber->grab(Grabber::ALL_ASYNC);
 	}
