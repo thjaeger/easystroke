@@ -750,7 +750,7 @@ public:
 Main::Main(int argc, char **argv) : kit(0) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
-		trefoil->draw_svg("trefoil.svg");
+		trefoil->draw_svg("easystroke.svg");
 		exit(EXIT_SUCCESS);
 	}
 	display = parse_args_and_init_gtk(argc, argv);
