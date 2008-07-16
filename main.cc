@@ -65,12 +65,15 @@ void xi_warn() {
 	warned = true;
 }
 
+Glib::Thread *main_thread = 0;
+
 void run_gui() {
 	win = new Win;
 	Gtk::Main::run();
 	gui = false;
 	delete win;
 	send(P_QUIT);
+	main_thread->join();
 }
 
 void quit(int) {
@@ -731,7 +734,7 @@ class Main {
 	char* next_event();
 	void usage(char *me, bool good);
 
-	Glib::Thread *gtk_thread;
+	std::string display;
 	Gtk::Main *kit;
 	int fdr;
 	int event_basep;
@@ -744,54 +747,14 @@ public:
 	~Main();
 };
 
-Main::Main(int argc, char **argv) : gtk_thread(0), kit(0) {
+Main::Main(int argc, char **argv) : kit(0) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("trefoil.svg");
 		exit(EXIT_SUCCESS);
 	}
-	std::string display = parse_args_and_init_gtk(argc, argv);
+	display = parse_args_and_init_gtk(argc, argv);
 	create_config_dir();
-
-	dpy = XOpenDisplay(display.c_str());
-	if (!dpy) {
-		printf("Couldn't open display\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if (gui)
-		gtk_thread = Glib::Thread::create(sigc::ptr_fun(&run_gui), true);
-	actions().read();
-
-	XSetWindowAttributes attr;
-	attr.event_mask = SubstructureNotifyMask;
-	XChangeWindowAttributes(dpy, ROOT, CWEventMask, &attr);
-
-	prefs().read();
-	grabber = new Grabber;
-	grabber->grab(Grabber::BUTTON);
-
-	int error_basep;
-	randr = XRRQueryExtension(dpy, &event_basep, &error_basep);
-	if (randr)
-		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
-
-	trace = init_trace();
-
-	signal(SIGINT, &quit);
-
-	int fds[2];
-	pipe(fds);
-	fdr = fds[0];
-	fcntl(fdr, F_SETFL, O_NONBLOCK);
-	fdw = fds[1];
-
-	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", True);
-	ATOM = XInternAtom(dpy, "ATOM", True);
-	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
-	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", True);
-	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", True);
-	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", True);
 }
 
 void Main::usage(char *me, bool good) {
@@ -929,6 +892,44 @@ char* Main::next_event() {
 
 
 void Main::run() {
+	dpy = XOpenDisplay(display.c_str());
+	if (!dpy) {
+		printf("Couldn't open display\n");
+		exit(EXIT_FAILURE);
+	}
+
+	actions().read();
+	prefs().read();
+
+	XSetWindowAttributes attr;
+	attr.event_mask = SubstructureNotifyMask;
+	XChangeWindowAttributes(dpy, ROOT, CWEventMask, &attr);
+
+	grabber = new Grabber;
+	grabber->grab(Grabber::BUTTON);
+
+	int error_basep;
+	randr = XRRQueryExtension(dpy, &event_basep, &error_basep);
+	if (randr)
+		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
+
+	trace = init_trace();
+
+	signal(SIGINT, &quit);
+
+	int fds[2];
+	pipe(fds);
+	fdr = fds[0];
+	fcntl(fdr, F_SETFL, O_NONBLOCK);
+	fdw = fds[1];
+
+	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", True);
+	ATOM = XInternAtom(dpy, "ATOM", True);
+	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
+	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", True);
+	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", True);
+	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", True);
+
 	Handler *handler = new IdleHandler;
 	handler->init();
 	bool alive = true;
@@ -1103,21 +1104,22 @@ void Main::run() {
 			handler->replace_child(0);
 		}
 	}
+	delete grabber;
+	XCloseDisplay(dpy);
 }
 
 Main::~Main() {
-	delete grabber;
-	XCloseDisplay(dpy);
-	if (gui)
-		gtk_thread->join();
 	delete kit;
-	if (verbosity >= 2)
-		printf("Exiting...\n");
 }
 
 int main(int argc, char **argv) {
 	Main mn(argc, argv);
-	mn.run();
+
+	if (gui)
+		main_thread = Glib::Thread::create(sigc::mem_fun(mn, &Main::run), true);
+	run_gui();
+	if (verbosity >= 2)
+		printf("Exiting...\n");
 }
 
 bool SendKey::run() {
