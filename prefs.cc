@@ -33,9 +33,9 @@ void Check::on_changed() {
 	write_prefs();
 }
 
-Pressure::Pressure() : 
+Pressure::Pressure() :
 	Check("check_pressure_abort", prefs().pressure_abort),
-	spin("spin_pressure_threshold", "button_default_pressure_threshold", 
+	spin("spin_pressure_threshold", "button_default_pressure_threshold",
 			prefs().pressure_threshold, default_pressure_threshold)
 {}
 

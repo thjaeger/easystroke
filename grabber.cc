@@ -178,7 +178,7 @@ void Grabber::grab_xi(bool grab) {
 void Grabber::grab_xi_devs(bool grab) {
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
-			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False, all_events_n, 
+			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False, all_events_n,
 						xi_devs[i]->events, GrabModeAsync, GrabModeAsync, CurrentTime))
 				throw GrabFailedException();
 	} else

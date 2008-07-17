@@ -502,7 +502,7 @@ Atom get_atom(Window w, Atom prop) {
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format, 
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -650,7 +650,7 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y), 
+	StrokeHandler(int x, int y, Time t) : is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y),
 	repeated(false), have_xi(false) {
 		orig.x = x; orig.y = y;
 		cur = PreStroke::create();

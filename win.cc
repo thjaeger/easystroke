@@ -5,12 +5,10 @@
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
-void curve(const Cairo::RefPtr<Cairo::Context> ctx, 
+inline void curve(const Cairo::RefPtr<Cairo::Context> ctx,
 		const Stroke::Point &p1, const Stroke::Point &p2, const Stroke::Point &p3, const Stroke::Point &p4) {
-	ctx->move_to(p2.x,p2.y);
-	ctx->curve_to(	p2.x-0.2*p1.x+0.2*p3.x, p2.y-0.2*p1.y+0.2*p3.y, 
-			p3.x+0.2*p2.x-0.2*p4.x, p3.y+0.2*p2.y-0.2*p4.y, 
-			p3.x,p3.y);
+	ctx->move_to(p2.x, p2.y);
+	ctx->line_to(p3.x, p3.y);
 	ctx->stroke();
 }
 
