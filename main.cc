@@ -739,8 +739,6 @@ class Main {
 	int fdr;
 	int event_basep;
 	bool randr;
-
-
 public:
 	Main(int argc, char **argv);
 	void run();

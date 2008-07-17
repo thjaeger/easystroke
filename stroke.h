@@ -36,6 +36,7 @@ class PreStroke;
 class Stroke {
 	friend class PreStroke;
 	friend class boost::serialization::access;
+public:
 	struct Point {
 		double x;
 		double y;
@@ -44,6 +45,7 @@ class Stroke {
 			ar & x; ar & y; ar & time;
 		}
 	};
+private:
 	class RefineIterator;
 	class InterpolateIterator;
 	class RIIterator;

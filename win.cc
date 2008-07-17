@@ -5,6 +5,15 @@
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
+void curve(const Cairo::RefPtr<Cairo::Context> ctx, 
+		const Stroke::Point &p1, const Stroke::Point &p2, const Stroke::Point &p3, const Stroke::Point &p4) {
+	ctx->move_to(p2.x,p2.y);
+	ctx->curve_to(	p2.x-0.2*p1.x+0.2*p3.x, p2.y-0.2*p1.y+0.2*p3.y, 
+			p3.x+0.2*p2.x-0.2*p4.x, p3.y+0.2*p2.y-0.2*p4.y, 
+			p3.x,p3.y);
+	ctx->stroke();
+}
+
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	x++; y++; w -= 2; h -= 2;
@@ -15,22 +24,21 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	if (size()) {
 		int n = points.size();
 		const std::vector<Point> &p = points;
-		for (int j = 0; j < n-1; j++) {
+		for (int j = 0;; j++) {
 			// j -> j+1
 			if (invert)
 				ctx->set_source_rgba(1-p[j].time, p[j].time, 0, 1);
 			else
 				ctx->set_source_rgba(0, p[j].time, 1-p[j].time, 1);
-			ctx->move_to(p[j].x,p[j].y);
-			if (j == 0 || j == n-2) {
-				ctx->line_to(p[j+1].x,p[j+1].y);
-				ctx->stroke();
+			if (j == 0) {
+				curve(ctx, p[j], p[j], p[j+1], p[j+2]);
 				continue;
 			}
-			ctx->curve_to(	p[j+0].x-0.2*p[j-1].x+0.2*p[j+1].x, p[j+0].y-0.2*p[j-1].y+0.2*p[j+1].y, 
-					p[j+1].x+0.2*p[j+0].x-0.2*p[j+2].x, p[j+1].y+0.2*p[j+0].y-0.2*p[j+2].y, 
-					p[j+1].x,p[j+1].y);
-			ctx->stroke();
+			if (j == n-2) {
+				curve(ctx, p[j-1], p[j], p[j+1], p[j+1]);
+				break;
+			}
+			curve(ctx, p[j-1], p[j], p[j+1], p[j+2]);
 		}
 	} else if (!button) {
 		if (invert)
