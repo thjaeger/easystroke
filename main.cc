@@ -950,14 +950,14 @@ void Main::run() {
 	fcntl(fdr, F_SETFL, O_NONBLOCK);
 	fdw = fds[1];
 
-	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", True);
-	ATOM = XInternAtom(dpy, "ATOM", True);
-	WINDOW = XInternAtom(dpy, "WINDOW", True);
-	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
-	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", True);
-	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", True);
-	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", True);
-	WM_CLIENT_LEADER = XInternAtom(dpy, "WM_CLIENT_LEADER", True);
+	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
+	ATOM = XInternAtom(dpy, "ATOM", False);
+	WINDOW = XInternAtom(dpy, "WINDOW", False);
+	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
+	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
+	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
+	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
+	WM_CLIENT_LEADER = XInternAtom(dpy, "WM_CLIENT_LEADER", False);
 
 	Handler *handler = new IdleHandler;
 	handler->init();
