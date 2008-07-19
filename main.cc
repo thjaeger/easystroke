@@ -494,7 +494,7 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	return bev->time == *t;
 }
 
-Atom _NET_ACTIVE_WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN;
+Atom _NET_ACTIVE_WINDOW, WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN, WM_CLIENT_LEADER;
 
 Atom get_atom(Window w, Atom prop) {
 	Atom actual_type;
@@ -512,11 +512,32 @@ Atom get_atom(Window w, Atom prop) {
 	return atom;
 }
 
+Window get_window(Window w, Atom prop) {
+	Atom actual_type;
+	int actual_format;
+	unsigned long nitems, bytes_after;
+	unsigned char *prop_return = NULL;
+
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, WINDOW, &actual_type, &actual_format,
+				&nitems, &bytes_after, &prop_return) != Success)
+		return None;
+	if (!prop_return)
+		return None;
+	Window ret = *(Window *)prop_return;
+	XFree(prop_return);
+	return ret;
+}
+
 void activate_window(Window w, Time t) {
 	Atom window_type = get_atom(w, _NET_WM_WINDOW_TYPE);
-	Atom wm_state = get_atom(w, _NET_WM_STATE);
+	if (window_type == _NET_WM_WINDOW_TYPE_DOCK)
+		return;
+	Window leader = get_window(w, WM_CLIENT_LEADER);
+	if (!leader)
+		leader = w;
+	Atom wm_state = get_atom(leader, _NET_WM_STATE);
 
-	if (window_type != _NET_WM_WINDOW_TYPE_DOCK && wm_state != _NET_WM_STATE_FULLSCREEN)
+	if (wm_state != _NET_WM_STATE_FULLSCREEN)
 		XSetInputFocus(dpy, current, RevertToParent, t);
 }
 
@@ -923,10 +944,12 @@ void Main::run() {
 
 	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", True);
 	ATOM = XInternAtom(dpy, "ATOM", True);
+	WINDOW = XInternAtom(dpy, "WINDOW", True);
 	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", True);
 	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", True);
 	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", True);
 	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", True);
+	WM_CLIENT_LEADER = XInternAtom(dpy, "WM_CLIENT_LEADER", True);
 
 	Handler *handler = new IdleHandler;
 	handler->init();
