@@ -2,6 +2,7 @@
 #define __GRABBER_H__
 #include "prefdb.h"
 #include <string>
+#include <map>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput.h>
 #include <X11/cursorfont.h>
@@ -34,10 +35,7 @@ private:
 	bool suspended;
 	bool active;
 	Cursor cursor;
-public:
-	unsigned int button;
-private:
-	unsigned int state;
+	std::map<guint, guint> buttons;
 	bool timing_workaround;
 
 	Atom wm_state;
@@ -60,6 +58,7 @@ public:
 	void resume() { suspended = false; set(); }
 	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
 	void grab_xi_devs(bool);
+	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
 };
 
 class GrabFailedException : public std::exception {

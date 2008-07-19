@@ -166,13 +166,15 @@ void Grabber::init(Window w, int depth) {
 void Grabber::grab_xi(bool grab) {
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
-			if (XGrabDeviceButton(dpy, xi_devs[i]->dev, button, state, NULL, ROOT, False,
-						button_events_n, xi_devs[i]->events,
-						GrabModeAsync, GrabModeAsync))
-				printf("Warning: Grabbing button %d on an xi device failed\n", button);
+			for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
+				if (XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
+							button_events_n, xi_devs[i]->events,
+							GrabModeAsync, GrabModeAsync))
+					printf("Warning: Grabbing a button on an xi device failed\n");
 
 	} else for (int i = 0; i < xi_devs_n; i++)
-		XUngrabDeviceButton(dpy, xi_devs[i]->dev, button, state, NULL, ROOT);
+		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
+			XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
 }
 
 void Grabber::grab_xi_devs(bool grab) {
@@ -196,9 +198,10 @@ void Grabber::set() {
 		printf("grabbing: %s\n", state_name[grabbed]);
 
 	if (old == BUTTON) {
-		XUngrabButton(dpy, button, state, ROOT);
+		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
+			XUngrabButton(dpy, j->first, j->second, ROOT);
 		if (timing_workaround)
-			XUngrabButton(dpy, 1, state, ROOT);
+			XUngrabButton(dpy, 1, AnyModifier, ROOT);
 	}
 	if (old == ALL_SYNC)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
@@ -208,14 +211,14 @@ void Grabber::set() {
 		XUngrabPointer(dpy, CurrentTime);
 	}
 	if (grabbed == BUTTON) {
-		while (!XGrabButton(dpy, button, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeSync, GrabModeAsync, None, None)) {
-			printf("Error: Grab failed, retrying in 10 seconds...\n");
-			sleep(10);
+		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+			XGrabButton(dpy, j->first, j->second, ROOT, False, 
+					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+					GrabModeSync, GrabModeAsync, None, None);
 		}
-		timing_workaround = button != 1 && prefs().timing_workaround.get();
+		timing_workaround = !is_grabbed(1) && prefs().timing_workaround.get();
 		if (timing_workaround)
-			XGrabButton(dpy, 1, state, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
 	}
 	if (grabbed == ALL_SYNC)
@@ -238,8 +241,8 @@ void Grabber::set() {
 
 void Grabber::get_button() {
 	Ref<ButtonInfo> ref(prefs().button);
-	button = ref->button;
-	state = ref->state;
+	buttons.clear();
+	buttons[ref->button] = ref->state;
 }
 
 void Grabber::fake_button(int b) {
