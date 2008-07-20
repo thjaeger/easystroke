@@ -32,6 +32,7 @@ private:
 	bool init_xi();
 
 	State current, grabbed;
+	bool xi_grabbed;
 	bool suspended;
 	bool active;
 	Cursor cursor;

@@ -12,11 +12,11 @@ Grabber::Grabber() {
 	suspended = false;
 	active = true;
 	grabbed = NONE;
+	xi_grabbed = false;
 	get_button();
 	wm_state = XInternAtom(dpy, "WM_STATE", False);
 
 	xinput = init_xi();
-	grab_xi(true);
 
 	init(ROOT, 0);
 	cursor = XCreateFontCursor(dpy, XC_double_arrow);
@@ -164,6 +164,9 @@ void Grabber::init(Window w, int depth) {
 }
 
 void Grabber::grab_xi(bool grab) {
+	if (!xi_grabbed == !grab)
+		return;
+	xi_grabbed = grab;
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
 			for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
@@ -190,6 +193,7 @@ void Grabber::grab_xi_devs(bool grab) {
 }
 
 void Grabber::set() {
+	grab_xi(active);
 	State old = grabbed;
 	grabbed = (!suspended && active) ? current : NONE;
 	if (old == grabbed)
