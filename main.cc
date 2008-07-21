@@ -102,6 +102,7 @@ guint press_button = 0;
 Trace *trace = 0;
 
 void handle_stroke(RStroke stroke, int trigger, int button);
+void set_timeout(long us);
 
 class Handler {
 protected:
@@ -124,6 +125,7 @@ public:
 	virtual void release(guint b, int x, int y, Time t) {}
 	virtual void press_repeated() {}
 	virtual void pressure() {}
+	virtual void timeout() {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
 		if (child)
@@ -567,6 +569,14 @@ class StrokeHandler : public Handler {
 		return Stroke::create(*cur, button, b);
 	}
 
+	virtual void timeout() {
+		if (verbosity >= 2)
+			printf("Aborting stroke...\n");
+		trace->end();
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		parent->replace_child(0);
+	}
+
 	bool calc_speed(int x, int y, Time t) {
 		if (!have_xi)
 			return false;
@@ -582,14 +592,13 @@ class StrokeHandler : public Handler {
 		last_y = y;
 		last_t = t;
 
-		if (speed >= 0.04)
-			return false;
-		if (verbosity >= 2)
-			printf("Aborting stroke...\n");
-		trace->end();
-		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		parent->replace_child(0);
-		return true;
+		if (speed < 0.04) {
+			timeout();
+			return true;
+		}
+		long us = -250000.0*log(0.04/speed);
+		set_timeout(us);
+		return false;
 	}
 protected:
 	virtual void press_repeated() {
@@ -901,6 +910,15 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	}
 }
 
+timeval timeout;
+bool timeout_set;
+
+void set_timeout(long us) {
+	timeout.tv_sec = us / 1000000;
+	timeout.tv_usec = us % 1000000;
+	timeout_set = true;
+}
+
 char* Main::next_event() {
 	static char buffer[2];
 	int fdx = ConnectionNumber(dpy);
@@ -910,7 +928,11 @@ char* Main::next_event() {
 	FD_SET(fdx, &fds);
 	int n = 1 + ((fdr>fdx) ? fdr : fdx);
 	while (!XPending(dpy)) {
-		select(n, &fds, 0, 0, 0);
+		if (select(n, &fds, 0, 0, timeout_set ? &timeout : 0) == 0) {
+			timeout_set = false;
+			buffer[0] = P_TIMEOUT;
+			return buffer;
+		}
 		if (read(fdr, buffer, 1) > 0)
 			return buffer;
 	}
@@ -996,6 +1018,9 @@ void Main::run() {
 				Trace *new_trace = init_trace();
 				delete trace;
 				trace = new_trace;
+			}
+			if (*ret == P_TIMEOUT) {
+				handler->top()->timeout();
 			}
 			continue;
 		}

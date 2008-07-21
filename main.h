@@ -9,6 +9,7 @@
 #define P_RESTORE_GRAB 'r'
 #define P_UPDATE_CURRENT 'u'
 #define P_UPDATE_TRACE 't'
+#define P_TIMEOUT 'o'
 
 void send(char);
 extern std::string config_dir;
