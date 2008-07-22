@@ -500,7 +500,7 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	return bev->time == bt->t;
 }
 
-Atom _NET_ACTIVE_WINDOW, WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN, WM_CLIENT_LEADER;
+Atom _NET_ACTIVE_WINDOW, WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN;
 
 Atom get_atom(Window w, Atom prop) {
 	Atom actual_type;
@@ -518,6 +518,7 @@ Atom get_atom(Window w, Atom prop) {
 	return atom;
 }
 
+/*
 Window get_window(Window w, Atom prop) {
 	Atom actual_type;
 	int actual_format;
@@ -533,15 +534,20 @@ Window get_window(Window w, Atom prop) {
 	XFree(prop_return);
 	return ret;
 }
+*/
 
 void activate_window(Window w, Time t) {
 	Atom window_type = get_atom(w, _NET_WM_WINDOW_TYPE);
 	if (window_type == _NET_WM_WINDOW_TYPE_DOCK)
 		return;
-	Window leader = get_window(w, WM_CLIENT_LEADER);
-	if (!leader)
-		leader = w;
-	Atom wm_state = get_atom(leader, _NET_WM_STATE);
+	XWMHints *wm_hints = XGetWMHints(dpy, w);
+	if (wm_hints) {
+		bool input = wm_hints->input;
+		XFree(wm_hints);
+		if (!input)
+			return;
+	}
+	Atom wm_state = get_atom(w, _NET_WM_STATE);
 
 	if (wm_state != _NET_WM_STATE_FULLSCREEN)
 		XSetInputFocus(dpy, current, RevertToParent, t);
@@ -982,7 +988,6 @@ void Main::run() {
 	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
 	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
 	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
-	WM_CLIENT_LEADER = XInternAtom(dpy, "WM_CLIENT_LEADER", False);
 
 	Handler *handler = new IdleHandler;
 	handler->init();
