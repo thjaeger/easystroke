@@ -548,7 +548,6 @@ void activate_window(Window w, Time t) {
 			return;
 	}
 	Atom wm_state = get_atom(w, _NET_WM_STATE);
-
 	if (wm_state != _NET_WM_STATE_FULLSCREEN)
 		XSetInputFocus(dpy, current, RevertToParent, t);
 }
