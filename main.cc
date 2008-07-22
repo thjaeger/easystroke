@@ -574,6 +574,9 @@ class StrokeHandler : public Handler {
 			printf("Aborting stroke...\n");
 		trace->end();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		usleep(2000);
+		XSync(dpy,False);
+		XTestFakeRelativeMotionEvent(dpy, 0, 0, CurrentTime);
 		parent->replace_child(0);
 	}
 
