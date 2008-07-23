@@ -1147,7 +1147,7 @@ void Main::run() {
 					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
-					if (prefs().pressure_abort.get())
+					if (mev->axes_count >= 3 && prefs().pressure_abort.get())
 						if (mev->axis_data[2] >= prefs().pressure_threshold.get())
 						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)
