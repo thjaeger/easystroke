@@ -81,7 +81,7 @@ bool Grabber::init_xi() {
 		xi_devs[xi_devs_n++] = xi_dev;
 
 		if (verbosity >= 1)
-			printf("Opened Device %s (%s proximity).\n", dev->name, 
+			printf("Opened Device \"%s\" (%s proximity).\n", dev->name,
 					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 
@@ -181,7 +181,8 @@ void Grabber::grab_xi(bool grab) {
 void Grabber::grab_xi_devs(bool grab) {
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
-			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False, all_events_n + proximity_events_n,
+			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False,
+						all_events_n + (xi_devs[i]->supports_proximity ? proximity_events_n : 0),
 						xi_devs[i]->events, GrabModeAsync, GrabModeAsync, CurrentTime))
 				throw GrabFailedException();
 	} else

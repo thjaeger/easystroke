@@ -126,6 +126,7 @@ public:
 	virtual void release(guint b, int x, int y, Time t) {}
 	virtual void press_repeated() {}
 	virtual void pressure() {}
+	virtual void proximity_out() {}
 	virtual void timeout() {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
@@ -162,6 +163,10 @@ public:
 	}
 	virtual void press(guint b, int x, int y, Time t) {
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		if (!in_proximity)
+			proximity_out();
+	}
+	virtual void proximity_out() {
 		clear_mods();
 		grabber->grab(Grabber::ALL_SYNC);
 		parent->replace_child(0);
@@ -395,6 +400,32 @@ public:
 		p->release(b,x,y,t);
 	}
 	virtual std::string name() { return "ScrollXi"; }
+};
+
+class ScrollProxHandler : public AbstractScrollHandler {
+protected:
+	void grab() {
+		grabber->grab(Grabber::ALL_ASYNC);
+	}
+public:
+	virtual void init() {
+		grabber->grab_xi_devs(true);
+		grab();
+	}
+	virtual void motion(int x, int y, Time t) {
+		if (xinput_pressed.size())
+			AbstractScrollHandler::motion(x,y,t);
+	}
+	virtual void press(guint b, int x, int y, Time t) {
+		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+	}
+	virtual void proximity_out() {
+		parent->replace_child(0);
+	}
+	virtual std::string name() { return "ScrollProx"; }
+	virtual ~ScrollProxHandler() {
+		grabber->grab_xi_devs(false);
+	}
 };
 
 class ActionXiHandler : public Handler {
@@ -685,7 +716,10 @@ protected:
 		}
 		if (scroll) {
 			scroll = false;
-			parent->replace_child(new ScrollHandler);
+			if (xinput_pressed.size() && in_proximity)
+				parent->replace_child(new ScrollProxHandler);
+			else
+				parent->replace_child(new ScrollHandler);
 			return;
 		}
 		if (press_button && !(!repeated && xinput_pressed.count(b) && press_button == button)) {
@@ -1075,6 +1109,7 @@ void Main::run() {
 				if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
 					break;
 				handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+				// TODO: Do we need this?
 				xinput_pressed.erase(ev.xbutton.button);
 				last_type = ButtonRelease;
 				last_time = ev.xbutton.time;
@@ -1160,7 +1195,6 @@ void Main::run() {
 				}
 				XDevice *dev;
 				if (grabber->is_event(ev.type, Grabber::PROX_IN, &dev)) {
-//					XProximityNotifyEvent *pev = (XProximityNotifyEvent *)&ev;
 					in_proximity = true;
 					if (verbosity >= 3)
 						printf("Proximity: In\n");
@@ -1169,6 +1203,7 @@ void Main::run() {
 					in_proximity = false;
 					if (verbosity >= 3)
 						printf("Proximity: Out\n");
+					handler->top()->proximity_out();
 				}
 				break;
 		}
