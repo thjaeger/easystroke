@@ -250,7 +250,7 @@ void Grabber::set() {
 void Grabber::get_button() {
 	Ref<ButtonInfo> ref(prefs().button);
 	buttons.clear();
-	buttons[ref->button] = ref->state ? ref->state : AnyModifier;
+	buttons[ref->button] = ref->state;
 }
 
 void Grabber::fake_button(int b) {
