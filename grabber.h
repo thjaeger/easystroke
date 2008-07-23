@@ -54,7 +54,6 @@ public:
 	void create(Window w);
 	void get_button();
 	void fake_button(int b);
-	void ignore(int b);
 	void grab(State s) { current = s; set(); }
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }

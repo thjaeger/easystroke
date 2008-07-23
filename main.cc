@@ -161,7 +161,9 @@ public:
 		grabber->grab(Grabber::ALL_SYNC);
 	}
 	virtual void press(guint b, int x, int y, Time t) {
-		grabber->ignore(b);
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		clear_mods();
+		grabber->grab(Grabber::ALL_SYNC);
 		parent->replace_child(0);
 	}
 	virtual ~IgnoreHandler() {
@@ -1158,13 +1160,12 @@ void Main::run() {
 				}
 				XDevice *dev;
 				if (grabber->is_event(ev.type, Grabber::PROX_IN, &dev)) {
-					XProximityNotifyEvent *pev = (XProximityNotifyEvent *)&ev;
+//					XProximityNotifyEvent *pev = (XProximityNotifyEvent *)&ev;
 					in_proximity = true;
 					if (verbosity >= 3)
 						printf("Proximity: In\n");
 				}
 				if (grabber->is_event(ev.type, Grabber::PROX_OUT, &dev)) {
-					XProximityNotifyEvent *pev = (XProximityNotifyEvent *)&ev;
 					in_proximity = false;
 					if (verbosity >= 3)
 						printf("Proximity: Out\n");

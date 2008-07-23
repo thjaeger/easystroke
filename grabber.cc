@@ -260,12 +260,6 @@ void Grabber::fake_button(int b) {
 	resume();
 }
 
-void Grabber::ignore(int b) {
-	XAllowEvents(dpy, ReplayPointer, CurrentTime);
-	clear_mods();
-	grab(ALL_SYNC);
-}
-
 std::string Grabber::get_wm_state(Window w) {
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
