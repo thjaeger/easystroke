@@ -195,6 +195,8 @@ bool SelectButton::run() {
 
 bool SelectButton::on_button_press(GdkEventButton *ev) {
 	event = *ev;
+	if (event.state == Mod2Mask)
+		event.state = 0;
 	dialog->response(3);
 	return true;
 }
