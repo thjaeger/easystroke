@@ -17,6 +17,8 @@ Grabber::Grabber() {
 	wm_state = XInternAtom(dpy, "WM_STATE", False);
 
 	xinput = init_xi();
+	if (xinput)
+		select_proximity();
 
 	init(ROOT, 0);
 	cursor = XCreateFontCursor(dpy, XC_double_arrow);
@@ -30,6 +32,7 @@ bool Grabber::init_xi() {
 	xi_devs_n = 0;
 	button_events_n = 3;
 	all_events_n = 4;
+	proximity_events_n = 2;
 	if (no_xi)
 		return false;
 	int nMajor, nFEV, nFER;
@@ -58,9 +61,6 @@ bool Grabber::init_xi() {
 		if (!has_button)
 			continue;
 
-		if (verbosity >= 1)
-			printf("Opening Device %s...\n", dev->name);
-
 		XiDevice *xi_dev = new XiDevice;
 		xi_dev->dev = XOpenDevice(dpy, dev->id);
 		if (!xi_dev->dev) {
@@ -69,38 +69,36 @@ bool Grabber::init_xi() {
 			continue;
 		}
 
-		DeviceButtonPress(xi_dev->dev, xi_dev->button_down, xi_dev->events[0]);
-		DeviceButtonRelease(xi_dev->dev, xi_dev->button_up, xi_dev->events[1]);
-		DeviceButtonMotion(xi_dev->dev, xi_dev->button_motion, xi_dev->events[2]);
-		DeviceMotionNotify(xi_dev->dev, xi_dev->button_motion, xi_dev->events[3]);
+		DeviceButtonPress(xi_dev->dev, xi_dev->event_type[DOWN], xi_dev->events[0]);
+		DeviceButtonRelease(xi_dev->dev, xi_dev->event_type[UP], xi_dev->events[1]);
+		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[2]);
+		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[3]);
+
+		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[4]);
+		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
+		xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
 
 		xi_devs[xi_devs_n++] = xi_dev;
+
+		if (verbosity >= 1)
+			printf("Opened Device %s (%s proximity).\n", dev->name, 
+					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 
 	return xi_devs_n;
 }
 
-bool Grabber::is_button_up(int type) {
+bool Grabber::is_event(int type, EventType et, XDevice **dev) {
+	if (!xinput)
+		return false;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (type == xi_devs[i]->button_up)
+		if (type == xi_devs[i]->event_type[et]) {
+			if (dev)
+				*dev = xi_devs[i]->dev;
 			return true;
+		}
 	return false;
 }
-
-bool Grabber::is_button_down(int type) {
-	for (int i = 0; i < xi_devs_n; i++)
-		if (type == xi_devs[i]->button_down)
-			return true;
-	return false;
-}
-
-bool Grabber::is_motion(int type) {
-	for (int i = 0; i < xi_devs_n; i++)
-		if (type == xi_devs[i]->button_motion)
-			return true;
-	return false;
-}
-
 
 unsigned int Grabber::get_device_button_state() {
 	unsigned int mask = 0;
@@ -183,13 +181,18 @@ void Grabber::grab_xi(bool grab) {
 void Grabber::grab_xi_devs(bool grab) {
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
-			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False, all_events_n,
+			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False, all_events_n + proximity_events_n,
 						xi_devs[i]->events, GrabModeAsync, GrabModeAsync, CurrentTime))
 				throw GrabFailedException();
 	} else
 		for (int i = 0; i < xi_devs_n; i++)
 			XUngrabDevice(dpy, xi_devs[i]->dev, CurrentTime);
+}
 
+void Grabber::select_proximity() {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_proximity)
+			XSelectExtensionEvent(dpy, ROOT, xi_devs[i]->events + all_events_n, proximity_events_n);
 }
 
 void Grabber::set() {

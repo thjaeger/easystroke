@@ -100,6 +100,7 @@ bool ignore = false;
 bool scroll = false;
 guint press_button = 0;
 Trace *trace = 0;
+bool in_proximity = false;
 
 void handle_stroke(RStroke stroke, int trigger, int button);
 void set_timeout(long us);
@@ -492,7 +493,7 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	ButtonTime *bt = (ButtonTime *)arg;
 	if (!grabber->xinput)
 		return false;
-	if (!grabber->is_button_down(ev->type))
+	if (!grabber->is_event(ev->type, Grabber::DOWN, 0))
 		return false;
 	XDeviceButtonEvent* bev = (XDeviceButtonEvent *)ev;
 	if (bev->button != bt->b)
@@ -1116,7 +1117,7 @@ void Main::run() {
 					delete trace;
 					trace = new_trace;
 				}
-				if (grabber->xinput && grabber->is_button_down(ev.type)) {
+				if (grabber->is_event(ev.type, Grabber::DOWN, 0)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Press (Xi): %d\n", bev->button);
@@ -1130,7 +1131,7 @@ void Main::run() {
 					last_time = bev->time;
 					last_button = bev->button;
 				}
-				if (grabber->xinput && grabber->is_button_up(ev.type)) {
+				if (grabber->is_event(ev.type, Grabber::UP, 0)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Release (Xi): %d\n", bev->button);
@@ -1142,7 +1143,7 @@ void Main::run() {
 					last_time = bev->time;
 					last_button = bev->button;
 				}
-				if (grabber->xinput && grabber->is_motion(ev.type)) {
+				if (grabber->is_event(ev.type, Grabber::MOTION, 0)) {
 					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
@@ -1154,6 +1155,19 @@ void Main::run() {
 					handler->top()->motion(mev->x, mev->y, mev->time);
 					last_type = MotionNotify;
 					last_time = mev->time;
+				}
+				XDevice *dev;
+				if (grabber->is_event(ev.type, Grabber::PROX_IN, &dev)) {
+					XProximityNotifyEvent *pev = (XProximityNotifyEvent *)&ev;
+					in_proximity = true;
+					if (verbosity >= 3)
+						printf("Proximity: In\n");
+				}
+				if (grabber->is_event(ev.type, Grabber::PROX_OUT, &dev)) {
+					XProximityNotifyEvent *pev = (XProximityNotifyEvent *)&ev;
+					in_proximity = false;
+					if (verbosity >= 3)
+						printf("Proximity: Out\n");
 				}
 				break;
 		}
