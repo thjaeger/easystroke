@@ -63,6 +63,7 @@ class PrefDB {
 		{ Ref<bool> ref(show_clicks); ar & *ref; }
 		{ Ref<bool> ref(pressure_abort); ar & *ref; }
 		{ Ref<int> ref(pressure_threshold); ar & *ref; }
+		{ Ref<bool> ref(proximity); ar & *ref; }
 	}
 	std::string filename;
 public:
@@ -79,6 +80,7 @@ public:
 	Lock<bool> show_clicks;
 	Lock<bool> pressure_abort;
 	Lock<int> pressure_threshold;
+	Lock<bool> proximity;
 
 	void read();
 	bool write() const;

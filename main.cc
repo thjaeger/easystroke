@@ -95,7 +95,6 @@ Trace *init_trace() {
 }
 
 Window current = 0;
-Grabber *grabber = 0;
 bool ignore = false;
 bool scroll = false;
 guint press_button = 0;
@@ -829,6 +828,8 @@ public:
 	~Main();
 };
 
+Glib::Mutex *grabber_mutex = 0; //TODO: This is a hack
+
 Main::Main(int argc, char **argv) : kit(0) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
@@ -837,6 +838,8 @@ Main::Main(int argc, char **argv) : kit(0) {
 	}
 	display = parse_args_and_init_gtk(argc, argv);
 	create_config_dir();
+	grabber_mutex = new Glib::Mutex;
+	grabber_mutex->lock();
 }
 
 void Main::usage(char *me, bool good) {
@@ -1001,6 +1004,7 @@ void Main::run() {
 	XChangeWindowAttributes(dpy, ROOT, CWEventMask, &attr);
 
 	grabber = new Grabber;
+	grabber_mutex->unlock();
 	grabber->grab(Grabber::BUTTON);
 
 	int error_basep;
@@ -1066,6 +1070,9 @@ void Main::run() {
 			}
 			if (*ret == P_TIMEOUT) {
 				handler->top()->timeout();
+			}
+			if (*ret == P_PROXIMITY) {
+				grabber->select_proximity();
 			}
 			continue;
 		}
@@ -1196,16 +1203,18 @@ void Main::run() {
 					last_type = MotionNotify;
 					last_time = mev->time;
 				}
-				if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
-					in_proximity = true;
-					if (verbosity >= 3)
-						printf("Proximity: In\n");
-				}
-				if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
-					in_proximity = false;
-					if (verbosity >= 3)
-						printf("Proximity: Out\n");
-					handler->top()->proximity_out();
+				if (grabber->proximity_selected) {
+					if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
+						in_proximity = true;
+						if (verbosity >= 3)
+							printf("Proximity: In\n");
+					}
+					if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
+						in_proximity = false;
+						if (verbosity >= 3)
+							printf("Proximity: Out\n");
+						handler->top()->proximity_out();
+					}
 				}
 				break;
 		}

@@ -1,6 +1,7 @@
 #include "prefs.h"
 #include "win.h"
 #include "main.h"
+#include "grabber.h"
 
 #include <X11/Xutil.h>
 extern "C" {
@@ -62,6 +63,15 @@ void Spin::on_default() {
 	spin->set_value(def);
 }
 
+Proximity::Proximity() : Check("check_proximity", prefs().proximity) {}
+
+void Proximity::on_changed() {
+	Check::on_changed();
+	send(P_PROXIMITY);
+}
+
+extern Glib::Mutex *grabber_mutex; //TODO: This is a hack
+
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected)),
 	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
@@ -79,6 +89,21 @@ Prefs::Prefs() :
 	widgets->get_widget("label_button", blabel);
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("scale_p", scale_p);
+
+	grabber_mutex->lock();
+	grabber_mutex->unlock();
+	delete grabber_mutex;
+	grabber_mutex = 0;
+
+	Gtk::Widget *widget;
+	widgets->get_widget("check_timing_workaround", widget);
+	widget->set_sensitive(grabber->xinput);
+	widgets->get_widget("check_ignore_grab", widget);
+	widget->set_sensitive(grabber->xinput);
+	widgets->get_widget("hbox_pressure", widget);
+	widget->set_sensitive(grabber->supports_pressure());
+	widgets->get_widget("check_proximity", widget);
+	widget->set_sensitive(grabber->supports_proximity());
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);

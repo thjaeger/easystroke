@@ -4,6 +4,7 @@
 #include <X11/Xutil.h>
 
 bool no_xi = false;
+Grabber *grabber = 0;
 
 const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
 
@@ -13,6 +14,7 @@ Grabber::Grabber() {
 	active = true;
 	grabbed = NONE;
 	xi_grabbed = false;
+	proximity_selected = false;
 	get_button();
 	wm_state = XInternAtom(dpy, "WM_STATE", False);
 
@@ -57,7 +59,6 @@ bool Grabber::init_xi() {
 
 		bool has_button = false;
 		xi_dev->supports_pressure = false;
-		xi_dev->supports_proximity = false;
 		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
 		for (int j = 0; j < dev->num_classes; j++) {
 			if (any->c_class == ButtonClass)
@@ -70,8 +71,6 @@ bool Grabber::init_xi() {
 					xi_dev->pressure_max = info->axes[2].max_value;
 				}
 			}
-			if (any->c_class == ProximityClass)
-				xi_dev->supports_proximity = true;
 			any = (XAnyClassPtr) ((char *) any + any->length);
 		}
 
@@ -92,11 +91,9 @@ bool Grabber::init_xi() {
 		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[2]);
 		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[3]);
 
-		if (xi_dev->supports_proximity) {
-			ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[4]);
-			ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
-			xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
-		}
+		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[4]);
+		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
+		xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
 
 		xi_devs[xi_devs_n++] = xi_dev;
 
@@ -234,10 +231,19 @@ void Grabber::grab_xi_devs(bool grab) {
 			XUngrabDevice(dpy, xi_devs[i]->dev, CurrentTime);
 }
 
+extern bool in_proximity;
 void Grabber::select_proximity() {
+	if (!prefs().proximity.get() == !proximity_selected)
+		return;
+	proximity_selected = !proximity_selected;
+	if (!proximity_selected)
+		in_proximity = false;
 	for (int i = 0; i < xi_devs_n; i++)
 		if (xi_devs[i]->supports_proximity)
-			XSelectExtensionEvent(dpy, ROOT, xi_devs[i]->events + all_events_n, proximity_events_n);
+			if (proximity_selected)
+				XSelectExtensionEvent(dpy, ROOT, xi_devs[i]->events + all_events_n, proximity_events_n);
+			else // NB: This is total BS. The following call doesn't actually unselect the events.
+				XSelectExtensionEvent(dpy, ROOT, 0, 0);
 }
 
 void Grabber::set() {

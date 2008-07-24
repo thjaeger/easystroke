@@ -10,6 +10,7 @@
 #define P_UPDATE_CURRENT 'u'
 #define P_UPDATE_TRACE 't'
 #define P_TIMEOUT 'o'
+#define P_PROXIMITY 'p'
 
 void send(char);
 extern std::string config_dir;
@@ -27,6 +28,6 @@ extern Display *dpy;
 #define ROOT (DefaultRootWindow(dpy))
 
 class Win;
-extern Win* win;
+extern Win *win;
 
 #endif

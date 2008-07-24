@@ -7,6 +7,8 @@
 #include <X11/extensions/XInput.h>
 #include <X11/cursorfont.h>
 
+class Grabber;
+extern Grabber *grabber;
 
 class Grabber {
 public:
@@ -14,10 +16,12 @@ public:
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, PROX_IN = 3, PROX_OUT = 4 };
 	static const char *state_name[5];
 	bool xinput;
+	bool proximity_selected;
 	bool is_event(int, EventType);
 	unsigned int get_device_button_state();
 	bool supports_pressure();
 	bool supports_proximity();
+	void select_proximity();
 
 	struct XiDevice {
 		int event_type[5];
@@ -54,7 +58,6 @@ private:
 	void set();
 	std::string get_wm_state(Window w);
 	void grab_xi(bool);
-	void select_proximity();
 public:
 	Grabber();
 	~Grabber();

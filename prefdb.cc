@@ -26,7 +26,8 @@ PrefDB::PrefDB() :
 	timing_workaround(false),
 	show_clicks(true),
 	pressure_abort(false),
-	pressure_threshold(default_pressure_threshold)
+	pressure_threshold(default_pressure_threshold),
+	proximity(false)
 {}
 
 bool PrefDB::write() const {

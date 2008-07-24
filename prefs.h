@@ -33,6 +33,12 @@ public:
 	Pressure();
 };
 
+class Proximity : public Check {
+	virtual void on_changed();
+public:
+	Proximity();
+};
+
 class Prefs {
 public:
 	Prefs();
@@ -71,6 +77,7 @@ private:
 	Check advanced_ignore, ignore_grab, timing_workaround, show_clicks;
 	Spin radius;
 	Pressure pressure;
+	Proximity proximity;
 };
 
 #endif
