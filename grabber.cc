@@ -54,9 +54,21 @@ bool Grabber::init_xi() {
 			continue;
 
 		bool has_button = false;
-		for (int j = 0; j < dev->num_classes; j++)
-			if (dev->inputclassinfo[j].c_class == ButtonClass)
+		bool supports_pressure = false;
+		int pressure_min = 0, pressure_max = 0;
+		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
+		for (int j = 0; j < dev->num_classes; j++) {
+			if (any->c_class == ButtonClass)
 				has_button = true;
+			if (any->c_class == ValuatorClass) {
+				XValuatorInfo *info = (XValuatorInfo *)any;
+				if (info->num_axes >= 3)
+					supports_pressure = true;
+				pressure_min = info->axes[2].min_value;
+				pressure_max = info->axes[2].max_value;
+			}
+			any = (XAnyClassPtr) ((char *) any + any->length);
+		}
 
 		if (!has_button)
 			continue;
@@ -78,6 +90,10 @@ bool Grabber::init_xi() {
 		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
 		xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
 
+		xi_dev->supports_pressure = supports_pressure;
+		xi_dev->pressure_min = pressure_min;
+		xi_dev->pressure_max = pressure_max;
+
 		xi_devs[xi_devs_n++] = xi_dev;
 
 		if (verbosity >= 1)
@@ -86,6 +102,13 @@ bool Grabber::init_xi() {
 	}
 
 	return xi_devs_n;
+}
+
+bool Grabber::supports_pressure() {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_pressure)
+			return true;
+	return false;
 }
 
 bool Grabber::is_event(int type, EventType et, XDevice **dev) {

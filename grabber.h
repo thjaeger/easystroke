@@ -16,10 +16,12 @@ public:
 	bool xinput;
 	bool is_event(int, EventType, XDevice **);
 	unsigned int get_device_button_state();
+	bool supports_pressure();
 private:
 	struct XiDevice {
-		int event_type[5];
-		bool supports_proximity;
+		int button_down;
+		int button_up;
+		int button_motion;
 		XDevice *dev;
 		XEventClass events[6];
 	};
