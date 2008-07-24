@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Thu Jul 24 16:09:57 2008 -->
+<!--Generated with glade3 3.4.5 on Thu Jul 24 17:22:36 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -324,7 +324,7 @@ than this many pixels away from the original position</property>
                         <child>
                           <widget class="GtkLabel" id="label13">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Method to show strokes on the screen.</property>
+                            <property name="label" translatable="yes">Method to show strokes on the screen</property>
                           </widget>
                         </child>
                         <child>
