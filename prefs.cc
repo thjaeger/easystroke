@@ -136,7 +136,7 @@ SelectButton::SelectButton(ButtonInfo bi, bool def) {
 	toggle_shift->set_active(bi.button && (bi.state & GDK_SHIFT_MASK));
 	toggle_control->set_active(bi.button && (bi.state & GDK_CONTROL_MASK));
 	toggle_alt->set_active(bi.button && (bi.state & GDK_MOD1_MASK));
-	toggle_super->set_active(bi.button && (bi.state & GDK_MOD4_MASK));
+	toggle_super->set_active(bi.button && (bi.state & GDK_SUPER_MASK));
 
 	Gtk::Button *select_default;
 	widgets->get_widget("select_default", select_default);
@@ -179,7 +179,7 @@ bool SelectButton::run() {
 			if (toggle_alt->get_active())
 				event.state |= GDK_MOD1_MASK;
 			if (toggle_super->get_active())
-				event.state |= GDK_MOD4_MASK;
+				event.state |= GDK_SUPER_MASK;
 			return true;
 		case 2: // Default
 			event.button = prefs().button.get().button;
@@ -195,6 +195,9 @@ bool SelectButton::run() {
 
 bool SelectButton::on_button_press(GdkEventButton *ev) {
 	event = *ev;
+	if (event.state & Mod4Mask)
+		event.state |= GDK_SUPER_MASK;
+	event.state &= gtk_accelerator_get_default_mod_mask();
 	dialog->response(3);
 	return true;
 }
