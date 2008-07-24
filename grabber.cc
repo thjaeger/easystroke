@@ -167,15 +167,20 @@ void Grabber::grab_xi(bool grab) {
 	xi_grabbed = grab;
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
-			for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
-				if (XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
+			for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+				XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
 							button_events_n, xi_devs[i]->events,
-							GrabModeAsync, GrabModeAsync))
-					printf("Warning: Grabbing a button on an xi device failed\n");
+							GrabModeAsync, GrabModeAsync);
+				XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask, NULL, ROOT, False,
+							button_events_n, xi_devs[i]->events,
+							GrabModeAsync, GrabModeAsync);
+			}
 
 	} else for (int i = 0; i < xi_devs_n; i++)
-		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
+		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+			XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask, NULL, ROOT);
 			XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
+		}
 }
 
 void Grabber::grab_xi_devs(bool grab) {
@@ -206,8 +211,10 @@ void Grabber::set() {
 		printf("grabbing: %s\n", state_name[grabbed]);
 
 	if (old == BUTTON) {
-		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++)
+		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+			XUngrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT);
 			XUngrabButton(dpy, j->first, j->second, ROOT);
+		}
 		if (timing_workaround)
 			XUngrabButton(dpy, 1, AnyModifier, ROOT);
 	}
@@ -221,6 +228,9 @@ void Grabber::set() {
 	if (grabbed == BUTTON) {
 		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
 			XGrabButton(dpy, j->first, j->second, ROOT, False, 
+					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+					GrabModeSync, GrabModeAsync, None, None);
+			XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False, 
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
 		}
