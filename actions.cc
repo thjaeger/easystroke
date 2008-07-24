@@ -40,7 +40,7 @@ Actions::Actions() :
 	tv->signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
 	tv->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_selection_changed));
 
-	tm = Gtk::ListStore::create(cols);
+	tm = Gtk::TreeStore::create(cols);
 
 	tv->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 

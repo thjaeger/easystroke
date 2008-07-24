@@ -45,7 +45,7 @@ private:
 	};
 	ModelColumns cols;
 	Gtk::TreeView* tv;
-	Glib::RefPtr<Gtk::ListStore> tm;
+	Glib::RefPtr<Gtk::TreeStore> tm;
 
 	class Single : public Gtk::TreeModel::ColumnRecord {
 	public:
