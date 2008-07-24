@@ -1225,9 +1225,11 @@ Main::~Main() {
 int main(int argc, char **argv) {
 	Main mn(argc, argv);
 
-	if (gui)
+	if (gui) {
 		main_thread = Glib::Thread::create(sigc::mem_fun(mn, &Main::run), true);
-	run_gui();
+		run_gui();
+	} else
+		mn.run();
 	if (verbosity >= 2)
 		printf("Exiting...\n");
 }

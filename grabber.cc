@@ -68,7 +68,6 @@ bool Grabber::init_xi() {
 					xi_dev->supports_pressure = true;
 					xi_dev->pressure_min = info->axes[2].min_value;
 					xi_dev->pressure_max = info->axes[2].max_value;
-					printf("pressure: %d, %d\n", xi_dev->pressure_min, xi_dev->pressure_max);
 				}
 			}
 			if (any->c_class == ProximityClass)
