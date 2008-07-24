@@ -58,6 +58,8 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 
 
 void xi_warn() {
+	if (no_xi)
+		return;
 	static bool warned = false;
 	if (warned)
 		return;
