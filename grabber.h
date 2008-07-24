@@ -14,10 +14,11 @@ public:
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, PROX_IN = 3, PROX_OUT = 4 };
 	static const char *state_name[5];
 	bool xinput;
-	bool is_event(int, EventType, XDevice **);
+	bool is_event(int, EventType);
 	unsigned int get_device_button_state();
 	bool supports_pressure();
-private:
+	bool supports_proximity();
+
 	struct XiDevice {
 		int event_type[5];
 		bool supports_proximity;
@@ -26,7 +27,12 @@ private:
 		int pressure_max;
 		XDevice *dev;
 		XEventClass events[6];
+		int normalize_pressure(int pressure) {
+			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
+		}
 	};
+	XiDevice *get_xi_dev(XID id);
+private:
 	int button_events_n;
 	int all_events_n;
 	int proximity_events_n; // starts after all_events_n

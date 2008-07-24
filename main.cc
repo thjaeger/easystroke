@@ -527,7 +527,7 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	ButtonTime *bt = (ButtonTime *)arg;
 	if (!grabber->xinput)
 		return false;
-	if (!grabber->is_event(ev->type, Grabber::DOWN, 0))
+	if (!grabber->is_event(ev->type, Grabber::DOWN))
 		return false;
 	XDeviceButtonEvent* bev = (XDeviceButtonEvent *)ev;
 	if (bev->button != bt->b)
@@ -1155,7 +1155,7 @@ void Main::run() {
 					delete trace;
 					trace = new_trace;
 				}
-				if (grabber->is_event(ev.type, Grabber::DOWN, 0)) {
+				if (grabber->is_event(ev.type, Grabber::DOWN)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Press (Xi): %d\n", bev->button);
@@ -1169,7 +1169,7 @@ void Main::run() {
 					last_time = bev->time;
 					last_button = bev->button;
 				}
-				if (grabber->is_event(ev.type, Grabber::UP, 0)) {
+				if (grabber->is_event(ev.type, Grabber::UP)) {
 					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Release (Xi): %d\n", bev->button);
@@ -1181,12 +1181,14 @@ void Main::run() {
 					last_time = bev->time;
 					last_button = bev->button;
 				}
-				if (grabber->is_event(ev.type, Grabber::MOTION, 0)) {
+				if (grabber->is_event(ev.type, Grabber::MOTION)) {
 					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
 					if (verbosity >= 3)
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
-					if (mev->axes_count >= 3 && prefs().pressure_abort.get())
-						if (mev->axis_data[2] >= prefs().pressure_threshold.get())
+					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
+					if (xi_dev && xi_dev->supports_pressure && prefs().pressure_abort.get())
+						if (xi_dev->normalize_pressure(mev->axis_data[2]) >= 
+								prefs().pressure_threshold.get())
 						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)
 						break;
@@ -1194,13 +1196,12 @@ void Main::run() {
 					last_type = MotionNotify;
 					last_time = mev->time;
 				}
-				XDevice *dev;
-				if (grabber->is_event(ev.type, Grabber::PROX_IN, &dev)) {
+				if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
 					in_proximity = true;
 					if (verbosity >= 3)
 						printf("Proximity: In\n");
 				}
-				if (grabber->is_event(ev.type, Grabber::PROX_OUT, &dev)) {
+				if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
 					in_proximity = false;
 					if (verbosity >= 3)
 						printf("Proximity: Out\n");

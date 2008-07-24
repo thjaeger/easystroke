@@ -53,27 +53,34 @@ bool Grabber::init_xi() {
 		if (dev->use == IsXKeyboard || dev->use == IsXPointer)
 			continue;
 
+		XiDevice *xi_dev = new XiDevice;
+
 		bool has_button = false;
-		bool supports_pressure = false;
-		int pressure_min = 0, pressure_max = 0;
+		xi_dev->supports_pressure = false;
+		xi_dev->supports_proximity = false;
 		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
 		for (int j = 0; j < dev->num_classes; j++) {
 			if (any->c_class == ButtonClass)
 				has_button = true;
 			if (any->c_class == ValuatorClass) {
 				XValuatorInfo *info = (XValuatorInfo *)any;
-				if (info->num_axes >= 3)
-					supports_pressure = true;
-				pressure_min = info->axes[2].min_value;
-				pressure_max = info->axes[2].max_value;
+				if (info->num_axes >= 3) {
+					xi_dev->supports_pressure = true;
+					xi_dev->pressure_min = info->axes[2].min_value;
+					xi_dev->pressure_max = info->axes[2].max_value;
+					printf("pressure: %d, %d\n", xi_dev->pressure_min, xi_dev->pressure_max);
+				}
 			}
+			if (any->c_class == ProximityClass)
+				xi_dev->supports_proximity = true;
 			any = (XAnyClassPtr) ((char *) any + any->length);
 		}
 
-		if (!has_button)
+		if (!has_button) {
+			delete xi_dev;
 			continue;
+		}
 
-		XiDevice *xi_dev = new XiDevice;
 		xi_dev->dev = XOpenDevice(dpy, dev->id);
 		if (!xi_dev->dev) {
 			printf("Opening Device %s failed.\n", dev->name);
@@ -86,13 +93,11 @@ bool Grabber::init_xi() {
 		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[2]);
 		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[3]);
 
-		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[4]);
-		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
-		xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
-
-		xi_dev->supports_pressure = supports_pressure;
-		xi_dev->pressure_min = pressure_min;
-		xi_dev->pressure_max = pressure_max;
+		if (xi_dev->supports_proximity) {
+			ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[4]);
+			ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
+			xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
+		}
 
 		xi_devs[xi_devs_n++] = xi_dev;
 
@@ -104,6 +109,13 @@ bool Grabber::init_xi() {
 	return xi_devs_n;
 }
 
+Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->dev->device_id == id)
+			return xi_devs[i];
+	return 0;
+}
+
 bool Grabber::supports_pressure() {
 	for (int i = 0; i < xi_devs_n; i++)
 		if (xi_devs[i]->supports_pressure)
@@ -111,13 +123,18 @@ bool Grabber::supports_pressure() {
 	return false;
 }
 
-bool Grabber::is_event(int type, EventType et, XDevice **dev) {
+bool Grabber::supports_proximity() {
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_proximity)
+			return true;
+	return false;
+}
+
+bool Grabber::is_event(int type, EventType et) {
 	if (!xinput)
 		return false;
 	for (int i = 0; i < xi_devs_n; i++)
 		if (type == xi_devs[i]->event_type[et]) {
-			if (dev)
-				*dev = xi_devs[i]->dev;
 			return true;
 		}
 	return false;
