@@ -424,6 +424,7 @@ public:
 	}
 	virtual std::string name() { return "ScrollProx"; }
 	virtual ~ScrollProxHandler() {
+		clear_mods();
 		grabber->grab_xi_devs(false);
 	}
 };
