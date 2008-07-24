@@ -19,9 +19,11 @@ public:
 	bool supports_pressure();
 private:
 	struct XiDevice {
-		int button_down;
-		int button_up;
-		int button_motion;
+		int event_type[5];
+		bool supports_proximity;
+		bool supports_pressure;
+		int pressure_min;
+		int pressure_max;
 		XDevice *dev;
 		XEventClass events[6];
 	};
