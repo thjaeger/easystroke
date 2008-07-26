@@ -554,7 +554,6 @@ Atom get_atom(Window w, Atom prop) {
 	return atom;
 }
 
-/*
 Window get_window(Window w, Atom prop) {
 	Atom actual_type;
 	int actual_format;
@@ -570,7 +569,6 @@ Window get_window(Window w, Atom prop) {
 	XFree(prop_return);
 	return ret;
 }
-*/
 
 void activate_window(Window w, Time t) {
 	Atom window_type = get_atom(w, _NET_WM_WINDOW_TYPE);
@@ -1000,10 +998,6 @@ void Main::run() {
 
 	actions().read();
 	prefs().read();
-
-	XSetWindowAttributes attr;
-	attr.event_mask = SubstructureNotifyMask;
-	XChangeWindowAttributes(dpy, ROOT, CWEventMask, &attr);
 
 	grabber = new Grabber;
 	grabber_mutex->unlock();

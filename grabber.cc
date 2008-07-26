@@ -8,6 +8,14 @@ Grabber *grabber = 0;
 
 const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
 
+extern Window get_window(Window w, Atom prop);
+
+bool wm_running() {
+	Atom _NET_SUPPORTING_WM_CHECK = XInternAtom(dpy, "_NET_SUPPORTING_WM_CHECK", False);
+	Window w = get_window(ROOT, _NET_SUPPORTING_WM_CHECK);
+	return w && get_window(w, _NET_SUPPORTING_WM_CHECK) == w;
+}
+
 Grabber::Grabber() {
 	current = BUTTON;
 	suspended = false;
@@ -16,13 +24,14 @@ Grabber::Grabber() {
 	xi_grabbed = false;
 	proximity_selected = false;
 	get_button();
-	wm_state = XInternAtom(dpy, "WM_STATE", False);
+	WM_STATE = XInternAtom(dpy, "WM_STATE", False);
 
 	xinput = init_xi();
 	if (xinput)
 		select_proximity();
 
-	init(ROOT, 0);
+	XSelectInput(dpy, ROOT, SubstructureNotifyMask);
+	init(ROOT, wm_running() ? 0 : -1);
 	cursor = XCreateFontCursor(dpy, XC_double_arrow);
 }
 
@@ -166,7 +175,7 @@ bool Grabber::has_wm_state(Window w) {
 	unsigned long nitems_return;
 	unsigned long bytes_after_return;
 	unsigned char *prop_return;
-	if (Success != XGetWindowProperty(dpy, w, wm_state, 0, 2, False,
+	if (Success != XGetWindowProperty(dpy, w, WM_STATE, 0, 2, False,
 				AnyPropertyType, &actual_type_return,
 				&actual_format_return, &nitems_return,
 				&bytes_after_return, &prop_return))
@@ -175,7 +184,9 @@ bool Grabber::has_wm_state(Window w) {
 	return nitems_return;
 }
 
-// Calls create on top-level windows, i.e. windows that have th wm_state property.
+// Calls create on top-level windows, i.e. 
+//   if depth >= 0: windows that have th wm_state property
+//   if depth <  0: children of the root window
 void Grabber::init(Window w, int depth) {
 	depth++;
 	// I have no clue why this is needed, but just querying the whole tree
@@ -189,7 +200,7 @@ void Grabber::init(Window w, int depth) {
 	Window dummyw1, dummyw2, *ch;
 	XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n);
 	for (unsigned int i = 0; i != n; i++) {
-		if (!has_wm_state(ch[i]))
+		if (depth > 0 && !has_wm_state(ch[i]))
 			init(ch[i], depth);
 		else
 			create(ch[i]);
@@ -327,7 +338,7 @@ std::string Grabber::get_wm_state(Window w) {
 }
 
 void Grabber::create(Window w) {
-	XSetWindowAttributes attr;
-	attr.event_mask = EnterWindowMask;
-	XChangeWindowAttributes(dpy, w, CWEventMask, &attr);
+	if (!w)
+		return;
+	XSelectInput(dpy, w, EnterWindowMask);
 }

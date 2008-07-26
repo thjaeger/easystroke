@@ -53,7 +53,7 @@ private:
 	std::map<guint, guint> buttons;
 	bool timing_workaround;
 
-	Atom wm_state;
+	Atom WM_STATE;
 
 	void set();
 	std::string get_wm_state(Window w);
