@@ -210,6 +210,7 @@ public:
 	const const_iterator end() const { return strokes.end(); }
 	StrokeIterator strokes_begin() { return StrokeIterator(strokes); }
 
+	const StrokeInfo &lookup(int id) const { return strokes.find(id)->second; }
 	StrokeInfo &operator[](int id) { return strokes[id]; }
 
 	void read();

@@ -17,7 +17,7 @@ public:
 	Lock()           : x(new T)    { if (gui) m.reset(new Glib::Mutex); }
 	Lock(const T &t) : x(new T(t)) { if (gui) m.reset(new Glib::Mutex); }
 	virtual ~Lock() { }
-	T get() {
+	const T get() {
 		if (!gui)
 			return *x;
 		Glib::Mutex::Lock l(*m);

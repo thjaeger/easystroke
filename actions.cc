@@ -265,7 +265,8 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_current", del);
-	del->set_sensitive(actions().get()[row[cols.id]].strokes.size());
+	// TODO: What if find fails?
+	del->set_sensitive(actions().get().lookup(row[cols.id]).strokes.size());
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
 	stroke_action().set(sigc::mem_fun(ps, &OnStroke::run));
