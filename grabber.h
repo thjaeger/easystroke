@@ -64,7 +64,7 @@ public:
 	void init(Window w, int depth);
 	void scan_windows();
 	bool has_wm_state(Window w);
-	void update(Window w) { active = !RPrefEx(prefs().exceptions)->count(get_wm_state(w)); set(); }
+	void update(Window w) { Setter s; active = s.ref(prefs().exceptions).count(get_wm_state(w)); set(); }
 	void create(Window w);
 	void get_button();
 	void fake_button(int b);

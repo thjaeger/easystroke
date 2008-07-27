@@ -20,6 +20,7 @@ protected:
 	void update(In<T> *exclude = 0);
 public:
 	Var(T v_) : v(v_) {}
+	Var() {}
 	const T get();
 };
 
@@ -29,12 +30,14 @@ template <class T> class VarE : public Var<T> {
 	Out<T> *in;
 public:
 	VarE(T v) : Var<T>(v), in(0) {}
+	VarE() : Var<T>(), in(0) {}
 	void freeze() { delete in; }
 };
 
 template <class T> class VarI : public Var<T> {
 public:
 	VarI(T v) : Var<T>(v) {}
+	VarI() : Var<T>() {}
 };
 
 template <class T> class In {
@@ -132,12 +135,13 @@ public:
 	}
 };
 
-
 class Setter {
 public:
 	static Glib::StaticRecMutex mutex;
 	Setter() { mutex.lock(); }
 	~Setter() { mutex.unlock(); }
+
+	template <class T> T &ref(Var<T> &v) { return v.v; }
 
 	template <class T> void set(VarE<T> &, T);
 	template <class T> void set(VarI<T> &, T);
@@ -146,4 +150,64 @@ public:
 	template <class T> void identify(VarI<T> &y, VarI<T> &x);
 	template <class X, class Y> void identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x);
 };
+
+template <class T> void Var<T>::update(In<T> *exclude) {
+	for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
+		In<T> *cur = *i;
+		if (cur != exclude)
+			cur->notify(v);
+	}
+}
+
+template <class T> const T Var<T>::get() { 
+	Glib::RecMutex::Lock foo(Setter::mutex); 
+	return v; 
+}
+
+template <class X> class Identity : public Fun<X,X> {
+	X run(X &x) { return x; }
+};
+
+template <class X, class Y> void Setter::set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x) {
+	y.freeze();
+	y.v = f->run(x.v);
+	y.in = f;
+	x.out.insert(f);
+	((In<X> *)f)->parent = &x;
+	((Out<Y> *)f)->parent = &y;
+	y.update();
+}
+
+template <class T> void Setter::set(VarE<T> &y, Var<T> &x) {
+	set(y, new Identity<T>, x);
+}
+
+template <class T> void Setter::set(VarE<T> &y, T x) {
+	y.freeze();
+	y.v = x;
+	y.update();
+}
+
+template <class T> void Setter::set(VarI<T> &y, T x) {
+	y.v = x;
+	y.update();
+}
+
+template <class X> class BiIdentity : public BiFun<X,X> {
+	X run1(X &x) { return x; }
+	X run2(X &x) { return x; }
+};
+
+template <class X, class Y> void Setter::identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x) {
+	y.v = f->run1(x.v);
+	x.out.insert(f->part1);
+	y.out.insert(f->part2);
+	f->part1->parent = &x;
+	f->part2->parent = &y;
+	y.update(f->part2);
+}
+
+template <class T> void Setter::identify(VarI<T> &y, VarI<T> &x) {
+	identify(y, new BiIdentity<T>, x);
+}
 #endif

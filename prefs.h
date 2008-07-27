@@ -7,23 +7,23 @@
 
 class Check {
 protected:
-	Lock<bool> &b;
+	VarI<bool> &b;
 	Gtk::CheckButton *check;
 	virtual void on_changed();
 public:
-	Check(const Glib::ustring &, Lock<bool> &);
+	Check(const Glib::ustring &, VarI<bool> &);
 };
 
 class Spin {
 	friend class Pressure;
-	Lock<int> &i;
+	VarI<int> &i;
 	const int def;
 	Gtk::SpinButton *spin;
 	Gtk::Button *button;
 	void on_changed();
 	void on_default();
 public:
-	Spin(const Glib::ustring &, const Glib::ustring &, Lock<int> &, const int);
+	Spin(const Glib::ustring &, const Glib::ustring &, VarI<int> &, const int);
 };
 
 class Pressure : public Check {

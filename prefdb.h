@@ -6,6 +6,7 @@
 #include <boost/serialization/version.hpp>
 
 #include "locking.h"
+#include "var.h"
 
 enum TraceType { TraceStandard, TraceShape, TraceNone };
 const int trace_n = 3;
@@ -36,14 +37,15 @@ extern const int default_pressure_threshold;
 class PrefDB {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
-		{ Ref<std::set<std::string> > ref(exceptions); ar & *ref; }
-		{ Ref<double> ref(p); ar & *ref; }
-		{ Ref<ButtonInfo> ref(button); ar & *ref; }
+		Setter s;
+		ar & s.ref(exceptions);
+		ar & s.ref(p);
+		ar & s.ref(button);
 		if (version <= 1) {
 			bool help;
 			ar & help;
 		}
-		{ Ref<TraceType> ref(trace); ar & *ref; }
+		ar & s.ref(trace);
 		if (version <= 2) {
 			int delay;
 			ar & delay;
@@ -55,40 +57,38 @@ class PrefDB {
 			return;
 		}
 		if (version <= 1) return;
-		{ Ref<bool> ref(advanced_ignore); ar & *ref; }
-		{ Ref<int> ref(radius); ar & *ref; }
+		ar & s.ref(advanced_ignore);
+		ar & s.ref(radius);
 		if (version <= 3) return;
-		{ Ref<bool> ref(ignore_grab); ar & *ref; }
-		{ Ref<bool> ref(timing_workaround); ar & *ref; }
-		{ Ref<bool> ref(show_clicks); ar & *ref; }
-		{ Ref<bool> ref(pressure_abort); ar & *ref; }
-		{ Ref<int> ref(pressure_threshold); ar & *ref; }
-		{ Ref<bool> ref(proximity); ar & *ref; }
+		ar & s.ref(ignore_grab);
+		ar & s.ref(timing_workaround);
+		ar & s.ref(show_clicks);
+		ar & s.ref(pressure_abort);
+		ar & s.ref(pressure_threshold);
+		ar & s.ref(proximity);
 	}
 	std::string filename;
 public:
 	PrefDB();
 
-	Lock<std::set<std::string> > exceptions;
-	Lock<double> p;
-	Lock<ButtonInfo> button;
-	Lock<TraceType> trace;
-	Lock<bool> advanced_ignore;
-	Lock<int> radius;
-	Lock<bool> ignore_grab;
-	Lock<bool> timing_workaround;
-	Lock<bool> show_clicks;
-	Lock<bool> pressure_abort;
-	Lock<int> pressure_threshold;
-	Lock<bool> proximity;
+	VarI<std::set<std::string> > exceptions;
+	VarI<double> p;
+	VarI<ButtonInfo> button;
+	VarI<TraceType> trace;
+	VarI<bool> advanced_ignore;
+	VarI<int> radius;
+	VarI<bool> ignore_grab;
+	VarI<bool> timing_workaround;
+	VarI<bool> show_clicks;
+	VarI<bool> pressure_abort;
+	VarI<int> pressure_threshold;
+	VarI<bool> proximity;
 
 	void read();
 	bool write() const;
 };
 
 BOOST_CLASS_VERSION(PrefDB, 4)
-
-typedef Ref<std::set<std::string> > RPrefEx;
 
 PrefDB& prefs();
 #endif

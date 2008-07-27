@@ -327,9 +327,10 @@ void Grabber::set() {
 }
 
 void Grabber::get_button() {
-	Ref<ButtonInfo> ref(prefs().button);
+	Setter s;
+	ButtonInfo &bi = s.ref(prefs().button);
 	buttons.clear();
-	buttons[ref->button] = ref->state;
+	buttons[bi.button] = bi.state;
 }
 
 void Grabber::fake_button(int b) {

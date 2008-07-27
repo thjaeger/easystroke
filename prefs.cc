@@ -23,18 +23,15 @@ void write_prefs() {
 	}
 }
 
-Check::Check(const Glib::ustring &name, Lock<bool> &b_) : b(b_) {
+Check::Check(const Glib::ustring &name, VarI<bool> &b_) : b(b_) {
 	widgets->get_widget(name, check);
 	check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
 	check->set_active(b.get());
 }
 
 void Check::on_changed() {
-	bool new_b = check->get_active();
-	bool old_b = b.get();
-	b.set(new_b);
-	if (old_b != new_b)
-		write_prefs();
+	b.set(check->get_active());
+	write_prefs();
 }
 
 Pressure::Pressure() :
@@ -49,7 +46,7 @@ void Pressure::on_changed() {
 	spin.button->set_sensitive(b.get());
 }
 
-Spin::Spin(const Glib::ustring &name, const Glib::ustring &default_name, Lock<int> &i_, const int def_) : i(i_), def(def_) {
+Spin::Spin(const Glib::ustring &name, const Glib::ustring &default_name, VarI<int> &i_, const int def_) : i(i_), def(def_) {
 	widgets->get_widget(name, spin);
 	widgets->get_widget(default_name, button);
 	spin->set_value(i.get());
@@ -58,11 +55,8 @@ Spin::Spin(const Glib::ustring &name, const Glib::ustring &default_name, Lock<in
 }
 
 void Spin::on_changed() {
-	int new_i = spin->get_value();
-	int old_i = i.get();
-	i.set(new_i);
-	if (new_i != old_i)
-		write_prefs();
+	i.set(spin->get_value());
+	write_prefs();
 }
 
 void Spin::on_default() {
@@ -136,8 +130,9 @@ Prefs::Prefs() :
 	}
 	set_button_label();
 
-	RPrefEx exceptions(prefs().exceptions);
-	for (std::set<std::string>::iterator i = exceptions->begin(); i!=exceptions->end(); i++) {
+	Setter s;
+	std::set<std::string> exceptions = s.ref(prefs().exceptions);
+	for (std::set<std::string>::iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.col] = *i;
 	}
@@ -234,13 +229,14 @@ bool SelectButton::on_button_press(GdkEventButton *ev) {
 }
 
 void Prefs::on_select_button() {
-	SelectButton sb(prefs().button.get());
+	Setter s;
+	ButtonInfo &bi = s.ref(prefs().button);
+	SelectButton sb(bi);
 	if (!sb.run())
 		return;
 	{
-		Ref<ButtonInfo> ref(prefs().button);
-		ref->button = sb.event.button;
-		ref->state = sb.event.state;
+		bi.button = sb.event.button;
+		bi.state = sb.event.state;
 	}
 	send(P_REGRAB);
 	set_button_label();
@@ -253,13 +249,15 @@ void Prefs::on_trace_changed() {
 		return;
 	if (prefs().trace.get() == type)
 		return;
-	prefs().trace.set(type);
+	Setter s;
+	s.set(prefs().trace, type);
 	send(P_UPDATE_TRACE);
 	write_prefs();
 }
 
 void Prefs::on_p_changed() {
-	prefs().p.set(scale_p->get_value());
+	Setter s;
+	s.set(prefs().p, scale_p->get_value());
 	write_prefs();
 }
 
@@ -268,7 +266,12 @@ void Prefs::on_p_default() {
 }
 
 void Prefs::on_selected(std::string &str) {
-	if (RPrefEx(prefs().exceptions)->insert(str).second) {
+	bool is_new;
+	{
+		Setter s;
+		is_new = s.ref(prefs().exceptions).insert(str).second;
+	}
+	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.col] = str;
 		Gtk::TreePath path = tm->get_path(row);
@@ -288,7 +291,8 @@ void Prefs::on_remove() {
 	tv->get_cursor(path, col);
 	if (path.gobj() != 0) {
 		Gtk::TreeIter iter = *tm->get_iter(path);
-		RPrefEx(prefs().exceptions)->erase((Glib::ustring)((*iter)[cols.col]));
+		Setter s;
+		s.ref(prefs().exceptions).erase((Glib::ustring)((*iter)[cols.col]));
 		tm->erase(iter);
 		send(P_UPDATE_CURRENT);
 	}
@@ -318,6 +322,6 @@ cleanup:
 
 
 void Prefs::set_button_label() {
-	Ref<ButtonInfo> ref(prefs().button);
-	blabel->set_text(ref->get_button_text());
+	Setter s;
+	blabel->set_text(s.ref(prefs().button).get_button_text());
 }
