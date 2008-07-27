@@ -50,11 +50,14 @@ Grabber::~Grabber() {
 	XFreeCursor(dpy, cursor);
 }
 
+extern "C" {
+	extern int _XiGetDevicePresenceNotifyEvent(Display *);
+}
+
 bool Grabber::init_xi() {
 	xi_devs_n = 0;
 	button_events_n = 3;
 	all_events_n = 4;
-	proximity_events_n = 2;
 	if (no_xi)
 		return false;
 	int nMajor, nFEV, nFER;
@@ -106,14 +109,16 @@ bool Grabber::init_xi() {
 			continue;
 		}
 
-		DeviceButtonPress(xi_dev->dev, xi_dev->event_type[DOWN], xi_dev->events[0]);
-		DeviceButtonRelease(xi_dev->dev, xi_dev->event_type[UP], xi_dev->events[1]);
-		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[2]);
-		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[3]);
+		DeviceButtonPress(xi_dev->dev, xi_dev->event_type[DOWN], xi_dev->events[DOWN]);
+		DeviceButtonRelease(xi_dev->dev, xi_dev->event_type[UP], xi_dev->events[UP]);
+		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
+		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[MOTION]);
 
-		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[4]);
-		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[5]);
-		xi_dev->supports_proximity = xi_dev->events[4] && xi_dev->events[5];
+		ChangeDeviceNotify(xi_dev->dev, xi_dev->event_type[CHANGE], xi_dev->events[CHANGE]);
+		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[PROX_IN]);
+		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[PROX_OUT]);
+		xi_dev->supports_proximity = xi_dev->events[PROX_IN] && xi_dev->events[PROX_OUT];
+		xi_dev->all_events_n = xi_dev->supports_proximity ? 7 : 5;
 
 		xi_devs[xi_devs_n++] = xi_dev;
 
@@ -122,6 +127,11 @@ bool Grabber::init_xi() {
 					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 	XFreeDeviceList(devs);
+
+	// Macro not c++-safe
+	// DevicePresence(dpy, event_presence, presence_class);
+	event_presence = _XiGetDevicePresenceNotifyEvent(dpy);
+	presence_class =  (0x10000 | _devicePresence);
 
 	return xi_devs_n;
 }
@@ -246,7 +256,7 @@ void Grabber::grab_xi_devs(bool grab) {
 	if (grab) {
 		for (int i = 0; i < xi_devs_n; i++)
 			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False,
-						all_events_n + (xi_devs[i]->supports_proximity ? proximity_events_n : 0),
+						xi_devs[i]->all_events_n,
 						xi_devs[i]->events, GrabModeAsync, GrabModeAsync, CurrentTime))
 				throw GrabFailedException();
 	} else
@@ -262,12 +272,11 @@ void Grabber::select_proximity() {
 	if (!proximity_selected)
 		in_proximity = false;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity) {
+		if (xi_devs[i]->supports_proximity)
 			if (proximity_selected)
 				XSelectExtensionEvent(dpy, ROOT, xi_devs[i]->events + all_events_n, proximity_events_n);
 			else // NB: This is total BS. The following call doesn't actually unselect the events.
 				XSelectExtensionEvent(dpy, ROOT, 0, 0);
-		}
 }
 
 void Grabber::set() {
