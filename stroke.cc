@@ -13,7 +13,7 @@ inline bool close(double x, double y) {
 	return diff < eps;
 }
 
-int get_default_button() { return prefs().button.get().button; }
+int get_default_button() { return prefs.button.get().button; }
 
 inline double sqr(double x) { return x*x; };
 
@@ -284,7 +284,7 @@ void Stroke::integral2(RStroke a, RStroke b, double &int_x, double &int_y, doubl
 }
 
 double Stroke::compare(RStroke a, RStroke b) {
-	return compare(a, b, prefs().p.get());
+	return compare(a, b, prefs.p.get());
 }
 
 double Stroke::compare(RStroke a_, RStroke b_, double p) {

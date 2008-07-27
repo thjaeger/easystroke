@@ -16,7 +16,7 @@ bool good_state = true;
 void write_prefs() {
 	if (!good_state)
 		return;
-	good_state = prefs().write();
+	good_state = prefs.write();
 	if (!good_state) {
 		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
 		dialog.run();
@@ -35,9 +35,9 @@ void Check::on_changed() {
 }
 
 Pressure::Pressure() :
-	Check("check_pressure_abort", prefs().pressure_abort),
+	Check("check_pressure_abort", prefs.pressure_abort),
 	spin("spin_pressure_threshold", "button_default_pressure_threshold",
-			prefs().pressure_threshold, default_pressure_threshold)
+			prefs.pressure_threshold, default_pressure_threshold)
 {}
 
 void Pressure::on_changed() {
@@ -63,7 +63,7 @@ void Spin::on_default() {
 	spin->set_value(def);
 }
 
-Proximity::Proximity() : Check("check_proximity", prefs().proximity) {}
+Proximity::Proximity() : Check("check_proximity", prefs.proximity) {}
 
 void Proximity::on_changed() {
 	Check::on_changed();
@@ -74,11 +74,11 @@ extern Glib::Mutex *grabber_mutex; //TODO: This is a hack
 
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected)),
-	advanced_ignore("check_advanced_ignore", prefs().advanced_ignore),
-	ignore_grab("check_ignore_grab", prefs().ignore_grab),
-	timing_workaround("check_timing_workaround", prefs().timing_workaround),
-	show_clicks("check_show_clicks", prefs().show_clicks),
-	radius("spin_radius", "button_default_radius", prefs().radius, default_radius)
+	advanced_ignore("check_advanced_ignore", prefs.advanced_ignore),
+	ignore_grab("check_ignore_grab", prefs.ignore_grab),
+	timing_workaround("check_timing_workaround", prefs.timing_workaround),
+	show_clicks("check_show_clicks", prefs.show_clicks),
+	radius("spin_radius", "button_default_radius", prefs.radius, default_radius)
 {
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
@@ -116,9 +116,9 @@ Prefs::Prefs() :
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
-	trace->set_active(prefs().trace.get());
+	trace->set_active(prefs.trace.get());
 
-	double p = prefs().p.get();
+	double p = prefs.p.get();
 	scale_p->set_value(p);
 	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
 	button_default_p->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_p_default));
@@ -131,7 +131,7 @@ Prefs::Prefs() :
 	set_button_label();
 
 	Setter s;
-	std::set<std::string> exceptions = s.ref(prefs().exceptions);
+	std::set<std::string> exceptions = s.ref(prefs.exceptions);
 	for (std::set<std::string>::iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.col] = *i;
@@ -208,7 +208,7 @@ bool SelectButton::run() {
 				event.state |= GDK_SUPER_MASK;
 			return true;
 		case 2: // Default
-			event.button = prefs().button.get().button;
+			event.button = prefs.button.get().button;
 			event.state = 0;
 			return true;
 		case 3: // Click - all the work has already been done
@@ -230,7 +230,7 @@ bool SelectButton::on_button_press(GdkEventButton *ev) {
 
 void Prefs::on_select_button() {
 	Setter s;
-	ButtonInfo &bi = s.ref(prefs().button);
+	ButtonInfo &bi = s.ref(prefs.button);
 	SelectButton sb(bi);
 	if (!sb.run())
 		return;
@@ -247,17 +247,17 @@ void Prefs::on_trace_changed() {
 	TraceType type = (TraceType) trace->get_active_row_number();
 	if (type >= trace_n)
 		return;
-	if (prefs().trace.get() == type)
+	if (prefs.trace.get() == type)
 		return;
 	Setter s;
-	s.set(prefs().trace, type);
+	s.set(prefs.trace, type);
 	send(P_UPDATE_TRACE);
 	write_prefs();
 }
 
 void Prefs::on_p_changed() {
 	Setter s;
-	s.set(prefs().p, scale_p->get_value());
+	s.set(prefs.p, scale_p->get_value());
 	write_prefs();
 }
 
@@ -269,7 +269,7 @@ void Prefs::on_selected(std::string &str) {
 	bool is_new;
 	{
 		Setter s;
-		is_new = s.ref(prefs().exceptions).insert(str).second;
+		is_new = s.ref(prefs.exceptions).insert(str).second;
 	}
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
@@ -292,7 +292,7 @@ void Prefs::on_remove() {
 	if (path.gobj() != 0) {
 		Gtk::TreeIter iter = *tm->get_iter(path);
 		Setter s;
-		s.ref(prefs().exceptions).erase((Glib::ustring)((*iter)[cols.col]));
+		s.ref(prefs.exceptions).erase((Glib::ustring)((*iter)[cols.col]));
 		tm->erase(iter);
 		send(P_UPDATE_CURRENT);
 	}
@@ -323,5 +323,5 @@ cleanup:
 
 void Prefs::set_button_label() {
 	Setter s;
-	blabel->set_text(s.ref(prefs().button).get_button_text());
+	blabel->set_text(s.ref(prefs.button).get_button_text());
 }

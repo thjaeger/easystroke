@@ -87,7 +87,7 @@ void quit(int) {
 }
 
 Trace *init_trace() {
-	switch(prefs().trace.get()) {
+	switch(prefs.trace.get()) {
 		case TraceNone:
 			return new Trivial();
 		case TraceShape:
@@ -635,7 +635,7 @@ class StrokeHandler : public Handler {
 			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 		if (!is_gesture)
 			cur->clear();
-		if (b && prefs().advanced_ignore.get())
+		if (b && prefs.advanced_ignore.get())
 			cur->clear();
 		return Stroke::create(*cur, button, b);
 	}
@@ -684,14 +684,14 @@ protected:
 		parent->replace_child(0);
 	}
 	virtual void motion(int x, int y, Time t) {
-		if (!repeated && xinput_pressed.count(button) && !prefs().ignore_grab.get()) {
+		if (!repeated && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
 			if (verbosity >= 2)
 				printf("Ignoring xi-only stroke\n");
 			parent->replace_child(0);
 			return;
 		}
 		cur->add(x,y,t);
-		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get())
+		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get()) {
 			is_gesture = true;
 		if (!drawing && hypot(x-orig.x, y-orig.y) > 4) {
 			drawing = true;
@@ -723,7 +723,7 @@ protected:
 			return;
 		RStroke s = finish(b);
 
-		if (gui && stroke_action()) {
+		if (gui && stroke_action) {
 			handle_stroke(s, button, b);
 			parent->replace_child(0);
 			return;
@@ -997,17 +997,19 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
 		s->print();
+	Setter setter;
+	ActionDB &as = setter.ref(actions);
 	if (gui) {
-		if (!stroke_action()(s)) {
-			Ranking ranking = actions().handle(s);
+		if (!stroke_action(s)) {
+			Ranking ranking = as.handle(s);
 			if (ranking.id == -1)
 				press_button = trigger;
-			if (ranking.id != -1 || prefs().show_clicks.get())
+			if (ranking.id != -1 || prefs.show_clicks.get())
 				win->stroke_push(ranking);
 		}
 		win->icon_push(s);
 	} else {
-		if (actions().handle(s).id == -1)
+		if (as.handle(s).id == -1)
 			press_button = trigger;
 	}
 }
@@ -1084,8 +1086,11 @@ void Main::run() {
 		exit(EXIT_FAILURE);
 	}
 
-	actions().read();
-	prefs().read();
+	{
+		Setter s;
+		s.ref(actions).read();
+		prefs.read();
+	}
 
 	grabber = new Grabber;
 	grabber_mutex->unlock();
@@ -1136,7 +1141,7 @@ void Main::run() {
 			if (*ret == P_RESTORE_GRAB)
 				grabber->resume();
 			if (*ret == P_UPDATE_CURRENT) {
-				prefs().write();
+				prefs.write();
 				grabber->update(current);
 			}
 			if (*ret == P_UPDATE_TRACE) {
@@ -1275,7 +1280,7 @@ void Main::run() {
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
 					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
 					if (xi_dev && xi_dev->supports_pressure && prefs().pressure_abort.get())
-						if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
+						if (xi_dev->normalize_pressure(mev->axis_data[2]) >= 
 								prefs().pressure_threshold.get())
 						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)

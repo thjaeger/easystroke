@@ -305,14 +305,14 @@ void Grabber::set() {
 	}
 	if (grabbed == BUTTON) {
 		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XGrabButton(dpy, j->first, j->second, ROOT, False,
+			XGrabButton(dpy, j->first, j->second, ROOT, False, 
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
-			XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False,
+			XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False, 
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
 		}
-		timing_workaround = !is_grabbed(1) && prefs().timing_workaround.get();
+		timing_workaround = !is_grabbed(1) && prefs.timing_workaround.get();
 		if (timing_workaround)
 			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
@@ -337,7 +337,7 @@ void Grabber::set() {
 
 void Grabber::get_button() {
 	Setter s;
-	ButtonInfo &bi = s.ref(prefs().button);
+	ButtonInfo &bi = s.ref(prefs.button);
 	buttons.clear();
 	buttons[bi.button] = bi.state;
 }

@@ -159,9 +159,9 @@ template <class T> void Var<T>::update(In<T> *exclude) {
 	}
 }
 
-template <class T> const T Var<T>::get() { 
-	Glib::RecMutex::Lock foo(Setter::mutex); 
-	return v; 
+template <class T> const T Var<T>::get() {
+	Glib::RecMutex::Lock foo(Setter::mutex);
+	return v;
 }
 
 template <class X> class Identity : public Fun<X,X> {

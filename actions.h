@@ -5,7 +5,6 @@
 #include "cellrenderertk/cellrenderertkmm.h"
 
 class Win;
-class ActionDBRef;
 
 class Actions {
 public:
@@ -31,7 +30,7 @@ private:
 	void focus(int id, int col, bool edit);
 
 	bool good_state;
-	void write(ActionDBRef&);
+	void write();
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:

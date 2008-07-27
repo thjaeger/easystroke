@@ -9,7 +9,6 @@
 #include <iostream>
 
 #include "stroke.h"
-#include "locking.h"
 #include "prefdb.h"
 
 class Action;
@@ -200,7 +199,6 @@ class ActionDB {
 	}
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-	std::string filename;
 	int current_id;
 	int add(StrokeInfo &);
 public:
@@ -224,13 +222,5 @@ public:
 };
 BOOST_CLASS_VERSION(ActionDB, 1)
 
-class LActionDB : public Lock<ActionDB> {
-public:
-	void read() { Ref<ActionDB> ref(*this); ref->read(); }
-	Ranking handle(RStroke s) { Ref<ActionDB> ref(*this); return ref->handle(s); }
-	bool remove(int id) { Ref<ActionDB> ref(*this); return ref->remove(id); }
-	int addCmd(RStroke s, const std::string& name, const std::string& cmd) { Ref<ActionDB> ref(*this); return ref->addCmd(s, name, cmd); }
-};
-
-LActionDB& actions();
+extern Var<ActionDB> actions;
 #endif

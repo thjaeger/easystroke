@@ -128,14 +128,15 @@ void Stats::on_pdf() {
 	{
 	const int S = 32;
 	const int B = 1;
-	Ref<ActionDB> ref(actions());
-	const int n = ref->nested_size();
-	Cairo::RefPtr<Cairo::PdfSurface> s = Cairo::PdfSurface::create("/tmp/strokes.pdf", (n+1)*S, (n+1)*S);
-	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(s);
+	Setter s;
+	ActionDB &as = s.ref(actions);
+	const int n = as.nested_size();
+	Cairo::RefPtr<Cairo::PdfSurface> surface = Cairo::PdfSurface::create("/tmp/strokes.pdf", (n+1)*S, (n+1)*S);
+	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
 	int k = 1;
-	for (StrokeIterator i = ref->strokes_begin(); i; i++, k++) {
-		i.stroke()->draw(s, k*S+B, B, S-2*B, S-2*B, false);
-		i.stroke()->draw(s, B, k*S+B, S-2*B, S-2*B, false);
+	for (StrokeIterator i = as.strokes_begin(); i; i++, k++) {
+		i.stroke()->draw(surface, k*S+B, B, S-2*B, S-2*B, false);
+		i.stroke()->draw(surface, B, k*S+B, S-2*B, S-2*B, false);
 
 		ctx->set_source_rgba(0,0,0,1);
 		ctx->set_line_width(1);
@@ -146,7 +147,7 @@ void Stats::on_pdf() {
 		ctx->stroke();
 
 		int l = 1;
-		for (StrokeIterator j= ref->strokes_begin(); j; j++, l++) {
+		for (StrokeIterator j= as.strokes_begin(); j; j++, l++) {
 			float score = Stroke::compare(i.stroke(), j.stroke());
 			if (score > 0.7) {
 				ctx->save();

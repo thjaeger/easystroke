@@ -95,7 +95,7 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-ActionDB::ActionDB() : filename(config_dir+"actions"), current_id(0) {}
+ActionDB::ActionDB() : current_id(0) {}
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version >= 1) {
@@ -116,6 +116,7 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 }
 
 void ActionDB::read() {
+	std::string filename = config_dir+"actions";
 	try {
 		ifstream ifs(filename.c_str(), ios::binary);
 		boost::archive::text_iarchive ia(ifs);
@@ -128,6 +129,7 @@ void ActionDB::read() {
 }
 
 bool ActionDB::write() const {
+	std::string filename = config_dir+"actions";
 	try {
 		ofstream ofs(filename.c_str());
 		boost::archive::text_oarchive oa(ofs);
@@ -211,7 +213,4 @@ Ranking ActionDB::handle(RStroke s) {
 	return r;
 }
 
-LActionDB& actions() {
-	static LActionDB actions_;
-	return actions_;
-}
+Var<ActionDB> actions;

@@ -16,7 +16,6 @@ const int default_radius = 16;
 const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
-	filename(config_dir+"preferences"),
 	p(default_p),
 	button(default_button),
 	trace(TraceShape),
@@ -31,6 +30,7 @@ PrefDB::PrefDB() :
 {}
 
 bool PrefDB::write() const {
+	std::string filename = config_dir+"preferences";
 	try {
 		std::ofstream ofs(filename.c_str());
 		boost::archive::text_oarchive oa(ofs);
@@ -46,6 +46,7 @@ bool PrefDB::write() const {
 }
 
 void PrefDB::read() {
+	std::string filename = config_dir+"preferences";
 	try {
 		std::ifstream ifs(filename.c_str(), std::ios::binary);
 		boost::archive::text_iarchive ia(ifs);
@@ -57,8 +58,4 @@ void PrefDB::read() {
 	}
 }
 
-PrefDB& prefs() {
-	static PrefDB prefs_;
-	return prefs_;
-}
-
+PrefDB prefs;

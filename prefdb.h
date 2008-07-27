@@ -5,7 +5,6 @@
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/version.hpp>
 
-#include "locking.h"
 #include "var.h"
 
 enum TraceType { TraceStandard, TraceShape, TraceNone };
@@ -67,7 +66,6 @@ class PrefDB {
 		ar & s.ref(pressure_threshold);
 		ar & s.ref(proximity);
 	}
-	std::string filename;
 public:
 	PrefDB();
 
@@ -90,5 +88,5 @@ public:
 
 BOOST_CLASS_VERSION(PrefDB, 4)
 
-PrefDB& prefs();
+extern PrefDB prefs;
 #endif

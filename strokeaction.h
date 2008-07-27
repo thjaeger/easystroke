@@ -1,35 +1,35 @@
 #ifndef __STROKEACTION_H__
 #define __STROKEACTION_H__
 #include "stroke.h"
-#include "locking.h"
+#include "var.h"
 
-class StrokeAction : private Lock<boost::shared_ptr<sigc::slot<void, RStroke> > > {
-	typedef Ref<boost::shared_ptr<sigc::slot<void, RStroke> > > R;
+class StrokeAction : private Var<boost::shared_ptr<sigc::slot<void, RStroke> > > {
+	typedef boost::shared_ptr<sigc::slot<void, RStroke> > SA;
 public:
 	operator bool() {
-		R ref(*this);
-		return *ref;
+		return get();
 	}
-	bool operator()(RStroke s) {
-		R ref(*this);
-		if (!(*ref))
+	bool operator()(RStroke stroke) {
+		Setter s;
+		SA &sa = s.ref(*this);
+		if (!sa)
 			return false;
-		(**ref)(s);
-		ref->reset();
+		(*sa)(stroke);
+		sa.reset();
 		return true;
 	}
 
 	void erase() {
-		R ref(*this);
-		ref->reset();
+		Setter s;
+		s.ref(*this).reset();
 	}
 
 	void set(sigc::slot<void, RStroke> f) {
-		R ref(*this);
-		ref->reset(new sigc::slot<void, RStroke>(f));
+		Setter s;
+		s.ref(*this).reset(new sigc::slot<void, RStroke>(f));
 	}
 };
 
-StrokeAction& stroke_action();
+extern StrokeAction stroke_action;
 
 #endif
