@@ -10,12 +10,7 @@
 enum TraceType { TraceStandard, TraceShape, TraceNone };
 const int trace_n = 3;
 
-struct ButtonInfo {
-	guint button;
-	guint state;
-	void press();
-	Glib::ustring get_button_text();
-private:
+class ButtonInfo {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		ar & button;
@@ -26,6 +21,11 @@ private:
 			return;
 		}
 	}
+public:
+	guint button;
+	guint state;
+	void press();
+	Glib::ustring get_button_text() const;
 };
 BOOST_CLASS_VERSION(ButtonInfo, 2)
 
@@ -37,14 +37,14 @@ class PrefDB {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		Setter s;
-		ar & s.ref(exceptions);
-		ar & s.ref(p);
-		ar & s.ref(button);
+		ar & s.write_ref(exceptions);
+		ar & s.write_ref(p);
+		ar & s.write_ref(button);
 		if (version <= 1) {
 			bool help;
 			ar & help;
 		}
-		ar & s.ref(trace);
+		ar & s.write_ref(trace);
 		if (version <= 2) {
 			int delay;
 			ar & delay;
@@ -56,15 +56,15 @@ class PrefDB {
 			return;
 		}
 		if (version <= 1) return;
-		ar & s.ref(advanced_ignore);
-		ar & s.ref(radius);
+		ar & s.write_ref(advanced_ignore);
+		ar & s.write_ref(radius);
 		if (version <= 3) return;
-		ar & s.ref(ignore_grab);
-		ar & s.ref(timing_workaround);
-		ar & s.ref(show_clicks);
-		ar & s.ref(pressure_abort);
-		ar & s.ref(pressure_threshold);
-		ar & s.ref(proximity);
+		ar & s.write_ref(ignore_grab);
+		ar & s.write_ref(timing_workaround);
+		ar & s.write_ref(show_clicks);
+		ar & s.write_ref(pressure_abort);
+		ar & s.write_ref(pressure_threshold);
+		ar & s.write_ref(proximity);
 	}
 public:
 	PrefDB();

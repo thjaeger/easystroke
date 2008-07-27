@@ -180,6 +180,9 @@ public:
 	const int& id() {
 		return i->first;
 	}
+	const std::string name() {
+		return i->second.name;
+	}
 	// Guaranteed to be dereferencable
 	RStroke stroke() {
 		return *j;
@@ -206,7 +209,7 @@ public:
 	typedef std::map<int, StrokeInfo>::const_iterator const_iterator;
 	const const_iterator begin() const { return strokes.begin(); }
 	const const_iterator end() const { return strokes.end(); }
-	StrokeIterator strokes_begin() { return StrokeIterator(strokes); }
+	StrokeIterator strokes_begin() const { return StrokeIterator(strokes); }
 
 	const StrokeInfo &lookup(int id) const { return strokes.find(id)->second; }
 	StrokeInfo &operator[](int id) { return strokes[id]; }
@@ -218,7 +221,7 @@ public:
 	bool remove(int id);
 	int nested_size() const;
 	int addCmd(RStroke, const std::string& name, const std::string& cmd);
-	Ranking handle(RStroke);
+	Ranking handle(RStroke) const;
 };
 BOOST_CLASS_VERSION(ActionDB, 1)
 

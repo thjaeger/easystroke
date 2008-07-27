@@ -171,7 +171,7 @@ int ActionDB::nested_size() const {
 	return size;
 }
 
-Ranking ActionDB::handle(RStroke s) {
+Ranking ActionDB::handle(RStroke s) const {
 	Ranking r;
 	r.stroke = s;
 	r.score = -1;
@@ -185,12 +185,13 @@ Ranking ActionDB::handle(RStroke s) {
 		double score = Stroke::compare(s, i.stroke());
 		if (score < -1.5)
 			continue;
-		r.r.insert(pair<double, pair<std::string, RStroke> >(score, pair<std::string, RStroke>(strokes[i.id()].name, i.stroke())));
+		r.r.insert(pair<double, pair<std::string, RStroke> >
+				(score, pair<std::string, RStroke>(i.name(), i.stroke())));
 		if (score >= r.score) {
 			r.score = score;
 			if (score >= 0.7) {
 				r.id = i.id();
-				r.name = strokes[r.id].name;
+				r.name = i.name();
 				r.action = i.action();
 				success = true;
 			}

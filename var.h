@@ -141,7 +141,9 @@ public:
 	Setter() { mutex.lock(); }
 	~Setter() { mutex.unlock(); }
 
-	template <class T> T &ref(Var<T> &v) { return v.v; }
+	template <class T> const T &ref(Var<T> &v) { return v.v; }
+	// write_refs are evil
+	template <class T> T &write_ref(Var<T> &v) { return v.v; }
 
 	template <class T> void set(VarE<T> &, T);
 	template <class T> void set(VarI<T> &, T);

@@ -3,7 +3,7 @@
 #include "stroke.h"
 #include "var.h"
 
-class StrokeAction : private Var<boost::shared_ptr<sigc::slot<void, RStroke> > > {
+class StrokeAction : private VarE<boost::shared_ptr<sigc::slot<void, RStroke> > > {
 	typedef boost::shared_ptr<sigc::slot<void, RStroke> > SA;
 public:
 	operator bool() {
@@ -11,22 +11,22 @@ public:
 	}
 	bool operator()(RStroke stroke) {
 		Setter s;
-		SA &sa = s.ref(*this);
-		if (!sa)
+		if (!get())
 			return false;
+		const SA &sa = s.ref(*this);
 		(*sa)(stroke);
-		sa.reset();
+		erase();
 		return true;
 	}
 
 	void erase() {
 		Setter s;
-		s.ref(*this).reset();
+		s.set(*this, SA());
 	}
 
 	void set(sigc::slot<void, RStroke> f) {
 		Setter s;
-		s.ref(*this).reset(new sigc::slot<void, RStroke>(f));
+		s.set(*this, SA(new sigc::slot<void, RStroke>(f)));
 	}
 };
 

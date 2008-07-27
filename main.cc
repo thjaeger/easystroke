@@ -998,7 +998,7 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	if (verbosity >= 4)
 		s->print();
 	Setter setter;
-	ActionDB &as = setter.ref(actions);
+	const ActionDB &as = setter.ref(actions);
 	if (gui) {
 		if (!stroke_action(s)) {
 			Ranking ranking = as.handle(s);
@@ -1088,7 +1088,7 @@ void Main::run() {
 
 	{
 		Setter s;
-		s.ref(actions).read();
+		s.write_ref(actions).read();
 		prefs.read();
 	}
 
@@ -1323,7 +1323,12 @@ Main::~Main() {
 	delete kit;
 }
 
+extern void test();
 int main(int argc, char **argv) {
+#if 0
+	test();
+	return 0;
+#endif
 	Main mn(argc, argv);
 
 	if (gui) {

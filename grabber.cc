@@ -337,7 +337,7 @@ void Grabber::set() {
 
 void Grabber::get_button() {
 	Setter s;
-	ButtonInfo &bi = s.ref(prefs.button);
+	const ButtonInfo &bi = s.ref(prefs.button);
 	buttons.clear();
 	buttons[bi.button] = bi.state;
 }

@@ -230,7 +230,7 @@ bool SelectButton::on_button_press(GdkEventButton *ev) {
 
 void Prefs::on_select_button() {
 	Setter s;
-	ButtonInfo &bi = s.ref(prefs.button);
+	ButtonInfo &bi = s.write_ref(prefs.button);
 	SelectButton sb(bi);
 	if (!sb.run())
 		return;
@@ -269,7 +269,7 @@ void Prefs::on_selected(std::string &str) {
 	bool is_new;
 	{
 		Setter s;
-		is_new = s.ref(prefs.exceptions).insert(str).second;
+		is_new = s.write_ref(prefs.exceptions).insert(str).second;
 	}
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
@@ -292,7 +292,7 @@ void Prefs::on_remove() {
 	if (path.gobj() != 0) {
 		Gtk::TreeIter iter = *tm->get_iter(path);
 		Setter s;
-		s.ref(prefs.exceptions).erase((Glib::ustring)((*iter)[cols.col]));
+		s.write_ref(prefs.exceptions).erase((Glib::ustring)((*iter)[cols.col]));
 		tm->erase(iter);
 		send(P_UPDATE_CURRENT);
 	}

@@ -42,7 +42,7 @@ Actions::Actions() :
 	Gtk::TreeModel::Row row;
 	{
 		Setter s;
-		ActionDB &as = s.ref(actions);
+		const ActionDB &as = s.ref(actions);
 		for (ActionDB::const_iterator i = as.begin(); i!=as.end(); i++) {
 			const StrokeInfo &si = i->second;
 			row = *(tm->append());
@@ -144,7 +144,7 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 		row[cols.type] = new_type;
 		int id = row[cols.id];
 		Setter s;
-		ActionDB &as = s.ref(actions);
+		ActionDB &as = s.write_ref(actions);
 		if (both_keys) {
 			RSendKey key = boost::dynamic_pointer_cast<SendKey>(as[id].action);
 			if (key) {
@@ -226,7 +226,7 @@ void Actions::on_button_delete() {
 	for (std::vector<Gtk::TreeRowReference>::iterator i = refs.begin(); i != refs.end(); ++i)
 		tm->erase(*tm->get_iter(i->get_path()));
 	Setter s;
-	ActionDB &as = s.ref(actions);
+	ActionDB &as = s.write_ref(actions);
 	for (std::vector<int>::iterator i = ids.begin(); i != ids.end(); ++i)
 		as.remove(*i);
 	write();
@@ -242,7 +242,7 @@ public:
 		: parent(parent_), dialog(dialog_), id(id_), pb(pb_) {}
 	void run(RStroke stroke) {
 		Setter s;
-		ActionDB &as = s.ref(actions);
+		ActionDB &as = s.write_ref(actions);
 		StrokeInfo &si = as[id];
 		si.strokes.clear();
 		si.strokes.insert(stroke);
@@ -275,7 +275,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 		return;
 
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
-	s.ref(actions)[row[cols.id]].strokes.clear();
+	s.write_ref(actions)[row[cols.id]].strokes.clear();
 	write();
 }
 
@@ -327,7 +327,7 @@ void Actions::on_button_new() {
 	char buf[16];
 	Setter s;
 	snprintf(buf, 15, "Gesture %d", s.ref(actions).size()+1);
-	row[cols.id] = s.ref(actions).addCmd(RStroke(), buf, "");
+	row[cols.id] = s.write_ref(actions).addCmd(RStroke(), buf, "");
 	row[cols.name] = buf;
 
 	Gtk::TreePath path = tm->get_path(row);
@@ -366,7 +366,7 @@ void Actions::focus(int id, int col, bool edit) {
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
 	Gtk::TreeRow row(*tm->get_iter(path));
 	Setter s;
-	s.ref(actions)[row[cols.id]].name = new_text;
+	s.write_ref(actions)[row[cols.id]].name = new_text;
 	write();
 	row[cols.name] = new_text;
 	focus(row[cols.id], 2, editing_new);
@@ -377,7 +377,7 @@ void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_
 	row[cols.arg] = new_cmd;
 	int id = row[cols.id];
 	Setter s;
-	ActionDB &as = s.ref(actions);
+	ActionDB &as = s.write_ref(actions);
 	RCommand c = boost::dynamic_pointer_cast<Command>(as[id].action);
 	if (c)
 		c->cmd = new_cmd;
@@ -389,7 +389,7 @@ void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_
 void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
 	Gtk::TreeRow row(*tm->get_iter(path_string));
 	Setter s;
-	ActionDB &as = s.ref(actions);
+	ActionDB &as = s.write_ref(actions);
 	if (IS_KEY(row[cols.type])) {
 		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode, row[cols.type] == KEY_XTEST);
 		Glib::ustring str = send_key->get_label();
@@ -433,7 +433,7 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	if (row[cols.type] != Glib::ustring(BUTTON))
 		return;
 	Setter s;
-	ActionDB &as = s.ref(actions);
+	ActionDB &as = s.write_ref(actions);
 	RButton bt = boost::static_pointer_cast<Button>(as[row[cols.id]].action);
 	ButtonInfo bi = bt->get_button_info();
 	SelectButton sb(bi, false);
@@ -463,7 +463,7 @@ const Glib::ustring ModAction::get_label() const {
 	return label.substr(0,label.size()-1);
 }
 
-Glib::ustring ButtonInfo::get_button_text() {
+Glib::ustring ButtonInfo::get_button_text() const {
 	Glib::ustring str = Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
 	char name[16];
 	snprintf(name, 15, "Button %d", button);
