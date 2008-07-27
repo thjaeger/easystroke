@@ -1,8 +1,5 @@
 DESTDIR  =
 PREFIX   = /usr/local
-BINDIR   = $(PREFIX)/bin
-ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
-MENUDIR  = $(PREFIX)/share/applications
 DFLAGS   = #-ggdb #-pg
 OFLAGS   = -Os
 AOFLAGS  = -O3
