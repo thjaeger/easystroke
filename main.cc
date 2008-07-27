@@ -282,8 +282,9 @@ public:
 
 class ScrollHandler : public AbstractScrollHandler {
 	guint pressed, pressed2;
+	bool moved;
 public:
-	ScrollHandler() : pressed(0), pressed2(0) {
+	ScrollHandler() : pressed(0), pressed2(0), moved(false) {
 	}
 	ScrollHandler(guint b, guint b2) : pressed(b), pressed2(b2) {
 	}
@@ -312,7 +313,20 @@ public:
 			replace_child(new WaitForButtonHandler(pressed, true));
 		}
 	}
+	virtual void motion(int x, int y, Time t) {
+		if (!pressed && !pressed2)
+			moved = true;
+		AbstractScrollHandler::motion(x,y,t);
+	}
 	virtual void press(guint b, int x, int y, Time t) {
+		if (!pressed && !pressed2 && moved) {
+			clear_mods();
+			parent->replace_child(0);
+			if (grabber->is_grabbed(b))
+				parent->press(b,x,y,t);
+			XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+			return;
+		}
 		if (b != 4 && b != 5 && !pressed)
 			pressed = b;
 	}
