@@ -141,16 +141,18 @@ public:
 	Setter() { mutex.lock(); }
 	~Setter() { mutex.unlock(); }
 
-	template <class T> const T &ref(Var<T> &v) { return v.v; }
-	// write_refs are evil
-	template <class T> T &write_ref(Var<T> &v) { return v.v; }
-
+	template <class T> void connect(In<T> *f, Var<T> &x);
+	template <class T> void connect(Out<T> *f, VarE<T> &y);
 	template <class T> void set(VarE<T> &, T);
 	template <class T> void set(VarI<T> &, T);
 	template <class T> void set(VarE<T> &y, Var<T> &x);
 	template <class X, class Y> void set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x);
 	template <class T> void identify(VarI<T> &y, VarI<T> &x);
 	template <class X, class Y> void identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x);
+
+	template <class T> const T &ref(Var<T> &v) { return v.v; }
+	// write_refs are evil
+	template <class T> T &write_ref(Var<T> &v) { return v.v; }
 };
 
 template <class T> void Var<T>::update(In<T> *exclude) {
@@ -170,14 +172,21 @@ template <class X> class Identity : public Fun<X,X> {
 	X run(X &x) { return x; }
 };
 
+template <class T> void Setter::connect(In<T> *f, Var<T> &x) {
+	x.out.insert(f);
+	f->parent = &x;
+}
+
+template <class T> void Setter::connect(Out<T> *f, VarE<T> &y) {
+	y.in = f;
+	f->parent = &y;
+}
+
 template <class X, class Y> void Setter::set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x) {
 	y.freeze();
-	y.v = f->run(x.v);
-	y.in = f;
-	x.out.insert(f);
-	((In<X> *)f)->parent = &x;
-	((Out<Y> *)f)->parent = &y;
-	y.update();
+	connect(f, x);
+	connect(f, y);
+	f->notify(x.v);
 }
 
 template <class T> void Setter::set(VarE<T> &y, Var<T> &x) {
@@ -201,12 +210,9 @@ template <class X> class BiIdentity : public BiFun<X,X> {
 };
 
 template <class X, class Y> void Setter::identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x) {
-	y.v = f->run1(x.v);
-	x.out.insert(f->part1);
-	y.out.insert(f->part2);
-	f->part1->parent = &x;
-	f->part2->parent = &y;
-	y.update(f->part2);
+	connect(f->part1, x);
+	connect(f->part2, y);
+	f->part1->notify(x.v);
 }
 
 template <class T> void Setter::identify(VarI<T> &y, VarI<T> &x) {
