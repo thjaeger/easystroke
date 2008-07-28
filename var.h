@@ -12,9 +12,6 @@ public:
 	~Atomic() { global_mutex.unlock(); }
 };
 
-template <class T> class In;
-template <class T> class Out;
-template <class T> class IO;
 template <class T> class Var;
 template <class T> class VarE;
 template <class T> class VarI;
@@ -72,47 +69,26 @@ public:
 
 #define FUN(YT,Y,XT,X,F) class MakeName : public Fun<XT,YT> { virtual YT run(XT &X) { return F; } }; Fun<XT,YT> *Y = new MakeName;
 
-/* duplicate base type ‘IO<int>’ invalid :(
-template <class X, class Y> class BiFun : public IO<X>, IO<Y> {
+template <class T> class IO1 : public IO<T> {
+protected:
+	virtual void notify1(T &x) = 0;
 public:
-	virtual Y run1(X &x) = 0;
-	virtual X run2(Y &y) = 0;
-	virtual void notify(X &x) { IO<Y>::set(run1(x)); }
-	virtual void notify(Y &y) { IO<X>::set(run1(y)); }
+	virtual void notify(T &x) { notify1(x); }
 };
-*/
-template <class X, class Y> class BiFun {
-	friend class VarI<X>;
-	friend class VarI<Y>;
-	class Part1 : public IO<X> {
-		friend class BiFun;
-		BiFun<X,Y> *p;
-		Part1(BiFun *p_) : p(p_) {}
-	public:
-		virtual ~Part1() { p->part1 = 0; delete p; }
-		virtual void notify(X &x) { p->part2->set(p->run1(x)); }
-	};
-	Part1 *part1;
-	class Part2 : public IO<Y> {
-		friend class BiFun;
-		BiFun<X,Y> *p;
-		Part2(BiFun *p_) : p(p_) {}
-	public:
-		virtual ~Part2() { p->part2 = 0; delete p; }
-		virtual void notify(Y &y) { p->part1->set(p->run2(y)); }
-	};
-	Part2 *part2;
+
+template <class T> class IO2 : public IO<T> {
+protected:
+	virtual void notify2(T &x) = 0;
+public:
+	virtual void notify(T &x) { notify2(x); }
+};
+
+template <class X, class Y> class BiFun : public IO1<X>, public IO2<Y> {
 public:
 	virtual Y run1(X &x) = 0;
 	virtual X run2(Y &y) = 0;
-	BiFun() {
-		part1 = new Part1(this);
-		part2 = new Part2(this);
-	}
-	~BiFun() {
-		if (part1) delete part1;
-		if (part2) delete part2;
-	}
+	virtual void notify1(X &x) { IO2<Y>::set(run1(x)); }
+	virtual void notify2(Y &y) { IO1<X>::set(run2(y)); }
 };
 
 template <class T> class Var {
@@ -188,8 +164,10 @@ public:
 	}
 	template <class X> void identify(BiFun<X, T> *f, VarI<X> &x) {
 		Atomic a;
-		connect(f->part2, false);
-		x.connect(f->part1, true);
+		IO2<T> *f2 = f;
+		connect(f2, false);
+		IO1<X> *f1 = f;
+		x.connect(f1, true);
 	}
 	void identify(VarI<T> &x) {
 		class BiIdentity : public BiFun<T,T> {
