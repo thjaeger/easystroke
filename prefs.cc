@@ -11,9 +11,9 @@ extern "C" {
 #include <set>
 #include <iostream>
 
-VarE<bool> xinput_v = false;
-VarE<bool> supports_pressure = false;
-VarE<bool> supports_proximity = false;
+VarI<bool> xinput_v = false;
+VarI<bool> supports_pressure = false;
+VarI<bool> supports_proximity = false;
 
 bool good_state = true;
 

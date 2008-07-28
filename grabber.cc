@@ -6,7 +6,7 @@
 bool no_xi = false;
 Grabber *grabber = 0;
 
-extern VarE<bool> xinput_v, supports_pressure, supports_proximity;
+extern VarI<bool> xinput_v, supports_pressure, supports_proximity;
 
 const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
 
