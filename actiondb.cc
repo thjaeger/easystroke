@@ -171,11 +171,11 @@ int ActionDB::nested_size() const {
 	return size;
 }
 
-Ranking ActionDB::handle(RStroke s) const {
-	Ranking r;
-	r.stroke = s;
-	r.score = -1;
-	r.id = -2;
+Ranking *ActionDB::handle(RStroke s) const {
+	Ranking *r = new Ranking;
+	r->stroke = s;
+	r->score = -1;
+	r->id = -2;
 	bool success = false;
 	if (!s)
 		return r;
@@ -185,28 +185,28 @@ Ranking ActionDB::handle(RStroke s) const {
 		double score = Stroke::compare(s, i.stroke());
 		if (score < -1.5)
 			continue;
-		r.r.insert(pair<double, pair<std::string, RStroke> >
+		r->r.insert(pair<double, pair<std::string, RStroke> >
 				(score, pair<std::string, RStroke>(i.name(), i.stroke())));
-		if (score >= r.score) {
-			r.score = score;
+		if (score >= r->score) {
+			r->score = score;
 			if (score >= 0.7) {
-				r.id = i.id();
-				r.name = i.name();
-				r.action = i.action();
+				r->id = i.id();
+				r->name = i.name();
+				r->action = i.action();
 				success = true;
 			}
 		}
 	}
 	if (!success && s->trivial()) {
-		r.id = -1;
-		r.name = "click (default)";
+		r->id = -1;
+		r->name = "click (default)";
 		success = true;
 	}
 	if (success) {
 		if (verbosity >= 1)
-			cout << "Excecuting Action " << r.name << "..." << endl;
-		if (r.action)
-			r.action->run();
+			cout << "Excecuting Action " << r->name << "..." << endl;
+		if (r->action)
+			r->action->run();
 	} else {
 		if (verbosity >= 1)
 			cout << "Couldn't find matching stroke." << endl;

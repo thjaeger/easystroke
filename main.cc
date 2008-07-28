@@ -990,16 +990,18 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	const ActionDB &as = setter.ref(actions);
 	if (gui) {
 		if (!stroke_action(s)) {
-			Ranking ranking = as.handle(s);
-			if (ranking.id == -1)
+			Ranking *ranking = as.handle(s);
+			if (ranking->id == -1)
 				press_button = trigger;
-			if (ranking.id != -1 || prefs.show_clicks.get())
+			if (ranking->id != -1 || prefs.show_clicks.get())
 				win->stroke_push(ranking);
 		}
 		win->icon_push(s);
 	} else {
-		if (as.handle(s).id == -1)
+		Ranking *ranking = as.handle(s);
+		if (ranking->id == -1)
 			press_button = trigger;
+		delete ranking;
 	}
 }
 

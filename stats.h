@@ -8,11 +8,11 @@ class Ranking;
 class Stats {
 public:
 	Stats();
-	void stroke_push(Ranking&);
+	void stroke_push(Ranking *);
 	virtual ~Stats();
 private:
 	void on_pdf();
-	void on_stroke(Ranking&);
+	void on_stroke(Ranking *);
 	void on_cursor_changed();
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {

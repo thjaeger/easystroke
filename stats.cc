@@ -3,12 +3,12 @@
 #include "actiondb.h"
 #include <iomanip>
 
-class Stats::RankingQueue : public Queue<Ranking> {
+class Stats::RankingQueue : public Queue<Ranking *> {
 public:
-	RankingQueue(sigc::slot<void, Ranking&> cb) : Queue<Ranking>(cb) {}
+	RankingQueue(sigc::slot<void, Ranking *> cb) : Queue<Ranking *>(cb) {}
 };
 
-void Stats::stroke_push(Ranking &r) { r_queue->push(r); }
+void Stats::stroke_push(Ranking *r) { r_queue->push(r); }
 
 Stats::Stats() : r_queue(new RankingQueue(sigc::mem_fun(*this, &Stats::on_stroke))) {
 	Gtk::Button *button_matrix;
@@ -45,11 +45,11 @@ Stats::~Stats() {
 	delete r_queue;
 }
 
-void Stats::on_stroke(Ranking &r) {
+void Stats::on_stroke(Ranking *r) {
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
-	row[cols.stroke] = r.stroke->draw(STROKE_SIZE);
-	row[cols.name] = r.name;
-	row[cols.score] = Glib::ustring::format(std::fixed, std::setprecision(2), r.score*100) + "%";
+	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
+	row[cols.name] = r->name;
+	row[cols.score] = Glib::ustring::format(std::fixed, std::setprecision(2), r->score*100) + "%";
 
 	Glib::RefPtr<Gtk::ListStore> ranking_store = Gtk::ListStore::create(cols);
 	row[cols.child] = ranking_store;
@@ -65,12 +65,13 @@ void Stats::on_stroke(Ranking &r) {
 
 	}
 
-	for (std::multimap<double, std::pair<std::string, RStroke> >::iterator i = r.r.begin(); i != r.r.end(); i++) {
+	for (std::multimap<double, std::pair<std::string, RStroke> >::iterator i = r->r.begin(); i != r->r.end(); i++) {
 		Gtk::TreeModel::Row row2 = *(ranking_store->prepend());
 		row2[cols.stroke] = i->second.second->draw(STROKE_SIZE);
 		row2[cols.name] = i->second.first;
 		row2[cols.score] = Glib::ustring::format(std::fixed, std::setprecision(2), i->first * 100) + "%";
 	}
+	delete r;
 }
 
 #define GRAPH 0
