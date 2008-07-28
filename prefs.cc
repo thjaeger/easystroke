@@ -76,6 +76,7 @@ Pressure::Pressure() :
 
 void Pressure::on_changed() {
 	Check::on_changed();
+	Atomic a;
 	spin.spin->set_sensitive(b.get());
 	spin.button->set_sensitive(b.get());
 }
@@ -286,15 +287,13 @@ void Prefs::on_trace_changed() {
 		return;
 	if (prefs.trace.get() == type)
 		return;
-	Setter s;
-	s.set(prefs.trace, type);
+	prefs.trace.set(type);
 	send(P_UPDATE_TRACE);
 	write_prefs();
 }
 
 void Prefs::on_p_changed() {
-	Setter s;
-	s.set(prefs.p, scale_p->get_value());
+	prefs.p.set(scale_p->get_value());
 	write_prefs();
 }
 

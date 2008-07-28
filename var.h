@@ -20,7 +20,6 @@ template <class T> class VarE;
 template <class T> class VarI;
 
 template <class T> class In {
-	friend class Setter;
 	friend class Var<T>;
 protected:
 	Var<T> *parent;
@@ -34,7 +33,6 @@ public:
 };
 
 template <class T> class Out {
-	friend class Setter;
 	friend class VarE<T>;
 protected:
 	VarE<T> *parent;
@@ -148,7 +146,6 @@ public:
 };
 
 template <class T> class VarE : public Var<T> {
-	friend class Setter;
 	friend class Out<T>;
 	Out<T> *in;
 public:

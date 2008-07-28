@@ -266,7 +266,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	del->set_sensitive(s.ref(actions).lookup(row[cols.id]).strokes.size());
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
-	stroke_action.set(sigc::mem_fun(ps, &OnStroke::run));
+	stroke_action.set2(sigc::mem_fun(ps, &OnStroke::run));
 
 	int response = dialog->run();
 	dialog->hide();

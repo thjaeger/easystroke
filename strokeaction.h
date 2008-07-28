@@ -3,6 +3,7 @@
 #include "stroke.h"
 #include "var.h"
 
+
 class StrokeAction : private VarE<boost::shared_ptr<sigc::slot<void, RStroke> > > {
 	typedef boost::shared_ptr<sigc::slot<void, RStroke> > SA;
 public:
@@ -20,13 +21,11 @@ public:
 	}
 
 	void erase() {
-		Setter s;
-		s.set(*this, SA());
+		set(SA());
 	}
 
-	void set(sigc::slot<void, RStroke> f) {
-		Setter s;
-		s.set(*this, SA(new sigc::slot<void, RStroke>(f)));
+	void set2(sigc::slot<void, RStroke> f) {
+		set(SA(new sigc::slot<void, RStroke>(f)));
 	}
 };
 
