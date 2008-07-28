@@ -152,7 +152,7 @@ public:
 	VarE(T v) : Var<T>(v), in(0) {}
 	VarE() : Var<T>(), in(0) {}
 	void freeze() { delete in; }
-	void connect(Out<T> *f) {
+	void connectE(Out<T> *f) {
 		Atomic a;
 		in = f;
 		f->parent = this;
@@ -166,7 +166,7 @@ public:
 	template <class X> void assign(Fun<X, T> *f, Var<X> &x) {
 		Atomic a;
 		freeze();
-		connect(f);
+		connectE(f);
 		x.connect(f, true);
 	}
 	void assign(Var<T> &x) {

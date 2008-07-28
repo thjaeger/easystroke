@@ -19,8 +19,6 @@ public:
 	bool proximity_selected;
 	bool is_event(int, EventType);
 	unsigned int get_device_button_state();
-	bool supports_pressure();
-	bool supports_proximity();
 	void select_proximity();
 
 	struct XiDevice {
@@ -59,6 +57,7 @@ private:
 	std::string get_wm_state(Window w);
 	void grab_xi(bool);
 public:
+
 	Grabber();
 	~Grabber();
 	void init(Window w, int depth);

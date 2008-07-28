@@ -11,6 +11,10 @@ extern "C" {
 #include <set>
 #include <iostream>
 
+VarE<bool> xinput_v = false;
+VarE<bool> supports_pressure = false;
+VarE<bool> supports_proximity = false;
+
 bool good_state = true;
 
 void write_prefs() {
@@ -23,38 +27,49 @@ void write_prefs() {
 	}
 }
 
-class Check {
-protected:
-	VarI<bool> &b;
+class Check : public IO<bool> {
 	Gtk::CheckButton *check;
-	virtual void on_changed();
+	virtual void notify(bool &x) { check->set_active(x); }
+	void on_changed() {
+		set(check->get_active());
+		write_prefs();
+	}
 public:
-	Check(const Glib::ustring &, VarI<bool> &);
+	Check(const Glib::ustring &name) {
+		widgets->get_widget(name, check);
+		check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
+	}
 };
 
-class Spin {
-	friend class Pressure;
-	VarI<int> &i;
-	const int def;
+class Spin : public IO<int> {
 	Gtk::SpinButton *spin;
 	Gtk::Button *button;
-	void on_changed();
-	void on_default();
+	virtual void notify(int &x) { spin->set_value(x); }
+	void on_changed() {
+		set(spin->get_value());
+		write_prefs();
+	}
 public:
-	Spin(const Glib::ustring &, const Glib::ustring &, VarI<int> &, const int);
+	Spin(const Glib::ustring & name) {
+		widgets->get_widget(name, spin);
+		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
+	}
 };
 
-class Pressure : public Check {
-	virtual void on_changed();
-	Spin spin;
+template <class T> class ButtonSet {
+	VarI<T> &v;
+	T def;
+	void on_click() { v.set(def); }
 public:
-	Pressure();
+	ButtonSet(const Glib::ustring & name, VarI<T> &v_, T def_) : v(v_), def(def_) {
+		Gtk::Button *button;
+		widgets->get_widget(name, button);
+		button->signal_clicked().connect(sigc::mem_fun(*this, &ButtonSet::on_click));
+	}
 };
 
-class Proximity : public Check {
-	virtual void on_changed();
-public:
-	Proximity();
+class NotifyProx : public In<bool> {
+	virtual void notify(bool &x) { send(P_PROXIMITY); }
 };
 
 Check::Check(const Glib::ustring &name, VarI<bool> &b_) : b(b_) {
@@ -94,29 +109,26 @@ void Spin::on_changed() {
 	write_prefs();
 }
 
-void Spin::on_default() {
-	spin->set_value(def);
-}
-
-Proximity::Proximity() : Check("check_proximity", prefs.proximity) {}
-
-void Proximity::on_changed() {
-	Check::on_changed();
-	send(P_PROXIMITY);
-}
-
-extern Glib::Mutex *grabber_mutex; //TODO: This is a hack
-
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected))
 {
-	new Check("check_advanced_ignore", prefs.advanced_ignore);
-	new Check("check_ignore_grab", prefs.ignore_grab);
-	new Check("check_timing_workaround", prefs.timing_workaround);
-	new Check("check_show_clicks", prefs.show_clicks);
-	new Spin("spin_radius", "button_default_radius", prefs.radius, default_radius);
-	new Pressure;
-	new Proximity;
+	prefs.advanced_ignore.connect(new Check("check_advanced_ignore"), true);
+	prefs.ignore_grab.connect(new Check("check_ignore_grab"), true);
+	prefs.timing_workaround.connect(new Check("check_timing_workaround"), true);
+	prefs.show_clicks.connect(new Check("check_show_clicks"), true);
+
+	prefs.radius.connect(new Spin("spin_radius"), true);
+
+	prefs.pressure_abort.connect(new Check("check_pressure_abort"), true);
+	prefs.pressure_threshold.connect(new Spin("spin_pressure_threshold"), true);
+	prefs.pressure_abort.connect(new Sensitive("spin_pressure_threshold"), true);
+	prefs.pressure_abort.connect(new Sensitive("button_default_pressure_threshold"), true);
+
+	prefs.proximity.connect(new Check("check_proximity"), true);
+	prefs.proximity.connect(new NotifyProx, false);
+
+	new ButtonSet<int>("button_default_radius", prefs.radius, default_radius);
+	new ButtonSet<int>("button_default_pressure_threshold", prefs.pressure_threshold, default_pressure_threshold);
 
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
@@ -128,20 +140,10 @@ Prefs::Prefs() :
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("scale_p", scale_p);
 
-	grabber_mutex->lock();
-	grabber_mutex->unlock();
-	delete grabber_mutex;
-	grabber_mutex = 0;
-
-	Gtk::Widget *widget;
-	widgets->get_widget("check_timing_workaround", widget);
-	widget->set_sensitive(grabber->xinput);
-	widgets->get_widget("check_ignore_grab", widget);
-	widget->set_sensitive(grabber->xinput);
-	widgets->get_widget("hbox_pressure", widget);
-	widget->set_sensitive(grabber->supports_pressure());
-	widgets->get_widget("check_proximity", widget);
-	widget->set_sensitive(grabber->supports_proximity());
+	xinput_v.connect(new Sensitive("check_timing_workaround"), true);
+	xinput_v.connect(new Sensitive("check_ignore_grab"), true);
+	supports_pressure.connect(new Sensitive("hbox_pressure"), true);
+	supports_proximity.connect(new Sensitive("check_proximity"), true);
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);

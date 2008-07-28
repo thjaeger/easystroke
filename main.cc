@@ -872,8 +872,6 @@ public:
 	~Main();
 };
 
-Glib::Mutex *grabber_mutex = 0; //TODO: This is a hack
-
 Main::Main(int argc, char **argv) : kit(0) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
@@ -884,15 +882,6 @@ Main::Main(int argc, char **argv) : kit(0) {
 	create_config_dir();
 	grabber_mutex = new Glib::Mutex;
 	grabber_mutex->lock();
-
- 	int fds[2];
- 	if (pipe(fds))
-		printf("Error: pipe() failed\n");
- 	fdr = fds[0];
- 	fcntl(fdr, F_SETFL, O_NONBLOCK);
- 	fdw = fds[1];
-
- 	signal(SIGINT, &quit);
 }
 
 void Main::usage(char *me, bool good) {
@@ -1093,7 +1082,6 @@ void Main::run() {
 	}
 
 	grabber = new Grabber;
-	grabber_mutex->unlock();
 	grabber->grab(Grabber::BUTTON);
 
 	int error_basep;

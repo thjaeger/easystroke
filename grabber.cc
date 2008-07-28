@@ -6,6 +6,8 @@
 bool no_xi = false;
 Grabber *grabber = 0;
 
+extern VarE<bool> xinput_v, supports_pressure, supports_proximity;
+
 const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
 
 extern Window get_window(Window w, Atom prop);
@@ -133,6 +135,20 @@ bool Grabber::init_xi() {
 	event_presence = _XiGetDevicePresenceNotifyEvent(dpy);
 	presence_class =  (0x10000 | _devicePresence);
 
+	xinput_v.set(xi_devs_n);
+
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_pressure) {
+			supports_pressure.set(true);
+			break;
+		}
+
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_proximity) {
+			supports_proximity.set(true);
+			break;
+		}
+
 	return xi_devs_n;
 }
 
@@ -141,20 +157,6 @@ Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
 		if (xi_devs[i]->dev->device_id == id)
 			return xi_devs[i];
 	return 0;
-}
-
-bool Grabber::supports_pressure() {
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_pressure)
-			return true;
-	return false;
-}
-
-bool Grabber::supports_proximity() {
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity)
-			return true;
-	return false;
 }
 
 bool Grabber::is_event(int type, EventType et) {
