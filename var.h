@@ -4,9 +4,18 @@
 #include <set>
 #include <glibmm/thread.h>
 
+extern Glib::StaticRecMutex global_mutex;
+
+class Atomic {
+public:
+	Atomic() { global_mutex.lock(); }
+	~Atomic() { global_mutex.unlock(); }
+};
+
 template <class T> class In;
 template <class T> class Out;
 template <class T> class IO;
+template <class T> class Var;
 template <class T> class VarE;
 template <class T> class VarI;
 
@@ -22,6 +31,7 @@ public:
 	Var(T v_) : v(v_) {}
 	Var() {}
 	const T get();
+	void connect(In<T> *f, bool notify);
 };
 
 template <class T> class VarE : public Var<T> {
@@ -32,6 +42,7 @@ public:
 	VarE(T v) : Var<T>(v), in(0) {}
 	VarE() : Var<T>(), in(0) {}
 	void freeze() { delete in; }
+	void connect(Out<T> *f);
 };
 
 template <class T> class VarI : public Var<T> {
@@ -42,6 +53,7 @@ public:
 
 template <class T> class In {
 	friend class Setter;
+	friend class Var<T>;
 protected:
 	Var<T> *parent;
 public:
@@ -55,6 +67,7 @@ public:
 
 template <class T> class Out {
 	friend class Setter;
+	friend class VarE<T>;
 protected:
 	VarE<T> *parent;
 	void set(T x) {
@@ -135,14 +148,8 @@ public:
 	}
 };
 
-class Setter {
+class Setter : public Atomic {
 public:
-	static Glib::StaticRecMutex mutex;
-	Setter() { mutex.lock(); }
-	~Setter() { mutex.unlock(); }
-
-	template <class T> void connect(In<T> *f, Var<T> &x, bool notify);
-	template <class T> void connect(Out<T> *f, VarE<T> &y);
 	template <class T> void set(VarE<T> &, T);
 	template <class T> void set(VarI<T> &, T);
 	template <class T> void set(VarE<T> &y, Var<T> &x);
@@ -155,6 +162,20 @@ public:
 	template <class T> T &write_ref(Var<T> &v) { return v.v; }
 };
 
+template <class T> void Var<T>::connect(In<T> *f, bool notify) {
+	Atomic a;
+	out.insert(f);
+	f->parent = this;
+	if (notify)
+		f->notify(v);
+}
+
+template <class T> void VarE<T>::connect(Out<T> *f) {
+	Atomic a;
+	in = f;
+	f->parent = this;
+}
+
 template <class T> void Var<T>::update(In<T> *exclude) {
 	for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
 		In<T> *cur = *i;
@@ -164,7 +185,7 @@ template <class T> void Var<T>::update(In<T> *exclude) {
 }
 
 template <class T> const T Var<T>::get() {
-	Glib::RecMutex::Lock foo(Setter::mutex);
+	Atomic a;
 	return v;
 }
 
@@ -172,22 +193,10 @@ template <class X> class Identity : public Fun<X,X> {
 	X run(X &x) { return x; }
 };
 
-template <class T> void Setter::connect(In<T> *f, Var<T> &x, bool notify) {
-	x.out.insert(f);
-	f->parent = &x;
-	if (notify)
-		f->notify(x.v);
-}
-
-template <class T> void Setter::connect(Out<T> *f, VarE<T> &y) {
-	y.in = f;
-	f->parent = &y;
-}
-
 template <class X, class Y> void Setter::set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x) {
 	y.freeze();
-	connect(f, y);
-	connect(f, x, true);
+	y.connect(f);
+	x.connect(f, true);
 }
 
 template <class T> void Setter::set(VarE<T> &y, Var<T> &x) {
@@ -211,8 +220,8 @@ template <class X> class BiIdentity : public BiFun<X,X> {
 };
 
 template <class X, class Y> void Setter::identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x) {
-	connect(f->part2, y, false);
-	connect(f->part1, x, true);
+	y.connect(f->part2, false);
+	x.connect(f->part1, true);
 }
 
 template <class T> void Setter::identify(VarI<T> &y, VarI<T> &x) {

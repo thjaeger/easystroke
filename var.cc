@@ -1,6 +1,6 @@
 #include "var.h"
 
-Glib::StaticRecMutex Setter::mutex = GLIBMM_STATIC_REC_MUTEX_INIT;
+Glib::StaticRecMutex global_mutex = GLIBMM_STATIC_REC_MUTEX_INIT;
 
 class BiIntLong : public BiFun<int,long> {
 	long run1(int &x) { return x; }
