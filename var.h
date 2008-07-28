@@ -141,7 +141,7 @@ public:
 	Setter() { mutex.lock(); }
 	~Setter() { mutex.unlock(); }
 
-	template <class T> void connect(In<T> *f, Var<T> &x);
+	template <class T> void connect(In<T> *f, Var<T> &x, bool notify);
 	template <class T> void connect(Out<T> *f, VarE<T> &y);
 	template <class T> void set(VarE<T> &, T);
 	template <class T> void set(VarI<T> &, T);
@@ -172,9 +172,11 @@ template <class X> class Identity : public Fun<X,X> {
 	X run(X &x) { return x; }
 };
 
-template <class T> void Setter::connect(In<T> *f, Var<T> &x) {
+template <class T> void Setter::connect(In<T> *f, Var<T> &x, bool notify) {
 	x.out.insert(f);
 	f->parent = &x;
+	if (notify)
+		f->notify(x.v);
 }
 
 template <class T> void Setter::connect(Out<T> *f, VarE<T> &y) {
@@ -184,9 +186,8 @@ template <class T> void Setter::connect(Out<T> *f, VarE<T> &y) {
 
 template <class X, class Y> void Setter::set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x) {
 	y.freeze();
-	connect(f, x);
 	connect(f, y);
-	f->notify(x.v);
+	connect(f, x, true);
 }
 
 template <class T> void Setter::set(VarE<T> &y, Var<T> &x) {
@@ -210,9 +211,8 @@ template <class X> class BiIdentity : public BiFun<X,X> {
 };
 
 template <class X, class Y> void Setter::identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x) {
-	connect(f->part1, x);
-	connect(f->part2, y);
-	f->part1->notify(x.v);
+	connect(f->part2, y, false);
+	connect(f->part1, x, true);
 }
 
 template <class T> void Setter::identify(VarI<T> &y, VarI<T> &x) {
