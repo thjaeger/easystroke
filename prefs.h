@@ -5,40 +5,6 @@
 
 #include <gtkmm.h>
 
-class Check {
-protected:
-	VarI<bool> &b;
-	Gtk::CheckButton *check;
-	virtual void on_changed();
-public:
-	Check(const Glib::ustring &, VarI<bool> &);
-};
-
-class Spin {
-	friend class Pressure;
-	VarI<int> &i;
-	const int def;
-	Gtk::SpinButton *spin;
-	Gtk::Button *button;
-	void on_changed();
-	void on_default();
-public:
-	Spin(const Glib::ustring &, const Glib::ustring &, VarI<int> &, const int);
-};
-
-class Pressure : public Check {
-	virtual void on_changed();
-	Spin spin;
-public:
-	Pressure();
-};
-
-class Proximity : public Check {
-	virtual void on_changed();
-public:
-	Proximity();
-};
-
 class Prefs {
 public:
 	Prefs();
@@ -74,10 +40,6 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
-	Check advanced_ignore, ignore_grab, timing_workaround, show_clicks;
-	Spin radius;
-	Pressure pressure;
-	Proximity proximity;
 };
 
 #endif

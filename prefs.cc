@@ -23,6 +23,40 @@ void write_prefs() {
 	}
 }
 
+class Check {
+protected:
+	VarI<bool> &b;
+	Gtk::CheckButton *check;
+	virtual void on_changed();
+public:
+	Check(const Glib::ustring &, VarI<bool> &);
+};
+
+class Spin {
+	friend class Pressure;
+	VarI<int> &i;
+	const int def;
+	Gtk::SpinButton *spin;
+	Gtk::Button *button;
+	void on_changed();
+	void on_default();
+public:
+	Spin(const Glib::ustring &, const Glib::ustring &, VarI<int> &, const int);
+};
+
+class Pressure : public Check {
+	virtual void on_changed();
+	Spin spin;
+public:
+	Pressure();
+};
+
+class Proximity : public Check {
+	virtual void on_changed();
+public:
+	Proximity();
+};
+
 Check::Check(const Glib::ustring &name, VarI<bool> &b_) : b(b_) {
 	widgets->get_widget(name, check);
 	check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
@@ -73,13 +107,16 @@ void Proximity::on_changed() {
 extern Glib::Mutex *grabber_mutex; //TODO: This is a hack
 
 Prefs::Prefs() :
-	q(sigc::mem_fun(*this, &Prefs::on_selected)),
-	advanced_ignore("check_advanced_ignore", prefs.advanced_ignore),
-	ignore_grab("check_ignore_grab", prefs.ignore_grab),
-	timing_workaround("check_timing_workaround", prefs.timing_workaround),
-	show_clicks("check_show_clicks", prefs.show_clicks),
-	radius("spin_radius", "button_default_radius", prefs.radius, default_radius)
+	q(sigc::mem_fun(*this, &Prefs::on_selected))
 {
+	new Check("check_advanced_ignore", prefs.advanced_ignore);
+	new Check("check_ignore_grab", prefs.ignore_grab);
+	new Check("check_timing_workaround", prefs.timing_workaround);
+	new Check("check_show_clicks", prefs.show_clicks);
+	new Spin("spin_radius", "button_default_radius", prefs.radius, default_radius);
+	new Pressure;
+	new Proximity;
+
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);
