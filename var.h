@@ -19,38 +19,6 @@ template <class T> class Var;
 template <class T> class VarE;
 template <class T> class VarI;
 
-template <class T> class Var {
-	friend class Setter;
-	friend class In<T>;
-	friend class IO<T>;
-protected:
-	std::set<In<T> *> out;
-	T v;
-	void update(In<T> *exclude = 0);
-public:
-	Var(T v_) : v(v_) {}
-	Var() {}
-	const T get();
-	void connect(In<T> *f, bool notify);
-};
-
-template <class T> class VarE : public Var<T> {
-	friend class Setter;
-	friend class Out<T>;
-	Out<T> *in;
-public:
-	VarE(T v) : Var<T>(v), in(0) {}
-	VarE() : Var<T>(), in(0) {}
-	void freeze() { delete in; }
-	void connect(Out<T> *f);
-};
-
-template <class T> class VarI : public Var<T> {
-public:
-	VarI(T v) : Var<T>(v) {}
-	VarI() : Var<T>() {}
-};
-
 template <class T> class In {
 	friend class Setter;
 	friend class Var<T>;
@@ -116,7 +84,8 @@ public:
 };
 */
 template <class X, class Y> class BiFun {
-	friend class Setter;
+	friend class VarI<X>;
+	friend class VarI<Y>;
 	class Part1 : public IO<X> {
 		friend class BiFun;
 		BiFun<X,Y> *p;
@@ -148,83 +117,96 @@ public:
 	}
 };
 
+template <class T> class Var {
+	friend class Setter;
+	friend class In<T>;
+	friend class IO<T>;
+protected:
+	std::set<In<T> *> out;
+	T v;
+	void update(In<T> *exclude = 0) {
+		for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
+			In<T> *cur = *i;
+			if (cur != exclude)
+				cur->notify(v);
+		}
+	}
+public:
+	Var(T v_) : v(v_) {}
+	Var() {}
+	const T get() {
+		Atomic a;
+		return v;
+	}
+	void connect(In<T> *f, bool notify) {
+		Atomic a;
+		out.insert(f);
+		f->parent = this;
+		if (notify)
+			f->notify(v);
+	}
+};
+
+template <class T> class VarE : public Var<T> {
+	friend class Setter;
+	friend class Out<T>;
+	Out<T> *in;
+public:
+	VarE(T v) : Var<T>(v), in(0) {}
+	VarE() : Var<T>(), in(0) {}
+	void freeze() { delete in; }
+	void connect(Out<T> *f) {
+		Atomic a;
+		in = f;
+		f->parent = this;
+	}
+	void set(T x) {
+		Atomic a;
+		freeze();
+		Var<T>::v = x;
+		Var<T>::update();
+	}
+	template <class X> void assign(Fun<X, T> *f, Var<X> &x) {
+		Atomic a;
+		freeze();
+		connect(f);
+		x.connect(f, true);
+	}
+	void assign(Var<T> &x) {
+		class Identity : public Fun<T,T> {
+			T run(T &x) { return x; }
+		};
+		assign(new Identity, x);
+	}
+};
+
+template <class T> class VarI : public Var<T> {
+public:
+	VarI(T v) : Var<T>(v) {}
+	VarI() : Var<T>() {}
+	void set(T x) {
+		Atomic a;
+		Var<T>::v = x;
+		Var<T>::update();
+	}
+	template <class X> void identify(BiFun<X, T> *f, VarI<X> &x) {
+		Atomic a;
+		connect(f->part2, false);
+		x.connect(f->part1, true);
+	}
+	void identify(VarI<T> &x) {
+		class BiIdentity : public BiFun<T,T> {
+			T run1(T &x) { return x; }
+			T run2(T &x) { return x; }
+		};
+		identify(new BiIdentity, x);
+	}
+};
+
 class Setter : public Atomic {
 public:
-	template <class T> void set(VarE<T> &, T);
-	template <class T> void set(VarI<T> &, T);
-	template <class T> void set(VarE<T> &y, Var<T> &x);
-	template <class X, class Y> void set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x);
-	template <class T> void identify(VarI<T> &y, VarI<T> &x);
-	template <class X, class Y> void identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x);
-
 	template <class T> const T &ref(Var<T> &v) { return v.v; }
 	// write_refs are evil
 	template <class T> T &write_ref(Var<T> &v) { return v.v; }
 };
-
-template <class T> void Var<T>::connect(In<T> *f, bool notify) {
-	Atomic a;
-	out.insert(f);
-	f->parent = this;
-	if (notify)
-		f->notify(v);
-}
-
-template <class T> void VarE<T>::connect(Out<T> *f) {
-	Atomic a;
-	in = f;
-	f->parent = this;
-}
-
-template <class T> void Var<T>::update(In<T> *exclude) {
-	for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
-		In<T> *cur = *i;
-		if (cur != exclude)
-			cur->notify(v);
-	}
-}
-
-template <class T> const T Var<T>::get() {
-	Atomic a;
-	return v;
-}
-
-template <class X> class Identity : public Fun<X,X> {
-	X run(X &x) { return x; }
-};
-
-template <class X, class Y> void Setter::set(VarE<Y> &y, Fun<X, Y> *f, Var<X> &x) {
-	y.freeze();
-	y.connect(f);
-	x.connect(f, true);
-}
-
-template <class T> void Setter::set(VarE<T> &y, Var<T> &x) {
-	set(y, new Identity<T>, x);
-}
-
-template <class T> void Setter::set(VarE<T> &y, T x) {
-	y.freeze();
-	y.v = x;
-	y.update();
-}
-
-template <class T> void Setter::set(VarI<T> &y, T x) {
-	y.v = x;
-	y.update();
-}
-
-template <class X> class BiIdentity : public BiFun<X,X> {
-	X run1(X &x) { return x; }
-	X run2(X &x) { return x; }
-};
-
-template <class X, class Y> void Setter::identify(VarI<Y> &y, BiFun<X, Y> *f, VarI<X> &x) {
-	y.connect(f->part2, false);
-	x.connect(f->part1, true);
-}
-
-template <class T> void Setter::identify(VarI<T> &y, VarI<T> &x) {
-	identify(y, new BiIdentity<T>, x);
-}
 #endif
