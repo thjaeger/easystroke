@@ -140,7 +140,7 @@ void Win::show_popup(guint button, guint32 activate_time) {
 	icon->popup_menu_at_position(menu, button, activate_time);
 }
 
-void Win::stroke_push(Ranking& r) {
+void Win::stroke_push(Ranking *r) {
 	stats->stroke_push(r);
 }
 

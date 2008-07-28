@@ -22,7 +22,7 @@ public:
 	Win();
 	virtual ~Win();
 	void icon_push(RStroke s) { icon_queue.push(s); }
-	void stroke_push(Ranking&);
+	void stroke_push(Ranking *);
 	Gtk::Window& get_window() { return *win; }
 
 	Glib::Dispatcher quit;
