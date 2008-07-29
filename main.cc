@@ -1292,9 +1292,6 @@ void Main::run() {
 						handler->top()->proximity_out();
 					}
 				}
-				if (grabber->is_event(ev.type, Grabber::CHANGE)) {
-					printf("Error: Device Change not implemented\n");
-				}
 				if (ev.type == grabber->event_presence) {
 					printf("Error: Device Presence not implemented\n");
 				}

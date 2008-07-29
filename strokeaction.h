@@ -4,7 +4,7 @@
 #include "var.h"
 
 
-class StrokeAction : private VarE<boost::shared_ptr<sigc::slot<void, RStroke> > > {
+class StrokeAction : private VarI<boost::shared_ptr<sigc::slot<void, RStroke> > > {
 	typedef boost::shared_ptr<sigc::slot<void, RStroke> > SA;
 public:
 	operator bool() {

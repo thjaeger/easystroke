@@ -116,11 +116,10 @@ bool Grabber::init_xi() {
 		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
 		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[MOTION]);
 
-		ChangeDeviceNotify(xi_dev->dev, xi_dev->event_type[CHANGE], xi_dev->events[CHANGE]);
 		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[PROX_IN]);
 		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[PROX_OUT]);
 		xi_dev->supports_proximity = xi_dev->events[PROX_IN] && xi_dev->events[PROX_OUT];
-		xi_dev->all_events_n = xi_dev->supports_proximity ? 7 : 5;
+		xi_dev->all_events_n = xi_dev->supports_proximity ? 6 : 4;
 
 		xi_devs[xi_devs_n++] = xi_dev;
 

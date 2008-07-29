@@ -13,7 +13,7 @@ extern Grabber *grabber;
 class Grabber {
 public:
 	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, POINTER };
-	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, CHANGE = 4, PROX_IN = 5, PROX_OUT = 6 };
+	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	static const char *state_name[5];
 	bool xinput;
 	bool proximity_selected;
@@ -23,8 +23,8 @@ public:
 
 	struct XiDevice {
 		XDevice *dev;
-		XEventClass events[7];
-		int event_type[7];
+		XEventClass events[6];
+		int event_type[6];
 		int all_events_n;
 		bool supports_proximity, supports_pressure;
 		int pressure_min, pressure_max;
