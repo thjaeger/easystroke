@@ -14,9 +14,7 @@ struct Atomic {
 template <class T> class Out;
 template <class T> class Var;
 
-struct Base {
-	virtual Base *base() { return this; }
-};
+struct Base {};
 
 template <class T> class In : virtual public Base {
 	friend class Out<T>;
@@ -30,7 +28,7 @@ protected:
 	virtual void update(T x, Out<T> *exclude = 0) {
 		for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
 			In<T> *cur = *i;
-			if (!exclude || cur->base() != exclude->base())
+			if (!exclude || dynamic_cast<Base *>(cur) != dynamic_cast<Base *>(exclude))
 				cur->notify(x, this);
 		}
 	}
