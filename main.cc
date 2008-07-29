@@ -1093,14 +1093,6 @@ void Main::run() {
 
 	trace = init_trace();
 
-	signal(SIGINT, &quit);
-
-	int fds[2];
-	pipe(fds);
-	fdr = fds[0];
-	fcntl(fdr, F_SETFL, O_NONBLOCK);
-	fdw = fds[1];
-
 	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
 	ATOM = XInternAtom(dpy, "ATOM", False);
 	WINDOW = XInternAtom(dpy, "WINDOW", False);
@@ -1277,9 +1269,9 @@ void Main::run() {
 					if (verbosity >= 3)
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
 					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
-					if (xi_dev && xi_dev->supports_pressure && prefs().pressure_abort.get())
-						if (xi_dev->normalize_pressure(mev->axis_data[2]) >= 
-								prefs().pressure_threshold.get())
+					if (xi_dev && xi_dev->supports_pressure && prefs.pressure_abort.get())
+						if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
+								prefs.pressure_threshold.get())
 						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)
 						break;
