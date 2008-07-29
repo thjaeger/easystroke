@@ -1070,6 +1070,9 @@ void Main::run() {
 			if (*ret == P_PROXIMITY) {
 				grabber->select_proximity();
 			}
+			if (*ret == P_SCAN_WINDOWS) {
+				grabber->scan_windows();
+			}
 			continue;
 		}
 		XEvent ev;
@@ -1190,7 +1193,7 @@ void Main::run() {
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
 					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
 					if (xi_dev && xi_dev->supports_pressure && prefs().pressure_abort.get())
-						if (xi_dev->normalize_pressure(mev->axis_data[2]) >= 
+						if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
 								prefs().pressure_threshold.get())
 						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)

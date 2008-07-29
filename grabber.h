@@ -62,6 +62,7 @@ public:
 	Grabber();
 	~Grabber();
 	void init(Window w, int depth);
+	void scan_windows();
 	bool has_wm_state(Window w);
 	void update(Window w) { active = !RPrefEx(prefs().exceptions)->count(get_wm_state(w)); set(); }
 	void create(Window w);

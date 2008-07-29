@@ -16,6 +16,15 @@ bool wm_running() {
 	return w && get_window(w, _NET_SUPPORTING_WM_CHECK) == w;
 }
 
+void reinit() {
+	sleep(15);
+	send(P_SCAN_WINDOWS);
+}
+
+void Grabber::scan_windows() {
+	init(ROOT, wm_running() ? 0 : -1);
+}
+
 Grabber::Grabber() {
 	current = BUTTON;
 	suspended = false;
@@ -31,7 +40,9 @@ Grabber::Grabber() {
 		select_proximity();
 
 	XSelectInput(dpy, ROOT, SubstructureNotifyMask);
-	init(ROOT, wm_running() ? 0 : -1);
+	scan_windows();
+	Glib::Thread::create(sigc::ptr_fun(&reinit), false);
+
 	cursor = XCreateFontCursor(dpy, XC_double_arrow);
 }
 
@@ -184,7 +195,7 @@ bool Grabber::has_wm_state(Window w) {
 	return nitems_return;
 }
 
-// Calls create on top-level windows, i.e. 
+// Calls create on top-level windows, i.e.
 //   if depth >= 0: windows that have th wm_state property
 //   if depth <  0: children of the root window
 void Grabber::init(Window w, int depth) {
@@ -283,10 +294,10 @@ void Grabber::set() {
 	}
 	if (grabbed == BUTTON) {
 		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XGrabButton(dpy, j->first, j->second, ROOT, False, 
+			XGrabButton(dpy, j->first, j->second, ROOT, False,
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
-			XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False, 
+			XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False,
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
 		}
