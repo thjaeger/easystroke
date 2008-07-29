@@ -147,6 +147,10 @@ bool Grabber::init_xi() {
 			supports_proximity.set(true);
 			break;
 		}
+	class NotifyProx : public In<bool> {
+		virtual void notify(bool &x, Out<bool> *) { send(P_PROXIMITY); }
+	};
+	prefs.proximity.connect(new NotifyProx);
 
 	return xi_devs_n;
 }

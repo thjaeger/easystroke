@@ -55,13 +55,3 @@ gui.c: gui.gb
 	echo "const char *gui_buffer = \"\\" > gui.c
 	sed 's/"/\\"/g' gui.gb | sed 's/.*/&\\n\\/' >> gui.c
 	echo "\";" >> gui.c
-
-install: all
-	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
-	install -D -m 644 $(ICON) $(DESTDIR)$(ICONDIR)/$(ICON)
-	install -D -m 644 $(MENU) $(DESTDIR)$(MENUDIR)/$(MENU)
-
-uninstall:
-	rm $(DESTDIR)$(BINDIR)/$(BINARY) || true
-	rm $(DESTDIR)$(ICONDIR)/$(ICON) || true
-	rm $(DESTDIR)$(MENUDIR)/$(DESKTOP) || true

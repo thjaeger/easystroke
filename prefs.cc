@@ -29,9 +29,9 @@ void write_prefs() {
 
 class Check : public IO<bool> {
 	Gtk::CheckButton *check;
-	virtual void notify(bool &x) { check->set_active(x); }
+	virtual void notify(bool &x, Out<bool> *) { check->set_active(x); }
 	void on_changed() {
-		set(check->get_active());
+		update(check->get_active());
 		write_prefs();
 	}
 public:
@@ -44,9 +44,9 @@ public:
 class Spin : public IO<int> {
 	Gtk::SpinButton *spin;
 	Gtk::Button *button;
-	virtual void notify(int &x) { spin->set_value(x); }
+	virtual void notify(int &x, Out<int> *) { spin->set_value(x); }
 	void on_changed() {
-		set(spin->get_value());
+		update(spin->get_value());
 		write_prefs();
 	}
 public:
@@ -112,20 +112,19 @@ void Spin::on_changed() {
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected))
 {
-	prefs.advanced_ignore.connect(new Check("check_advanced_ignore"), true);
-	prefs.ignore_grab.connect(new Check("check_ignore_grab"), true);
-	prefs.timing_workaround.connect(new Check("check_timing_workaround"), true);
-	prefs.show_clicks.connect(new Check("check_show_clicks"), true);
+	prefs.advanced_ignore.identify(new Check("check_advanced_ignore"));
+	prefs.ignore_grab.identify(new Check("check_ignore_grab"));
+	prefs.timing_workaround.identify(new Check("check_timing_workaround"));
+	prefs.show_clicks.identify(new Check("check_show_clicks"));
 
-	prefs.radius.connect(new Spin("spin_radius"), true);
+	prefs.radius.identify(new Spin("spin_radius"));
 
-	prefs.pressure_abort.connect(new Check("check_pressure_abort"), true);
-	prefs.pressure_threshold.connect(new Spin("spin_pressure_threshold"), true);
-	prefs.pressure_abort.connect(new Sensitive("spin_pressure_threshold"), true);
-	prefs.pressure_abort.connect(new Sensitive("button_default_pressure_threshold"), true);
+	prefs.pressure_abort.identify(new Check("check_pressure_abort"));
+	prefs.pressure_threshold.identify(new Spin("spin_pressure_threshold"));
+	prefs.pressure_abort.connect(new Sensitive("spin_pressure_threshold"));
+	prefs.pressure_abort.connect(new Sensitive("button_default_pressure_threshold"));
 
-	prefs.proximity.connect(new Check("check_proximity"), true);
-	prefs.proximity.connect(new NotifyProx, false);
+	prefs.proximity.identify(new Check("check_proximity"));
 
 	new ButtonSet<int>("button_default_radius", prefs.radius, default_radius);
 	new ButtonSet<int>("button_default_pressure_threshold", prefs.pressure_threshold, default_pressure_threshold);
@@ -140,10 +139,10 @@ Prefs::Prefs() :
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("scale_p", scale_p);
 
-	xinput_v.connect(new Sensitive("check_timing_workaround"), true);
-	xinput_v.connect(new Sensitive("check_ignore_grab"), true);
-	supports_pressure.connect(new Sensitive("hbox_pressure"), true);
-	supports_proximity.connect(new Sensitive("check_proximity"), true);
+	xinput_v.connect(new Sensitive("check_timing_workaround"));
+	xinput_v.connect(new Sensitive("check_ignore_grab"));
+	supports_pressure.connect(new Sensitive("hbox_pressure"));
+	supports_proximity.connect(new Sensitive("check_proximity"));
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);

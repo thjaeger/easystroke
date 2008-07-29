@@ -7,6 +7,10 @@ class BiIntLong : public BiFun<int,long> {
 	int run2(long &x) { return x; }
 };
 
+class LongInt : public Fun<long,int> {
+	int run(long &x) { return x; }
+};
+
 void test() {
 	VarE<int> x(0);
 	VarE<int> y(1);
@@ -16,8 +20,7 @@ void test() {
 	x.set(2);
 	printf("2 == %d\n", y.get());
 	z.set(3L);
-	FUN(int, f, long, x, x);
-	y.assign(f, z);
+	y.assign(new LongInt, z);
 	printf("3 == %d\n", y.get());
 	VarI<int> a(0);
 	VarI<long> b(1);
@@ -28,3 +31,10 @@ void test() {
 	c.set(3);
 	printf("3 == %d == %ld == %d\n", a.get(), b.get(), c.get());
 }
+
+#if TEST_VAR
+int main(int, char**) {
+	test();
+	return 0;
+}
+#endif

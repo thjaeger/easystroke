@@ -1310,12 +1310,7 @@ Main::~Main() {
 	delete kit;
 }
 
-extern void test();
 int main(int argc, char **argv) {
-#if 0
-	test();
-	return 0;
-#endif
 	Main mn(argc, argv);
 
 	if (gui) {

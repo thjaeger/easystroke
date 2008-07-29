@@ -6,104 +6,48 @@
 
 extern Glib::StaticRecMutex global_mutex;
 
-class Atomic {
-public:
+struct Atomic {
 	Atomic() { global_mutex.lock(); }
 	~Atomic() { global_mutex.unlock(); }
 };
 
+template <class T> class Out;
 template <class T> class Var;
-template <class T> class VarE;
-template <class T> class VarI;
 
-template <class T> class In {
+struct Base {
+	virtual Base *base() { return this; }
+};
+
+template <class T> class In : virtual public Base {
+	friend class Out<T>;
 	friend class Var<T>;
-protected:
-	Var<T> *parent;
-public:
-	In() : parent(0) {}
-	virtual void notify(T &t) = 0;
-	virtual ~In() {
-		if (parent)
-			parent->out.erase(this);
-	}
+	virtual void notify(T &, Out<T> *exclude) = 0;
 };
 
-template <class T> class Out {
-	friend class VarE<T>;
-protected:
-	VarE<T> *parent;
-	void set(T x) {
-		if (parent) {
-			parent->v = x;
-			parent->update();
-		}
-	}
-public:
-	Out() : parent(0) {}
-	virtual ~Out() {
-		if (parent)
-			parent->in = 0;
-	}
-};
-
-template <class T> class IO : public In<T> {
-protected:
-	void set(T x) {
-		if (In<T>::parent) {
-			In<T>::parent->v = x;
-			In<T>::parent->update(this);
-		}
-	}
-};
-
-template <class X, class Y> class Fun : public In<X>, public Out<Y> {
-public:
-	virtual Y run(X &x) = 0;
-	virtual void notify(X &x) { Out<Y>::set(run(x)); }
-};
-
-#define XY(X,Y) X##Y
-#define MakeNameXY(FX,LINE) XY(FX,LINE)
-#define MakeName MakeNameXY(Foo,__LINE__)
-
-#define FUN(YT,Y,XT,X,F) class MakeName : public Fun<XT,YT> { virtual YT run(XT &X) { return F; } }; Fun<XT,YT> *Y = new MakeName;
-
-template <class T> class IO1 : public IO<T> {
-protected:
-	virtual void notify1(T &x) = 0;
-public:
-	virtual void notify(T &x) { notify1(x); }
-};
-
-template <class T> class IO2 : public IO<T> {
-protected:
-	virtual void notify2(T &x) = 0;
-public:
-	virtual void notify(T &x) { notify2(x); }
-};
-
-template <class X, class Y> class BiFun : public IO1<X>, public IO2<Y> {
-public:
-	virtual Y run1(X &x) = 0;
-	virtual X run2(Y &y) = 0;
-	virtual void notify1(X &x) { IO2<Y>::set(run1(x)); }
-	virtual void notify2(Y &y) { IO1<X>::set(run2(y)); }
-};
-
-template <class T> class Var {
-	friend class Setter;
-	friend class In<T>;
-	friend class IO<T>;
-protected:
+template <class T> class Out : virtual public Base {
 	std::set<In<T> *> out;
-	T v;
-	void update(In<T> *exclude = 0) {
+protected:
+	virtual void update(T x, Out<T> *exclude = 0) {
 		for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
 			In<T> *cur = *i;
-			if (cur != exclude)
-				cur->notify(v);
+			if (!exclude || cur->base() != exclude->base())
+				cur->notify(x, this);
 		}
+	}
+public:
+	virtual void connect(In<T> *in) {
+		Atomic a;
+		out.insert(in);
+	}
+};
+
+template <class T> class Var : public Out<T> {
+	friend class Setter;
+	T v;
+protected:
+	virtual void update(T x, Out<T> *exclude = 0) {
+		v = x;
+		Out<T>::update(x, exclude);
 	}
 public:
 	Var(T v_) : v(v_) {}
@@ -112,74 +56,82 @@ public:
 		Atomic a;
 		return v;
 	}
-	void connect(In<T> *f, bool notify) {
+	virtual void connect(In<T> *in) {
 		Atomic a;
-		out.insert(f);
-		f->parent = this;
-		if (notify)
-			f->notify(v);
+		Out<T>::connect(in);
+		in->notify(v, this);
 	}
 };
 
-template <class T> class VarE : public Var<T> {
-	friend class Out<T>;
-	Out<T> *in;
+template <class T> class IO : public In<T>, public Out<T> {};
+
+template <class X, class Y> class Fun : public In<X>, public Out<Y> {
 public:
-	VarE(T v) : Var<T>(v), in(0) {}
-	VarE() : Var<T>(), in(0) {}
-	void freeze() { delete in; }
-	void connectE(Out<T> *f) {
-		Atomic a;
-		in = f;
-		f->parent = this;
-	}
-	void set(T x) {
-		Atomic a;
-		freeze();
-		Var<T>::v = x;
-		Var<T>::update();
-	}
+	virtual Y run(X &x) = 0;
+	virtual void notify(X &x, Out<X> *) { Out<Y>::update(run(x)); }
+};
+
+template <class X, class Y> class Fun1 : public Fun<X, Y> {
+protected:
+	virtual Y run1(X &x) = 0;
+public:
+	virtual Y run(X &x) { return run1(x); }
+};
+
+template <class X, class Y> class Fun2 : public Fun<X, Y> {
+protected:
+	virtual Y run2(X &x) = 0;
+public:
+	virtual Y run(X &x) { return run2(x); }
+};
+
+template <class X, class Y> class BiFun : public Fun1<X, Y>, public Fun2<Y, X> {
+};
+
+template <class T> class VarE : public Var<T>, public In<T> {
+	virtual void notify(T &x, Out<T> *exclude) { update(x, exclude); }
+public:
+	VarE(T v) : Var<T>(v) {}
+	VarE() : Var<T>() {}
+	void set(T x) { update(x); }
 	template <class X> void assign(Fun<X, T> *f, Var<X> &x) {
 		Atomic a;
-		freeze();
-		connectE(f);
-		x.connect(f, true);
+		f->connect(this);
+		x.connect(f);
 	}
 	void assign(Var<T> &x) {
-		class Identity : public Fun<T,T> {
-			T run(T &x) { return x; }
-		};
-		assign(new Identity, x);
+		x.connect(this);
 	}
 };
 
-template <class T> class VarI : public Var<T> {
+template <class T> class VarI : public Var<T>, public In<T> {
+	virtual void notify(T &x, Out<T> *exclude) { update(x, exclude); }
 public:
 	VarI(T v) : Var<T>(v) {}
 	VarI() : Var<T>() {}
-	void set(T x) {
-		Atomic a;
-		Var<T>::v = x;
-		Var<T>::update();
-	}
+	void set(T x) { update(x); }
 	template <class X> void identify(BiFun<X, T> *f, VarI<X> &x) {
 		Atomic a;
-		IO2<T> *f2 = f;
-		connect(f2, false);
-		IO1<X> *f1 = f;
-		x.connect(f1, true);
+		Fun2<T, X> *f2 = f;
+		f2->connect(&x);
+		Out<T>::connect(f2);
+		Fun1<X, T> *f1 = f;
+		f1->connect(this);
+		x.connect(f1);
 	}
 	void identify(VarI<T> &x) {
-		class BiIdentity : public BiFun<T,T> {
-			T run1(T &x) { return x; }
-			T run2(T &x) { return x; }
-		};
-		identify(new BiIdentity, x);
+		Atomic a;
+		Out<T>::connect(&x);
+		x.connect(this);
+	}
+	void identify(IO<T> *io) {
+		Atomic a;
+		io->Out<T>::connect(this);
+		connect(io);
 	}
 };
 
-class Setter : public Atomic {
-public:
+struct Setter : public Atomic {
 	template <class T> const T &ref(Var<T> &v) { return v.v; }
 	// write_refs are evil
 	template <class T> T &write_ref(Var<T> &v) { return v.v; }
