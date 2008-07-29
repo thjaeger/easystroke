@@ -36,15 +36,15 @@ extern const int default_pressure_threshold;
 class PrefDB {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
-		Setter s;
-		ar & s.write_ref(exceptions);
-		ar & s.write_ref(p);
-		ar & s.write_ref(button);
+		Atomic a;
+		ar & exceptions.write_ref(a);
+		ar & p.write_ref(a);
+		ar & button.write_ref(a);
 		if (version <= 1) {
 			bool help;
 			ar & help;
 		}
-		ar & s.write_ref(trace);
+		ar & trace.write_ref(a);
 		if (version <= 2) {
 			int delay;
 			ar & delay;
@@ -56,15 +56,15 @@ class PrefDB {
 			return;
 		}
 		if (version <= 1) return;
-		ar & s.write_ref(advanced_ignore);
-		ar & s.write_ref(radius);
+		ar & advanced_ignore.write_ref(a);
+		ar & radius.write_ref(a);
 		if (version <= 3) return;
-		ar & s.write_ref(ignore_grab);
-		ar & s.write_ref(timing_workaround);
-		ar & s.write_ref(show_clicks);
-		ar & s.write_ref(pressure_abort);
-		ar & s.write_ref(pressure_threshold);
-		ar & s.write_ref(proximity);
+		ar & ignore_grab.write_ref(a);
+		ar & timing_workaround.write_ref(a);
+		ar & show_clicks.write_ref(a);
+		ar & pressure_abort.write_ref(a);
+		ar & pressure_threshold.write_ref(a);
+		ar & proximity.write_ref(a);
 	}
 public:
 	PrefDB();

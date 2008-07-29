@@ -14,7 +14,7 @@ struct Atomic {
 template <class T> class Out;
 template <class T> class Var;
 
-struct Base {};
+class Base {};
 
 template <class T> class In : virtual public Base {
 	friend class Out<T>;
@@ -40,10 +40,10 @@ public:
 };
 
 template <class T> class Var : public Out<T> {
-	friend class Setter;
 	T v;
 protected:
 	virtual void update(T x, Out<T> *exclude = 0) {
+		Atomic a;
 		v = x;
 		Out<T>::update(x, exclude);
 	}
@@ -59,6 +59,9 @@ public:
 		connectOut(in);
 		in->notify(v, this);
 	}
+	const T &ref(Atomic &a) { return v; }
+	// write_refs are evil
+	T &write_ref(Atomic &a) { return v; }
 };
 
 template <class T> class IO : public In<T>, public Out<T> {};
@@ -127,11 +130,5 @@ public:
 		io->connectOut(this);
 		connect(io);
 	}
-};
-
-struct Setter : public Atomic {
-	template <class T> const T &ref(Var<T> &v) { return v.v; }
-	// write_refs are evil
-	template <class T> T &write_ref(Var<T> &v) { return v.v; }
 };
 #endif

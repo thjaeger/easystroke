@@ -11,11 +11,10 @@ public:
 		return get();
 	}
 	bool operator()(RStroke stroke) {
-		Setter s;
+		Atomic a;
 		if (!get())
 			return false;
-		const SA &sa = s.ref(*this);
-		(*sa)(stroke);
+		(*ref(a))(stroke);
 		erase();
 		return true;
 	}

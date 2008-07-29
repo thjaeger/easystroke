@@ -15,7 +15,6 @@ void test() {
 	VarE<int> x(0);
 	VarE<int> y(1);
 	VarE<long> z(1);
-	Setter s;
 	y.assign(x);
 	x.set(2);
 	printf("2 == %d\n", y.get());
