@@ -12,7 +12,7 @@
 
 const double default_p = 0.5;
 const ButtonInfo default_button = { Button2, 0 };
-const int default_radius = 16;
+const int default_radius = 12;
 const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
