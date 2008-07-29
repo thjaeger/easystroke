@@ -35,7 +35,7 @@ protected:
 		}
 	}
 public:
-	virtual void connect(In<T> *in) {
+	void connectOut(In<T> *in) {
 		Atomic a;
 		out.insert(in);
 	}
@@ -56,9 +56,9 @@ public:
 		Atomic a;
 		return v;
 	}
-	virtual void connect(In<T> *in) {
+	void connect(In<T> *in) {
 		Atomic a;
-		Out<T>::connect(in);
+		connectOut(in);
 		in->notify(v, this);
 	}
 };
@@ -96,7 +96,7 @@ public:
 	void set(T x) { update(x); }
 	template <class X> void assign(Fun<X, T> *f, Var<X> &x) {
 		Atomic a;
-		f->connect(this);
+		f->connectOut(this);
 		x.connect(f);
 	}
 	void assign(Var<T> &x) {
@@ -113,20 +113,20 @@ public:
 	template <class X> void identify(BiFun<X, T> *f, VarI<X> &x) {
 		Atomic a;
 		Fun2<T, X> *f2 = f;
-		f2->connect(&x);
-		Out<T>::connect(f2);
+		f2->connectOut(&x);
+		connectOut(f2);
 		Fun1<X, T> *f1 = f;
-		f1->connect(this);
+		f1->connectOut(this);
 		x.connect(f1);
 	}
 	void identify(VarI<T> &x) {
 		Atomic a;
-		Out<T>::connect(&x);
+		connectOut(&x);
 		x.connect(this);
 	}
 	void identify(IO<T> *io) {
 		Atomic a;
-		io->Out<T>::connect(this);
+		io->connectOut(this);
 		connect(io);
 	}
 };
