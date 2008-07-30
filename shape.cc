@@ -43,21 +43,18 @@ void Shape::draw(Point p, Point q) {
 }
 
 void Shape::start_() {
-	clear_mutex.lock();
+	if (remove_timeout(1))
+		clear();
 	XMapRaised(dpy, win);
 }
 
 void Shape::end_() {
 	XUnmapWindow(dpy, win);
-	Glib::Thread::create(sigc::mem_fun(*this, &Shape::defer_clear), false);
+	set_timeout(1,100*1000);
 }
 
-void Shape::defer_clear() {
-	usleep(100*1000);
-	// This is a big leap of faith. We're trusting Xlib's thread safety here.
+void Shape::timeout() {
 	clear();
-	usleep(100*1000);
-	clear_mutex.unlock();
 }
 
 void Shape::clear() {

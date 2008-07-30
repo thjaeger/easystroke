@@ -104,7 +104,6 @@ Trace *trace = 0;
 bool in_proximity = false;
 
 void handle_stroke(RStroke stroke, int trigger, int button);
-void set_timeout(long us);
 
 class Handler {
 protected:
@@ -639,7 +638,7 @@ class StrokeHandler : public Handler {
 			return true;
 		}
 		long us = -250000.0*log(0.04/speed);
-		set_timeout(us);
+		set_timeout(0, us);
 		return false;
 	}
 protected:
@@ -754,6 +753,7 @@ public:
 		}
 	}
 	~StrokeHandler() {
+		remove_timeout(0);
 		trace->end();
 		if (have_xi)
 			XAllowEvents(dpy, AsyncPointer, CurrentTime);
@@ -967,13 +967,28 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	}
 }
 
-timeval timeout;
-bool timeout_set;
+timeval timeout[2];
+bool timeout_set[2];
 
-void set_timeout(long us) {
-	timeout.tv_sec = us / 1000000;
-	timeout.tv_usec = us % 1000000;
-	timeout_set = true;
+void set_timeout(int i, long us) {
+	timeout[i].tv_sec = us / 1000000;
+	timeout[i].tv_usec = us % 1000000;
+	timeout_set[i] = true;
+}
+
+void timeval_sub(timeval &t1, timeval t2) {
+	if (t1.tv_usec < t2.tv_usec) {
+		t1.tv_usec += 1000000;
+		t1.tv_sec -= 1;
+	}
+	t1.tv_sec -= t2.tv_sec;
+	t1.tv_usec -= t2.tv_usec;
+}
+
+bool remove_timeout(int i) {
+	bool b = timeout_set[i];
+	timeout_set[i] = false;
+	return b;
 }
 
 char* Main::next_event() {
@@ -984,10 +999,26 @@ char* Main::next_event() {
 	FD_SET(fdr, &fds);
 	FD_SET(fdx, &fds);
 	int n = 1 + ((fdr>fdx) ? fdr : fdx);
+
+	int ti;
+	if (timeout_set[0]) {
+		if (timeout_set[1]) {
+			ti = timeout_set[0] < timeout_set[1] ? 0 : 1;
+
+		} else
+			ti = 0;
+	} else {
+		if (timeout_set[1])
+			ti = 1;
+		else
+			ti = -1;
+	}
 	while (!XPending(dpy)) {
-		if (select(n, &fds, 0, 0, timeout_set ? &timeout : 0) == 0) {
-			timeout_set = false;
-			buffer[0] = P_TIMEOUT;
+		if (select(n, &fds, 0, 0, ti >= 0 ? timeout + ti : 0) == 0) {
+			timeout_set[ti] = false;
+			timeval_sub(timeout[0], timeout[ti]);
+			timeval_sub(timeout[1], timeout[ti]);
+			buffer[0] = ti == 0 ? P_TIMEOUT1 : P_TIMEOUT2;
 			return buffer;
 		}
 		if (read(fdr, buffer, 1) > 0)
@@ -1064,8 +1095,11 @@ void Main::run() {
 				delete trace;
 				trace = new_trace;
 			}
-			if (*ret == P_TIMEOUT) {
+			if (*ret == P_TIMEOUT1) {
 				handler->top()->timeout();
+			}
+			if (*ret == P_TIMEOUT2) {
+				trace->timeout();
 			}
 			if (*ret == P_PROXIMITY) {
 				grabber->select_proximity();

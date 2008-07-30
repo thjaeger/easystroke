@@ -9,7 +9,8 @@
 #define P_RESTORE_GRAB 'r'
 #define P_UPDATE_CURRENT 'u'
 #define P_UPDATE_TRACE 't'
-#define P_TIMEOUT 'o'
+#define P_TIMEOUT1 'o'
+#define P_TIMEOUT2 'm'
 #define P_PROXIMITY 'p'
 #define P_SCAN_WINDOWS 'w'
 
@@ -18,6 +19,8 @@ extern std::string config_dir;
 extern int verbosity;
 extern bool experimental;
 
+void set_timeout(int i, long us);
+bool remove_timeout(int i);
 void clear_mods();
 
 extern "C" {

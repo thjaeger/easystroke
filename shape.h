@@ -10,10 +10,9 @@ private:
 	virtual void start_();
 	virtual void end_();
 	void clear();
-	void defer_clear();
-	Glib::Mutex clear_mutex;
 public:
 	Shape();
+	virtual void timeout();
 	virtual ~Shape();
 };
 

@@ -21,6 +21,7 @@ public:
 	void start(Point p) { last = p; active = true; start_(); }
 	void end() { if (!active) return; active = false; end_(); }
 	void draw(Point p) { draw(last, p); last = p; }
+	virtual void timeout() {}
 	virtual ~Trace() {}
 };
 
