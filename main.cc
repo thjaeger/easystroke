@@ -589,6 +589,7 @@ class StrokeHandler : public Handler {
 	guint button;
 	RPreStroke cur;
 	bool is_gesture;
+	bool drawing;
 	float speed;
 	Time last_t;
 	int last_x, last_y;
@@ -658,8 +659,10 @@ protected:
 			return;
 		}
 		cur->add(x,y,t);
-		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get()) {
+		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get())
 			is_gesture = true;
+		if (!drawing && hypot(x-orig.x, y-orig.y) > 4) {
+			drawing = true;
 			bool first = true;
 			for (std::vector<Stroke::Point>::iterator i = cur->points.begin(); i != cur->points.end(); i++) {
 				Trace::Point p;
@@ -672,7 +675,7 @@ protected:
 					trace->draw(p);
 				}
 			}
-		} else if (is_gesture) {
+		} else if (drawing) {
 			Trace::Point p;
 			p.x = x;
 			p.y = y;
@@ -729,7 +732,7 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(guint b, int x, int y, Time t) : button(b), is_gesture(false), speed(0.1), last_t(t), last_x(x), last_y(y),
+	StrokeHandler(guint b, int x, int y, Time t) : button(b), is_gesture(false), drawing(false), speed(0.1), last_t(t), last_x(x), last_y(y),
 	repeated(false), have_xi(false) {
 		orig.x = x; orig.y = y;
 		cur = PreStroke::create();
