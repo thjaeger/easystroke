@@ -31,7 +31,8 @@ Win *win;
 
 void send(char c) {
 	char cs[2] = {c, 0};
-	write(fdw, cs, 1);
+	if (write(fdw, cs, 1) != 1)
+		printf("Error: write() failed\n");
 }
 
 int (*oldHandler)(Display *, XErrorEvent *) = 0;
@@ -783,12 +784,12 @@ protected:
 		grab();
 	}
 	virtual void press(guint b, int x, int y, Time t) {
-		if (!grabber->is_grabbed(b))
+		if (!grabber->is_grabbed(b)) {
 			if (b != 1)
 				return;
 			else { // b == 1
 				unsigned int state = grabber->get_device_button_state();
-				if (state & state-1) {
+				if (state & (state-1)) {
 					XAllowEvents(dpy, AsyncPointer, t);
 					replace_child(new WorkaroundHandler);
 					return;
@@ -797,6 +798,7 @@ protected:
 					return;
 				}
 			}
+		}
 		if (current)
 			activate_window(current, t);
 		replace_child(new StrokeHandler(b, x, y, t));
@@ -846,7 +848,8 @@ Main::Main(int argc, char **argv) : kit(0) {
 	grabber_mutex->lock();
 
  	int fds[2];
- 	pipe(fds);
+ 	if (pipe(fds))
+		printf("Error: pipe() failed\n");
  	fdr = fds[0];
  	fcntl(fdr, F_SETFL, O_NONBLOCK);
  	fdw = fds[1];

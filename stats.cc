@@ -174,6 +174,7 @@ void Stats::on_pdf() {
 		}
 	}
 	}
-	system("evince /tmp/strokes.pdf &");
+	if (system("evince /tmp/strokes.pdf &") == -1)
+		printf("Error: system() failed\n");
 }
 

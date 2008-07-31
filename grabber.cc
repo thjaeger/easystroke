@@ -261,11 +261,12 @@ void Grabber::select_proximity() {
 	if (!proximity_selected)
 		in_proximity = false;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity)
+		if (xi_devs[i]->supports_proximity) {
 			if (proximity_selected)
 				XSelectExtensionEvent(dpy, ROOT, xi_devs[i]->events + all_events_n, proximity_events_n);
 			else // NB: This is total BS. The following call doesn't actually unselect the events.
 				XSelectExtensionEvent(dpy, ROOT, 0, 0);
+		}
 }
 
 void Grabber::set() {
