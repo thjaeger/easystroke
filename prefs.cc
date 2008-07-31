@@ -30,8 +30,11 @@ Check::Check(const Glib::ustring &name, Lock<bool> &b_) : b(b_) {
 }
 
 void Check::on_changed() {
-	b.set(check->get_active());
-	write_prefs();
+	bool new_b = check->get_active();
+	bool old_b = b.get();
+	b.set(new_b);
+	if (old_b != new_b)
+		write_prefs();
 }
 
 Pressure::Pressure() :
@@ -55,8 +58,11 @@ Spin::Spin(const Glib::ustring &name, const Glib::ustring &default_name, Lock<in
 }
 
 void Spin::on_changed() {
-	i.set(spin->get_value());
-	write_prefs();
+	int new_i = spin->get_value();
+	int old_i = i.get();
+	i.set(new_i);
+	if (new_i != old_i)
+		write_prefs();
 }
 
 void Spin::on_default() {
