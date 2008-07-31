@@ -1182,6 +1182,8 @@ void Main::run() {
 				if (ev.xcrossing.detail == NotifyInferior)
 					break;
 				current = ev.xcrossing.window;
+				if (verbosity >= 3)
+					printf("Entered window 0x%lx\n", current);
 				grabber->update(current);
 				break;
 
