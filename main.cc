@@ -691,7 +691,7 @@ protected:
 			return;
 		}
 		cur->add(x,y,t);
-		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs().radius.get()) {
+		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs.radius.get())
 			is_gesture = true;
 		if (!drawing && hypot(x-orig.x, y-orig.y) > 4) {
 			drawing = true;

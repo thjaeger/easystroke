@@ -68,46 +68,14 @@ public:
 	}
 };
 
-class NotifyProx : public In<bool> {
-	virtual void notify(bool &x) { send(P_PROXIMITY); }
+class Sensitive : public In<bool> {
+	Gtk::Widget *widget;
+public:
+	virtual void notify(bool &x, Out<bool> *) { widget->set_sensitive(x); }
+	Sensitive(const Glib::ustring & name) {
+		widgets->get_widget(name, widget);
+	}
 };
-
-Check::Check(const Glib::ustring &name, VarI<bool> &b_) : b(b_) {
-	widgets->get_widget(name, check);
-	check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
-	check->set_active(b.get());
-}
-
-void Check::on_changed() {
-	b.set(check->get_active());
-	write_prefs();
-}
-
-Pressure::Pressure() :
-	Check("check_pressure_abort", prefs.pressure_abort),
-	spin("spin_pressure_threshold", "button_default_pressure_threshold",
-			prefs.pressure_threshold, default_pressure_threshold)
-{}
-
-void Pressure::on_changed() {
-	Check::on_changed();
-	Atomic a;
-	spin.spin->set_sensitive(b.get());
-	spin.button->set_sensitive(b.get());
-}
-
-Spin::Spin(const Glib::ustring &name, const Glib::ustring &default_name, VarI<int> &i_, const int def_) : i(i_), def(def_) {
-	widgets->get_widget(name, spin);
-	widgets->get_widget(default_name, button);
-	spin->set_value(i.get());
-	spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
-	button->signal_clicked().connect(sigc::mem_fun(*this, &Spin::on_default));
-}
-
-void Spin::on_changed() {
-	i.set(spin->get_value());
-	write_prefs();
-}
 
 Prefs::Prefs() :
 	q(sigc::mem_fun(*this, &Prefs::on_selected))
