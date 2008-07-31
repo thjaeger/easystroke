@@ -178,11 +178,27 @@ public:
 	virtual std::string name() { return "Ignore"; }
 };
 
+Handler *handler;
+void bail_out() {
+	if (handler->top()->idle())
+		return;
+	handler->replace_child(0);
+	for (int i = 1; i <= 9; i++)
+		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+	XAllowEvents(dpy, AsyncPointer, CurrentTime);
+}
+
 class WaitForButtonHandler : public Handler {
 	guint button;
 	bool down;
 public:
-	WaitForButtonHandler(guint b, bool d) : button(b), down(d) {}
+	WaitForButtonHandler(guint b, bool d) : button(b), down(d) {
+		set_timeout(0, 100000);
+	}
+	virtual void timeout() {
+		printf("Warning: WaitForButtonHandler timed out\n");
+		bail_out();
+	}
 	virtual void press(guint b, int x, int y, Time t) {
 		XAllowEvents(dpy, AsyncPointer, t);
 		if (!down)
@@ -767,6 +783,13 @@ public:
 
 class WorkaroundHandler : public Handler {
 public:
+	WorkaroundHandler() {
+		set_timeout(0, 250000);
+	}
+	virtual void timeout() {
+		printf("Warning: WorkaroundHandler timed out\n");
+		bail_out();
+	}
 	virtual void press(guint b, int x, int y, Time t) {
 		if (b == 1)
 			return;
@@ -978,6 +1001,8 @@ timeval timeout[2];
 bool timeout_set[2];
 
 void set_timeout(int i, long us) {
+	if (verbosity >= 3)
+		printf("Set timeout %d: %ld ms\n", i, us);
 	timeout[i].tv_sec = us / 1000000;
 	timeout[i].tv_usec = us % 1000000;
 	timeout_set[i] = true;
@@ -993,6 +1018,8 @@ void timeval_sub(timeval &t1, timeval t2) {
 }
 
 bool remove_timeout(int i) {
+	if (verbosity >= 3)
+		printf("Remove timeout %d\n", i);
 	bool b = timeout_set[i];
 	timeout_set[i] = false;
 	return b;
@@ -1064,7 +1091,7 @@ void Main::run() {
 	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
 	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
 
-	Handler *handler = new IdleHandler;
+	handler = new IdleHandler;
 	handler->init();
 	bool alive = true;
 
@@ -1168,13 +1195,8 @@ void Main::run() {
 				if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
 					break;
 				XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
-				if (handler->top()->idle())
-					break;
 				printf("Escape pressed: Resetting...\n");
-				handler->replace_child(0);
-				for (int i = 1; i <= 9; i++)
-					XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-				XAllowEvents(dpy, AsyncPointer, CurrentTime);
+				bail_out();
 				break;
 
 			case ClientMessage:
