@@ -787,7 +787,8 @@ protected:
 			if (b != 1)
 				return;
 			else { // b == 1
-				if (grabber->get_device_button_state() & ~2) {
+				unsigned int state = grabber->get_device_button_state();
+				if (state & state-1) {
 					XAllowEvents(dpy, AsyncPointer, t);
 					replace_child(new WorkaroundHandler);
 					return;
