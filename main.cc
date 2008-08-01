@@ -564,7 +564,7 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	return bev->time == bt->t;
 }
 
-Atom _NET_ACTIVE_WINDOW, WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN;
+Atom _NET_ACTIVE_WINDOW, WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN, WM_PROTOCOLS, WM_TAKE_FOCUS;
 
 Atom get_atom(Window w, Atom prop) {
 	Atom actual_type;
@@ -580,6 +580,26 @@ Atom get_atom(Window w, Atom prop) {
 	Atom atom = *(Atom *)prop_return;
 	XFree(prop_return);
 	return atom;
+}
+
+bool has_atom(Window w, Atom prop, Atom value) {
+	Atom actual_type;
+	int actual_format;
+	unsigned long nitems, bytes_after;
+	unsigned char *prop_return = NULL;
+
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format,
+				&nitems, &bytes_after, &prop_return) != Success)
+		return None;
+	if (!prop_return)
+		return None;
+	Atom *atoms = (Atom *)prop_return;
+	bool ans = false;
+	for (unsigned long i = 0; i < nitems; i++)
+		if (atoms[i] == value)
+			ans = true;
+	XFree(prop_return);
+	return ans;
 }
 
 Window get_window(Window w, Atom prop) {
@@ -598,6 +618,17 @@ Window get_window(Window w, Atom prop) {
 	return ret;
 }
 
+void icccm_client_message(Window w, Atom a, Time t) {
+	XClientMessageEvent ev;
+	ev.type = ClientMessage;
+	ev.window = w;
+	ev.message_type = WM_PROTOCOLS;
+	ev.format = 32;
+	ev.data.l[0] = a;
+	ev.data.l[1] = t;
+	XSendEvent(dpy, w, False, 0, (XEvent *)&ev);
+}
+
 void activate_window(Window w, Time t) {
 	Atom window_type = get_atom(w, _NET_WM_WINDOW_TYPE);
 	if (window_type == _NET_WM_WINDOW_TYPE_DOCK)
@@ -613,8 +644,14 @@ void activate_window(Window w, Time t) {
 	if (wm_state == _NET_WM_STATE_FULLSCREEN)
 		return;
 	if (verbosity >= 3)
-		printf("Giving focus to window 0x%lx\n", current);
-	XSetInputFocus(dpy, current, RevertToParent, t);
+		printf("Giving focus to window 0x%lx\n", w);
+
+	bool take_focus = has_atom(w, WM_PROTOCOLS, WM_TAKE_FOCUS);
+	printf("take_focus: %d\n", take_focus);
+	if (take_focus)
+		icccm_client_message(w, WM_TAKE_FOCUS, t);
+	else
+		XSetInputFocus(dpy, w, RevertToParent, t);
 }
 
 class StrokeHandler : public Handler {
@@ -1100,6 +1137,8 @@ void Main::run() {
 	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
 	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
 	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
+	WM_PROTOCOLS = XInternAtom(dpy, "WM_PROTOCOLS", False);
+	WM_TAKE_FOCUS = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
 
 	handler = new IdleHandler;
 	handler->init();
