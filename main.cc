@@ -180,8 +180,6 @@ public:
 
 Handler *handler;
 void bail_out() {
-	if (handler->top()->idle())
-		return;
 	handler->replace_child(0);
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
@@ -598,8 +596,11 @@ void activate_window(Window w, Time t) {
 			return;
 	}
 	Atom wm_state = get_atom(w, _NET_WM_STATE);
-	if (wm_state != _NET_WM_STATE_FULLSCREEN)
-		XSetInputFocus(dpy, current, RevertToParent, t);
+	if (wm_state == _NET_WM_STATE_FULLSCREEN)
+		return;
+	if (verbosity >= 3)
+		printf("Giving focus to window 0x%lx\n", current);
+	XSetInputFocus(dpy, current, RevertToParent, t);
 }
 
 class StrokeHandler : public Handler {
@@ -1195,6 +1196,8 @@ void Main::run() {
 				if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
 					break;
 				XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
+				if (handler->top()->idle())
+					break;
 				printf("Escape pressed: Resetting...\n");
 				bail_out();
 				break;
