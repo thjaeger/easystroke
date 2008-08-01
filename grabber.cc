@@ -271,17 +271,22 @@ void Grabber::grab_xi_devs(bool grab) {
 
 extern bool in_proximity;
 void Grabber::select_proximity() {
-	if (!prefs().proximity.get() == !proximity_selected)
-		return;
-	proximity_selected = !proximity_selected;
-	if (!proximity_selected)
-		in_proximity = false;
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity)
-			if (proximity_selected)
-				XSelectExtensionEvent(dpy, ROOT, xi_devs[i]->events + all_events_n, proximity_events_n);
-			else // NB: This is total BS. The following call doesn't actually unselect the events.
-				XSelectExtensionEvent(dpy, ROOT, 0, 0);
+	if (!prefs.proximity.get() != !proximity_selected) {
+		proximity_selected = !proximity_selected;
+		if (!proximity_selected)
+			in_proximity = false;
+	}
+	XEventClass evs[2*xi_devs_n+1];
+	int n = 0;
+	evs[n++] = presence_class;
+		for (int i = 0; i < xi_devs_n; i++) {
+			if (proximity_selected && xi_devs[i]->supports_proximity) {
+				evs[n++] = xi_devs[i]->events[PROX_IN];
+				evs[n++] = xi_devs[i]->events[PROX_OUT];
+			}
+		}
+	// NB: Unselecting doesn't actually work!
+	XSelectExtensionEvent(dpy, ROOT, evs, n);
 }
 
 void Grabber::set() {
