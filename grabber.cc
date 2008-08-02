@@ -121,6 +121,7 @@ bool Grabber::init_xi() {
 			printf("Opened Device \"%s\" (%s proximity).\n", dev->name,
 					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
+	XFreeDeviceList(devs);
 
 	return xi_devs_n;
 }
