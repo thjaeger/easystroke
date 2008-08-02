@@ -1315,13 +1315,18 @@ void Main::run() {
 					if (verbosity >= 3)
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
 					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
+					int screen = DefaultScreen(dpy);
+					float x = rescaleValuatorAxis(mev->axis_data[0], xi_dev->min_x, xi_dev->max_x, 
+							DisplayWidth(dpy, screen));
+					float y = rescaleValuatorAxis(mev->axis_data[1], xi_dev->min_y, xi_dev->max_y, 
+							DisplayHeight(dpy, screen));
 					if (xi_dev && xi_dev->supports_pressure && prefs.pressure_abort.get())
 						if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
 								prefs.pressure_threshold.get())
 						       handler->top()->pressure();
 					if (last_type == MotionNotify && last_time == mev->time)
 						break;
-					handler->top()->motion(mev->x, mev->y, mev->time);
+					handler->top()->motion(x, y, mev->time);
 					last_type = MotionNotify;
 					last_time = mev->time;
 				}

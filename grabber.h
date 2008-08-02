@@ -10,6 +10,8 @@
 class Grabber;
 extern Grabber *grabber;
 
+float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
+
 class Grabber {
 public:
 	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, POINTER };

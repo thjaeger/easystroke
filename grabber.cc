@@ -52,6 +52,12 @@ Grabber::~Grabber() {
 	XFreeCursor(dpy, cursor);
 }
 
+float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax) {
+	if (fmin >= fmax)
+		return coord;
+	return ((float)(coord - fmin)) * (tmax + 1) / (fmax - fmin + 1);
+}
+
 extern "C" {
 	extern int _XiGetDevicePresenceNotifyEvent(Display *);
 }
@@ -91,10 +97,10 @@ bool Grabber::init_xi() {
 			if (any->c_class == ValuatorClass) {
 				XValuatorInfo *info = (XValuatorInfo *)any;
 				if (info->num_axes >= 2) {
-//					xi_dev->minx = info->axes[0].min_value;
-//					xi_dev->maxx = info->axes[0].max_value;
-//					xi_dev->miny = info->axes[1].min_value;
-//					xi_dev->maxy = info->axes[1].max_value;
+					xi_dev->min_x = info->axes[0].min_value;
+					xi_dev->max_x = info->axes[0].max_value;
+					xi_dev->min_y = info->axes[1].min_value;
+					xi_dev->max_y = info->axes[1].max_value;
 				}
 				if (info->num_axes >= 3) {
 					xi_dev->supports_pressure = true;
