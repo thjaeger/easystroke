@@ -3,12 +3,12 @@
 Glib::StaticRecMutex global_mutex = GLIBMM_STATIC_REC_MUTEX_INIT;
 
 class BiIntLong : public BiFun<int,long> {
-	long run1(int &x) { return x; }
-	int run2(long &x) { return x; }
+	long run1(const int &x) { return x; }
+	int run2(const long &x) { return x; }
 };
 
 class LongInt : public Fun<long,int> {
-	int run(long &x) { return x; }
+	int run(const long &x) { return x; }
 };
 
 void test() {

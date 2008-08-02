@@ -90,6 +90,12 @@ bool Grabber::init_xi() {
 				has_button = true;
 			if (any->c_class == ValuatorClass) {
 				XValuatorInfo *info = (XValuatorInfo *)any;
+				if (info->num_axes >= 2) {
+//					xi_dev->minx = info->axes[0].min_value;
+//					xi_dev->maxx = info->axes[0].max_value;
+//					xi_dev->miny = info->axes[1].min_value;
+//					xi_dev->maxy = info->axes[1].max_value;
+				}
 				if (info->num_axes >= 3) {
 					xi_dev->supports_pressure = true;
 					xi_dev->pressure_min = info->axes[2].min_value;
@@ -148,7 +154,7 @@ bool Grabber::init_xi() {
 			break;
 		}
 	class NotifyProx : public In<bool> {
-		virtual void notify(bool &x, Out<bool> *) { send(P_PROXIMITY); }
+		virtual void notify(Update<bool> &, Out<bool> *) { send(P_PROXIMITY); }
 	};
 	prefs.proximity.connect(new NotifyProx);
 
