@@ -122,7 +122,7 @@ public:
 		else
 			return this;
 	}
-	virtual void motion(int x, int y, Time t) {}
+	virtual void motion(float x, float y, Time t) {}
 	virtual void press(guint b, int x, int y, Time t) {}
 	virtual void release(guint b, int x, int y, Time t) {}
 	virtual void press_repeated() {}
@@ -238,7 +238,7 @@ protected:
 		return v * exp(log(abs(v))/3);
 	}
 public:
-	virtual void motion(int x, int y, Time t) {
+	virtual void motion(float x, float y, Time t) {
 		if (!last_t || abs(x-last_x) > 100 || abs(y-last_y) > 100) {
 			last_x = x;
 			last_y = y;
@@ -313,7 +313,7 @@ public:
 			replace_child(new WaitForButtonHandler(pressed, true));
 		}
 	}
-	virtual void motion(int x, int y, Time t) {
+	virtual void motion(float x, float y, Time t) {
 		if (!pressed && !pressed2)
 			moved = true;
 		AbstractScrollHandler::motion(x,y,t);
@@ -441,7 +441,7 @@ public:
 		grabber->grab_xi_devs(true);
 		grab();
 	}
-	virtual void motion(int x, int y, Time t) {
+	virtual void motion(float x, float y, Time t) {
 		if (xinput_pressed.size())
 			AbstractScrollHandler::motion(x,y,t);
 	}
@@ -720,7 +720,7 @@ protected:
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		parent->replace_child(0);
 	}
-	virtual void motion(int x, int y, Time t) {
+	virtual void motion(float x, float y, Time t) {
 		if (!repeated && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
 			if (verbosity >= 2)
 				printf("Ignoring xi-only stroke\n");
