@@ -647,7 +647,6 @@ void activate_window(Window w, Time t) {
 		printf("Giving focus to window 0x%lx\n", w);
 
 	bool take_focus = has_atom(w, WM_PROTOCOLS, WM_TAKE_FOCUS);
-	printf("take_focus: %d\n", take_focus);
 	if (take_focus)
 		icccm_client_message(w, WM_TAKE_FOCUS, t);
 	else
