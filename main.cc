@@ -1339,11 +1339,16 @@ void Main::run() {
 					if (verbosity >= 3)
 						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
 					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
-					int screen = DefaultScreen(dpy);
-					float x = rescaleValuatorAxis(mev->axis_data[0], xi_dev->min_x, xi_dev->max_x, 
-							DisplayWidth(dpy, screen));
-					float y = rescaleValuatorAxis(mev->axis_data[1], xi_dev->min_y, xi_dev->max_y, 
-							DisplayHeight(dpy, screen));
+					int w = DisplayWidth(dpy, DefaultScreen(dpy));
+					int h = DisplayHeight(dpy, DefaultScreen(dpy));
+					float x  = rescaleValuatorAxis(mev->axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
+					float x2 = rescaleValuatorAxis(mev->axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
+					float y  = rescaleValuatorAxis(mev->axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
+					float y2 = rescaleValuatorAxis(mev->axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
+					if (hypot(x2 - mev->x, y2 - mev->y) < hypot(x - mev->x, y - mev->y)) {
+						x = x2;
+						y = y2;
+					}
 					if (xi_dev && xi_dev->supports_pressure && prefs.pressure_abort.get())
 						if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
 								prefs.pressure_threshold.get())
