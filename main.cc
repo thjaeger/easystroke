@@ -101,6 +101,7 @@ Window current = 0;
 bool ignore = false;
 bool scroll = false;
 guint press_button = 0;
+guint replay_button = 0;
 Trace *trace = 0;
 bool in_proximity = false;
 
@@ -378,6 +379,11 @@ class ActionHandler : public Handler {
 			replace_child(new ScrollHandler(button, button2));
 			return;
 		}
+		//TODO
+		if (replay_button) {
+			press_button = replay_button;
+			replay_button = 0;
+		}
 		if (!press_button)
 			return;
 		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
@@ -479,6 +485,11 @@ public:
 			h->replace_child(new WaitForButtonHandler(button2, false));
 			return;
 		}
+		//TODO
+		if (replay_button) {
+			press_button = replay_button;
+			replay_button = 0;
+		}
 		if (!press_button) {
 			grabber->grab(Grabber::ALL_ASYNC);
 			return;
@@ -504,6 +515,11 @@ public:
 			// Why do we not need this?
 //			h->replace_child(new WaitForButtonHandler(button2, false));
 			return;
+		}
+		//TODO
+		if (replay_button) {
+			press_button = replay_button;
+			replay_button = 0;
 		}
 		if (!press_button)
 			return;
@@ -667,8 +683,6 @@ class StrokeHandler : public Handler {
 	RStroke finish(guint b) {
 		trace->end();
 		XFlush(dpy);
-		if (have_xi)
-			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 		if (!is_gesture)
 			cur->clear();
 		if (b && prefs.advanced_ignore.get())
@@ -758,6 +772,8 @@ protected:
 		if (calc_speed(x,y,t))
 			return;
 		RStroke s = finish(b);
+		if (have_xi)
+			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 
 		if (gui && stroke_action) {
 			handle_stroke(s, button, b);
@@ -779,6 +795,15 @@ protected:
 		RStroke s = finish(b);
 
 		handle_stroke(s, button, 0);
+		if (replay_button) {
+			if (have_xi)
+				XAllowEvents(dpy, ReplayPointer, CurrentTime);
+			else
+				press_button = replay_button;
+			replay_button = 0;
+		} else
+			if (have_xi)
+				XAllowEvents(dpy, AsyncPointer, CurrentTime);
 		if (ignore) {
 			ignore = false;
 			parent->replace_child(new IgnoreHandler);
@@ -1035,7 +1060,7 @@ void handle_stroke(RStroke s, int trigger, int button) {
 		if (!stroke_action(s)) {
 			Ranking *ranking = as.handle(s);
 			if (ranking->id == -1)
-				press_button = trigger;
+				replay_button = trigger;
 			if (ranking->id != -1 || prefs.show_clicks.get())
 				win->stroke_push(ranking);
 		}
@@ -1043,7 +1068,7 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	} else {
 		Ranking *ranking = as.handle(s);
 		if (ranking->id == -1)
-			press_button = trigger;
+			replay_button = trigger;
 		delete ranking;
 	}
 }
