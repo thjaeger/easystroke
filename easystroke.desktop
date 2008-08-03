@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=easystroke
+Type=Application
+Terminal=false
+Icon[en_US]=easystroke
+Name[en_US]=easystroke
+Exec=easystroke
+Icon=easystroke
+Categories=GTK;Utility;Accessibility;
+Comment[en_US]=
+GenericName[en_US]=

@@ -1,4 +1,7 @@
 PREFIX   = /usr/local
+BINDIR   = $(PREFIX)/bin
+ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
+MENUDIR  = $(PREFIX)/share/applications
 DFLAGS   = #-ggdb #-pg
 OFLAGS   = -Os
 AOFLAGS  = -O3
@@ -52,3 +55,13 @@ gui.c: gui.gb
 	echo "const char *gui_buffer = \"\\" > gui.c
 	sed 's/"/\\"/g' gui.gb | sed 's/.*/&\\n\\/' >> gui.c
 	echo "\";" >> gui.c
+
+install: all
+	install -Ds $(BINARY) $(BINDIR)
+	install -D -m 644 easystroke.svg $(ICONDIR)
+	install -D -m 644 easystroke.desktop $(MENUDIR)
+
+uninstall:
+	rm $(BINDIR)/$(BINARY) || true
+	rm $(ICONDIR)/easystroke.svg || true
+	rm $(MENUDIR)/easystroke.desktop || true
