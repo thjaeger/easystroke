@@ -58,11 +58,11 @@ gui.c: gui.gb
 	echo "\";" >> gui.c
 
 install: all
-	install -Ds $(BINARY) $(PREFIX)$(BINDIR)
-	install -D -m 644 easystroke.svg $(PREFIX)$(ICONDIR)
-	install -D -m 644 easystroke.desktop $(PREFIX)$(MENUDIR)
+	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)
+	install -D -m 644 easystroke.svg $(DESTDIR)$(ICONDIR)
+	install -D -m 644 easystroke.desktop $(DESTDIR)$(MENUDIR)
 
 uninstall:
-	rm $(PREFIX)$(BINDIR)/$(BINARY) || true
-	rm $(PREFIX)$(ICONDIR)/easystroke.svg || true
-	rm $(PREFIX)$(MENUDIR)/easystroke.desktop || true
+	rm $(DESTDIR)$(BINDIR)/$(BINARY) || true
+	rm $(DESTDIR)$(ICONDIR)/easystroke.svg || true
+	rm $(DESTDIR)$(MENUDIR)/easystroke.desktop || true
