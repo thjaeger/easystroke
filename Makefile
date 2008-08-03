@@ -1,3 +1,4 @@
+DESTDIR  =
 PREFIX   = /usr/local
 BINDIR   = $(PREFIX)/bin
 ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
@@ -57,11 +58,11 @@ gui.c: gui.gb
 	echo "\";" >> gui.c
 
 install: all
-	install -Ds $(BINARY) $(BINDIR)
-	install -D -m 644 easystroke.svg $(ICONDIR)
-	install -D -m 644 easystroke.desktop $(MENUDIR)
+	install -Ds $(BINARY) $(PREFIX)$(BINDIR)
+	install -D -m 644 easystroke.svg $(PREFIX)$(ICONDIR)
+	install -D -m 644 easystroke.desktop $(PREFIX)$(MENUDIR)
 
 uninstall:
-	rm $(BINDIR)/$(BINARY) || true
-	rm $(ICONDIR)/easystroke.svg || true
-	rm $(MENUDIR)/easystroke.desktop || true
+	rm $(PREFIX)$(BINDIR)/$(BINARY) || true
+	rm $(PREFIX)$(ICONDIR)/easystroke.svg || true
+	rm $(PREFIX)$(MENUDIR)/easystroke.desktop || true
