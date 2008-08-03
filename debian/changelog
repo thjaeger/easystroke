@@ -1,3 +1,9 @@
+easystroke (0.2.0-4ubuntu1) hardy; urgency=low
+
+  * make lintian happy
+
+ -- Thomas Jaeger <ThJaeger@gmail.com>  Sun, 03 Aug 2008 18:18:56 -0400
+
 easystroke (0.2.0-4) hardy; urgency=low
 
   * build-depend on python-xml
