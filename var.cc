@@ -11,6 +11,7 @@ class LongInt : public Fun<long,int> {
 	int run(const long &x) { return x; }
 };
 
+#if TEST_VAR
 void test() {
 	VarE<int> x(0);
 	VarE<int> y(1);
@@ -29,9 +30,14 @@ void test() {
 	printf("2 == %d == %ld == %d\n", a.get(), b.get(), c.get());
 	c.set(3);
 	printf("3 == %d == %ld == %d\n", a.get(), b.get(), c.get());
+
+	Collection<int> coll;
+	Collection<int>::Ref r1 = coll.insert(new int(5));
+	printf("1 == %d\n", r1->valid());
+	coll.erase(r1);
+	printf("0 == %d\n", r1->valid());
 }
 
-#if TEST_VAR
 int main(int, char**) {
 	test();
 	return 0;

@@ -2,6 +2,7 @@
 #define __VAR_H__
 
 #include <set>
+#include <boost/shared_ptr.hpp>
 #include <glibmm/thread.h>
 
 extern Glib::StaticRecMutex global_mutex;
@@ -33,12 +34,14 @@ template <class T> class In : virtual public Base {
 	friend class Var<T>;
 	virtual void notify(Update<T> &, Out<T> *exclude) = 0;
 protected:
-	Out<T> *in;
+	Out<T> *in; // TODO: Doesn't really make sense for Vars
 public:
 	In() : in(0) {}
+	virtual ~In() { if (in) in->out.erase(this); }
 };
 
 template <class T> class Out : virtual public Base {
+	friend class In<T>;
 	std::set<In<T> *> out;
 protected:
 	virtual void update(Update<T> &u, Out<T> *exclude = 0) {
@@ -48,9 +51,9 @@ protected:
 				cur->notify(u, this);
 		}
 	}
-	void update() {
+	void update(Out<T> *exclude = 0) {
 		NewValue<T> u(get());
-		update(u);
+		update(u, exclude);
 	}
 public:
 	virtual T get() = 0;
@@ -58,6 +61,12 @@ public:
 		Atomic a;
 		out.insert(in);
 		in->in = this;
+	}
+	virtual ~Out() {
+		for (typename std::set<In<T> *>::iterator i = out.begin(); i != out.end(); i++) {
+			In<T> *cur = *i;
+			cur->in = 0;
+		}
 	}
 };
 
@@ -162,4 +171,53 @@ public:
 		connect(io);
 	}
 };
+
+#ifdef VAR_TEST
+template <class T> class Collection : public Var<std::set<T *> > {
+	typedef std::set<T *> C;
+public:
+	class Insert : public Update<C > {
+		friend class Collection;
+		T* x;
+	public:
+		virtual void apply(C &c) { c.insert(x); }
+	};
+	class Erase : public Update<C> {
+		friend class Collection;
+		T* x;
+		virtual void apply(C &c) { c.erase(x); }
+	};
+	class Reference : public In<C> {
+		friend class Collection;
+		T *x;
+		Reference(const Reference &);
+		Reference& operator=(const Reference &);
+		Reference(T *x_) : x(x_) {}
+	public:
+		virtual void notify(Update<C> &u, Out<C> *) {
+			Erase *e = dynamic_cast<Erase *>(&u);
+			if (e && e->x == x)
+				x = 0;
+		}
+		bool valid() { return x != 0; }
+	};
+	typedef boost::shared_ptr<Reference> Ref;
+	Ref insert(T *x) {
+		Insert i;
+		i.x = x;
+		update(i);
+		Ref ref = Ref(new Reference(x));
+		connectOut(&*ref);
+		return ref;
+	}
+	void erase(Ref r) {
+		if (!r->valid())
+			return;
+		Erase e;
+		e.x = r->x;
+		update(e);
+	}
+};
+#endif
+
 #endif
