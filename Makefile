@@ -58,3 +58,16 @@ gui.c: gui.gb
 	echo "const char *gui_buffer = \"\\" > gui.c
 	sed 's/"/\\"/g' gui.gb | sed 's/.*/&\\n\\/' >> gui.c
 	echo "\";" >> gui.c
+
+vartest: var.cc var.h
+	g++ -ggdb `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` -DTEST_VAR var.cc -o vartest
+
+install: all
+	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
+	install -D -m 644 $(ICON) $(DESTDIR)$(ICONDIR)/$(ICON)
+	install -D -m 644 $(MENU) $(DESTDIR)$(MENUDIR)/$(MENU)
+
+uninstall:
+	rm $(DESTDIR)$(BINDIR)/$(BINARY) || true
+	rm $(DESTDIR)$(ICONDIR)/$(ICON) || true
+	rm $(DESTDIR)$(MENUDIR)/$(DESKTOP) || true
