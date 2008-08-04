@@ -262,8 +262,10 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_current", del);
 	// TODO: What if find fails?
-	Atomic a;
-	del->set_sensitive(actions.ref(a).lookup(row[cols.id]).strokes.size());
+	{
+		Atomic a;
+		del->set_sensitive(actions.ref(a).lookup(row[cols.id]).strokes.size());
+	}
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
 	stroke_action.set2(sigc::mem_fun(ps, &OnStroke::run));
@@ -275,6 +277,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 		return;
 
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
+	Atomic a;
 	actions.write_ref(a)[row[cols.id]].strokes.clear();
 	write();
 }
