@@ -50,6 +50,7 @@ class Feedback {
 	Gtk::Window *text;
 public:
 	Feedback(RStroke s, Glib::ustring t, int x, int y) : icon(0), text(0) {
+		x -= STROKE_SIZE;
 		int w,h;
 		if (s) {
 			icon = new Gtk::Window(Gtk::WINDOW_POPUP);
@@ -73,7 +74,7 @@ public:
 			text->add(label);
 			label.show();
 			text->get_size(w,h);
-			text->move(x - w/2, icon ? y + h/2 : y - h/2);
+			text->move(x - w/2, y + h/2);
 			text->show();
 		}
 	}

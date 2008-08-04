@@ -105,7 +105,7 @@ guint replay_button = 0;
 Trace *trace = 0;
 bool in_proximity = false;
 
-void handle_stroke(RStroke stroke, int trigger, int button);
+void handle_stroke(RStroke s, int x, int y, int trigger, int button);
 
 class Handler {
 protected:
@@ -369,10 +369,11 @@ std::set<guint> xinput_pressed;
 
 class ActionHandler : public Handler {
 	RStroke stroke;
+	float init_x, init_y;
 	guint button, button2;
 
-	void do_press() {
-		handle_stroke(stroke, button2, button);
+	void do_press(float x, float y) {
+		handle_stroke(stroke, x, y, button2, button);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -394,16 +395,16 @@ class ActionHandler : public Handler {
 		parent->replace_child(0);
 	}
 public:
-	ActionHandler(RStroke s, guint b, guint b2) : stroke(s), button(b), button2(b2) {}
+	ActionHandler(RStroke s, float x, float y, guint b, guint b2) : stroke(s), init_x(x), init_y(y), button(b), button2(b2) {}
 
 	virtual void init() {
 		grabber->grab(Grabber::BUTTON);
-		do_press();
+		do_press(init_x, init_y);
 	}
 
 	virtual void press(guint b, int x, int y, Time t) {
 		button = b;
-		do_press();
+		do_press(x, y);
 	}
 
 	virtual void resume() {
@@ -466,17 +467,19 @@ public:
 
 class ActionXiHandler : public Handler {
 	RStroke stroke;
+	float init_x, init_y;
 	int emulated_button;
 
 	guint button, button2;
 public:
-	ActionXiHandler(RStroke s, guint b, guint b2, Time t) : stroke(s), emulated_button(0), button(b), button2(b2) {
+	ActionXiHandler(RStroke s, float x, float y, guint b, guint b2, Time t) : 
+		stroke(s), init_x(x), init_y(y), emulated_button(0), button(b), button2(b2) {
 		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
 		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
 	}
 	virtual void init() {
 		grabber->grab_xi_devs(true);
-		handle_stroke(stroke, button2, button);
+		handle_stroke(stroke, init_x, init_y, button2, button);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -506,7 +509,7 @@ public:
 			return;
 		button2 = b;
 		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
-		handle_stroke(stroke, button, button2);
+		handle_stroke(stroke, x, y, button, button2);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -776,16 +779,16 @@ protected:
 			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 
 		if (gui && stroke_action) {
-			handle_stroke(s, button, b);
+			handle_stroke(s, x, y, button, b);
 			parent->replace_child(0);
 			return;
 		}
 
 		if (xinput_pressed.count(b)) {
-			parent->replace_child(new ActionXiHandler(s, b, button, t));
+			parent->replace_child(new ActionXiHandler(s, x, y, b, button, t));
 		} else {
 			xi_warn();
-			parent->replace_child(new ActionHandler(s, b, button));
+			parent->replace_child(new ActionHandler(s, x, y, b, button));
 		}
 	}
 
@@ -794,7 +797,7 @@ protected:
 			return;
 		RStroke s = finish(b);
 
-		handle_stroke(s, button, 0);
+		handle_stroke(s, x, y, button, 0);
 		if (replay_button) {
 			if (have_xi)
 				XAllowEvents(dpy, ReplayPointer, CurrentTime);
@@ -871,7 +874,7 @@ public:
 			return;
 		RPreStroke p = PreStroke::create();
 		RStroke s = Stroke::create(*p, b, 1);
-		parent->replace_child(new ActionXiHandler(s, 1, b, t));
+		parent->replace_child(new ActionXiHandler(s, x, y, 1, b, t));
 	}
 	virtual std::string name() { return "Workaround"; }
 };
@@ -1049,7 +1052,7 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-void handle_stroke(RStroke s, int trigger, int button) {
+void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 	s->trigger = trigger;
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
@@ -1059,8 +1062,8 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	if (gui) {
 		if (!stroke_action(s)) {
 			Ranking *ranking = as.handle(s);
-			ranking->x = orig.x;
-			ranking->y = orig.y;
+			ranking->x = x;
+			ranking->y = y;
 			if (ranking->id == -1)
 				replay_button = trigger;
 			if (ranking->id != -1 || prefs.show_clicks.get())
