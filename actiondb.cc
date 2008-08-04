@@ -193,6 +193,7 @@ Ranking *ActionDB::handle(RStroke s) const {
 				r->id = i.id();
 				r->name = i.name();
 				r->action = i.action();
+				r->best_stroke = i.stroke();
 				success = true;
 			}
 		}

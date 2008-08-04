@@ -129,12 +129,13 @@ BOOST_CLASS_VERSION(StrokeInfo, 1)
 
 
 struct Ranking {
-	RStroke stroke;
+	RStroke stroke, best_stroke;
 	RAction action;
 	double score;
 	int id;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
+	int x, y;
 };
 
 class StrokeIterator {

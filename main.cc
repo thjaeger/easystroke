@@ -1059,6 +1059,8 @@ void handle_stroke(RStroke s, int trigger, int button) {
 	if (gui) {
 		if (!stroke_action(s)) {
 			Ranking *ranking = as.handle(s);
+			ranking->x = orig.x;
+			ranking->y = orig.y;
 			if (ranking->id == -1)
 				replay_button = trigger;
 			if (ranking->id != -1 || prefs.show_clicks.get())

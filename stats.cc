@@ -45,7 +45,59 @@ Stats::~Stats() {
 	delete r_queue;
 }
 
+class Feedback {
+	Gtk::Window *icon;
+	Gtk::Window *text;
+public:
+	Feedback(RStroke s, Glib::ustring t, int x, int y) : icon(0), text(0) {
+		int w,h;
+		if (s) {
+			icon = new Gtk::Window(Gtk::WINDOW_POPUP);
+			WIDGET(Gtk::Image, image, s->draw(STROKE_SIZE));
+			icon->set_accept_focus(false);
+			icon->modify_bg(Gtk::STATE_NORMAL, Gdk::Color("LemonChiffon"));
+			icon->add(image);
+			image.show();
+			icon->get_size(w,h);
+			icon->move(x - w/2, y - h/2);
+			icon->show();
+			y += h/2;
+		}
+
+		if (t != "") {
+			text = new Gtk::Window(Gtk::WINDOW_POPUP);
+			text->set_accept_focus(false);
+			text->set_border_width(2);
+			WIDGET(Gtk::Label, label, t);
+			text->modify_bg(Gtk::STATE_NORMAL, Gdk::Color("LemonChiffon"));
+			text->add(label);
+			label.show();
+			text->get_size(w,h);
+			text->move(x - w/2, icon ? y + h/2 : y - h/2);
+			text->show();
+		}
+	}
+	bool destroy() {
+		if (icon) {
+			icon->hide();
+			delete icon;
+		}
+		if (text) {
+			text->hide();
+			delete text;
+		}
+		delete this;
+		return false;
+	}
+};
+
+
 void Stats::on_stroke(Ranking *r) {
+	if (r->best_stroke) {
+		Feedback *popup = new Feedback(r->best_stroke, r->name, r->x, r->y);
+		Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 500);
+	}
+
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
 	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
 	row[cols.name] = r->name;
