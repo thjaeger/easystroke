@@ -3,7 +3,7 @@ Fri, 20 Jun 2008 03:34:06 -0400.
 
 It was downloaded from <http://easystroke.sourceforge.net>
 
-Upstream Author(s):
+Upstream Author:
 
     Thomas Jaeger <ThJaeger@gmail.com
 
@@ -78,4 +78,4 @@ License:
 
 
 The Debian packaging is (C) 2008, Thomas Jaeger <ThJaeger@gmail.com> and
-is licensed under the GPL, see `/usr/share/common-licenses/GPL'.
+is licensed under the ISC license.

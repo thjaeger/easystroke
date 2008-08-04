@@ -1,3 +1,16 @@
+easystroke (0.2.1-0ubuntu3) intrepid; urgency=low
+
+  * Minor packaging changes
+
+ -- Thomas Jaeger <ThJaeger@gmail.com>  Mon, 04 Aug 2008 02:03:07 -0400
+
+easystroke (0.2.1-0ubuntu2) intrepid; urgency=low
+
+  * Add debian/watch
+  * Make icon HIG-compliant
+
+ -- Thomas Jaeger <ThJaeger@gmail.com>  Mon, 04 Aug 2008 01:46:27 -0400
+
 easystroke (0.2.1-0ubuntu1) hardy; urgency=low
 
   * New upstream release
