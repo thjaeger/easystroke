@@ -62,7 +62,7 @@ void xi_warn() {
 	if (no_xi)
 		return;
 	static bool warned = false;
-	if (warned)
+	if (warned && !verbosity)
 		return;
 	printf("warning: Xinput extension not working correctly\n");
 	warned = true;
