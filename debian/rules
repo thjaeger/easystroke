@@ -21,7 +21,7 @@ install: build
 	dh_clean -k 
 	dh_installdirs
 
-	$(MAKE) DESTDIR=$(CURDIR)/debian/easystroke install
+	$(MAKE) DESTDIR=$(CURDIR)/debian/easystroke PREFIX=/usr install
 
 binary-indep: build install
 

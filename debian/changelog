@@ -1,3 +1,15 @@
+easystroke (0.2.1-0ubuntu1) hardy; urgency=low
+
+  * New upstream release
+
+ -- Thomas Jaeger <ThJaeger@gmail.com>  Sun, 03 Aug 2008 22:22:32 -0400
+
+easystroke (0.2.0-4ubuntu2) hardy; urgency=low
+
+  * fix install directory
+
+ -- Thomas Jaeger <ThJaeger@gmail.com>  Sun, 03 Aug 2008 22:12:56 -0400
+
 easystroke (0.2.0-4ubuntu1) hardy; urgency=low
 
   * make lintian happy
