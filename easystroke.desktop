@@ -1,13 +1,13 @@
 [Desktop Entry]
 Version=1.0
 Encoding=UTF-8
-Name=easystroke
+Name=Easystroke Gesture Recognition
 Type=Application
 Terminal=false
 Icon[en_US]=easystroke
-Name[en_US]=easystroke
+Name[en_US]=Easystroke Gesture Recognition
 Exec=easystroke
 Icon=easystroke
 Categories=GTK;Utility;Accessibility;
-Comment[en_US]=
+Comment[en_US]=Control your desktop using mouse gestures
 GenericName[en_US]=
