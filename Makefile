@@ -15,9 +15,11 @@ LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config g
 LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --libs` /usr/lib/libboost_serialization.a
 
 BINARY   = easystroke
+ICON     = easystroke.svg
+MENU     = easystroke.desktop
 
 CCFILES  = $(wildcard *.cc)
-CFILES  = clientwin.c dsimple.c gui.c
+CFILES   = clientwin.c dsimple.c gui.c
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES)) 
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c
@@ -58,11 +60,11 @@ gui.c: gui.gb
 	echo "\";" >> gui.c
 
 install: all
-	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)
-	install -D -m 644 easystroke.svg $(DESTDIR)$(ICONDIR)
-	install -D -m 644 easystroke.desktop $(DESTDIR)$(MENUDIR)
+	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
+	install -D -m 644 $(ICON) $(DESTDIR)$(ICONDIR)/$(ICON)
+	install -D -m 644 $(MENU) $(DESTDIR)$(MENUDIR)/$(MENU)
 
 uninstall:
 	rm $(DESTDIR)$(BINDIR)/$(BINARY) || true
-	rm $(DESTDIR)$(ICONDIR)/easystroke.svg || true
-	rm $(DESTDIR)$(MENUDIR)/easystroke.desktop || true
+	rm $(DESTDIR)$(ICONDIR)/$(ICON) || true
+	rm $(DESTDIR)$(MENUDIR)/$(DESKTOP) || true
