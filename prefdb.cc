@@ -30,6 +30,14 @@ PrefDB::PrefDB() :
 	proximity(false)
 {}
 
+class ErrorDialog : public Gtk::MessageDialog {
+public:
+	ErrorDialog(const Glib::ustring text) :
+			MessageDialog(win->get_window(), text, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true)
+	{ show(); }
+	virtual void on_response(int) { delete this; }
+};
+
 bool good_state = true;
 
 void PrefDB::notify() {
@@ -46,8 +54,7 @@ void PrefDB::notify() {
 		if (!good_state)
 			return;
 		good_state = false;
-		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
-		dialog.run();
+		new ErrorDialog("Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.");
 	}
 }
 
