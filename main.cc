@@ -1153,7 +1153,7 @@ void Main::run() {
 	{
 		Atomic a;
 		actions.write_ref(a).read();
-		prefs.read();
+		prefs.init();
 	}
 
 	grabber = new Grabber;
@@ -1206,7 +1206,6 @@ void Main::run() {
 			if (*ret == P_RESTORE_GRAB)
 				grabber->resume();
 			if (*ret == P_UPDATE_CURRENT) {
-				prefs.write();
 				grabber->update(current);
 			}
 			if (*ret == P_UPDATE_TRACE) {

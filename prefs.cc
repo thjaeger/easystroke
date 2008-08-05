@@ -15,18 +15,6 @@ VarI<bool> xinput_v = false;
 VarI<bool> supports_pressure = false;
 VarI<bool> supports_proximity = false;
 
-bool good_state = true;
-
-void write_prefs() {
-	if (!good_state)
-		return;
-	good_state = prefs.write();
-	if (!good_state) {
-		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
-		dialog.run();
-	}
-}
-
 class Check : public IO<bool> {
 	Gtk::CheckButton *check;
 	virtual void notify(bool b) { check->set_active(b); }
@@ -34,7 +22,6 @@ class Check : public IO<bool> {
 	void on_changed() {
 		if (get() == in->get()) return;
 		update();
-		write_prefs();
 	}
 public:
 	Check(const Glib::ustring &name) {
@@ -51,7 +38,6 @@ class Spin : public IO<int> {
 	void on_changed() {
 		if (get() == in->get()) return;
 		update();
-		write_prefs();
 	}
 public:
 	Spin(const Glib::ustring & name) {
@@ -251,7 +237,6 @@ void Prefs::on_select_button() {
 	}
 	send(P_REGRAB);
 	set_button_label();
-	write_prefs();
 }
 
 void Prefs::on_trace_changed() {
@@ -262,12 +247,10 @@ void Prefs::on_trace_changed() {
 		return;
 	prefs.trace.set(type);
 	send(P_UPDATE_TRACE);
-	write_prefs();
 }
 
 void Prefs::on_p_changed() {
 	prefs.p.set(scale_p->get_value());
-	write_prefs();
 }
 
 void Prefs::on_p_default() {

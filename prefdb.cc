@@ -1,5 +1,6 @@
 #include "prefdb.h"
 #include "main.h"
+#include "win.h" // TODO: We don't need this in the long run
 
 #include <fstream>
 #include <iostream>
@@ -29,7 +30,9 @@ PrefDB::PrefDB() :
 	proximity(false)
 {}
 
-bool PrefDB::write() const {
+bool good_state = true;
+
+void PrefDB::notify() {
 	std::string filename = config_dir+"preferences";
 	try {
 		std::ofstream ofs(filename.c_str());
@@ -38,14 +41,17 @@ bool PrefDB::write() const {
 		oa << *me;
 		if (verbosity >= 2)
 			std::cout << "Saved preferences." << std::endl;
-		return true;
 	} catch (...) {
 		std::cout << "Error: Couldn't save preferences." << std::endl;
-		return false;
+		if (!good_state)
+			return;
+		good_state = false;
+		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+		dialog.run();
 	}
 }
 
-void PrefDB::read() {
+void PrefDB::init() {
 	std::string filename = config_dir+"preferences";
 	try {
 		std::ifstream ifs(filename.c_str(), std::ios::binary);
@@ -56,6 +62,18 @@ void PrefDB::read() {
 	} catch (...) {
 		std::cout << "Error: Couldn't read preferences." << std::endl;
 	}
+	add(exceptions);
+	add(p);
+	add(button);
+	add(trace);
+	add(advanced_ignore);
+	add(radius);
+	add(ignore_grab);
+	add(timing_workaround);
+	add(show_clicks);
+	add(pressure_abort);
+	add(pressure_threshold);
+	add(proximity);
 }
 
 PrefDB prefs;

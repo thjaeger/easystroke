@@ -33,7 +33,7 @@ extern const double default_p;
 extern const int default_radius;
 extern const int default_pressure_threshold;
 
-class PrefDB {
+class PrefDB : public Watcher {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		Atomic a;
@@ -82,8 +82,8 @@ public:
 	VarI<int> pressure_threshold;
 	VarI<bool> proximity;
 
-	void read();
-	bool write() const;
+	void init();
+	virtual void notify();
 };
 
 BOOST_CLASS_VERSION(PrefDB, 4)

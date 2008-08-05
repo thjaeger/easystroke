@@ -172,6 +172,20 @@ public:
 	}
 };
 
+class Watcher {
+public:
+	virtual void notify() = 0;
+	template <class T> void add(Out<T> &v) {
+		class Watching : public In<T> {
+			Watcher *w;
+		public:
+			Watching(Watcher *w_) : w(w_) {}
+			virtual void notify(Update<T> &, Out<T> *exclude) { w->notify(); }
+		};
+		v.connectOut(new Watching(this));
+	}
+};
+
 #ifdef VAR_TEST
 template <class T> class Collection : public Var<std::set<T *> > {
 	typedef std::set<T *> C;
