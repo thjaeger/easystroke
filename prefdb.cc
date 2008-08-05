@@ -17,6 +17,7 @@ const int default_radius = 16;
 const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
+	good_state(true),
 	p(default_p),
 	button(default_button),
 	trace(TraceShape),
@@ -29,16 +30,6 @@ PrefDB::PrefDB() :
 	pressure_threshold(default_pressure_threshold),
 	proximity(false)
 {}
-
-class ErrorDialog : public Gtk::MessageDialog {
-public:
-	ErrorDialog(const Glib::ustring text) :
-			MessageDialog(win->get_window(), text, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true)
-	{ show(); }
-	virtual void on_response(int) { delete this; }
-};
-
-bool good_state = true;
 
 void PrefDB::notify() {
 	std::string filename = config_dir+"preferences";
@@ -69,18 +60,18 @@ void PrefDB::init() {
 	} catch (...) {
 		std::cout << "Error: Couldn't read preferences." << std::endl;
 	}
-	add(exceptions);
-	add(p);
-	add(button);
-	add(trace);
-	add(advanced_ignore);
-	add(radius);
-	add(ignore_grab);
-	add(timing_workaround);
-	add(show_clicks);
-	add(pressure_abort);
-	add(pressure_threshold);
-	add(proximity);
+	watch(exceptions);
+	watch(p);
+	watch(button);
+	watch(trace);
+	watch(advanced_ignore);
+	watch(radius);
+	watch(ignore_grab);
+	watch(timing_workaround);
+	watch(show_clicks);
+	watch(pressure_abort);
+	watch(pressure_threshold);
+	watch(proximity);
 }
 
 PrefDB prefs;

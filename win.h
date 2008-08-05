@@ -71,4 +71,9 @@ private:
 	Gtk::Label *label;
 };
 
+class ErrorDialog : public Gtk::MessageDialog {
+	virtual void on_response(int) { delete this; }
+public:
+	ErrorDialog(const Glib::ustring &);
+};
 #endif

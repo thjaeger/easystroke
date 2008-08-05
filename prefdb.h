@@ -35,6 +35,7 @@ extern const int default_pressure_threshold;
 
 class PrefDB : public Watcher {
 	friend class boost::serialization::access;
+	bool good_state;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		Atomic a;
 		ar & exceptions.write_ref(a);

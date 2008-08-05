@@ -29,9 +29,6 @@ private:
 	void update_arg(Glib::ustring);
 	void focus(int id, int col, bool edit);
 
-	bool good_state;
-	void write();
-
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
 		ModelColumns() { add(stroke); add(name); add(type); add(arg); add(cmd_save); add(id); }

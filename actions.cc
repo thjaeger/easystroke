@@ -16,7 +16,6 @@
 #define BUTTON "Button"
 
 Actions::Actions() :
-	good_state(true),
 	tv(0),
 	editing_new(false),
 	editing(false)
@@ -120,17 +119,6 @@ Actions::Actions() :
 	tv->set_model(tm);
 }
 
-void Actions::write() {
-	if (!good_state)
-		return;
-	Atomic a;
-	good_state = actions.ref(a).write();
-	if (!good_state) {
-		Gtk::MessageDialog dialog(win->get_window(), "Couldn't save actions.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.", false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
-		dialog.run();
-	}
-}
-
 void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new_type) {
 	tv->grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
@@ -149,7 +137,6 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 			RSendKey key = boost::dynamic_pointer_cast<SendKey>(as[id].action);
 			if (key) {
 				key->xtest = row[cols.type] == KEY_XTEST;
-				write();
 			}
 			edit = false;
 		} else {
@@ -160,7 +147,6 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 					edit = false;
 
 				as[id].action.reset();
-				write();
 			}
 			if (old_type == COMMAND) {
 				row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
@@ -170,21 +156,17 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 				row[cols.arg] = "No Modifiers";
 				update_arg(new_type);
 				as[id].action = Scroll::create((Gdk::ModifierType)0);
-				write();
 				edit = false;
 			}
 			if (new_type == IGNORE) {
 				row[cols.arg] = "No Modifiers";
 				update_arg(new_type);
 				as[id].action = Ignore::create((Gdk::ModifierType)0);
-				write();
 				edit = false;
 			}
 			if (new_type == BUTTON) {
 				row[cols.arg] = "";
-				update_arg(new_type);
 				as[id].action = Button::create((Gdk::ModifierType)0, 0);
-				write();
 				edit = true;
 			}
 		}
@@ -229,7 +211,6 @@ void Actions::on_button_delete() {
 	ActionDB &as = actions.write_ref(a);
 	for (std::vector<int>::iterator i = ids.begin(); i != ids.end(); ++i)
 		as.remove(*i);
-	write();
 }
 
 class Actions::OnStroke {
@@ -246,7 +227,6 @@ public:
 		StrokeInfo &si = as[id];
 		si.strokes.clear();
 		si.strokes.insert(stroke);
-		parent->write();
 		dialog->response(0);
 		Glib::RefPtr<Gdk::Pixbuf> pb2 = stroke->draw(STROKE_SIZE);
 		pb = pb2;
@@ -279,7 +259,6 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
 	Atomic a;
 	actions.write_ref(a)[row[cols.id]].strokes.clear();
-	write();
 }
 
 void Actions::on_button_record() {
@@ -368,9 +347,10 @@ void Actions::focus(int id, int col, bool edit) {
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
 	Gtk::TreeRow row(*tm->get_iter(path));
-	Atomic a;
-	actions.write_ref(a)[row[cols.id]].name = new_text;
-	write();
+	{
+		Atomic a;
+		actions.write_ref(a)[row[cols.id]].name = new_text;
+	}
 	row[cols.name] = new_text;
 	focus(row[cols.id], 2, editing_new);
 }
@@ -386,21 +366,19 @@ void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_
 		c->cmd = new_cmd;
 	else
 		as[id].action = Command::create(new_cmd);
-	write();
 }
 
 void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
 	Gtk::TreeRow row(*tm->get_iter(path_string));
-	Atomic a;
-	ActionDB &as = actions.write_ref(a);
 	if (IS_KEY(row[cols.type])) {
 		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode, row[cols.type] == KEY_XTEST);
 		Glib::ustring str = send_key->get_label();
 		if (row[cols.arg] == str)
 			return;
 		row[cols.arg] = str;
+		Atomic a;
+		ActionDB &as = actions.write_ref(a);
 		as[row[cols.id]].action = boost::static_pointer_cast<Action>(send_key);
-		write();
 	}
 	if (row[cols.type] == SCROLL) {
 		RScroll scroll = Scroll::create(accel_mods);
@@ -408,8 +386,9 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		if (row[cols.arg] == str)
 			return;
 		row[cols.arg] = str;
+		Atomic a;
+		ActionDB &as = actions.write_ref(a);
 		as[row[cols.id]].action = boost::static_pointer_cast<Action>(scroll);
-		write();
 	}
 	if (row[cols.type] == IGNORE) {
 		RIgnore ignore = Ignore::create(accel_mods);
@@ -417,8 +396,9 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		if (row[cols.arg] == str)
 			return;
 		row[cols.arg] = str;
+		Atomic a;
+		ActionDB &as = actions.write_ref(a);
 		as[row[cols.id]].action = boost::static_pointer_cast<Action>(ignore);
-		write();
 	}
 }
 
@@ -445,8 +425,6 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
 	as[row[cols.id]].action = bt;
 	row[cols.arg] = bt->get_label();
-	write();
-
 }
 
 const Glib::ustring SendKey::get_label() const {

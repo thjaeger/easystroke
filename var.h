@@ -186,7 +186,7 @@ public:
 class Watcher {
 public:
 	virtual void notify() = 0;
-	template <class T> void add(Out<T> &v) {
+	template <class T> void watch(Out<T> &v) {
 		class Watching : public In<T> {
 			Watcher *w;
 		public:

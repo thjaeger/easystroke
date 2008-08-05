@@ -1,5 +1,6 @@
 #include "actiondb.h"
 #include "main.h"
+#include "win.h"
 
 #include <iostream>
 #include <fstream>
@@ -95,7 +96,7 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-ActionDB::ActionDB() : current_id(0) {}
+ActionDB::ActionDB() : good_state(true), current_id(0) {}
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version >= 1) {
@@ -115,7 +116,7 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 	}
 }
 
-void ActionDB::read() {
+void ActionDB::init() {
 	std::string filename = config_dir+"actions";
 	try {
 		ifstream ifs(filename.c_str(), ios::binary);
@@ -126,9 +127,10 @@ void ActionDB::read() {
 	} catch (...) {
 		cout << "Error: Couldn't read action database." << endl;
 	}
+	watch(actions);
 }
 
-bool ActionDB::write() const {
+void ActionDB::notify() {
 	std::string filename = config_dir+"actions";
 	try {
 		ofstream ofs(filename.c_str());
@@ -137,10 +139,12 @@ bool ActionDB::write() const {
 		oa << db;
 		if (verbosity >= 2)
 			cout << "Saved " << strokes.size() << " actions." << endl;
-		return true;
 	} catch (...) {
 		cout << "Error: Couldn't save action database." << endl;
-		return false;
+		if (!good_state)
+			return;
+		good_state = false;
+		new ErrorDialog("Couldn't save actions.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.");
 	}
 }
 

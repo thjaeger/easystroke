@@ -2,6 +2,7 @@
 #include "prefs.h"
 #include "stats.h"
 #include "win.h"
+#include "main.h"
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
@@ -178,3 +179,7 @@ FormatLabel::FormatLabel(Glib::RefPtr<Gtk::Builder> builder, Glib::ustring name,
 FormatLabel::~FormatLabel() {
 	label->set_text(oldstring);
 }
+
+ErrorDialog::ErrorDialog(const Glib::ustring &text) :
+		MessageDialog(win->get_window(), text, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true)
+	{ show(); }

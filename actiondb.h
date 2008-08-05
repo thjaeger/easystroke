@@ -194,9 +194,10 @@ public:
 
 };
 
-class ActionDB {
+class ActionDB : public Watcher {
 	friend class boost::serialization::access;
 	std::map<int, StrokeInfo> strokes;
+	bool good_state;
 	template<class Archive> void load(Archive & ar, const unsigned int version);
 	template<class Archive> void save(Archive & ar, const unsigned int version) const {
 		ar & strokes;
@@ -215,8 +216,8 @@ public:
 	const StrokeInfo &lookup(int id) const { return strokes.find(id)->second; }
 	StrokeInfo &operator[](int id) { return strokes[id]; }
 
-	void read();
-	bool write() const;
+	void init();
+	void notify();
 
 	int size() const { return strokes.size(); }
 	bool remove(int id);

@@ -1171,7 +1171,7 @@ void Main::run() {
 
 	{
 		Atomic a;
-		actions.write_ref(a).read();
+		actions.write_ref(a).init();
 		prefs.init();
 	}
 
