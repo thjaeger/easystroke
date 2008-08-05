@@ -194,7 +194,7 @@ public:
 
 };
 
-class ActionDB : public Watcher {
+class ActionDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
 	std::map<int, StrokeInfo> strokes;
 	bool good_state;
@@ -217,7 +217,7 @@ public:
 	StrokeInfo &operator[](int id) { return strokes[id]; }
 
 	void init();
-	void notify();
+	void timeout();
 
 	int size() const { return strokes.size(); }
 	bool remove(int id);

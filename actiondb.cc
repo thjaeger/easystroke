@@ -96,7 +96,7 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-ActionDB::ActionDB() : good_state(true), current_id(0) {}
+ActionDB::ActionDB() : TimeoutWatcher(5000), good_state(true), current_id(0) {}
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version >= 1) {
@@ -130,7 +130,7 @@ void ActionDB::init() {
 	watch(actions);
 }
 
-void ActionDB::notify() {
+void ActionDB::timeout() {
 	std::string filename = config_dir+"actions";
 	try {
 		ofstream ofs(filename.c_str());

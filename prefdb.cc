@@ -17,6 +17,7 @@ const int default_radius = 16;
 const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
+	TimeoutWatcher(5000),
 	good_state(true),
 	p(default_p),
 	button(default_button),
@@ -31,7 +32,7 @@ PrefDB::PrefDB() :
 	proximity(false)
 {}
 
-void PrefDB::notify() {
+void PrefDB::timeout() {
 	std::string filename = config_dir+"preferences";
 	try {
 		std::ofstream ofs(filename.c_str());

@@ -33,7 +33,7 @@ extern const double default_p;
 extern const int default_radius;
 extern const int default_pressure_threshold;
 
-class PrefDB : public Watcher {
+class PrefDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
 	bool good_state;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
@@ -84,7 +84,7 @@ public:
 	VarI<bool> proximity;
 
 	void init();
-	virtual void notify();
+	virtual void timeout();
 };
 
 BOOST_CLASS_VERSION(PrefDB, 4)

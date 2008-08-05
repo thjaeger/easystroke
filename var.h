@@ -4,7 +4,7 @@
 #include <set>
 #include <list>
 #include <boost/shared_ptr.hpp>
-#include <glibmm/thread.h>
+#include <glibmm.h>
 
 template <class T> class Out;
 template <class T> class Var;
@@ -184,8 +184,9 @@ public:
 };
 
 class Watcher {
-public:
+protected:
 	virtual void notify() = 0;
+public:
 	template <class T> void watch(Out<T> &v) {
 		class Watching : public In<T> {
 			Watcher *w;
@@ -194,6 +195,24 @@ public:
 			virtual void notify(Update<T> &, Out<T> *exclude) { w->notify(); }
 		};
 		v.connectOut(new Watching(this));
+	}
+};
+
+class TimeoutWatcher : public Watcher {
+	int ms;
+	sigc::connection *c;
+	bool to() { timeout(); c = 0; return false; }
+protected:
+	virtual void timeout() = 0;
+public:
+	TimeoutWatcher(int ms_) : ms(ms_), c(0) {}
+	virtual void notify() {
+		if (c) {
+			c->disconnect();
+			delete c;
+			c = 0;
+		}
+		c = new sigc::connection(Glib::signal_timeout().connect(sigc::mem_fun(*this, &TimeoutWatcher::to), ms));
 	}
 };
 
