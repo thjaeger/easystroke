@@ -32,6 +32,7 @@ class Check : public IO<bool> {
 	virtual void notify(bool b) { check->set_active(b); }
 	virtual bool get() { return check->get_active(); }
 	void on_changed() {
+		if (get() == in->get()) return;
 		update();
 		write_prefs();
 	}
@@ -48,6 +49,7 @@ class Spin : public IO<int> {
 	virtual void notify(int x) { spin->set_value(x); }
 	virtual int get() { return spin->get_value(); }
 	void on_changed() {
+		if (get() == in->get()) return;
 		update();
 		write_prefs();
 	}
