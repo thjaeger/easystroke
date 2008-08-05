@@ -2,18 +2,25 @@
 #define __VAR_H__
 
 #include <set>
+#include <list>
 #include <boost/shared_ptr.hpp>
 #include <glibmm/thread.h>
+
+template <class T> class Out;
+template <class T> class Var;
 
 extern Glib::StaticRecMutex global_mutex;
 
 struct Atomic {
+	std::list<sigc::slot<void> > cleanup;
 	Atomic() { global_mutex.lock(); }
-	~Atomic() { global_mutex.unlock(); }
+	~Atomic() {
+		for (std::list<sigc::slot<void> >::iterator i = cleanup.begin(); i != cleanup.end(); i++)
+			(*i)();
+		cleanup.clear();
+		global_mutex.unlock();
+	}
 };
-
-template <class T> class Out;
-template <class T> class Var;
 
 template <class T> class Update {
 public:
@@ -72,6 +79,7 @@ public:
 
 template <class T> class Var : public Out<T> {
 	T v;
+	void cleanup() { Out<T>::update(); }
 protected:
 	virtual void update(Update<T> &u, Out<T> *exclude = 0) {
 		Atomic a;
@@ -93,7 +101,10 @@ public:
 	}
 	const T &ref(Atomic &a) { return v; }
 	// write_refs are evil
-	T &write_ref(Atomic &a) { return v; }
+	T &write_ref(Atomic &a) {
+		a.cleanup.push_back(sigc::mem_fun(*this, &Var::cleanup));
+		return v;
+	}
 };
 
 template <class X, class Y> class Fun : public In<X>, public Out<Y> {
@@ -186,7 +197,7 @@ public:
 	}
 };
 
-#ifdef VAR_TEST
+#ifdef TEST_VAR
 template <class T> class Collection : public Var<std::set<T *> > {
 	typedef std::set<T *> C;
 public:
