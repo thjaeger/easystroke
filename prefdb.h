@@ -41,12 +41,12 @@ class PrefDB : public TimeoutWatcher {
 		ar & exceptions.write_ref(a);
 		ar & p.write_ref(a);
 		ar & button.write_ref(a);
-		if (version <= 1) {
+		if (version < 2) {
 			bool help;
 			ar & help;
 		}
 		ar & trace.write_ref(a);
-		if (version <= 2) {
+		if (version < 3) {
 			int delay;
 			ar & delay;
 		}
@@ -56,16 +56,19 @@ class PrefDB : public TimeoutWatcher {
 			ar & foo;
 			return;
 		}
-		if (version <= 1) return;
+		if (version < 2) return;
 		ar & advanced_ignore.write_ref(a);
 		ar & radius.write_ref(a);
-		if (version <= 3) return;
+		if (version < 4) return;
 		ar & ignore_grab.write_ref(a);
 		ar & timing_workaround.write_ref(a);
 		ar & show_clicks.write_ref(a);
 		ar & pressure_abort.write_ref(a);
 		ar & pressure_threshold.write_ref(a);
 		ar & proximity.write_ref(a);
+		if (version < 5) return;
+		ar & feedback.write_ref(a);
+		ar & left_handed.write_ref(a);
 	}
 public:
 	PrefDB();
@@ -82,12 +85,14 @@ public:
 	VarI<bool> pressure_abort;
 	VarI<int> pressure_threshold;
 	VarI<bool> proximity;
+	VarI<bool> feedback;
+	VarI<bool> left_handed;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 4)
+BOOST_CLASS_VERSION(PrefDB, 5)
 
 extern PrefDB prefs;
 #endif

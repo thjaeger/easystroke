@@ -50,7 +50,7 @@ class Feedback {
 	Gtk::Window *text;
 public:
 	Feedback(RStroke s, Glib::ustring t, int x, int y) : icon(0), text(0) {
-		x -= 3*STROKE_SIZE / 2;
+		x += (prefs.left_handed.get() ? 1 : -1)*3*STROKE_SIZE / 2;
 		int w,h;
 		if (s) {
 			icon = new Gtk::Window(Gtk::WINDOW_POPUP);
@@ -94,7 +94,7 @@ public:
 
 
 void Stats::on_stroke(Ranking *r) {
-	if (r->best_stroke) {
+	if (prefs.feedback.get() && r->best_stroke) {
 		Feedback *popup = new Feedback(r->best_stroke, r->name, r->x, r->y);
 		Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
 	}

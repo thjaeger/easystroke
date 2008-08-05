@@ -29,7 +29,9 @@ PrefDB::PrefDB() :
 	show_clicks(true),
 	pressure_abort(false),
 	pressure_threshold(default_pressure_threshold),
-	proximity(false)
+	proximity(false),
+	feedback(true),
+	left_handed(false)
 {}
 
 void PrefDB::timeout() {
