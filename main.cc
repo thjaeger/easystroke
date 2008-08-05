@@ -1106,6 +1106,20 @@ bool remove_timeout(int i) {
 	return b;
 }
 
+int select_count = 1;
+
+void check_deadlock() {
+	int last = select_count;
+	for (;;) {
+		sleep(5);
+		if (last && last == select_count) {
+			printf("Error: Deadlock detected.  Shutting down.\n");
+			exit(-1);
+		}
+		last = select_count;
+	}
+}
+
 char* Main::next_event() {
 	static char buffer[2];
 	int fdx = ConnectionNumber(dpy);
@@ -1129,13 +1143,18 @@ char* Main::next_event() {
 			ti = -1;
 	}
 	while (!XPending(dpy)) {
+		int new_count = select_count + 1;
+		if (!new_count) new_count = 1;
+		select_count = 0;
 		if (select(n, &fds, 0, 0, ti >= 0 ? timeout + ti : 0) == 0) {
+			select_count = new_count;
 			timeout_set[ti] = false;
 			timeval_sub(timeout[0], timeout[ti]);
 			timeval_sub(timeout[1], timeout[ti]);
 			buffer[0] = ti == 0 ? P_TIMEOUT1 : P_TIMEOUT2;
 			return buffer;
 		}
+		select_count = new_count;
 		if (read(fdr, buffer, 1) > 0)
 			return buffer;
 	}
@@ -1399,6 +1418,7 @@ int main(int argc, char **argv) {
 
 	if (gui) {
 		main_thread = Glib::Thread::create(sigc::mem_fun(mn, &Main::run), true);
+		Glib::Thread::create(sigc::ptr_fun(&check_deadlock), false);
 		run_gui();
 	} else
 		mn.run();
