@@ -941,7 +941,8 @@ bool window_selected = false;
 class SelectHandler : public Handler {
 	virtual void grab() {
 		grabber->grab(Grabber::POINTER);
-		// TODO
+		XEvent ev;
+		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	}
 	virtual void press(guint b, int x, int y, Time t) {
 		window_selected = true;
