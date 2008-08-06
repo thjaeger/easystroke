@@ -1198,6 +1198,7 @@ char* Main::next_event() {
 	return 0;
 }
 
+extern Window get_app_window(Window w); //TODO
 
 void Main::run() {
 	dpy = XOpenDisplay(display.c_str());
@@ -1279,15 +1280,14 @@ void Main::run() {
 			if (*ret == P_PROXIMITY) {
 				grabber->select_proximity();
 			}
-			if (*ret == P_SCAN_WINDOWS) {
-				grabber->scan_windows();
-			}
 			continue;
 		}
 		XEvent ev;
 		XNextEvent(dpy, &ev);
 
 		try {
+		if (grabber->handle(ev))
+			continue;
 		switch(ev.type) {
 			case MotionNotify:
 				if (verbosity >= 3)
@@ -1350,18 +1350,12 @@ void Main::run() {
 					break;
 				if (ev.xcrossing.detail == NotifyInferior)
 					break;
-				current = ev.xcrossing.window;
 				if (verbosity >= 3)
-					printf("Entered window 0x%lx\n", current);
-				grabber->update(current);
+					printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current);
+				current = get_app_window(ev.xcrossing.window);
+				grabber->update(ev.xcrossing.window);
 				break;
 
-			case CreateNotify:
-				grabber->create(ev.xcreatewindow.window);
-				break;
-
-			case DestroyNotify:
-				break;
 			default:
 				if (randr && ev.type == event_basep) {
 					XRRUpdateConfiguration(&ev);

@@ -21,6 +21,158 @@
 bool no_xi = false;
 Grabber *grabber = 0;
 
+template <class X1, class X2> class BiMap {
+	std::map<X1, X2> map1;
+	std::map<X2, X1> map2;
+public:
+	void erase1(X1 x1) {
+		typename std::map<X1, X2>::iterator i1 = map1.find(x1);
+		if (i1 == map1.end())
+			return;
+		map2.erase(i1->second);
+		map1.erase(i1->first);
+	}
+	void erase2(X2 x2) {
+		typename std::map<X2, X1>::iterator i2 = map2.find(x2);
+		if (i2 == map2.end())
+			return;
+		map1.erase(i2->second);
+		map2.erase(i2->first);
+	}
+	void add(X1 x1, X2 x2) {
+		erase1(x1);
+		erase2(x2);
+		map1[x1] = x2;
+		map2[x2] = x1;
+	}
+	bool contains1(X1 x1) { return map1.find(x1) != map1.end(); }
+	bool contains2(X2 x2) { return map2.find(x2) != map2.end(); }
+	X2 find1(X1 x1) { return map1.find(x1)->second; }
+	X1 find2(X2 x2) { return map2.find(x2)->second; }
+};
+
+Atom XAtom::operator*() {
+	if (!atom)
+		atom = XInternAtom(dpy, name, False);
+	return atom;
+}
+
+BiMap<Window, Window> frame_win;
+XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
+
+extern Window get_window(Window w, Atom prop); //TODO
+
+void get_frame(Window w) {
+	Window frame = get_window(w, *_NET_FRAME_WINDOW);
+	if (!frame)
+		return;
+	frame_win.add(frame, w);
+}
+
+Children::Children(Window w) : parent(w) {
+	XSelectInput(dpy, parent, SubstructureNotifyMask);
+	unsigned int n;
+	Window dummyw1, dummyw2, *ch;
+	XQueryTree(dpy, parent, &dummyw1, &dummyw2, &ch, &n);
+	for (unsigned int i = 0; i < n; i++)
+		add(ch[i]);
+	XFree(ch);
+}
+
+bool Children::handle(XEvent &ev) {
+	switch (ev.type) {
+		case CreateNotify:
+			if (ev.xcreatewindow.parent != parent)
+				return false;
+			add(ev.xcreatewindow.window);
+			return true;
+		case DestroyNotify:
+			if (ev.xdestroywindow.event != parent)
+				return false;
+			destroy(ev.xdestroywindow.window);
+			return true;
+		case ReparentNotify:
+			if (ev.xreparent.event != parent)
+				return false;
+			if (ev.xreparent.window == parent)
+				return false;
+			if (ev.xreparent.parent == parent)
+				add(ev.xreparent.window);
+			else
+				remove(ev.xreparent.window);
+			return true;
+		case PropertyNotify:
+			if (ev.xproperty.atom != *_NET_FRAME_WINDOW)
+				return true;
+			if (ev.xproperty.state == PropertyDelete)
+				frame_win.erase1(ev.xproperty.window);
+			if (ev.xproperty.state == PropertyNewValue)
+				get_frame(ev.xproperty.window);
+			return true;
+		default:
+			return false;
+	}
+}
+
+void Children::add(Window w) {
+	if (!w) return;
+	XSelectInput(dpy, w, EnterWindowMask | PropertyChangeMask);
+	get_frame(w);
+}
+
+void Children::remove(Window w) {
+	XSelectInput(dpy, w, 0);
+	destroy(w);
+}
+
+void Children::destroy(Window w) {
+	frame_win.erase1(w);
+	frame_win.erase2(w);
+}
+
+/*
+// Fuck Xlib
+bool Grabber::has_wm_state(Window w) {
+	Atom actual_type_return;
+	int actual_format_return;
+	unsigned long nitems_return;
+	unsigned long bytes_after_return;
+	unsigned char *prop_return;
+	if (Success != XGetWindowProperty(dpy, w, WM_STATE, 0, 2, False,
+				AnyPropertyType, &actual_type_return,
+				&actual_format_return, &nitems_return,
+				&bytes_after_return, &prop_return))
+		return false;
+	XFree(prop_return);
+	return nitems_return;
+}
+*/
+
+/*
+// Calls create on top-level windows, i.e.
+//   if depth >= 0: windows that have th wm_state property
+//   if depth <  0: children of the root window
+void Grabber::init(Window w, int depth) {
+	depth++;
+	// I have no clue why this is needed, but just querying the whole tree
+	// prevents EnterNotifies from being generated.  Weird.
+	// update 2/12/08:  Disappeared.  Leaving the code here in case this
+	// comes back
+	// 2/15/08: put it back in for release.  You never know.
+	if (depth > 2)
+		return;
+	unsigned int n;
+	Window dummyw1, dummyw2, *ch;
+	XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n);
+	for (unsigned int i = 0; i != n; i++) {
+		if (depth > 0 && !has_wm_state(ch[i]))
+			init(ch[i], depth);
+		else
+			create(ch[i]);
+	}
+	XFree(ch);
+}
+*/
 extern VarI<bool> xinput_v, supports_pressure, supports_proximity;
 
 const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
@@ -33,16 +185,7 @@ bool wm_running() {
 	return w && get_window(w, _NET_SUPPORTING_WM_CHECK) == w;
 }
 
-void reinit() {
-	sleep(15);
-	send(P_SCAN_WINDOWS);
-}
-
-void Grabber::scan_windows() {
-	init(ROOT, wm_running() ? 0 : -1);
-}
-
-Grabber::Grabber() {
+Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
 	suspended = false;
 	active = true;
@@ -55,10 +198,6 @@ Grabber::Grabber() {
 	xinput = init_xi();
 	if (xinput)
 		select_proximity();
-
-	XSelectInput(dpy, ROOT, SubstructureNotifyMask);
-	scan_windows();
-	Glib::Thread::create(sigc::ptr_fun(&reinit), false);
 
 	cursor = XCreateFontCursor(dpy, XC_double_arrow);
 }
@@ -222,46 +361,6 @@ unsigned int Grabber::get_device_button_state() {
 	return mask;
 }
 
-// Fuck Xlib
-bool Grabber::has_wm_state(Window w) {
-	Atom actual_type_return;
-	int actual_format_return;
-	unsigned long nitems_return;
-	unsigned long bytes_after_return;
-	unsigned char *prop_return;
-	if (Success != XGetWindowProperty(dpy, w, WM_STATE, 0, 2, False,
-				AnyPropertyType, &actual_type_return,
-				&actual_format_return, &nitems_return,
-				&bytes_after_return, &prop_return))
-		return false;
-	XFree(prop_return);
-	return nitems_return;
-}
-
-// Calls create on top-level windows, i.e.
-//   if depth >= 0: windows that have th wm_state property
-//   if depth <  0: children of the root window
-void Grabber::init(Window w, int depth) {
-	depth++;
-	// I have no clue why this is needed, but just querying the whole tree
-	// prevents EnterNotifies from being generated.  Weird.
-	// update 2/12/08:  Disappeared.  Leaving the code here in case this
-	// comes back
-	// 2/15/08: put it back in for release.  You never know.
-	if (depth > 2)
-		return;
-	unsigned int n;
-	Window dummyw1, dummyw2, *ch;
-	XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n);
-	for (unsigned int i = 0; i != n; i++) {
-		if (depth > 0 && !has_wm_state(ch[i]))
-			init(ch[i], depth);
-		else
-			create(ch[i]);
-	}
-	XFree(ch);
-}
-
 void Grabber::grab_xi(bool grab) {
 	if (!xi_grabbed == !grab)
 		return;
@@ -397,8 +496,8 @@ std::string Grabber::get_wm_state(Window w) {
 	return ans;
 }
 
-void Grabber::create(Window w) {
-	if (!w)
-		return;
-	XSelectInput(dpy, w, EnterWindowMask);
+Window get_app_window(Window w) {
+	if (frame_win.contains1(w))
+		return frame_win.find1(w);
+	return w;
 }

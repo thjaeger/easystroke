@@ -27,7 +27,6 @@
 #define P_TIMEOUT1 'o'
 #define P_TIMEOUT2 'm'
 #define P_PROXIMITY 'p'
-#define P_SCAN_WINDOWS 'w'
 
 void send(char);
 extern std::string config_dir;

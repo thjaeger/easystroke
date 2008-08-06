@@ -22,6 +22,26 @@
 #include <X11/extensions/XInput.h>
 #include <X11/cursorfont.h>
 
+class XAtom {
+	const char *name;
+	Atom atom;
+
+public:
+	XAtom(const char *name_) : name(name_), atom(0) {}
+	Atom operator*();
+	Atom operator->() { return operator*(); }
+};
+
+class Children {
+	Window parent;
+public:
+	Children(Window);
+	bool handle(XEvent &ev);
+	void add(Window);
+	void remove(Window);
+	void destroy(Window);
+};
+
 class Grabber;
 extern Grabber *grabber;
 
@@ -29,6 +49,7 @@ float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
 
 class Grabber {
 public:
+	Children children;
 	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, POINTER };
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	static const char *state_name[5];
@@ -74,14 +95,11 @@ private:
 	std::string get_wm_state(Window w);
 	void grab_xi(bool);
 public:
-
 	Grabber();
 	~Grabber();
-	void init(Window w, int depth);
-	void scan_windows();
-	bool has_wm_state(Window w);
+	bool handle(XEvent &ev) { return children.handle(ev); }
 	void update(Window w) { { Atomic a; active = !prefs.exceptions.ref(a).count(get_wm_state(w)); } set(); }
-	void create(Window w);
+
 	void get_button();
 	void fake_button(int b);
 	void grab(State s) { current = s; set(); }
