@@ -66,7 +66,7 @@ vartest: var.cc var.h
 man:	$(MANPAGE)
 
 $(MANPAGE):	$(BINARY)
-	help2man -N -n $(BINARY) ./$(BINARY) > $(MANPAGE)
+	help2man -N -n "X11 gesture recognition application" ./$(BINARY) > $(MANPAGE)
 
 install: all
 	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)

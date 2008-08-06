@@ -926,6 +926,7 @@ class Main {
 	void create_config_dir();
 	char* next_event();
 	void usage(char *me, bool good);
+	void version();
 
 	std::string display;
 	Gtk::Main *kit;
@@ -958,20 +959,36 @@ Main::Main(int argc, char **argv) : kit(0) {
 }
 
 void Main::usage(char *me, bool good) {
+	printf("The full easystroke documentation is available at the following address:\n");
+	printf("\n");
+	printf("http://easystroke.wiki.sourceforge.net/Documentation#content\n");
+	printf("\n");
 	printf("Usage: %s [OPTION]...\n", me);
+	printf("\n");
+	printf("Options:\n");
 	printf("  -c, --config-dir       Directory for config files\n");
 	printf("      --display          X Server to contact\n");
 	printf("  -x  --no-xi            Don't use the Xinput extension\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
 	printf("  -n, --no-gui           Don't start the gui\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
+	printf("      --help             Display this help and exit\n");
+	printf("      --version          Output version information and exit\n");
 	exit(good ? EXIT_SUCCESS : EXIT_FAILURE);
+}
+
+void Main::version() {
+	printf("easystroke 0.2.1\n");
+	printf("\n");
+	printf("Written by Thomas Jaeger <ThJaeger@gmail.com>.\n");
+	exit(EXIT_SUCCESS);
 }
 
 std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	static struct option long_opts1[] = {
 		{"display",1,0,'d'},
 		{"help",0,0,'h'},
+		{"version",0,0,'V'},
 		{"no-gui",1,0,'n'},
 		{"no-xi",1,0,'x'},
 		{0,0,0,0}
@@ -999,6 +1016,9 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 				break;
 			case 'h':
 				usage(argv[0], true);
+				break;
+			case 'V':
+				version();
 				break;
 			case 'x':
 				no_xi = true;
@@ -1116,7 +1136,7 @@ void check_deadlock() {
 		sleep(5);
 		if (last && last == select_count) {
 			printf("Error: Deadlock detected.  Shutting down.\n");
-			exit(-1);
+			exit(EXIT_FAILURE);
 		}
 		last = select_count;
 	}
@@ -1427,6 +1447,7 @@ int main(int argc, char **argv) {
 		mn.run();
 	if (verbosity >= 2)
 		printf("Exiting...\n");
+	return EXIT_SUCCESS;
 }
 
 bool SendKey::run() {
