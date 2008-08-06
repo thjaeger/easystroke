@@ -416,9 +416,10 @@ void Grabber::select_proximity() {
 }
 
 void Grabber::set() {
-	grab_xi(active);
+	bool act = (current == NONE || current == BUTTON) ? active : true;
+	grab_xi(act);
 	State old = grabbed;
-	grabbed = (!suspended && active) ? current : NONE;
+	grabbed = (!suspended && act) ? current : NONE;
 	if (old == grabbed)
 		return;
 	if (verbosity >= 2)
