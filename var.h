@@ -120,6 +120,8 @@ public:
 		a.cleanup.push_back(sigc::mem_fun(*this, &Var::cleanup));
 		return v;
 	}
+	// unsafe_refs even more so
+	T &unsafe_ref() { return v; }
 };
 
 template <class X, class Y> class Fun : public In<X>, public Out<Y> {

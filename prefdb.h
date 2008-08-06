@@ -53,14 +53,14 @@ class PrefDB : public TimeoutWatcher {
 	bool good_state;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		Atomic a;
-		ar & exceptions.write_ref(a);
-		ar & p.write_ref(a);
-		ar & button.write_ref(a);
+		ar & exceptions.unsafe_ref();
+		ar & p.unsafe_ref();
+		ar & button.unsafe_ref();
 		if (version < 2) {
 			bool help;
 			ar & help;
 		}
-		ar & trace.write_ref(a);
+		ar & trace.unsafe_ref();
 		if (version < 3) {
 			int delay;
 			ar & delay;
@@ -72,18 +72,18 @@ class PrefDB : public TimeoutWatcher {
 			return;
 		}
 		if (version < 2) return;
-		ar & advanced_ignore.write_ref(a);
-		ar & radius.write_ref(a);
+		ar & advanced_ignore.unsafe_ref();
+		ar & radius.unsafe_ref();
 		if (version < 4) return;
-		ar & ignore_grab.write_ref(a);
-		ar & timing_workaround.write_ref(a);
-		ar & show_clicks.write_ref(a);
-		ar & pressure_abort.write_ref(a);
-		ar & pressure_threshold.write_ref(a);
-		ar & proximity.write_ref(a);
+		ar & ignore_grab.unsafe_ref();
+		ar & timing_workaround.unsafe_ref();
+		ar & show_clicks.unsafe_ref();
+		ar & pressure_abort.unsafe_ref();
+		ar & pressure_threshold.unsafe_ref();
+		ar & proximity.unsafe_ref();
 		if (version < 5) return;
-		ar & feedback.write_ref(a);
-		ar & left_handed.write_ref(a);
+		ar & feedback.unsafe_ref();
+		ar & left_handed.unsafe_ref();
 	}
 public:
 	PrefDB();
