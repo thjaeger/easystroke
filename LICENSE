@@ -1,5 +1,5 @@
-Everything except the files dsimple.c and dsimple.h and the cellrenderertk
-subdirectory (see below) is licensed under the ISC license:
+Everything except the cellrenderertk subdirectory (see below) is licensed under
+the ISC license:
 
 Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
 
@@ -15,10 +15,6 @@ LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
 OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 
-
-The files dsimple.c and dsimple.h are
-  Copyright 1993, 1998  The Open Group
-See those files for details.
 
 The cellrenderertk subdirectory is based on code from the gtk+/gtkmm libraries:
   Copyright (C) 2000  Red Hat, Inc.,  Jonathan Blandford <jrb@redhat.com>
