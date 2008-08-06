@@ -24,22 +24,5 @@ mv $DIST.gz ../../upload
 popd
 rm -R build
 
-# .deb
-mkdir build
-pushd build
-tar -xzf ../upload/$DIST.tar.gz
-cp ../upload/$DIST.tar.gz easystroke_$1.orig.tar.gz
-cd $DIST
-chmod +x debian/rules
-dpkg-buildpackage -S -sa
-cd ..
-dput -f thjaeger *.changes
-cd $DIST
-dpkg-buildpackage -b -j2
-cd ..
-mv *.deb ../upload
-popd
-rm -R build
-
 rsync -avP upload/* thjaeger@frs.sourceforge.net:uploads/
 rm -R upload
