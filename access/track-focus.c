@@ -118,8 +118,11 @@ void quit(int sig) {
 }
 
 int main (int argc, char **argv) {
+	if (SPI_init()) {
+		printf("Error: AT-SPI not available\n");
+		exit(EXIT_FAILURE);
+	};
 	signal(SIGINT, &quit);
-	SPI_init();
 	focus_listener = SPI_createAccessibleEventListener(on_focus, NULL);
 	activate_listener = SPI_createAccessibleEventListener(on_activate, NULL);
 	deactivate_listener = SPI_createAccessibleEventListener(on_deactivate, NULL);
