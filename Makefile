@@ -34,7 +34,7 @@ MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
-CFILES   = clientwin.c dsimple.c gui.c
+CFILES   = gui.c
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES)) 
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c

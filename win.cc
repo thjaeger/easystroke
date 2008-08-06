@@ -160,6 +160,10 @@ void Win::stroke_push(Ranking *r) {
 	stats->stroke_push(r);
 }
 
+void Win::select_push(std::string s) {
+	prefs->q.push(s);
+}
+
 void Win::on_icon_changed(RStroke s) {
 	current_icon = s;
 	on_icon_size_changed(icon->get_size());

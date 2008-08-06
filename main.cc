@@ -487,7 +487,7 @@ class ActionXiHandler : public Handler {
 
 	guint button, button2;
 public:
-	ActionXiHandler(RStroke s, float x, float y, guint b, guint b2, Time t) : 
+	ActionXiHandler(RStroke s, float x, float y, guint b, guint b2, Time t) :
 		stroke(s), init_x(x), init_y(y), emulated_button(0), button(b), button2(b2) {
 		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
 		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
@@ -936,6 +936,20 @@ public:
 	}
 };
 
+bool window_selected = false;
+
+class SelectHandler : public Handler {
+	virtual void grab() {
+		grabber->grab(Grabber::POINTER);
+		// TODO
+	}
+	virtual void press(guint b, int x, int y, Time t) {
+		window_selected = true;
+		parent->replace_child(0);
+	}
+	virtual std::string name() { return "Select"; }
+};
+
 class Main {
 	std::string parse_args_and_init_gtk(int argc, char **argv);
 	void create_config_dir();
@@ -1280,6 +1294,9 @@ void Main::run() {
 			if (*ret == P_PROXIMITY) {
 				grabber->select_proximity();
 			}
+			if (*ret == P_SELECT) {
+				handler->top()->replace_child(new SelectHandler);
+			}
 			continue;
 		}
 		XEvent ev;
@@ -1355,6 +1372,10 @@ void Main::run() {
 				if (verbosity >= 3)
 					printf("Entered window 0x%lx -> 0x%lx\n", current, current_app);
 				grabber->update(current);
+				if (window_selected) {
+					win->select_push(grabber->get_wm_class(current));
+					window_selected = false;
+				}
 				break;
 
 			default:

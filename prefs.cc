@@ -19,9 +19,6 @@
 #include "grabber.h"
 
 #include <X11/Xutil.h>
-extern "C" {
-#include "dsimple.h"
-}
 
 #include <set>
 #include <iostream>
@@ -310,27 +307,8 @@ void Prefs::on_remove() {
 }
 
 void Prefs::on_add() {
-	Glib::Thread::create(sigc::mem_fun(*this, &Prefs::select_worker), false);
+	send(P_SELECT);
 }
-
-void Prefs::select_worker() {
-	Display *dpy = XOpenDisplay(NULL);
-	if (!dpy)
-		return;
-	Window w = Select_Window(dpy, True);
-	XClassHint ch;
-	if (!XGetClassHint(dpy, w, &ch))
-		goto cleanup;
-	{
-		std::string str(ch.res_name);
-		q.push(str);
-	}
-	XFree(ch.res_name);
-	XFree(ch.res_class);
-cleanup:
-	XCloseDisplay(dpy);
-}
-
 
 void Prefs::set_button_label() {
 	Atomic a;

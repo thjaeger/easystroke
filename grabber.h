@@ -92,13 +92,13 @@ private:
 	Atom WM_STATE;
 
 	void set();
-	std::string get_wm_state(Window w);
 	void grab_xi(bool);
 public:
 	Grabber();
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
-	void update(Window w) { { Atomic a; active = !prefs.exceptions.ref(a).count(get_wm_state(w)); } set(); }
+	std::string get_wm_class(Window w);
+	void update(Window w) { { Atomic a; active = !prefs.exceptions.ref(a).count(get_wm_class(w)); } set(); }
 
 	void get_button();
 	void fake_button(int b);

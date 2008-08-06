@@ -486,7 +486,7 @@ void Grabber::fake_button(int b) {
 	resume();
 }
 
-std::string Grabber::get_wm_state(Window w) {
+std::string Grabber::get_wm_class(Window w) {
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		return "";

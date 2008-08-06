@@ -22,10 +22,10 @@
 
 class Prefs {
 public:
+	Queue<std::string> q;
 	Prefs();
 	virtual ~Prefs() {}
 private:
-	void select_worker();
 	void set_button_label();
 
 	void on_selected(std::string &);
@@ -37,8 +37,6 @@ private:
 	void on_trace_changed();
 
 	struct SelectRow;
-
-	Queue<std::string> q;
 
 	class SingleColumn : public Gtk::TreeModel::ColumnRecord {
 	public:

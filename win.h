@@ -38,6 +38,7 @@ public:
 	virtual ~Win();
 	void icon_push(RStroke s) { icon_queue.push(s); }
 	void stroke_push(Ranking *);
+	void select_push(std::string);
 	Gtk::Window& get_window() { return *win; }
 
 	Glib::Dispatcher quit;
