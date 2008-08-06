@@ -28,8 +28,7 @@ binary-arch: build install
 	dh_testroot
 	dh_installchangelogs 
 	dh_installdocs
-	dh_installexamples
-	dh_installman
+	dh_installman easystroke.1
 	dh_link
 	dh_strip
 	dh_compress
