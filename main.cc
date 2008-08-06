@@ -112,7 +112,7 @@ Trace *init_trace() {
 	}
 }
 
-Window current = 0;
+Window current = 0, current_app = 0;
 bool ignore = false;
 bool scroll = false;
 guint press_button = 0;
@@ -918,8 +918,8 @@ protected:
 				}
 			}
 		}
-		if (current)
-			activate_window(current, t);
+		if (current_app)
+			activate_window(current_app, t);
 		replace_child(new StrokeHandler(b, x, y, t));
 	}
 	virtual void grab() {
@@ -1350,10 +1350,11 @@ void Main::run() {
 					break;
 				if (ev.xcrossing.detail == NotifyInferior)
 					break;
+				current = ev.xcrossing.window;
+				current_app = get_app_window(current);
 				if (verbosity >= 3)
-					printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current);
-				current = get_app_window(ev.xcrossing.window);
-				grabber->update(ev.xcrossing.window);
+					printf("Entered window 0x%lx -> 0x%lx\n", current, current_app);
+				grabber->update(current);
 				break;
 
 			default:
@@ -1468,23 +1469,23 @@ bool SendKey::run() {
 		return true;
 	}
 
-	if (!current)
+	if (!current_app)
 		return true;
 	XKeyEvent ev;
 	ev.type = KeyPress;	/* KeyPress or KeyRelease */
 	ev.display = dpy;	/* Display the event was read from */
-	ev.window = current;	/* ``event'' window it is reported relative to */
+	ev.window = current_app;/* ``event'' window it is reported relative to */
 	ev.root = ROOT;		/* ROOT window that the event occurred on */
 	ev.time = CurrentTime;	/* milliseconds */
-	XTranslateCoordinates(dpy, ROOT, current, orig.x, orig.y, &ev.x, &ev.y, &ev.subwindow);
+	XTranslateCoordinates(dpy, ROOT, current_app, orig.x, orig.y, &ev.x, &ev.y, &ev.subwindow);
 	ev.x_root = orig.x;	/* coordinates relative to root */
 	ev.y_root = orig.y;	/* coordinates relative to root */
 	ev.state = mods;	/* key or button mask */
 	ev.keycode = code;	/* detail */
 	ev.same_screen = true;	/* same screen flag */
-	XSendEvent(dpy, current, True, KeyPressMask, (XEvent *)&ev);
+	XSendEvent(dpy, current_app, True, KeyPressMask, (XEvent *)&ev);
 	ev.type = KeyRelease;	/* KeyPress or KeyRelease */
-	XSendEvent(dpy, current, True, KeyReleaseMask, (XEvent *)&ev);
+	XSendEvent(dpy, current_app, True, KeyReleaseMask, (XEvent *)&ev);
 	return true;
 }
 
@@ -1494,25 +1495,25 @@ bool Button::run() {
 		press_button = button;
 		return true;
 	}
-	if (!current)
+	if (!current_app)
 		return true;
 	// Doesn't work!
 	XButtonEvent ev;
 	ev.type = ButtonPress;  /* ButtonPress or ButtonRelease */
 	ev.display = dpy;	/* Display the event was read from */
-	ev.window = current;	/* ``event'' window it is reported relative to */
+	ev.window = current_app;/* ``event'' window it is reported relative to */
 	ev.root = ROOT;		/* ROOT window that the event occurred on */
 	ev.time = CurrentTime;	/* milliseconds */
-	XTranslateCoordinates(dpy, ROOT, current, orig.x, orig.y, &ev.x, &ev.y, &ev.subwindow);
+	XTranslateCoordinates(dpy, ROOT, current_app, orig.x, orig.y, &ev.x, &ev.y, &ev.subwindow);
 	ev.x_root = orig.x;	/* coordinates relative to root */
 	ev.y_root = orig.y;	/* coordinates relative to root */
 	ev.state = mods;	/* key or button mask */
 	ev.button = button;     /* detail */
 	ev.same_screen = true;	/* same screen flag */
 
-	XSendEvent(dpy, current, True, ButtonPressMask, (XEvent *)&ev);
+	XSendEvent(dpy, current_app, True, ButtonPressMask, (XEvent *)&ev);
 	ev.type = ButtonRelease;/* ButtonPress or ButtonRelease */
-	XSendEvent(dpy, current, True, ButtonReleaseMask, (XEvent *)&ev);
+	XSendEvent(dpy, current_app, True, ButtonReleaseMask, (XEvent *)&ev);
 	return true;
 }
 
