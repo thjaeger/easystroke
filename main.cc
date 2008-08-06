@@ -812,7 +812,7 @@ protected:
 	virtual void release(guint b, int x, int y, Time t) {
 		if (calc_speed(x,y,t))
 			return;
-		RStroke s = finish(b);
+		RStroke s = finish(0);
 
 		handle_stroke(s, x, y, button, 0);
 		if (replay_button) {
