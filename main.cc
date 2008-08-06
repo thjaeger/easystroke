@@ -698,10 +698,12 @@ class StrokeHandler : public Handler {
 			printf("Aborting stroke...\n");
 		trace->end();
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		usleep(2000);
-		XSync(dpy,False);
-		XTestFakeRelativeMotionEvent(dpy, 0, 0, CurrentTime);
 		parent->replace_child(0);
+		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+//		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig.x, orig.y, 0);
+//		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), last_x, last_y, 5);
+//		XTestFakeRelativeMotionEvent(dpy, orig.x - last_x, orig.y - last_y, 5);
+//		XTestFakeRelativeMotionEvent(dpy, last_x - orig.x, last_y - orig.y, 5);
 	}
 
 	bool calc_speed(int x, int y, Time t) {
@@ -1204,6 +1206,7 @@ void Main::run() {
 	guint last_button = 0;
 	if (verbosity >= 2)
 		printf("Entering main loop...\n");
+	XTestGrabControl(dpy, True);
 	while (alive || !handler->idle()) {
 		char *ret = next_event();
 		if (ret) {
