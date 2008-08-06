@@ -33,7 +33,7 @@ clena:	clean
 
 clean:
 	$(MAKE) -C cellrenderertk clean
-	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES)
+	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE)
 
 include $(DEPFILES)
 
