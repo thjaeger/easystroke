@@ -17,6 +17,7 @@ LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.
 BINARY   = easystroke
 ICON     = easystroke.svg
 MENU     = easystroke.desktop
+MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 CFILES   = clientwin.c dsimple.c gui.c
@@ -36,7 +37,7 @@ clean:
 
 include $(DEPFILES)
 
-easystroke: $(OFILES)
+$(BINARY): $(OFILES)
 	$(MAKE) -C cellrenderertk
 	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS)
 
@@ -61,6 +62,11 @@ gui.c: gui.gb
 
 vartest: var.cc var.h
 	g++ -ggdb `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` -DTEST_VAR var.cc -o vartest
+
+man:	$(MANPAGE)
+
+$(MANPAGE):	$(BINARY)
+	help2man -N -n $(BINARY) ./$(BINARY) > $(MANPAGE)
 
 install: all
 	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
