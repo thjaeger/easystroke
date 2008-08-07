@@ -37,7 +37,6 @@ PrefDB::PrefDB() :
 	p(default_p),
 	button(default_button),
 	trace(TraceShape),
-	advanced_ignore(false),
 	radius(default_radius),
 	ignore_grab(false),
 	timing_workaround(false),
@@ -82,7 +81,6 @@ void PrefDB::init() {
 	watch(p);
 	watch(button);
 	watch(trace);
-	watch(advanced_ignore);
 	watch(radius);
 	watch(ignore_grab);
 	watch(timing_workaround);

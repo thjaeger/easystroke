@@ -332,8 +332,12 @@ double Stroke::compare(RStroke a_, RStroke b_, double p) {
 	if (a_->size() == 0 || b_->size() == 0) {
 		if (a_->size() == 0 && b_->size() == 0)
 			return 1;
-		else
-			return -2;
+		else {
+			if (a_->button && b_->button)
+				return 0.7501;
+			else
+				return -2;
+		}
 	}
 	if (1) {
 		double ab_x, ab_y, dab_x, dab_y;
