@@ -692,10 +692,11 @@ class StrokeHandler : public Handler {
 	RPreStroke cur;
 	bool is_gesture;
 	bool drawing;
-	float speed;
 	RTriple last;
 	bool repeated;
 	bool have_xi;
+	float min_speed;
+	float speed;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -731,11 +732,11 @@ class StrokeHandler : public Handler {
 		}
 		last = e;
 
-		if (speed < 0.04) {
+		if (speed < min_speed) {
 			timeout();
 			return true;
 		}
-		long us = -250000.0*log(0.04/speed);
+		long us = -250000.0*log(min_speed/speed);
 		set_timeout(0, us);
 		return false;
 	}
@@ -841,8 +842,9 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), speed(0.1), last(e),
-	repeated(false), have_xi(false) {
+	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
+	repeated(false), have_xi(false), min_speed(0.001*prefs.min_speed.get()), 
+	speed(min_speed * exp(0.004*prefs.init_timeout.get())) {
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);

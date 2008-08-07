@@ -99,6 +99,9 @@ Prefs::Prefs() :
 	prefs.left_handed.identify(new Check("check_left_handed"));
 	prefs.feedback.connect(new Sensitive("check_left_handed"));
 
+	prefs.init_timeout.identify(new Spin("spin_timeout"));
+	prefs.min_speed.identify(new Spin("spin_min_speed"));
+
 	new ButtonSet<int>("button_default_radius", prefs.radius, default_radius);
 	new ButtonSet<int>("button_default_pressure_threshold", prefs.pressure_threshold, default_pressure_threshold);
 

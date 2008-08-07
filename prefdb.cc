@@ -45,7 +45,9 @@ PrefDB::PrefDB() :
 	pressure_threshold(default_pressure_threshold),
 	proximity(false),
 	feedback(true),
-	left_handed(false)
+	left_handed(false),
+	init_timeout(200),
+	min_speed(40)
 {}
 
 void PrefDB::timeout() {
@@ -88,6 +90,8 @@ void PrefDB::init() {
 	watch(pressure_abort);
 	watch(pressure_threshold);
 	watch(proximity);
+	watch(init_timeout);
+	watch(min_speed);
 }
 
 PrefDB prefs;

@@ -87,6 +87,8 @@ class PrefDB : public TimeoutWatcher {
 		if (version < 5) return;
 		ar & feedback.unsafe_ref();
 		ar & left_handed.unsafe_ref();
+		ar & init_timeout.unsafe_ref();
+		ar & min_speed.unsafe_ref();
 	}
 public:
 	PrefDB();
@@ -104,6 +106,8 @@ public:
 	VarI<bool> proximity;
 	VarI<bool> feedback;
 	VarI<bool> left_handed;
+	VarI<int> init_timeout;
+	VarI<int> min_speed;
 
 	void init();
 	virtual void timeout();
