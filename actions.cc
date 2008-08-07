@@ -23,8 +23,7 @@
 #include <iostream>
 #include <sstream>
 
-#define KEY "Key (SendKey)"
-#define KEY_XTEST "Key"
+#define KEY "Key"
 #define COMMAND "Command"
 #define SCROLL "Scroll"
 #define IGNORE "Ignore"
@@ -71,7 +70,7 @@ Actions::Actions() :
 			RSendKey key = boost::dynamic_pointer_cast<SendKey>(si.action);
 			if (key) {
 				row[cols.arg] = key->get_label();
-				row[cols.type] = key->xtest ? KEY_XTEST : KEY;
+				row[cols.type] = KEY;
 			}
 			RScroll scroll = boost::dynamic_pointer_cast<Scroll>(si.action);
 			if (scroll) {
@@ -105,9 +104,7 @@ Actions::Actions() :
 
 	type_store = Gtk::ListStore::create(type);
 	(*(type_store->append()))[type.type] = COMMAND;
-	if (experimental)
-		(*(type_store->append()))[type.type] = KEY;
-	(*(type_store->append()))[type.type] = KEY_XTEST;
+	(*(type_store->append()))[type.type] = KEY;
 	(*(type_store->append()))[type.type] = IGNORE;
 	(*(type_store->append()))[type.type] = SCROLL;
 	(*(type_store->append()))[type.type] = BUTTON;
@@ -142,49 +139,42 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 	if (old_type == new_type) {
 		edit = editing_new;
 	} else {
-#define IS_KEY(str) (str == KEY || str == KEY_XTEST)
-		bool both_keys = IS_KEY(new_type) && IS_KEY(old_type);
 		row[cols.type] = new_type;
 		int id = row[cols.id];
 		Atomic a;
 		ActionDB &as = actions.write_ref(a);
-		if (both_keys) {
-			RSendKey key = boost::dynamic_pointer_cast<SendKey>(as[id].action);
-			if (key) {
-				key->xtest = row[cols.type] == KEY_XTEST;
-			}
-			edit = false;
-		} else {
-			if (new_type == COMMAND) {
-				Glib::ustring cmd_save = row[cols.cmd_save];
-				row[cols.arg] = cmd_save;
-				if (cmd_save != "")
-					edit = false;
+		if (new_type == COMMAND) {
+			Glib::ustring cmd_save = row[cols.cmd_save];
+			row[cols.arg] = cmd_save;
+			if (cmd_save != "")
+				edit = false;
 
-				as[id].action.reset();
-			}
-			if (old_type == COMMAND) {
-				row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
-				update_arg(new_type);
-			}
-			if (new_type == SCROLL) {
-				row[cols.arg] = "No Modifiers";
-				update_arg(new_type);
-				as[id].action = Scroll::create((Gdk::ModifierType)0);
-				edit = false;
-			}
-			if (new_type == IGNORE) {
-				row[cols.arg] = "No Modifiers";
-				update_arg(new_type);
-				as[id].action = Ignore::create((Gdk::ModifierType)0);
-				edit = false;
-			}
-			if (new_type == BUTTON) {
-				row[cols.arg] = "";
-				as[id].action = Button::create((Gdk::ModifierType)0, 0);
-				edit = true;
-			}
+			as[id].action.reset();
 		}
+		if (old_type == COMMAND) {
+			row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
+		}
+		if (new_type == KEY) {
+			row[cols.arg] = "";
+			as[id].action = SendKey::create(0, (Gdk::ModifierType)0, 0);
+			edit = true;
+		}
+		if (new_type == SCROLL) {
+			row[cols.arg] = "No Modifiers";
+			as[id].action = Scroll::create((Gdk::ModifierType)0);
+			edit = false;
+		}
+		if (new_type == IGNORE) {
+			row[cols.arg] = "No Modifiers";
+			as[id].action = Ignore::create((Gdk::ModifierType)0);
+			edit = false;
+		}
+		if (new_type == BUTTON) {
+			row[cols.arg] = "";
+			as[id].action = Button::create((Gdk::ModifierType)0, 0);
+			edit = true;
+		}
+		update_arg(new_type);
 		row[cols.type] = new_type;
 	}
 	editing_new = false;
@@ -304,7 +294,7 @@ void Actions::on_selection_changed() {
 
 void Actions::update_arg(Glib::ustring str) {
 	GtkCellRendererTKMode mode;
-	if (IS_KEY(str) || str == SCROLL || str == IGNORE)
+	if (str == KEY || str == SCROLL || str == IGNORE)
 		mode = 	GTK_CELL_RENDERER_TK_CELL_MODE_KEY;
 	else if (str == BUTTON)
 		mode = GTK_CELL_RENDERER_TK_CELL_MODE_POPUP;
@@ -385,8 +375,8 @@ void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_
 
 void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
 	Gtk::TreeRow row(*tm->get_iter(path_string));
-	if (IS_KEY(row[cols.type])) {
-		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode, row[cols.type] == KEY_XTEST);
+	if (row[cols.type] == KEY) {
+		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode);
 		Glib::ustring str = send_key->get_label();
 		if (row[cols.arg] == str)
 			return;

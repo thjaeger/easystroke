@@ -56,7 +56,10 @@ template<class Archive> void SendKey::serialize(Archive & ar, const unsigned int
 	ar & boost::serialization::base_object<ModAction>(*this);
 	ar & key;
 	ar & code;
-	ar & xtest;
+	if (version < 1) {
+		bool xtest;
+		ar & xtest;
+	}
 }
 
 template<class Archive> void Scroll::serialize(Archive & ar, const unsigned int version) {

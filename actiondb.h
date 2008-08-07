@@ -78,18 +78,17 @@ class SendKey : public ModAction {
 	guint code;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 	SendKey(guint key_, Gdk::ModifierType mods, guint code_, bool xtest_ = false) :
-		ModAction(mods), key(key_), code(code_), xtest(xtest_) {}
+		ModAction(mods), key(key_), code(code_) {}
 public:
 	SendKey() {}
-	static RSendKey create(guint key, Gdk::ModifierType mods, guint code, bool xtest = false) {
-		return RSendKey(new SendKey(key, mods, code, xtest));
+	static RSendKey create(guint key, Gdk::ModifierType mods, guint code) {
+		return RSendKey(new SendKey(key, mods, code));
 	}
 
 	virtual bool run();
 	virtual const Glib::ustring get_label() const;
-
-	bool xtest;
 };
+BOOST_CLASS_VERSION(SendKey, 1)
 
 class Scroll : public ModAction {
 	friend class boost::serialization::access;
