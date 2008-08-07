@@ -202,7 +202,7 @@ Ranking *ActionDB::handle(RStroke s) const {
 		if (!i.stroke())
 			continue;
 		double score = Stroke::compare(s, i.stroke());
-		if (score < -1.5)
+		if (score < 0.25)
 			continue;
 		r->r.insert(pair<double, pair<std::string, RStroke> >
 				(score, pair<std::string, RStroke>(i.name(), i.stroke())));
