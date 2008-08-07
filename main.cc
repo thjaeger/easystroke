@@ -1395,11 +1395,8 @@ void Main::run() {
 		exit(EXIT_FAILURE);
 	}
 
-	{
-		Atomic a;
-		actions.write_ref(a).init();
-		prefs.init();
-	}
+	actions.unsafe_ref().init();
+	prefs.init();
 
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
