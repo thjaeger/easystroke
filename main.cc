@@ -140,7 +140,7 @@ public:
 	}
 	virtual void motion(float x, float y, Time t) {}
 	virtual void press(guint b, int x, int y, Time t) {}
-	virtual void release(guint b, int x, int y, Time t) {}
+	virtual void release(guint b, float x, float y, Time t) {}
 	virtual void press_repeated() {}
 	virtual void pressure() {}
 	virtual void proximity_out() {}
@@ -220,7 +220,7 @@ public:
 		if (b == button)
 			parent->replace_child(0);
 	}
-	virtual void release(guint b, int x, int y, Time t) {
+	virtual void release(guint b, float x, float y, Time t) {
 		if (down)
 			return;
 		if (b == button)
@@ -346,7 +346,7 @@ public:
 		if (b != 4 && b != 5 && !pressed)
 			pressed = b;
 	}
-	virtual void release(guint b, int x, int y, Time t) {
+	virtual void release(guint b, float x, float y, Time t) {
 		if (b != pressed && b != pressed2)
 			return;
 		if (pressed2) {
@@ -426,7 +426,7 @@ public:
 		grabber->grab(Grabber::BUTTON);
 	}
 
-	virtual void release(guint b, int x, int y, Time t) {
+	virtual void release(guint b, float x, float y, Time t) {
 		if (b != button2) //TODO
 			return;
 		clear_mods();
@@ -445,7 +445,7 @@ protected:
 		grabber->grab(Grabber::ALL_ASYNC);
 	}
 public:
-	virtual void release(guint b, int x, int y, Time t) {
+	virtual void release(guint b, float x, float y, Time t) {
 		Handler *p = parent;
 		p->replace_child(0);
 		p->release(b,x,y,t);
@@ -554,7 +554,7 @@ public:
 	virtual void resume() {
 		grabber->grab(Grabber::ALL_ASYNC);
 	}
-	virtual void release(guint b, int x, int y, Time t) {
+	virtual void release(guint b, float x, float y, Time t) {
 		if (b != button && b != button2)
 			return;
 		if (b == button)
@@ -809,7 +809,7 @@ protected:
 		}
 	}
 
-	virtual void release(guint b, int x, int y, Time t) {
+	virtual void release(guint b, float x, float y, Time t) {
 		if (calc_speed(x,y,t))
 			return;
 		RStroke s = finish(0);
@@ -966,6 +966,7 @@ class Main {
 public:
 	Main(int argc, char **argv);
 	void run();
+	void handle_event(XEvent &ev);
 	~Main();
 };
 
@@ -1215,6 +1216,175 @@ char* Main::next_event() {
 
 extern Window get_app_window(Window w); //TODO
 
+bool alive = true;
+
+Time last_time = 0;
+int last_type = 0;
+guint last_button = 0;
+
+void translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
+	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
+	int w = DisplayWidth(dpy, DefaultScreen(dpy));
+	int h = DisplayHeight(dpy, DefaultScreen(dpy));
+	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
+	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
+	y        = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
+	float y2 = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
+	if (hypot(x2 - sx, y2 - sy) < hypot(x - sx, y - sy)) {
+		x = x2;
+		y = y2;
+	}
+}
+
+void Main::handle_event(XEvent &ev) {
+	if (grabber->handle(ev))
+		return;
+	switch(ev.type) {
+	case MotionNotify:
+		if (verbosity >= 3)
+			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
+		if (handler->top()->only_xi())
+			break;
+		if (last_type == MotionNotify && last_time == ev.xmotion.time) {
+			break;
+		}
+		handler->top()->motion(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
+		last_type = MotionNotify;
+		last_time = ev.xmotion.time;
+		break;
+
+	case ButtonPress:
+		if (verbosity >= 3)
+			printf("Press: %d\n", ev.xbutton.button);
+		if (handler->top()->only_xi())
+			break;
+		if (last_type == ButtonPress && last_time == ev.xbutton.time && last_button == ev.xbutton.button) {
+			handler->top()->press_repeated();
+			break;
+		}
+		handler->top()->press(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+		last_type = ButtonPress;
+		last_time = ev.xbutton.time;
+		last_button = ev.xbutton.button;
+		break;
+
+	case ButtonRelease:
+		if (verbosity >= 3)
+			printf("Release: %d\n", ev.xbutton.button);
+		if (handler->top()->only_xi())
+			break;
+		if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
+			break;
+		handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+		// TODO: Do we need this?
+		xinput_pressed.erase(ev.xbutton.button);
+		last_type = ButtonRelease;
+		last_time = ev.xbutton.time;
+		last_button = ev.xbutton.button;
+		break;
+
+	case KeyPress:
+		if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
+			break;
+		XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
+		if (handler->top()->idle())
+			break;
+		printf("Escape pressed: Resetting...\n");
+		bail_out();
+		break;
+
+	case ClientMessage:
+		break;
+
+	case EnterNotify:
+		if (ev.xcrossing.mode == NotifyGrab)
+			break;
+		if (ev.xcrossing.detail == NotifyInferior)
+			break;
+		current = ev.xcrossing.window;
+		current_app = get_app_window(current);
+		if (verbosity >= 3)
+			printf("Entered window 0x%lx -> 0x%lx\n", current, current_app);
+		grabber->update(current);
+		if (window_selected) {
+			win->select_push(grabber->get_wm_class(current));
+			window_selected = false;
+		}
+		break;
+
+	default:
+		if (randr && ev.type == event_basep) {
+			XRRUpdateConfiguration(&ev);
+			Trace *new_trace = init_trace();
+			delete trace;
+			trace = new_trace;
+		}
+		if (grabber->is_event(ev.type, Grabber::DOWN)) {
+			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+			if (verbosity >= 3)
+				printf("Press (Xi): %d\n", bev->button);
+			xinput_pressed.insert(bev->button);
+			if (last_type == ButtonPress && last_time == bev->time && last_button == bev->button) {
+				handler->top()->press_repeated();
+				break;
+			}
+			float x, y;
+			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+			handler->top()->press(bev->button, x, y, bev->time);
+			last_type = ButtonPress;
+			last_time = bev->time;
+			last_button = bev->button;
+		}
+		if (grabber->is_event(ev.type, Grabber::UP)) {
+			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+			if (verbosity >= 3)
+				printf("Release (Xi): %d\n", bev->button);
+			if (last_type == ButtonRelease && last_time == bev->time && last_button == bev->button)
+				break;
+			float x, y;
+			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+			handler->top()->release(bev->button, x, y, bev->time);
+			xinput_pressed.erase(bev->button);
+			last_type = ButtonRelease;
+			last_time = bev->time;
+			last_button = bev->button;
+		}
+		if (grabber->is_event(ev.type, Grabber::MOTION)) {
+			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
+			if (verbosity >= 3)
+				printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
+			float x, y;
+			translate_coordinates(mev->deviceid, mev->x, mev->y, mev->axis_data, x, y);
+			Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
+			if (xi_dev && xi_dev->supports_pressure && prefs.pressure_abort.get())
+				if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
+						prefs.pressure_threshold.get())
+					handler->top()->pressure();
+			if (last_type == MotionNotify && last_time == mev->time)
+				break;
+			handler->top()->motion(x, y, mev->time);
+			last_type = MotionNotify;
+			last_time = mev->time;
+		}
+		if (grabber->proximity_selected) {
+			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
+				in_proximity = true;
+				if (verbosity >= 3)
+					printf("Proximity: In\n");
+			}
+			if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
+				in_proximity = false;
+				if (verbosity >= 3)
+					printf("Proximity: Out\n");
+				handler->top()->proximity_out();
+			}
+		}
+		if (ev.type == grabber->event_presence) {
+			printf("Error: Device Presence not implemented\n");
+		}
+	}
+}
+
 void Main::run() {
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {
@@ -1250,11 +1420,6 @@ void Main::run() {
 
 	handler = new IdleHandler;
 	handler->init();
-	bool alive = true;
-
-	Time last_time = 0;
-	int last_type = 0;
-	guint last_button = 0;
 	if (verbosity >= 2)
 		printf("Entering main loop...\n");
 	XTestGrabControl(dpy, True);
@@ -1302,159 +1467,8 @@ void Main::run() {
 		}
 		XEvent ev;
 		XNextEvent(dpy, &ev);
-
 		try {
-		if (grabber->handle(ev))
-			continue;
-		switch(ev.type) {
-			case MotionNotify:
-				if (verbosity >= 3)
-					printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
-				if (handler->top()->only_xi())
-					break;
-				if (last_type == MotionNotify && last_time == ev.xmotion.time) {
-					break;
-				}
-				handler->top()->motion(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
-				last_type = MotionNotify;
-				last_time = ev.xmotion.time;
-				break;
-
-			case ButtonPress:
-				if (verbosity >= 3)
-					printf("Press: %d\n", ev.xbutton.button);
-				if (handler->top()->only_xi())
-					break;
-				if (last_type == ButtonPress && last_time == ev.xbutton.time && last_button == ev.xbutton.button) {
-					handler->top()->press_repeated();
-					break;
-				}
-				handler->top()->press(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-				last_type = ButtonPress;
-				last_time = ev.xbutton.time;
-				last_button = ev.xbutton.button;
-				break;
-
-			case ButtonRelease:
-				if (verbosity >= 3)
-					printf("Release: %d\n", ev.xbutton.button);
-				if (handler->top()->only_xi())
-					break;
-				if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
-					break;
-				handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-				// TODO: Do we need this?
-				xinput_pressed.erase(ev.xbutton.button);
-				last_type = ButtonRelease;
-				last_time = ev.xbutton.time;
-				last_button = ev.xbutton.button;
-				break;
-
-			case KeyPress:
-				if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
-					break;
-				XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
-				if (handler->top()->idle())
-					break;
-				printf("Escape pressed: Resetting...\n");
-				bail_out();
-				break;
-
-			case ClientMessage:
-				break;
-
-			case EnterNotify:
-				if (ev.xcrossing.mode == NotifyGrab)
-					break;
-				if (ev.xcrossing.detail == NotifyInferior)
-					break;
-				current = ev.xcrossing.window;
-				current_app = get_app_window(current);
-				if (verbosity >= 3)
-					printf("Entered window 0x%lx -> 0x%lx\n", current, current_app);
-				grabber->update(current);
-				if (window_selected) {
-					win->select_push(grabber->get_wm_class(current));
-					window_selected = false;
-				}
-				break;
-
-			default:
-				if (randr && ev.type == event_basep) {
-					XRRUpdateConfiguration(&ev);
-					Trace *new_trace = init_trace();
-					delete trace;
-					trace = new_trace;
-				}
-				if (grabber->is_event(ev.type, Grabber::DOWN)) {
-					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-					if (verbosity >= 3)
-						printf("Press (Xi): %d\n", bev->button);
-					xinput_pressed.insert(bev->button);
-					if (last_type == ButtonPress && last_time == bev->time && last_button == bev->button) {
-						handler->top()->press_repeated();
-						break;
-					}
-					handler->top()->press(bev->button, bev->x, bev->y, bev->time);
-					last_type = ButtonPress;
-					last_time = bev->time;
-					last_button = bev->button;
-				}
-				if (grabber->is_event(ev.type, Grabber::UP)) {
-					XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-					if (verbosity >= 3)
-						printf("Release (Xi): %d\n", bev->button);
-					if (last_type == ButtonRelease && last_time == bev->time && last_button == bev->button)
-						break;
-					handler->top()->release(bev->button, bev->x, bev->y, bev->time);
-					xinput_pressed.erase(bev->button);
-					last_type = ButtonRelease;
-					last_time = bev->time;
-					last_button = bev->button;
-				}
-				if (grabber->is_event(ev.type, Grabber::MOTION)) {
-					XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-					if (verbosity >= 3)
-						printf("Motion (Xi): (%d, %d, %d)\n", mev->x, mev->y, mev->axis_data[2]);
-					Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
-					int w = DisplayWidth(dpy, DefaultScreen(dpy));
-					int h = DisplayHeight(dpy, DefaultScreen(dpy));
-					float x  = rescaleValuatorAxis(mev->axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
-					float x2 = rescaleValuatorAxis(mev->axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
-					float y  = rescaleValuatorAxis(mev->axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
-					float y2 = rescaleValuatorAxis(mev->axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
-					if (hypot(x2 - mev->x, y2 - mev->y) < hypot(x - mev->x, y - mev->y)) {
-						x = x2;
-						y = y2;
-					}
-					if (xi_dev && xi_dev->supports_pressure && prefs.pressure_abort.get())
-						if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
-								prefs.pressure_threshold.get())
-						       handler->top()->pressure();
-					if (last_type == MotionNotify && last_time == mev->time)
-						break;
-					handler->top()->motion(x, y, mev->time);
-					last_type = MotionNotify;
-					last_time = mev->time;
-				}
-				if (grabber->proximity_selected) {
-					if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
-						in_proximity = true;
-						if (verbosity >= 3)
-							printf("Proximity: In\n");
-					}
-					if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
-						in_proximity = false;
-						if (verbosity >= 3)
-							printf("Proximity: Out\n");
-						handler->top()->proximity_out();
-					}
-				}
-				if (ev.type == grabber->event_presence) {
-					printf("Error: Device Presence not implemented\n");
-				}
-				break;
-		}
+			handle_event(ev);
 		} catch (GrabFailedException) {
 			printf("Error: A grab failed.  Resetting...\n");
 			handler->replace_child(0);
