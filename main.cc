@@ -1221,6 +1221,12 @@ int last_type = 0;
 guint last_button = 0;
 
 void translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
+	// Workaround for my track point
+	if (axis_data[0] == 0 && axis_data[1] == 0) {
+		x = sx;
+		y = sy;
+		return;
+	}
 	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
 	int w = DisplayWidth(dpy, DefaultScreen(dpy));
 	int h = DisplayHeight(dpy, DefaultScreen(dpy));
