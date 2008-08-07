@@ -16,6 +16,8 @@
 #include "stroke.h"
 #include "prefdb.h"
 #include <math.h>
+#include <iterator>
+#include <functional>
 
 #define eps 0.000001
 
@@ -32,9 +34,28 @@ int get_default_button() { return prefs.button.get().button; }
 
 inline double sqr(double x) { return x*x; };
 
+void update_triple(RTriple e, float x, float y, Time t) {
+	e->x = x;
+	e->y = y;
+	e->t = t;
+}
+
+RTriple create_triple(float x, float y, Time t) {
+	RTriple e(new Triple);
+	update_triple(e, x, y, t);
+	return e;
+}
+
+struct f : public std::unary_function<RTriple, Stroke::Point> {
+	Stroke::Point operator()(RTriple e) {
+		Stroke::Point p = { e->x, e->y, e->t };
+		return p;
+	}
+};
+
 Stroke::Stroke(PreStroke &s, int trigger_, int button_) : trigger(trigger_), button(button_) {
 	if (s.valid()) {
-		points = s.points;
+		std::transform(s.points.begin(), s.points.end(), std::back_inserter(points), f());
 		normalize();
 	}
 }
@@ -364,7 +385,7 @@ RStroke Stroke::trefoil() {
 	for (int i = 0; i<=n; i++) {
 		double phi = pi*(-4.0*i/n)-2.7;
 		double r = exp(1.0 + sin(6.0*pi*i/n)) + 2.0;
-		s.add(r*cos(phi), r*sin(phi), i);
+		s.add(create_triple(r*cos(phi), r*sin(phi), i));
 	}
 	return Stroke::create(s, 0, 0);
 }

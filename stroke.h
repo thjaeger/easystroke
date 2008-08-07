@@ -22,6 +22,8 @@
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/version.hpp>
 
+#include <X11/X.h> // Time
+
 #define STROKE_SIZE 64
 
 class Stroke;
@@ -47,6 +49,15 @@ public:
 
 int get_default_button();
 
+struct Triple {
+	float x;
+	float y;
+	Time t;
+};
+typedef boost::shared_ptr<Triple> RTriple;
+void update_triple(RTriple e, float x, float y, Time t);
+RTriple create_triple(float x, float y, Time t);
+
 class PreStroke;
 class Stroke {
 	friend class PreStroke;
@@ -60,6 +71,7 @@ public:
 			ar & x; ar & y; ar & time;
 		}
 	};
+
 private:
 	class RefineIterator;
 	class InterpolateIterator;
@@ -120,13 +132,10 @@ class PreStroke {
 	typedef Stroke::Point Point;
 	PreStroke() {}
 public:
-	std::vector<Point> points;
+	std::vector<RTriple> points;
 	static RPreStroke create() { return RPreStroke(new PreStroke()); }
 
-	void add(double x, double y, double time) {
-		Point p = {x, y, time};
-		points.push_back(p);
-	}
+	void add(RTriple p) { points.push_back(p); }
 
 	void clear() { points.clear(); }
 

@@ -138,9 +138,9 @@ public:
 		else
 			return this;
 	}
-	virtual void motion(float x, float y, Time t) {}
-	virtual void press(guint b, int x, int y, Time t) {}
-	virtual void release(guint b, float x, float y, Time t) {}
+	virtual void motion(RTriple e) {}
+	virtual void press(guint b, RTriple e) {}
+	virtual void release(guint b, RTriple e) {}
 	virtual void press_repeated() {}
 	virtual void pressure() {}
 	virtual void proximity_out() {}
@@ -178,7 +178,7 @@ public:
 	void grab() {
 		grabber->grab(Grabber::ALL_SYNC);
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		if (!in_proximity)
 			proximity_out();
@@ -213,14 +213,14 @@ public:
 		printf("Warning: WaitForButtonHandler timed out\n");
 		bail_out();
 	}
-	virtual void press(guint b, int x, int y, Time t) {
-		XAllowEvents(dpy, AsyncPointer, t);
+	virtual void press(guint b, RTriple e) {
+		XAllowEvents(dpy, AsyncPointer, e->t);
 		if (!down)
 			return;
 		if (b == button)
 			parent->replace_child(0);
 	}
-	virtual void release(guint b, float x, float y, Time t) {
+	virtual void release(guint b, RTriple e) {
 		if (down)
 			return;
 		if (b == button)
@@ -254,20 +254,20 @@ protected:
 		return v * exp(log(abs(v))/3);
 	}
 public:
-	virtual void motion(float x, float y, Time t) {
-		if (!last_t || abs(x-last_x) > 100 || abs(y-last_y) > 100) {
-			last_x = x;
-			last_y = y;
-			last_t = t;
+	virtual void motion(RTriple e) {
+		if (!last_t || abs(e->x-last_x) > 100 || abs(e->y-last_y) > 100) {
+			last_x = e->x;
+			last_y = e->y;
+			last_t = e->t;
 			return;
 		}
-		if (t == last_t)
+		if (e->t == last_t)
 			return;
-		offset_x += curve(float(x-last_x)/float(t-last_t))*float(t-last_t)/10.0;
-		offset_y += curve(float(y-last_y)/float(t-last_t))*float(t-last_t)/5.0;
-		last_x = x;
-		last_y = y;
-		last_t = t;
+		offset_x += curve(float(e->x-last_x)/float(e->t-last_t))*float(e->t-last_t)/10.0;
+		offset_y += curve(float(e->y-last_y)/float(e->t-last_t))*float(e->t-last_t)/5.0;
+		last_x = e->x;
+		last_y = e->y;
+		last_t = e->t;
 		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
 		if (abs(offset_x) > 1.0) {
 			n1 = floor(abs(offset_x));
@@ -329,24 +329,24 @@ public:
 			replace_child(new WaitForButtonHandler(pressed, true));
 		}
 	}
-	virtual void motion(float x, float y, Time t) {
+	virtual void motion(RTriple e) {
 		if (!pressed && !pressed2)
 			moved = true;
-		AbstractScrollHandler::motion(x,y,t);
+		AbstractScrollHandler::motion(e);
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		if (!pressed && !pressed2 && moved) {
 			clear_mods();
 			parent->replace_child(0);
 			if (grabber->is_grabbed(b))
-				parent->press(b,x,y,t);
+				parent->press(b, e);
 			XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 			return;
 		}
 		if (b != 4 && b != 5 && !pressed)
 			pressed = b;
 	}
-	virtual void release(guint b, float x, float y, Time t) {
+	virtual void release(guint b, RTriple e) {
 		if (b != pressed && b != pressed2)
 			return;
 		if (pressed2) {
@@ -357,7 +357,7 @@ public:
 				Handler *p = parent;
 				if (p->only_xi()) {
 					p->replace_child(0);
-					p->release(b,x,y,t);
+					p->release(b,e);
 				} else {
 					grabber->grab(Grabber::BUTTON);
 					XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
@@ -384,7 +384,7 @@ std::set<guint> xinput_pressed;
 
 class ActionHandler : public Handler {
 	RStroke stroke;
-	float init_x, init_y;
+	RTriple e;
 	guint button, button2;
 
 	void do_press(float x, float y) {
@@ -410,23 +410,23 @@ class ActionHandler : public Handler {
 		parent->replace_child(0);
 	}
 public:
-	ActionHandler(RStroke s, float x, float y, guint b, guint b2) : stroke(s), init_x(x), init_y(y), button(b), button2(b2) {}
+	ActionHandler(RStroke s, RTriple e_, guint b, guint b2) : stroke(s), button(b), button2(b2) {}
 
 	virtual void init() {
 		grabber->grab(Grabber::BUTTON);
-		do_press(init_x, init_y);
+		do_press(e->x, e->y);
 	}
 
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		button = b;
-		do_press(x, y);
+		do_press(e->x, e->y);
 	}
 
 	virtual void resume() {
 		grabber->grab(Grabber::BUTTON);
 	}
 
-	virtual void release(guint b, float x, float y, Time t) {
+	virtual void release(guint b, RTriple e) {
 		if (b != button2) //TODO
 			return;
 		clear_mods();
@@ -445,10 +445,10 @@ protected:
 		grabber->grab(Grabber::ALL_ASYNC);
 	}
 public:
-	virtual void release(guint b, float x, float y, Time t) {
+	virtual void release(guint b, RTriple e) {
 		Handler *p = parent;
 		p->replace_child(0);
-		p->release(b,x,y,t);
+		p->release(b, e);
 	}
 	virtual std::string name() { return "ScrollXi"; }
 };
@@ -463,11 +463,11 @@ public:
 		grabber->grab_xi_devs(true);
 		grab();
 	}
-	virtual void motion(float x, float y, Time t) {
+	virtual void motion(RTriple e) {
 		if (xinput_pressed.size())
-			AbstractScrollHandler::motion(x,y,t);
+			AbstractScrollHandler::motion(e);
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
 	virtual void proximity_out() {
@@ -482,19 +482,19 @@ public:
 
 class ActionXiHandler : public Handler {
 	RStroke stroke;
-	float init_x, init_y;
+	RTriple e;
 	int emulated_button;
 
 	guint button, button2;
 public:
-	ActionXiHandler(RStroke s, float x, float y, guint b, guint b2, Time t) :
-		stroke(s), init_x(x), init_y(y), emulated_button(0), button(b), button2(b2) {
+	ActionXiHandler(RStroke s, RTriple e_, guint b, guint b2) :
+			stroke(s), e(e_), emulated_button(0), button(b), button2(b2) {
 		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
 		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
 	}
 	virtual void init() {
 		grabber->grab_xi_devs(true);
-		handle_stroke(stroke, init_x, init_y, button2, button);
+		handle_stroke(stroke, e->x, e->y, button2, button);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -519,12 +519,12 @@ public:
 		emulated_button = press_button;
 		press_button = 0;
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		if (button2)
 			return;
 		button2 = b;
 		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
-		handle_stroke(stroke, x, y, button, button2);
+		handle_stroke(stroke, e->x, e->y, button, button2);
 		ignore = false;
 		if (scroll) {
 			scroll = false;
@@ -554,7 +554,7 @@ public:
 	virtual void resume() {
 		grabber->grab(Grabber::ALL_ASYNC);
 	}
-	virtual void release(guint b, float x, float y, Time t) {
+	virtual void release(guint b, RTriple e) {
 		if (b != button && b != button2)
 			return;
 		if (b == button)
@@ -693,8 +693,7 @@ class StrokeHandler : public Handler {
 	bool is_gesture;
 	bool drawing;
 	float speed;
-	Time last_t;
-	int last_x, last_y;
+	RTriple last;
 	bool repeated;
 	bool have_xi;
 
@@ -721,20 +720,18 @@ class StrokeHandler : public Handler {
 //		XTestFakeRelativeMotionEvent(dpy, last_x - orig.x, last_y - orig.y, 5);
 	}
 
-	bool calc_speed(int x, int y, Time t) {
+	bool calc_speed(RTriple e) {
 		if (!have_xi)
 			return false;
-		int dt = t - last_t;
+		int dt = e->t - last->t;
 		float c = exp(dt/-250.0);
 		if (dt) {
-			float dist = hypot(x-last_x, y-last_y);
+			float dist = hypot(e->x-last->x, e->y-last->y);
 			speed = c * speed + (1-c) * dist/dt;
 		} else {
 			speed = c * speed;
 		}
-		last_x = x;
-		last_y = y;
-		last_t = t;
+		last = e;
 
 		if (speed < 0.04) {
 			timeout();
@@ -753,23 +750,24 @@ protected:
 		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		parent->replace_child(0);
 	}
-	virtual void motion(float x, float y, Time t) {
+	virtual void motion(RTriple e) {
 		if (!repeated && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
 			if (verbosity >= 2)
 				printf("Ignoring xi-only stroke\n");
 			parent->replace_child(0);
 			return;
 		}
-		cur->add(x,y,t);
-		if (!is_gesture && hypot(x-orig.x, y-orig.y) > prefs.radius.get())
+		cur->add(e);
+		float dist = hypot(e->x-orig.x, e->y-orig.y);
+		if (!is_gesture && dist > prefs.radius.get())
 			is_gesture = true;
-		if (!drawing && hypot(x-orig.x, y-orig.y) > 4) {
+		if (!drawing && dist > 4) {
 			drawing = true;
 			bool first = true;
-			for (std::vector<Stroke::Point>::iterator i = cur->points.begin(); i != cur->points.end(); i++) {
+			for (std::vector<RTriple>::iterator i = cur->points.begin(); i != cur->points.end(); i++) {
 				Trace::Point p;
-				p.x = i->x;
-				p.y = i->y;
+				p.x = (*i)->x;
+				p.y = (*i)->y;
 				if (first) {
 					trace->start(p);
 					first = false;
@@ -779,42 +777,42 @@ protected:
 			}
 		} else if (drawing) {
 			Trace::Point p;
-			p.x = x;
-			p.y = y;
+			p.x = e->x;
+			p.y = e->y;
 			trace->draw(p);
 		}
-		calc_speed(x,y,t);
+		calc_speed(e);
 	}
 
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		if (b == button)
 			return;
-		if (calc_speed(x,y,t))
+		if (calc_speed(e))
 			return;
 		RStroke s = finish(b);
 		if (have_xi)
 			XAllowEvents(dpy, AsyncPointer, CurrentTime);
 
 		if (gui && stroke_action) {
-			handle_stroke(s, x, y, button, b);
+			handle_stroke(s, e->x, e->y, button, b);
 			parent->replace_child(0);
 			return;
 		}
 
 		if (xinput_pressed.count(b)) {
-			parent->replace_child(new ActionXiHandler(s, x, y, b, button, t));
+			parent->replace_child(new ActionXiHandler(s, e, b, button));
 		} else {
 			xi_warn();
-			parent->replace_child(new ActionHandler(s, x, y, b, button));
+			parent->replace_child(new ActionHandler(s, e, b, button));
 		}
 	}
 
-	virtual void release(guint b, float x, float y, Time t) {
-		if (calc_speed(x,y,t))
+	virtual void release(guint b, RTriple e) {
+		if (calc_speed(e))
 			return;
 		RStroke s = finish(0);
 
-		handle_stroke(s, x, y, button, 0);
+		handle_stroke(s, e->x, e->y, button, 0);
 		if (replay_button) {
 			if (have_xi)
 				XAllowEvents(dpy, ReplayPointer, CurrentTime);
@@ -845,18 +843,18 @@ protected:
 		parent->replace_child(0);
 	}
 public:
-	StrokeHandler(guint b, int x, int y, Time t) : button(b), is_gesture(false), drawing(false), speed(0.1), last_t(t), last_x(x), last_y(y),
+	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), speed(0.1), last(e),
 	repeated(false), have_xi(false) {
-		orig.x = x; orig.y = y;
+		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
-		cur->add(x,y,t);
+		cur->add(e);
 		if (xinput_pressed.count(button))
 			have_xi = true;
 		XEvent ev;
 		if (!have_xi) {
 			ButtonTime bt;
 			bt.b = b;
-			bt.t = t;
+			bt.t = e->t;
 			have_xi = XCheckIfEvent(dpy, &ev, &is_xi_press, (XPointer)&bt);
 			if (have_xi)
 				repeated = true;
@@ -886,12 +884,12 @@ public:
 		printf("Warning: WorkaroundHandler timed out\n");
 		bail_out();
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		if (b == 1)
 			return;
 		RPreStroke p = PreStroke::create();
 		RStroke s = Stroke::create(*p, b, 1);
-		parent->replace_child(new ActionXiHandler(s, x, y, 1, b, t));
+		parent->replace_child(new ActionXiHandler(s, e, 1, b));
 	}
 	virtual std::string name() { return "Workaround"; }
 };
@@ -902,25 +900,25 @@ protected:
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		grab();
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		if (!grabber->is_grabbed(b)) {
 			if (b != 1)
 				return;
 			else { // b == 1
 				unsigned int state = grabber->get_device_button_state();
 				if (state & (state-1)) {
-					XAllowEvents(dpy, AsyncPointer, t);
+					XAllowEvents(dpy, AsyncPointer, e->t);
 					replace_child(new WorkaroundHandler);
 					return;
 				} else {
-					XAllowEvents(dpy, ReplayPointer, t);
+					XAllowEvents(dpy, ReplayPointer, e->t);
 					return;
 				}
 			}
 		}
 		if (current_app)
-			activate_window(current_app, t);
-		replace_child(new StrokeHandler(b, x, y, t));
+			activate_window(current_app, e->t);
+		replace_child(new StrokeHandler(b, e));
 	}
 	virtual void grab() {
 		grabber->grab(Grabber::BUTTON);
@@ -944,7 +942,7 @@ class SelectHandler : public Handler {
 		XEvent ev;
 		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	}
-	virtual void press(guint b, int x, int y, Time t) {
+	virtual void press(guint b, RTriple e) {
 		window_selected = true;
 		parent->replace_child(0);
 	}
@@ -1218,7 +1216,7 @@ extern Window get_app_window(Window w); //TODO
 
 bool alive = true;
 
-Time last_time = 0;
+RTriple last_e;
 int last_type = 0;
 guint last_button = 0;
 
@@ -1245,12 +1243,12 @@ void Main::handle_event(XEvent &ev) {
 			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
 		if (handler->top()->only_xi())
 			break;
-		if (last_type == MotionNotify && last_time == ev.xmotion.time) {
+		if (last_type == MotionNotify && last_e->t == ev.xmotion.time) {
 			break;
 		}
-		handler->top()->motion(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
+		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
+		handler->top()->motion(last_e);
 		last_type = MotionNotify;
-		last_time = ev.xmotion.time;
 		break;
 
 	case ButtonPress:
@@ -1258,13 +1256,13 @@ void Main::handle_event(XEvent &ev) {
 			printf("Press: %d\n", ev.xbutton.button);
 		if (handler->top()->only_xi())
 			break;
-		if (last_type == ButtonPress && last_time == ev.xbutton.time && last_button == ev.xbutton.button) {
+		if (last_type == ButtonPress && last_e->t == ev.xbutton.time && last_button == ev.xbutton.button) {
 			handler->top()->press_repeated();
 			break;
 		}
-		handler->top()->press(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
+		handler->top()->press(ev.xbutton.button, last_e);
 		last_type = ButtonPress;
-		last_time = ev.xbutton.time;
 		last_button = ev.xbutton.button;
 		break;
 
@@ -1273,13 +1271,13 @@ void Main::handle_event(XEvent &ev) {
 			printf("Release: %d\n", ev.xbutton.button);
 		if (handler->top()->only_xi())
 			break;
-		if (last_type == ButtonRelease && last_time == ev.xbutton.time && last_button == ev.xbutton.button)
+		if (last_type == ButtonRelease && last_e->t == ev.xbutton.time && last_button == ev.xbutton.button)
 			break;
-		handler->top()->release(ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
+		handler->top()->release(ev.xbutton.button, last_e);
 		// TODO: Do we need this?
 		xinput_pressed.erase(ev.xbutton.button);
 		last_type = ButtonRelease;
-		last_time = ev.xbutton.time;
 		last_button = ev.xbutton.button;
 		break;
 
@@ -1324,29 +1322,32 @@ void Main::handle_event(XEvent &ev) {
 			if (verbosity >= 3)
 				printf("Press (Xi): %d\n", bev->button);
 			xinput_pressed.insert(bev->button);
-			if (last_type == ButtonPress && last_time == bev->time && last_button == bev->button) {
+			float x, y;
+			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+			if (last_type == ButtonPress && last_e->t == bev->time && last_button == bev->button) {
+				update_triple(last_e, x, y, bev->time);
 				handler->top()->press_repeated();
 				break;
 			}
-			float x, y;
-			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
-			handler->top()->press(bev->button, x, y, bev->time);
+			last_e = create_triple(x, y, bev->time);
+			handler->top()->press(bev->button, last_e);
 			last_type = ButtonPress;
-			last_time = bev->time;
 			last_button = bev->button;
 		}
 		if (grabber->is_event(ev.type, Grabber::UP)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			if (verbosity >= 3)
 				printf("Release (Xi): %d\n", bev->button);
-			if (last_type == ButtonRelease && last_time == bev->time && last_button == bev->button)
-				break;
 			float x, y;
 			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
-			handler->top()->release(bev->button, x, y, bev->time);
+			if (last_type == ButtonRelease && last_e->t == bev->time && last_button == bev->button) {
+				update_triple(last_e, x, y, bev->time);
+				break;
+			}
+			last_e = create_triple(x, y, bev->time);
+			handler->top()->release(bev->button, last_e);
 			xinput_pressed.erase(bev->button);
 			last_type = ButtonRelease;
-			last_time = bev->time;
 			last_button = bev->button;
 		}
 		if (grabber->is_event(ev.type, Grabber::MOTION)) {
@@ -1360,11 +1361,13 @@ void Main::handle_event(XEvent &ev) {
 				if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
 						prefs.pressure_threshold.get())
 					handler->top()->pressure();
-			if (last_type == MotionNotify && last_time == mev->time)
+			if (last_type == MotionNotify && last_e->t == mev->time) {
+				update_triple(last_e, x, y, mev->time);
 				break;
-			handler->top()->motion(x, y, mev->time);
+			}
+			last_e = create_triple(x, y, mev->time);
+			handler->top()->motion(last_e);
 			last_type = MotionNotify;
-			last_time = mev->time;
 		}
 		if (grabber->proximity_selected) {
 			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
