@@ -697,6 +697,7 @@ class StrokeHandler : public Handler {
 	bool have_xi;
 	float min_speed;
 	float speed;
+	static float k;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -723,7 +724,7 @@ class StrokeHandler : public Handler {
 		if (!have_xi)
 			return false;
 		int dt = e->t - last->t;
-		float c = exp(dt/-250.0);
+		float c = exp(k * dt);
 		if (dt) {
 			float dist = hypot(e->x-last->x, e->y-last->y);
 			speed = c * speed + (1-c) * dist/dt;
@@ -736,7 +737,7 @@ class StrokeHandler : public Handler {
 			timeout();
 			return true;
 		}
-		long us = -250000.0*log(min_speed/speed);
+		long us = 1000.0/k*log(min_speed/speed);
 		set_timeout(0, us);
 		return false;
 	}
@@ -844,7 +845,7 @@ protected:
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
 	repeated(false), have_xi(false), min_speed(0.001*prefs.min_speed.get()), 
-	speed(min_speed * exp(0.004*prefs.init_timeout.get())) {
+	speed(min_speed * exp(-k*prefs.init_timeout.get())) {
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
@@ -874,6 +875,8 @@ public:
 	}
 	virtual std::string name() { return "Stroke"; }
 };
+
+float StrokeHandler::k = -0.01;
 
 class WorkaroundHandler : public Handler {
 public:
