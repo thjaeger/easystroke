@@ -1220,24 +1220,26 @@ RTriple last_e;
 int last_type = 0;
 guint last_button = 0;
 
-void translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
-	// Workaround for my track point
-	if (axis_data[0] == 0 && axis_data[1] == 0) {
-		x = sx;
-		y = sy;
-		return;
-	}
+bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
 	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
-	int w = DisplayWidth(dpy, DefaultScreen(dpy));
-	int h = DisplayHeight(dpy, DefaultScreen(dpy));
+	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
+	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
 	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
 	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
 	y        = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
 	float y2 = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
-	if (hypot(x2 - sx, y2 - sy) < hypot(x - sx, y - sy)) {
+	float d  = hypot(x - sx, y - sy);
+	float d2 = hypot(x2 - sx, y2 - sy);
+	if (d > 4 && d2 > 4) {
+		x = sx;
+		y = sy;
+		return false;
+	}
+	if (d2 < d) {
 		x = x2;
 		y = y2;
 	}
+	return true;
 }
 
 void Main::handle_event(XEvent &ev) {
