@@ -55,7 +55,7 @@ struct f : public std::unary_function<RTriple, Stroke::Point> {
 
 Stroke::Stroke(PreStroke &s, int trigger_, int button_) : trigger(trigger_), button(button_) {
 	if (s.valid()) {
-		std::transform(s.points.begin(), s.points.end(), std::back_inserter(points), f());
+		std::transform(s.begin(), s.end(), std::back_inserter(points), f());
 		normalize();
 	}
 }

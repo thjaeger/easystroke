@@ -127,20 +127,11 @@ public:
 };
 BOOST_CLASS_VERSION(Stroke, 2)
 
-class PreStroke {
-	friend class Stroke;
-	typedef Stroke::Point Point;
-	PreStroke() {}
+class PreStroke : public std::vector<RTriple> {
 public:
-	std::vector<RTriple> points;
+	typedef std::vector<RTriple>::iterator iterator;
 	static RPreStroke create() { return RPreStroke(new PreStroke()); }
-
-	void add(RTriple p) { points.push_back(p); }
-
-	void clear() { points.clear(); }
-
-	bool valid() const { return points.size() > 2; }
-	int size() const { return points.size(); }
+	void add(RTriple p) { push_back(p); }
+	bool valid() const { return size() > 2; }
 };
-
 #endif

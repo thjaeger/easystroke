@@ -764,7 +764,7 @@ protected:
 		if (!drawing && dist > 4) {
 			drawing = true;
 			bool first = true;
-			for (std::vector<RTriple>::iterator i = cur->points.begin(); i != cur->points.end(); i++) {
+			for (PreStroke::iterator i = cur->begin(); i != cur->end(); i++) {
 				Trace::Point p;
 				p.x = (*i)->x;
 				p.y = (*i)->y;
