@@ -420,14 +420,19 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	Gtk::TreeRow row(*tm->get_iter(path));
 	if (row[cols.type] != Glib::ustring(BUTTON))
 		return;
-	Atomic a;
-	ActionDB &as = actions.write_ref(a);
-	RButton bt = boost::static_pointer_cast<Button>(as[row[cols.id]].action);
-	ButtonInfo bi = bt->get_button_info();
+	ButtonInfo bi;
+	{
+		Atomic a;
+		const ActionDB &as = actions.ref(a);
+		RButton bt = boost::static_pointer_cast<Button>(as.lookup(row[cols.id]).action);
+		bi = bt->get_button_info();
+	}
 	SelectButton sb(bi, false);
 	if (!sb.run())
 		return;
-	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
+	RButton bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
+	Atomic a;
+	ActionDB &as = actions.write_ref(a);
 	as[row[cols.id]].action = bt;
 	row[cols.arg] = bt->get_label();
 }
