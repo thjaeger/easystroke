@@ -129,7 +129,6 @@ BOOST_CLASS_VERSION(Stroke, 2)
 
 class PreStroke : public std::vector<RTriple> {
 public:
-	typedef std::vector<RTriple>::iterator iterator;
 	static RPreStroke create() { return RPreStroke(new PreStroke()); }
 	void add(RTriple p) { push_back(p); }
 	bool valid() const { return size() > 2; }
