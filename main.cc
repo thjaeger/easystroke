@@ -109,7 +109,12 @@ Trace *init_trace() {
 		case TraceShape:
 			return new Shape();
 		case TraceAnnotate:
-			return new Annotate();
+			try {
+				return new Annotate();
+			} catch (DBusException e) {
+				printf("Error: %s\n", e.what());
+				return new Trivial();
+			}
 		default:
 			return new Copy();
 	}

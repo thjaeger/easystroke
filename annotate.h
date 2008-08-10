@@ -17,8 +17,17 @@
 #define __ANNOTATE_H__
 #include "trace.h"
 #include "main.h"
+#include <dbus/dbus-glib.h>
+
+struct DBusException: public std::exception {
+	virtual const char* what() const throw() { return "Connection to DBus failed"; }
+};
 
 class Annotate : public Trace {
+	DBusGConnection *bus;
+	DBusGProxy *draw_proxy;
+	DBusGProxy *clear_proxy;
+
 	virtual void draw(Point p, Point q);
 	virtual void start_() {}
 	virtual void end_();
