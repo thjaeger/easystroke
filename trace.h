@@ -23,7 +23,7 @@
 
 class Trace {
 public:
-	struct Point { int x; int y; };
+	struct Point { float x; float y; };
 private:
 	Point last;
 	bool active;
