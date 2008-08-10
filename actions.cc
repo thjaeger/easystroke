@@ -442,16 +442,6 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	row[cols.arg] = bt->get_label();
 }
 
-const Glib::ustring SendKey::get_label() const {
-	Glib::ustring str = Gtk::AccelGroup::get_label(key, mods);
-	if (key == 0) {
-		char buf[10];
-		snprintf(buf, 9, "0x%x", code);
-		str += buf;
-	}
-	return str;
-}
-
 const Glib::ustring ModAction::get_label() const {
 	if (!mods)
 		return "No Modifiers";

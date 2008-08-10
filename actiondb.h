@@ -26,6 +26,8 @@
 #include "stroke.h"
 #include "prefdb.h"
 
+#include <X11/extensions/XTest.h>
+
 class Action;
 class Command;
 class SendKey;
@@ -72,23 +74,14 @@ public:
 	virtual const Glib::ustring get_label() const;
 };
 
-class SendKey : public ModAction {
-	friend class boost::serialization::access;
-	guint key;
-	guint code;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version);
-	SendKey(guint key_, Gdk::ModifierType mods, guint code_, bool xtest_ = false) :
-		ModAction(mods), key(key_), code(code_) {}
-public:
+struct SendKey : public ModAction {
+	static RSendKey create(guint key, Gdk::ModifierType mods, guint code);
+	virtual bool run() = 0;
+	virtual const Glib::ustring get_label() const = 0;
+protected:
+	SendKey(Gdk::ModifierType mods) : ModAction(mods) {}
 	SendKey() {}
-	static RSendKey create(guint key, Gdk::ModifierType mods, guint code) {
-		return RSendKey(new SendKey(key, mods, code));
-	}
-
-	virtual bool run();
-	virtual const Glib::ustring get_label() const;
 };
-BOOST_CLASS_VERSION(SendKey, 1)
 
 class Scroll : public ModAction {
 	friend class boost::serialization::access;

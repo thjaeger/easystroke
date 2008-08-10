@@ -34,10 +34,53 @@ BOOST_CLASS_EXPORT(StrokeSet)
 BOOST_CLASS_EXPORT(Action)
 BOOST_CLASS_EXPORT(Command)
 BOOST_CLASS_EXPORT(ModAction)
-BOOST_CLASS_EXPORT(SendKey)
 BOOST_CLASS_EXPORT(Scroll)
 BOOST_CLASS_EXPORT(Ignore)
 BOOST_CLASS_EXPORT(Button)
+
+class SendKeyPriv : public SendKey {
+	friend class boost::serialization::access;
+	friend class SendKey;
+	guint key;
+	guint code;
+	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
+		ar & boost::serialization::base_object<ModAction>(*this);
+		ar & key;
+		ar & code;
+		if (version < 1) {
+			bool xtest;
+			ar & xtest;
+		}
+	}
+
+	SendKeyPriv(guint key_, Gdk::ModifierType mods, guint code_) :
+		SendKey(mods), key(key_), code(code_) {}
+public:
+	SendKeyPriv() {}
+	virtual bool run() {
+		press();
+		XTestFakeKeyEvent(dpy, code, true, 0);
+		XTestFakeKeyEvent(dpy, code, false, 0);
+		return true;
+	}
+
+	virtual const Glib::ustring get_label() const {
+		Glib::ustring str = Gtk::AccelGroup::get_label(key, mods);
+		if (key == 0) {
+			char buf[10];
+			snprintf(buf, 9, "0x%x", code);
+			str += buf;
+		}
+		return str;
+	}
+};
+
+BOOST_CLASS_VERSION(SendKeyPriv, 1)
+BOOST_CLASS_EXPORT_GUID(SendKeyPriv, "SendKey")
+
+RSendKey SendKey::create(guint key, Gdk::ModifierType mods, guint code) {
+	return RSendKey(new SendKeyPriv(key, mods, code));
+}
 
 template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {
 }
@@ -50,16 +93,6 @@ template<class Archive> void Command::serialize(Archive & ar, const unsigned int
 template<class Archive> void ModAction::serialize(Archive & ar, const unsigned int version) {
 	ar & boost::serialization::base_object<Action>(*this);
 	ar & mods;
-}
-
-template<class Archive> void SendKey::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<ModAction>(*this);
-	ar & key;
-	ar & code;
-	if (version < 1) {
-		bool xtest;
-		ar & xtest;
-	}
 }
 
 template<class Archive> void Scroll::serialize(Archive & ar, const unsigned int version) {

@@ -1526,13 +1526,6 @@ int main(int argc, char **argv) {
 	return EXIT_SUCCESS;
 }
 
-bool SendKey::run() {
-	press();
-	XTestFakeKeyEvent(dpy, code, true, 0);
-	XTestFakeKeyEvent(dpy, code, false, 0);
-	return true;
-}
-
 bool Button::run() {
 		press();
 		press_button = button;
