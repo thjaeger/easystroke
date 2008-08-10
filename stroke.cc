@@ -384,7 +384,7 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty(int size) {
 
 RStroke Stroke::trefoil() {
 	PreStroke s;
-	const int n = 40;
+	const int n = 80;
 	const double pi = 3.141592653589793238462643;
 	for (int i = 0; i<=n; i++) {
 		double phi = pi*(-4.0*i/n)-2.7;
