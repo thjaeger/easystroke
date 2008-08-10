@@ -50,6 +50,11 @@ Actions::Actions() :
 
 	tm = Gtk::TreeStore::create(cols);
 
+#if 0
+	tv->set_reorderable();
+//	tv->set_level_indentation(STROKE_SIZE/2);
+	tv->set_enable_tree_lines();
+#endif
 	tv->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
 	Gtk::TreeModel::Row row;
