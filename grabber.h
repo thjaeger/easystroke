@@ -50,9 +50,9 @@ float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
 class Grabber {
 public:
 	Children children;
-	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, POINTER };
+	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, SCROLL, SELECT };
+	static const char *state_name[6];
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
-	static const char *state_name[5];
 	bool xinput;
 	bool proximity_selected;
 	bool is_event(int, EventType);
@@ -85,7 +85,7 @@ private:
 	bool xi_grabbed;
 	bool suspended;
 	bool active;
-	Cursor cursor;
+	Cursor cursor_scroll, cursor_select;
 	std::map<guint, guint> buttons;
 	bool timing_workaround;
 

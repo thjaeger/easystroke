@@ -133,7 +133,7 @@ void Children::destroy(Window w) {
 
 extern VarI<bool> xinput_v, supports_pressure, supports_proximity;
 
-const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
+const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
 
 extern Window get_window(Window w, Atom prop);
 
@@ -156,11 +156,13 @@ Grabber::Grabber() : children(ROOT) {
 	if (xinput)
 		select_proximity();
 
-	cursor = XCreateFontCursor(dpy, XC_double_arrow);
+	cursor_scroll = XCreateFontCursor(dpy, XC_double_arrow);
+	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 }
 
 Grabber::~Grabber() {
-	XFreeCursor(dpy, cursor);
+	XFreeCursor(dpy, cursor_scroll);
+	XFreeCursor(dpy, cursor_select);
 }
 
 float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax) {
@@ -394,7 +396,7 @@ void Grabber::set() {
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (old == ALL_ASYNC)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-	if (old == POINTER) {
+	if (old == SCROLL || old == SELECT) {
 		XUngrabPointer(dpy, CurrentTime);
 	}
 	if (grabbed == BUTTON) {
@@ -418,10 +420,11 @@ void Grabber::set() {
 	if (grabbed == ALL_ASYNC)
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 				GrabModeAsync, GrabModeAsync, None, None);
-	if (grabbed == POINTER) {
+	if (grabbed == SCROLL || grabbed == SELECT) {
 		int i = 0;
 		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask,
-					GrabModeAsync, GrabModeAsync, ROOT, cursor, CurrentTime) != GrabSuccess) {
+					GrabModeAsync, GrabModeAsync, ROOT,
+					grabbed == SCROLL ? cursor_scroll : cursor_select, CurrentTime) != GrabSuccess) {
 			if (++i > 10)
 				throw GrabFailedException();
 			usleep(10000);
@@ -446,7 +449,7 @@ void Grabber::fake_button(int b) {
 
 std::string Grabber::get_wm_class(Window w) {
 	if (!w)
-		return "(wm window)";
+		return "(window manager frame)";
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		return "";

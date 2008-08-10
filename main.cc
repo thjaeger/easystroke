@@ -309,7 +309,7 @@ public:
 			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
 			XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
 		}
-		grabber->grab(Grabber::POINTER);
+		grabber->grab(Grabber::SCROLL);
 		if (pressed2) {
 			XTestFakeButtonEvent(dpy, pressed2, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
@@ -941,7 +941,7 @@ bool window_selected = false;
 
 class SelectHandler : public Handler {
 	virtual void grab() {
-		grabber->grab(Grabber::POINTER);
+		grabber->grab(Grabber::SELECT);
 		XEvent ev;
 		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	}
