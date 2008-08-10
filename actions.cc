@@ -48,7 +48,7 @@ Actions::Actions() :
 	tv->signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
 	tv->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_selection_changed));
 
-	tm = Gtk::TreeStore::create(cols);
+	tm = Gtk::ListStore::create(cols);
 
 #if 0
 	tv->set_reorderable();
