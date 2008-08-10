@@ -352,7 +352,7 @@ void Actions::focus(int id, int col, bool edit) {
 	focus->col = tv->get_column(col);
 	focus->edit = edit;
 	editing = false;
-	Glib::signal_timeout().connect(sigc::mem_fun(*focus, &Focus::focus), 0, Glib::PRIORITY_LOW);
+	Glib::signal_idle().connect(sigc::mem_fun(*focus, &Focus::focus));
 }
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
