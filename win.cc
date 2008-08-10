@@ -137,6 +137,7 @@ Win::Win() : icon_queue(sigc::mem_fun(*this, &Win::on_icon_changed)) {
 	menu.show_all();
 
 	widgets->get_widget("main", win);
+	win->set_icon(Stroke::trefoil()->draw(24));
 
 	Gtk::Button* button_hide[3];
 	widgets->get_widget("button_hide1", button_hide[0]);
