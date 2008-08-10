@@ -20,11 +20,11 @@ MENUDIR  = $(PREFIX)/share/applications
 DFLAGS   = #-ggdb #-pg
 OFLAGS   = -Os
 AOFLAGS  = -O3
-CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 gthread-2.0 --cflags`
+CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 gthread-2.0 dbus-1 --cflags`
 LDFLAGS  = $(DFLAGS) -Lcellrenderertk
 TARGETS  = easystroke
 
-LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --libs`
+LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-1 --libs`
 
 LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 --libs` /usr/lib/libboost_serialization.a
 

@@ -19,6 +19,7 @@
 #include "actiondb.h"
 #include "prefdb.h"
 #include "trace.h"
+#include "annotate.h"
 #include "copy.h"
 #include "shape.h"
 #include "grabber.h"
@@ -107,6 +108,8 @@ Trace *init_trace() {
 			return new Trivial();
 		case TraceShape:
 			return new Shape();
+		case TraceAnnotate:
+			return new Annotate();
 		default:
 			return new Copy();
 	}
