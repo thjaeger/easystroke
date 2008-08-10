@@ -58,6 +58,7 @@ Atom XAtom::operator*() {
 }
 
 BiMap<Window, Window> frame_win;
+std::map<Window, Window> frame_child;
 XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
 
 extern Window get_window(Window w, Atom prop); //TODO
@@ -130,49 +131,6 @@ void Children::destroy(Window w) {
 	frame_win.erase2(w);
 }
 
-/*
-// Fuck Xlib
-bool Grabber::has_wm_state(Window w) {
-	Atom actual_type_return;
-	int actual_format_return;
-	unsigned long nitems_return;
-	unsigned long bytes_after_return;
-	unsigned char *prop_return;
-	if (Success != XGetWindowProperty(dpy, w, WM_STATE, 0, 2, False,
-				AnyPropertyType, &actual_type_return,
-				&actual_format_return, &nitems_return,
-				&bytes_after_return, &prop_return))
-		return false;
-	XFree(prop_return);
-	return nitems_return;
-}
-*/
-
-/*
-// Calls create on top-level windows, i.e.
-//   if depth >= 0: windows that have th wm_state property
-//   if depth <  0: children of the root window
-void Grabber::init(Window w, int depth) {
-	depth++;
-	// I have no clue why this is needed, but just querying the whole tree
-	// prevents EnterNotifies from being generated.  Weird.
-	// update 2/12/08:  Disappeared.  Leaving the code here in case this
-	// comes back
-	// 2/15/08: put it back in for release.  You never know.
-	if (depth > 2)
-		return;
-	unsigned int n;
-	Window dummyw1, dummyw2, *ch;
-	XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n);
-	for (unsigned int i = 0; i != n; i++) {
-		if (depth > 0 && !has_wm_state(ch[i]))
-			init(ch[i], depth);
-		else
-			create(ch[i]);
-	}
-	XFree(ch);
-}
-*/
 extern VarI<bool> xinput_v, supports_pressure, supports_proximity;
 
 const char *Grabber::state_name[5] = { "None", "Button", "All (Sync)", "All (Async)", "Pointer" };
@@ -193,7 +151,6 @@ Grabber::Grabber() : children(ROOT) {
 	xi_grabbed = false;
 	proximity_selected = false;
 	get_button();
-	WM_STATE = XInternAtom(dpy, "WM_STATE", False);
 
 	xinput = init_xi();
 	if (xinput)
@@ -488,6 +445,8 @@ void Grabber::fake_button(int b) {
 }
 
 std::string Grabber::get_wm_class(Window w) {
+	if (!w)
+		return "(wm window)";
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		return "";
@@ -497,8 +456,62 @@ std::string Grabber::get_wm_class(Window w) {
 	return ans;
 }
 
-Window get_app_window(Window w) {
-	if (frame_win.contains1(w))
-		return frame_win.find1(w);
+// Fuck Xlib
+bool has_wm_state(Window w) {
+	static XAtom WM_STATE("WM_STATE");
+	Atom actual_type_return;
+	int actual_format_return;
+	unsigned long nitems_return;
+	unsigned long bytes_after_return;
+	unsigned char *prop_return;
+	if (Success != XGetWindowProperty(dpy, w, *WM_STATE, 0, 2, False,
+				AnyPropertyType, &actual_type_return,
+				&actual_format_return, &nitems_return,
+				&bytes_after_return, &prop_return))
+		return false;
+	XFree(prop_return);
+	return nitems_return;
+}
+
+Window find_wm_state(Window w) {
+	if (has_wm_state(w))
+		return w;
+	Window found = None;
+	unsigned int n;
+	Window dummyw1, dummyw2, *ch;
+	XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n);
+	for (unsigned int i = 0; i != n; i++)
+		if (has_wm_state(ch[i]))
+			found = ch[i];
+	XFree(ch);
+	return found;
+}
+
+// sets w to 0 if the window is a frame
+Window get_app_window(Window &w) {
+	if (frame_win.contains1(w)) {
+		Window w2 = frame_win.find1(w);
+		w = 0;
+		return w2;
+	}
+	std::map<Window, Window>::iterator i = frame_child.find(w);
+	if (i != frame_child.end()) {
+		Window w2 = i->second;
+		if (w != w2)
+			w = 0;
+		return w2;
+	}
+	Window w2 = find_wm_state(w);
+	if (w2) {
+		frame_child[w] = w2;
+		if (w2 != w) {
+			w = w2;
+			XSelectInput(dpy, w2, EnterWindowMask | LeaveWindowMask);
+		}
+		return w2;
+	}
+	w = 0;
+	if (verbosity >= 1)
+		printf("Window 0x%lx does not have an associated top-level window\n", w);
 	return w;
 }

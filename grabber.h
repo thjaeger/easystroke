@@ -89,8 +89,6 @@ private:
 	std::map<guint, guint> buttons;
 	bool timing_workaround;
 
-	Atom WM_STATE;
-
 	void set();
 	void grab_xi(bool);
 public:
