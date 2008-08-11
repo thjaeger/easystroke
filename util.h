@@ -43,4 +43,6 @@ public:
 		remove_timeout();
 	}
 };
+
+void show_us(const char *str);
 #endif

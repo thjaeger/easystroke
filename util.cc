@@ -14,3 +14,12 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "util.h"
+
+#include <sys/time.h>
+#include <time.h>
+
+void show_us(const char *str) {
+	struct timeval tv;
+	gettimeofday(&tv, 0);
+	printf("%s: %ld\n", str, tv.tv_usec);
+}
