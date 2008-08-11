@@ -277,7 +277,7 @@ void Prefs::on_p_default() {
 
 extern void update_current(); //TODO
 
-void Prefs::on_selected(std::string &str) {
+void Prefs::on_selected(std::string str) {
 	bool is_new;
 	{
 		Atomic a;
@@ -307,12 +307,6 @@ void Prefs::on_remove() {
 		tm->erase(iter);
 		update_current();
 	}
-}
-
-extern void select_window(); //TODO
-
-void Prefs::on_add() {
-	select_window();
 }
 
 void Prefs::set_button_label() {

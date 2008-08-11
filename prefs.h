@@ -23,10 +23,10 @@ class Prefs {
 public:
 	Prefs();
 	virtual ~Prefs() {}
+	void on_selected(std::string);
 private:
 	void set_button_label();
 
-	void on_selected(std::string &);
 	void on_add();
 	void on_remove();
 	void on_p_changed();

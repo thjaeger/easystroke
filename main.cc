@@ -17,6 +17,7 @@
 #include "main.h"
 #include "shape.h"
 #include "win.h"
+#include "prefs.h"
 #include "actiondb.h"
 #include "prefdb.h"
 #include "trace.h"
@@ -1293,7 +1294,7 @@ void Main::handle_event(XEvent &ev) {
 		} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
 		grabber->update(current);
 		if (window_selected) {
-			//win->select_push(grabber->get_wm_class(current)); TODO!
+			win->prefs->on_selected(grabber->get_wm_class(current));
 			window_selected = false;
 		}
 		break;
@@ -1386,7 +1387,7 @@ void update_current() {
 	grabber->update(current);
 }
 
-void select_window() {
+void Prefs::on_add() {
 	handler->top()->replace_child(new SelectHandler);
 }
 
