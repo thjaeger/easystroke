@@ -18,14 +18,7 @@
 #include "actiondb.h"
 #include <iomanip>
 
-class Stats::RankingQueue : public Queue<Ranking *> {
-public:
-	RankingQueue(sigc::slot<void, Ranking *> cb) : Queue<Ranking *>(cb) {}
-};
-
-void Stats::stroke_push(Ranking *r) { r_queue->push(r); }
-
-Stats::Stats() : r_queue(new RankingQueue(sigc::mem_fun(*this, &Stats::on_stroke))) {
+Stats::Stats() {
 	Gtk::Button *button_matrix;
 	widgets->get_widget("button_matrix", button_matrix);
 	widgets->get_widget("treeview_recent", recent_view);
@@ -54,10 +47,6 @@ void Stats::on_cursor_changed() {
 
 	Glib::RefPtr<Gtk::ListStore> ranking_store = row[cols.child];
 	ranking_view->set_model(ranking_store);
-}
-
-Stats::~Stats() {
-	delete r_queue;
 }
 
 class Feedback {
@@ -107,6 +96,11 @@ public:
 	}
 };
 
+bool Ranking::show() {
+	win->stats->on_stroke(this);
+	delete this;
+	return false;
+}
 
 void Stats::on_stroke(Ranking *r) {
 	if (prefs.feedback.get() && r->best_stroke) {
@@ -139,7 +133,6 @@ void Stats::on_stroke(Ranking *r) {
 		row2[cols.name] = i->second.first;
 		row2[cols.score] = Glib::ustring::format(std::fixed, std::setprecision(2), i->first * 100) + "%";
 	}
-	delete r;
 }
 
 #define GRAPH 0

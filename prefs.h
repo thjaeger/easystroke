@@ -15,14 +15,12 @@
  */
 #ifndef __PREFS_H__
 #define __PREFS_H__
-#include "queue.h"
 #include "prefdb.h"
 
 #include <gtkmm.h>
 
 class Prefs {
 public:
-	Queue<std::string> q;
 	Prefs();
 	virtual ~Prefs() {}
 private:

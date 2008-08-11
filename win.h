@@ -17,7 +17,6 @@
 #define __WIN_H__
 #include "stroke.h"
 #include <gtkmm.h>
-#include "queue.h"
 
 class Actions;
 class Prefs;
@@ -36,31 +35,28 @@ class Win {
 public:
 	Win();
 	virtual ~Win();
-	void icon_push(RStroke s) { icon_queue.push(s); }
-	void stroke_push(Ranking *);
-	void select_push(std::string);
+
 	Gtk::Window& get_window() { return *win; }
-
-	Glib::Dispatcher quit;
-
+	Glib::Dispatcher quit; // TODO: We don't need this
+	Actions *actions;
+	Prefs *prefs;
+	Stats *stats;
+	void on_icon_changed(RStroke s);
 private:
 	void on_icon_click();
 	bool on_icon_size_changed(int);
-	void on_icon_changed(RStroke s);
 	void on_help_toggled();
 	void show_popup(guint, guint32);
 
 	Gtk::Window *win;
-	Actions *actions;
-	Prefs *prefs;
-	Stats *stats;
 
 	Gtk::Menu menu;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
 	RStroke current_icon;
-	Queue<RStroke> icon_queue;
 };
+
+extern Win *win;
 
 class SelectButton {
 public:

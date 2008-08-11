@@ -115,6 +115,7 @@ public:
         Glib::RefPtr<Gdk::Pixbuf> draw(int size) const;
 	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert = true) const;
 	void draw_svg(std::string filename) const;
+	bool show_icon();
 
 	static RStroke trefoil();
 	static double compare(RStroke, RStroke);

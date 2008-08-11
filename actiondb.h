@@ -143,6 +143,7 @@ struct Ranking {
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
 	int x, y;
+	bool show();
 };
 
 class StrokeIterator {

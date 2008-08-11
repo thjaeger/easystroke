@@ -117,7 +117,7 @@ int run_dialog(const char *str) {
 	return response;
 }
 
-Win::Win() : icon_queue(sigc::mem_fun(*this, &Win::on_icon_changed)) {
+Win::Win() {
 	widgets = Gtk::Builder::create_from_string(gui_buffer),
 	actions = new Actions;
 	prefs = new Prefs;
@@ -159,14 +159,6 @@ Win::~Win() {
 
 void Win::show_popup(guint button, guint32 activate_time) {
 	icon->popup_menu_at_position(menu, button, activate_time);
-}
-
-void Win::stroke_push(Ranking *r) {
-	stats->stroke_push(r);
-}
-
-void Win::select_push(std::string s) {
-	prefs->q.push(s);
 }
 
 void Win::on_icon_changed(RStroke s) {

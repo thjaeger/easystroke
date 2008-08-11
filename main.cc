@@ -1146,6 +1146,15 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
+struct ShowIcon {
+	RStroke s;
+	bool run() {
+		win->on_icon_changed(s);
+		delete this;
+		return false;
+	}
+};
+
 void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 	s->trigger = trigger;
 	s->button = (button == trigger) ? 0 : button;
@@ -1161,9 +1170,11 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 			if (ranking->id == -1)
 				replay_button = trigger;
 			if (ranking->id != -1 || prefs.show_clicks.get())
-				win->stroke_push(ranking);
+				Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
 		}
-		win->icon_push(s);
+		ShowIcon *si = new ShowIcon;
+		si->s = s;
+		Glib::signal_idle().connect(sigc::mem_fun(si, &ShowIcon::run));
 	} else {
 		Ranking *ranking = as.handle(s);
 		if (ranking->id == -1)
@@ -1282,7 +1293,7 @@ void Main::handle_event(XEvent &ev) {
 		} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
 		grabber->update(current);
 		if (window_selected) {
-			win->select_push(grabber->get_wm_class(current));
+			//win->select_push(grabber->get_wm_class(current)); TODO!
 			window_selected = false;
 		}
 		break;
