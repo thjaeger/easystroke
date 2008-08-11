@@ -482,7 +482,8 @@ Window find_wm_state(Window w) {
 	Window found = None;
 	unsigned int n;
 	Window dummyw1, dummyw2, *ch;
-	XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n);
+	if (!XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n))
+		return None;
 	for (unsigned int i = 0; i != n; i++)
 		if (has_wm_state(ch[i]))
 			found = ch[i];
