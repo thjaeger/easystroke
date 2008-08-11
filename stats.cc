@@ -65,7 +65,6 @@ public:
 			image.show();
 			icon->get_size(w,h);
 			icon->move(x - w/2, y - h/2);
-			icon->show();
 			y += h/2;
 		}
 
@@ -79,8 +78,11 @@ public:
 			label.show();
 			text->get_size(w,h);
 			text->move(x - w/2, y + h/2);
-			text->show();
 		}
+		if (text)
+			text->show();
+		if (icon)
+			icon->show();
 	}
 	bool destroy() {
 		if (icon) {
