@@ -89,7 +89,7 @@ int dead = 0;
 
 void quit(int) {
 	if (gui)
-		win->quit();
+		Gtk::Main::quit();
 	else
 		dead++;
 }
@@ -959,7 +959,6 @@ class Main {
 
 	std::string display;
 	Gtk::Main *kit;
-	int fdr;
 	int event_basep;
 	bool randr;
 public:
@@ -979,13 +978,6 @@ Main::Main(int argc, char **argv) : kit(0) {
 	}
 	display = parse_args_and_init_gtk(argc, argv);
 	create_config_dir();
-
-	int fds[2];
- 	if (pipe(fds))
-		printf("Error: pipe() failed\n");
-	fdr = fds[0];
-	fcntl(fdr, F_SETFL, O_NONBLOCK);
-	fdw = fds[1];
 
 	signal(SIGINT, &quit);
 
@@ -1039,7 +1031,7 @@ void check_endless() {
 		sleep(10);
 	} while (last_state != state);
 	printf("Error: Endless loop detected\n");
-	exit(EXIT_FAILURE);
+	*(int *)0 = 0; // A reliable way to take the app down.  exit() didn't work.
 }
 
 void Main::run() {

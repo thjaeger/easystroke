@@ -129,8 +129,6 @@ Win::Win() {
 	icon->signal_activate().connect(sigc::mem_fun(*this, &Win::on_icon_click));
 	icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
 
-	quit.connect(sigc::ptr_fun(&Gtk::Main::quit));
-
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
 	menu.append(menu_quit);
 	menu_quit.signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));

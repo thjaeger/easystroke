@@ -37,7 +37,6 @@ public:
 	virtual ~Win();
 
 	Gtk::Window& get_window() { return *win; }
-	Glib::Dispatcher quit; // TODO: We don't need this
 	Actions *actions;
 	Prefs *prefs;
 	Stats *stats;
