@@ -15,10 +15,10 @@
  */
 #ifndef __SHAPE_H__
 #define __SHAPE_H__
+#include "util.h"
 #include "trace.h"
-#include <glibmm/thread.h>
 
-class Shape : public Trace {
+class Shape : public Trace, protected Timeout {
 	Window win;
 private:
 	virtual void draw(Point p, Point q);

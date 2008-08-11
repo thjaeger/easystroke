@@ -24,16 +24,12 @@
 template <class T> class Out;
 template <class T> class Var;
 
-extern Glib::StaticRecMutex global_mutex;
-
 struct Atomic {
 	std::list<sigc::slot<void> > cleanup;
-	Atomic() { global_mutex.lock(); }
 	~Atomic() {
 		for (std::list<sigc::slot<void> >::iterator i = cleanup.begin(); i != cleanup.end(); i++)
 			(*i)();
 		cleanup.clear();
-		global_mutex.unlock();
 	}
 };
 
@@ -280,5 +276,4 @@ public:
 	}
 };
 #endif
-
 #endif

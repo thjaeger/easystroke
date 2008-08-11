@@ -13,15 +13,15 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "main.h"
-#include "win.h"
 #include "strokeaction.h"
+#include "main.h"
+#include "shape.h"
+#include "win.h"
 #include "actiondb.h"
 #include "prefdb.h"
 #include "trace.h"
 #include "annotate.h"
 #include "copy.h"
-#include "shape.h"
 #include "grabber.h"
 
 #include <X11/Xutil.h>
@@ -84,22 +84,13 @@ void xi_warn() {
 	warned = true;
 }
 
-Glib::Thread *main_thread = 0;
-
-void run_gui() {
-	win = new Win;
-	Gtk::Main::run();
-	gui = false;
-	delete win;
-	send(P_QUIT);
-	main_thread->join();
-}
+int dead = 0;
 
 void quit(int) {
 	if (gui)
 		win->quit();
 	else
-		send(P_QUIT);
+		dead++;
 }
 
 Trace *init_trace() {
@@ -152,7 +143,6 @@ public:
 	virtual void press_repeated() {}
 	virtual void pressure() {}
 	virtual void proximity_out() {}
-	virtual void timeout() {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
 		if (child)
@@ -210,12 +200,12 @@ void bail_out() {
 	XAllowEvents(dpy, AsyncPointer, CurrentTime);
 }
 
-class WaitForButtonHandler : public Handler {
+class WaitForButtonHandler : public Handler, protected Timeout {
 	guint button;
 	bool down;
 public:
 	WaitForButtonHandler(guint b, bool d) : button(b), down(d) {
-		set_timeout(0, 100000);
+		set_timeout(100);
 	}
 	virtual void timeout() {
 		printf("Warning: WaitForButtonHandler timed out\n");
@@ -695,7 +685,7 @@ void activate_window(Window w, Time t) {
 		XSetInputFocus(dpy, w, RevertToParent, t);
 }
 
-class StrokeHandler : public Handler {
+class StrokeHandler : public Handler, public Timeout {
 	guint button;
 	RPreStroke cur;
 	bool is_gesture;
@@ -745,8 +735,8 @@ class StrokeHandler : public Handler {
 			timeout();
 			return true;
 		}
-		long us = 1000.0/k*log(min_speed/speed);
-		set_timeout(0, us);
+		long ms = log(min_speed/speed) / k;
+		set_timeout(ms);
 		return false;
 	}
 protected:
@@ -876,7 +866,6 @@ public:
 		}
 	}
 	~StrokeHandler() {
-		remove_timeout(0);
 		trace->end();
 		if (have_xi)
 			XAllowEvents(dpy, AsyncPointer, CurrentTime);
@@ -886,10 +875,10 @@ public:
 
 float StrokeHandler::k = -0.01;
 
-class WorkaroundHandler : public Handler {
+class WorkaroundHandler : public Handler, public Timeout {
 public:
 	WorkaroundHandler() {
-		set_timeout(0, 250000);
+		set_timeout(100);
 	}
 	virtual void timeout() {
 		printf("Warning: WorkaroundHandler timed out\n");
@@ -975,6 +964,7 @@ class Main {
 public:
 	Main(int argc, char **argv);
 	void run();
+	bool handle(Glib::IOCondition);
 	void handle_event(XEvent &ev);
 	~Main();
 };
@@ -996,6 +986,50 @@ Main::Main(int argc, char **argv) : kit(0) {
 	fdw = fds[1];
 
 	signal(SIGINT, &quit);
+
+	dpy = XOpenDisplay(display.c_str());
+	if (!dpy) {
+		printf("Couldn't open display\n");
+		exit(EXIT_FAILURE);
+	}
+
+	actions.unsafe_ref().init();
+	prefs.init();
+
+	grabber = new Grabber;
+	grabber->grab(Grabber::BUTTON);
+
+	int error_basep;
+	randr = XRRQueryExtension(dpy, &event_basep, &error_basep);
+	if (randr)
+		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
+
+	trace = init_trace();
+
+	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
+	ATOM = XInternAtom(dpy, "ATOM", False);
+	WINDOW = XInternAtom(dpy, "WINDOW", False);
+	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
+	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
+	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
+	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
+	WM_PROTOCOLS = XInternAtom(dpy, "WM_PROTOCOLS", False);
+	WM_TAKE_FOCUS = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
+
+	handler = new IdleHandler;
+	handler->init();
+	XTestGrabControl(dpy, True);
+
+}
+
+void Main::run() {
+	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
+	io->connect(sigc::mem_fun(*this, &Main::handle));
+	io->attach();
+	win = new Win;
+	Gtk::Main::run();
+	delete win;
+	gui = false;
 }
 
 void Main::usage(char *me, bool good) {
@@ -1066,8 +1100,6 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		}
 	optind = 1;
 	opterr = 1;
-	XInitThreads();
-	Glib::thread_init();
 	if (gui)
 		kit = new Gtk::Main(argc, argv);
 	oldHandler = XSetErrorHandler(xErrorHandler);
@@ -1140,92 +1172,7 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 	}
 }
 
-timeval timeout[2];
-bool timeout_set[2];
-
-void set_timeout(int i, long us) {
-	if (verbosity >= 3)
-		printf("Set timeout %d: %ld ms\n", i, us);
-	timeout[i].tv_sec = us / 1000000;
-	timeout[i].tv_usec = us % 1000000;
-	timeout_set[i] = true;
-}
-
-void timeval_sub(timeval &t1, timeval t2) {
-	if (t1.tv_usec < t2.tv_usec) {
-		t1.tv_usec += 1000000;
-		t1.tv_sec -= 1;
-	}
-	t1.tv_sec -= t2.tv_sec;
-	t1.tv_usec -= t2.tv_usec;
-}
-
-bool remove_timeout(int i) {
-	if (verbosity >= 3)
-		printf("Remove timeout %d\n", i);
-	bool b = timeout_set[i];
-	timeout_set[i] = false;
-	return b;
-}
-
-int select_count = 1;
-
-void check_deadlock() {
-	int last = select_count;
-	for (;;) {
-		sleep(5);
-		if (last && last == select_count) {
-			printf("Error: Deadlock detected.  Shutting down.\n");
-			exit(EXIT_FAILURE);
-		}
-		last = select_count;
-	}
-}
-
-char* Main::next_event() {
-	static char buffer[2];
-	int fdx = ConnectionNumber(dpy);
-	fd_set fds;
-	FD_ZERO(&fds);
-	FD_SET(fdr, &fds);
-	FD_SET(fdx, &fds);
-	int n = 1 + ((fdr>fdx) ? fdr : fdx);
-
-	int ti;
-	if (timeout_set[0]) {
-		if (timeout_set[1]) {
-			ti = timeout_set[0] < timeout_set[1] ? 0 : 1;
-
-		} else
-			ti = 0;
-	} else {
-		if (timeout_set[1])
-			ti = 1;
-		else
-			ti = -1;
-	}
-	while (!XPending(dpy)) {
-		int new_count = select_count + 1;
-		if (!new_count) new_count = 1;
-		select_count = 0;
-		if (select(n, &fds, 0, 0, ti >= 0 ? timeout + ti : 0) == 0) {
-			select_count = new_count;
-			timeout_set[ti] = false;
-			timeval_sub(timeout[0], timeout[ti]);
-			timeval_sub(timeout[1], timeout[ti]);
-			buffer[0] = ti == 0 ? P_TIMEOUT1 : P_TIMEOUT2;
-			return buffer;
-		}
-		select_count = new_count;
-		if (read(fdr, buffer, 1) > 0)
-			return buffer;
-	}
-	return 0;
-}
-
 extern Window get_app_window(Window &w); //TODO
-
-bool alive = true;
 
 RTriple last_e;
 int last_type = 0;
@@ -1418,83 +1365,22 @@ void Main::handle_event(XEvent &ev) {
 	}
 }
 
-void Main::run() {
-	dpy = XOpenDisplay(display.c_str());
-	if (!dpy) {
-		printf("Couldn't open display\n");
-		exit(EXIT_FAILURE);
-	}
+void update_trace() {
+	Trace *new_trace = init_trace();
+	delete trace;
+	trace = new_trace;
+}
 
-	actions.unsafe_ref().init();
-	prefs.init();
+void update_current() {
+	grabber->update(current);
+}
 
-	grabber = new Grabber;
-	grabber->grab(Grabber::BUTTON);
+void select_window() {
+	handler->top()->replace_child(new SelectHandler);
+}
 
-	int error_basep;
-	randr = XRRQueryExtension(dpy, &event_basep, &error_basep);
-	if (randr)
-		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
-
-	trace = init_trace();
-
-	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
-	ATOM = XInternAtom(dpy, "ATOM", False);
-	WINDOW = XInternAtom(dpy, "WINDOW", False);
-	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
-	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
-	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
-	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
-	WM_PROTOCOLS = XInternAtom(dpy, "WM_PROTOCOLS", False);
-	WM_TAKE_FOCUS = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
-
-	handler = new IdleHandler;
-	handler->init();
-	if (verbosity >= 2)
-		printf("Entering main loop...\n");
-	XTestGrabControl(dpy, True);
-	while (alive || !handler->idle()) {
-		char *ret = next_event();
-		if (ret) {
-			if (*ret == P_QUIT) {
-				if (alive) {
-					alive = false;
-				} else {
-					printf("Forcing easystroke to quit\n");
-					//handler->cancel();
-					delete handler;
-					handler = new IdleHandler;
-				}
-				continue;
-			}
-			if (*ret == P_REGRAB)
-				grabber->regrab();
-			if (*ret == P_SUSPEND_GRAB)
-				grabber->suspend();
-			if (*ret == P_RESTORE_GRAB)
-				grabber->resume();
-			if (*ret == P_UPDATE_CURRENT) {
-				grabber->update(current);
-			}
-			if (*ret == P_UPDATE_TRACE) {
-				Trace *new_trace = init_trace();
-				delete trace;
-				trace = new_trace;
-			}
-			if (*ret == P_TIMEOUT1) {
-				handler->top()->timeout();
-			}
-			if (*ret == P_TIMEOUT2) {
-				trace->timeout();
-			}
-			if (*ret == P_PROXIMITY) {
-				grabber->select_proximity();
-			}
-			if (*ret == P_SELECT) {
-				handler->top()->replace_child(new SelectHandler);
-			}
-			continue;
-		}
+bool Main::handle(Glib::IOCondition) {
+	while (XPending(dpy)) {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
 		try {
@@ -1504,23 +1390,18 @@ void Main::run() {
 			handler->replace_child(0);
 		}
 	}
-	delete grabber;
-	XCloseDisplay(dpy);
+	return true;
 }
 
 Main::~Main() {
 	delete kit;
+	delete grabber;
+	XCloseDisplay(dpy);
 }
 
 int main(int argc, char **argv) {
 	Main mn(argc, argv);
-
-	if (gui) {
-		main_thread = Glib::Thread::create(sigc::mem_fun(mn, &Main::run), true);
-		Glib::Thread::create(sigc::ptr_fun(&check_deadlock), false);
-		run_gui();
-	} else
-		mn.run();
+	mn.run();
 	if (verbosity >= 2)
 		printf("Exiting...\n");
 	return EXIT_SUCCESS;

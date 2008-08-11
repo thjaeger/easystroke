@@ -200,13 +200,13 @@ SelectButton::~SelectButton() {
 }
 
 bool SelectButton::run() {
-	send(P_SUSPEND_GRAB);
+	grabber->suspend();
 	int response;
 	do {
 		response = dialog->run();
 	} while (response == 0);
 	dialog->hide();
-	send(P_RESTORE_GRAB);
+	grabber->resume();
 	switch (response) {
 		case 1: // Okay
 			event.button = select_button->get_active_row_number() + 1;
@@ -253,9 +253,11 @@ void Prefs::on_select_button() {
 		bi.button = sb.event.button;
 		bi.state = sb.event.state;
 	}
-	send(P_REGRAB);
+	grabber->regrab();
 	set_button_label();
 }
+
+extern void update_trace(); //TODO
 
 void Prefs::on_trace_changed() {
 	TraceType type = (TraceType) trace->get_active_row_number();
@@ -264,7 +266,7 @@ void Prefs::on_trace_changed() {
 	if (prefs.trace.get() == type)
 		return;
 	prefs.trace.set(type);
-	send(P_UPDATE_TRACE);
+	update_trace();
 }
 
 void Prefs::on_p_changed() {
@@ -274,6 +276,8 @@ void Prefs::on_p_changed() {
 void Prefs::on_p_default() {
 	scale_p->set_value(default_p);
 }
+
+extern void update_current(); //TODO
 
 void Prefs::on_selected(std::string &str) {
 	bool is_new;
@@ -286,7 +290,6 @@ void Prefs::on_selected(std::string &str) {
 		row[cols.col] = str;
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);
-		send(P_UPDATE_CURRENT);
 	} else {
 		SelectRow cb;
 		cb.name = str;
@@ -304,12 +307,14 @@ void Prefs::on_remove() {
 		Atomic a;
 		prefs.exceptions.write_ref(a).erase((Glib::ustring)((*iter)[cols.col]));
 		tm->erase(iter);
-		send(P_UPDATE_CURRENT);
+		update_current();
 	}
 }
 
+extern void select_window(); //TODO
+
 void Prefs::on_add() {
-	send(P_SELECT);
+	select_window();
 }
 
 void Prefs::set_button_label() {

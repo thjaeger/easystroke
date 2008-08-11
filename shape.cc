@@ -58,14 +58,14 @@ void Shape::draw(Point p, Point q) {
 }
 
 void Shape::start_() {
-	if (remove_timeout(1))
+	if (remove_timeout())
 		clear();
 	XMapRaised(dpy, win);
 }
 
 void Shape::end_() {
 	XUnmapWindow(dpy, win);
-	set_timeout(1,100*1000);
+	set_timeout(10);
 }
 
 void Shape::timeout() {
