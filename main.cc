@@ -971,6 +971,7 @@ public:
 };
 
 Main::Main(int argc, char **argv) : kit(0) {
+	Glib::thread_init();
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("easystroke.svg");
@@ -1023,10 +1024,29 @@ Main::Main(int argc, char **argv) : kit(0) {
 
 }
 
+bool state = false;
+
+bool toggle_state() {
+	state = !state;
+	return false;
+}
+
+void check_endless() {
+	bool last_state;
+	do {
+		last_state = state;
+		Glib::signal_idle().connect(sigc::ptr_fun(&toggle_state));
+		sleep(10);
+	} while (last_state != state);
+	printf("Error: Endless loop detected\n");
+	exit(EXIT_FAILURE);
+}
+
 void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::mem_fun(*this, &Main::handle));
 	io->attach();
+	Glib::Thread::create(sigc::ptr_fun(&check_endless), false);
 	win = new Win;
 	Gtk::Main::run();
 	delete win;
