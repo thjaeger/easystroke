@@ -60,6 +60,8 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	}
 	if (verbosity == 0 && e->error_code == BadWindow && e->request_code == X_ChangeWindowAttributes)
 		return 0;
+	if (verbosity == 0 && e->error_code == BadWindow && e->request_code == X_GetProperty)
+		return 0;
 	char text[64];
 	XGetErrorText(dpy, e->error_code, text, sizeof text);
 	char msg[16];
@@ -1384,7 +1386,7 @@ void Main::handle_event(XEvent &ev) {
 			}
 		}
 		if (ev.type == grabber->event_presence) {
-			printf("Error: Device Presence not implemented\n");
+			printf("Info: Device Presence not implemented\n");
 		}
 	}
 }
