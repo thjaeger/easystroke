@@ -13,10 +13,9 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "strokeaction.h"
+#include "win.h"
 #include "main.h"
 #include "shape.h"
-#include "win.h"
 #include "prefs.h"
 #include "actiondb.h"
 #include "prefdb.h"
@@ -129,6 +128,7 @@ guint press_button = 0;
 guint replay_button = 0;
 Trace *trace = 0;
 bool in_proximity = false;
+boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 
 void handle_stroke(RStroke s, int x, int y, int trigger, int button);
 
@@ -1182,7 +1182,10 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 	Atomic a;
 	const ActionDB &as = actions.ref(a);
 	if (gui) {
-		if (!stroke_action(s)) {
+		if (stroke_action) {
+			(*stroke_action)(s);
+			stroke_action.reset();
+		} else {
 			Ranking *ranking = as.handle(s);
 			ranking->x = x;
 			ranking->y = y;

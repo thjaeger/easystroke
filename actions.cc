@@ -16,7 +16,6 @@
 #include "actions.h"
 #include "actiondb.h"
 #include "win.h"
-#include "strokeaction.h"
 #include "main.h"
 #include "prefdb.h"
 
@@ -243,6 +242,8 @@ public:
 	}
 };
 
+extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+
 void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
 	Gtk::Dialog *dialog;
 	widgets->get_widget("dialog_record", dialog);
@@ -258,11 +259,12 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	}
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
-	stroke_action.set2(sigc::mem_fun(ps, &OnStroke::run));
+	sigc::slot<void, RStroke> *bar = new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run));
+	stroke_action.reset(bar);
 
 	int response = dialog->run();
 	dialog->hide();
-	stroke_action.erase();
+	stroke_action.reset();
 	if (response != 1)
 		return;
 
