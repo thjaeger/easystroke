@@ -138,9 +138,9 @@ const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Asy
 extern Window get_window(Window w, Atom prop);
 
 bool wm_running() {
-	Atom _NET_SUPPORTING_WM_CHECK = XInternAtom(dpy, "_NET_SUPPORTING_WM_CHECK", False);
-	Window w = get_window(ROOT, _NET_SUPPORTING_WM_CHECK);
-	return w && get_window(w, _NET_SUPPORTING_WM_CHECK) == w;
+	static XAtom _NET_SUPPORTING_WM_CHECK("_NET_SUPPORTING_WM_CHECK");
+	Window w = get_window(ROOT, *_NET_SUPPORTING_WM_CHECK);
+	return w && get_window(w, *_NET_SUPPORTING_WM_CHECK) == w;
 }
 
 Grabber::Grabber() : children(ROOT) {

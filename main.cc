@@ -607,7 +607,7 @@ Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
 	return bev->time == bt->t;
 }
 
-Atom _NET_ACTIVE_WINDOW, WINDOW, ATOM, _NET_WM_WINDOW_TYPE, _NET_WM_WINDOW_TYPE_DOCK, _NET_WM_STATE, _NET_WM_STATE_FULLSCREEN, WM_PROTOCOLS, WM_TAKE_FOCUS;
+XAtom ATOM("ATOM");
 
 Atom get_atom(Window w, Atom prop) {
 	Atom actual_type;
@@ -615,7 +615,7 @@ Atom get_atom(Window w, Atom prop) {
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format,
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -631,7 +631,7 @@ bool has_atom(Window w, Atom prop, Atom value) {
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, ATOM, &actual_type, &actual_format,
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -650,8 +650,9 @@ Window get_window(Window w, Atom prop) {
 	int actual_format;
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
+	static XAtom WINDOW("WINDOW");
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, WINDOW, &actual_type, &actual_format,
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *WINDOW, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -662,10 +663,11 @@ Window get_window(Window w, Atom prop) {
 }
 
 void icccm_client_message(Window w, Atom a, Time t) {
+	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
 	XClientMessageEvent ev;
 	ev.type = ClientMessage;
 	ev.window = w;
-	ev.message_type = WM_PROTOCOLS;
+	ev.message_type = *WM_PROTOCOLS;
 	ev.format = 32;
 	ev.data.l[0] = a;
 	ev.data.l[1] = t;
@@ -673,8 +675,13 @@ void icccm_client_message(Window w, Atom a, Time t) {
 }
 
 void activate_window(Window w, Time t) {
-	Atom window_type = get_atom(w, _NET_WM_WINDOW_TYPE);
-	if (window_type == _NET_WM_WINDOW_TYPE_DOCK)
+	static XAtom _NET_WM_WINDOW_TYPE("_NET_WM_WINDOW_TYPE");
+	static XAtom _NET_WM_WINDOW_TYPE_DOCK("_NET_WM_WINDOW_TYPE_DOCK");
+	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
+	static XAtom WM_TAKE_FOCUS("WM_TAKE_FOCUS");
+
+	Atom window_type = get_atom(w, *_NET_WM_WINDOW_TYPE);
+	if (window_type == *_NET_WM_WINDOW_TYPE_DOCK)
 		return;
 	XWMHints *wm_hints = XGetWMHints(dpy, w);
 	if (wm_hints) {
@@ -683,15 +690,12 @@ void activate_window(Window w, Time t) {
 		if (!input)
 			return;
 	}
-	Atom wm_state = get_atom(w, _NET_WM_STATE);
-	if (wm_state == _NET_WM_STATE_FULLSCREEN)
-		return;
 	if (verbosity >= 3)
 		printf("Giving focus to window 0x%lx\n", w);
 
-	bool take_focus = has_atom(w, WM_PROTOCOLS, WM_TAKE_FOCUS);
+	bool take_focus = has_atom(w, *WM_PROTOCOLS, *WM_TAKE_FOCUS);
 	if (take_focus)
-		icccm_client_message(w, WM_TAKE_FOCUS, t);
+		icccm_client_message(w, *WM_TAKE_FOCUS, t);
 	else
 		XSetInputFocus(dpy, w, RevertToParent, t);
 }
@@ -1009,16 +1013,6 @@ Main::Main(int argc, char **argv) : kit(0) {
 		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
 
 	trace = init_trace();
-
-	_NET_ACTIVE_WINDOW = XInternAtom(dpy, "_NET_ACTIVE_WINDOW", False);
-	ATOM = XInternAtom(dpy, "ATOM", False);
-	WINDOW = XInternAtom(dpy, "WINDOW", False);
-	_NET_WM_WINDOW_TYPE = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE", False);
-	_NET_WM_WINDOW_TYPE_DOCK = XInternAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK", False);
-	_NET_WM_STATE = XInternAtom(dpy, "_NET_WM_STATE", False);
-	_NET_WM_STATE_FULLSCREEN = XInternAtom(dpy, "_NET_WM_STATE_FULLSCREEN", False);
-	WM_PROTOCOLS = XInternAtom(dpy, "WM_PROTOCOLS", False);
-	WM_TAKE_FOCUS = XInternAtom(dpy, "WM_TAKE_FOCUS", False);
 
 	handler = new IdleHandler;
 	handler->init();
