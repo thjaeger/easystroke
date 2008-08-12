@@ -17,9 +17,14 @@
 #define __TRACE_H__
 
 #include <X11/Xlib.h>
+#include <exception>
 
 #define WIDTH 4
 #define TRACE_COLOR 0x980101
+
+struct DBusException: public std::exception {
+	virtual const char* what() const throw() { return "Connection to DBus failed"; }
+};
 
 class Trace {
 public:

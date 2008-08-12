@@ -128,6 +128,12 @@ Prefs::Prefs() {
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
+	if (!experimental) {
+		Glib::RefPtr<Gtk::ListStore> trace_model = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(trace->get_model());
+		Gtk::TreeIter i = trace_model->children().end();
+		trace_model->erase(--i);
+
+	}
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
 	trace->set_active(prefs.trace.get());
 
@@ -259,7 +265,7 @@ extern void update_trace(); //TODO
 
 void Prefs::on_trace_changed() {
 	TraceType type = (TraceType) trace->get_active_row_number();
-	if (type >= trace_n)
+	if (type >= TraceN)
 		return;
 	if (prefs.trace.get() == type)
 		return;

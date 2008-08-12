@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Sun Aug 10 06:13:05 2008 -->
+<!--Generated with glade3 3.4.5 on Mon Aug 11 12:54:40 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -300,7 +300,8 @@ than this many pixels away from the original position</property>
                                 <property name="items" translatable="yes">Standard
 XShape
 None
-Annotate</property>
+Annotate
+Fire</property>
                               </widget>
                               <packing>
                                 <property name="position">1</property>

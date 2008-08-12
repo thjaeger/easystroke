@@ -22,6 +22,7 @@
 #include "prefdb.h"
 #include "trace.h"
 #include "annotate.h"
+#include "fire.h"
 #include "copy.h"
 #include "grabber.h"
 
@@ -105,6 +106,13 @@ Trace *init_trace() {
 		case TraceAnnotate:
 			try {
 				return new Annotate();
+			} catch (DBusException e) {
+				printf("Error: %s\n", e.what());
+				return new Trivial();
+			}
+		case TraceFire:
+			try {
+				return new Fire();
 			} catch (DBusException e) {
 				printf("Error: %s\n", e.what());
 				return new Trivial();

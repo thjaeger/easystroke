@@ -22,8 +22,7 @@
 
 #include "var.h"
 
-enum TraceType { TraceStandard = 0, TraceShape = 1, TraceNone = 2, TraceAnnotate = 3 };
-const int trace_n = 4;
+enum TraceType { TraceStandard, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceN };
 
 class ButtonInfo {
 	friend class boost::serialization::access;

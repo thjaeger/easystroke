@@ -13,22 +13,26 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#ifndef __ANNOTATE_H__
-#define __ANNOTATE_H__
+#ifndef __FIRE_H__
+#define __FIRE_H__
+#include "util.h"
 #include "trace.h"
 #include "main.h"
 #include <dbus/dbus-glib.h>
 
-class Annotate : public Trace {
+class Fire : public Trace, public Timeout {
 	DBusGConnection *bus;
-	DBusGProxy *draw_proxy;
+	DBusGProxy *point_proxy;
 	DBusGProxy *clear_proxy;
+	float leftover;
 
 	virtual void draw(Point p, Point q);
-	virtual void start_() {}
-	virtual void end_();
+	void add_point(float, float);
+	virtual void start_() { leftover = 0; }
+	virtual void end_() { set_timeout(333); }
+	virtual void timeout();
 public:
-	Annotate();
+	Fire();
 };
 
 #endif
