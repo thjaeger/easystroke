@@ -80,6 +80,7 @@ public:
 };
 
 Prefs::Prefs() {
+ 	prefs.advanced_ignore.identify(new Check("check_advanced_ignore"));
 	prefs.ignore_grab.identify(new Check("check_ignore_grab"));
 	prefs.timing_workaround.identify(new Check("check_timing_workaround"));
 	prefs.show_clicks.identify(new Check("check_show_clicks"));

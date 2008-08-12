@@ -717,6 +717,8 @@ class StrokeHandler : public Handler, public Timeout {
 		XFlush(dpy);
 		if (!is_gesture)
 			cur->clear();
+		if (b && prefs.advanced_ignore.get())
+			cur->clear();
 		return Stroke::create(*cur, button, b);
 	}
 

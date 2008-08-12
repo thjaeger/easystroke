@@ -71,10 +71,8 @@ class PrefDB : public TimeoutWatcher {
 			return;
 		}
 		if (version < 2) return;
-		if (version < 6) {
-			bool advanced_ignore;
-			ar & advanced_ignore;
-		}
+		if (version != 6)
+			ar & advanced_ignore.unsafe_ref();
 		ar & radius.unsafe_ref();
 		if (version < 4) return;
 		ar & ignore_grab.unsafe_ref();
@@ -96,6 +94,7 @@ public:
 	VarI<double> p;
 	VarI<ButtonInfo> button;
 	VarI<TraceType> trace;
+	VarI<bool> advanced_ignore;
 	VarI<int> radius;
 	VarI<bool> ignore_grab;
 	VarI<bool> timing_workaround;
@@ -112,7 +111,7 @@ public:
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 6)
+BOOST_CLASS_VERSION(PrefDB, 7)
 
 extern PrefDB prefs;
 #endif
