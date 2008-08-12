@@ -128,6 +128,7 @@ Prefs::Prefs() {
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
+	trace->set_active(prefs.trace.get());
 	if (!experimental) {
 		Glib::RefPtr<Gtk::ListStore> trace_model = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(trace->get_model());
 		Gtk::TreeIter i = trace_model->children().end();
@@ -135,7 +136,6 @@ Prefs::Prefs() {
 
 	}
 	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
-	trace->set_active(prefs.trace.get());
 
 	double p = prefs.p.get();
 	scale_p->set_value(p);
