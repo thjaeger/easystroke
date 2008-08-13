@@ -35,13 +35,6 @@ void update_dirty() {
 }
 
 #if TEST_VAR
-/*
-class BiIntLong : public BiFun<int,long> {
-	long run1(const int &x) { return x; }
-	int run2(const long &x) { return x; }
-};
-
-*/
 class IntLong : public Fun<int, long> {
 	virtual long run(const int &x) { return x; }
 public:
@@ -56,32 +49,6 @@ void test() {
 	printf("0 == %d == %d == %ld == %ld\n", x.get(), y.get(), z.get(), w.get());
 	x.set(2);
 	printf("2 == %d == %d == %ld == %ld\n", x.get(), y.get(), z.get(), w.get());
-
-	/*
-	VarE<int> x(0);
-	VarE<int> y(1);
-	VarE<long> z(1);
-	y.assign(x);
-	x.set(2);
-	printf("2 == %d\n", y.get());
-	z.set(3L);
-	y.assign(new LongInt, z);
-	printf("3 == %d\n", y.get());
-	VarI<int> a(0);
-	VarI<long> b(1);
-	VarI<int> c(2);
-	b.identify(new BiIntLong, a);
-	a.identify(c);
-	printf("2 == %d == %ld == %d\n", a.get(), b.get(), c.get());
-	c.set(3);
-	printf("3 == %d == %ld == %d\n", a.get(), b.get(), c.get());
-
-	Collection<int> coll;
-	Collection<int>::Ref r1 = coll.insert(new int(5));
-	printf("1 == %d\n", r1->valid());
-	coll.erase(r1);
-	printf("0 == %d\n", r1->valid());
-	*/
 }
 
 int main(int, char**) {
