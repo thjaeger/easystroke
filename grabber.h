@@ -76,7 +76,6 @@ public:
 	XEventClass presence_class;
 private:
 	int button_events_n;
-	int all_events_n; // TODO: Rename
 	XiDevice **xi_devs;
 	int xi_devs_n;
 	bool init_xi();

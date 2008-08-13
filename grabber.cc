@@ -61,7 +61,7 @@ BiMap<Window, Window> frame_win;
 std::map<Window, Window> frame_child;
 XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
 
-extern Window get_window(Window w, Atom prop); //TODO
+extern Window get_window(Window w, Atom prop);
 
 void get_frame(Window w) {
 	Window frame = get_window(w, *_NET_FRAME_WINDOW);
@@ -178,7 +178,6 @@ extern "C" {
 bool Grabber::init_xi() {
 	xi_devs_n = 0;
 	button_events_n = 3;
-	all_events_n = 4;
 	if (no_xi)
 		return false;
 	int nMajor, nFEV, nFER;
@@ -275,7 +274,7 @@ bool Grabber::init_xi() {
 	class NotifyProx : public In {
 		virtual void notify() { grabber->select_proximity(); }
 	};
-	prefs.proximity.connect(new NotifyProx); //TODO
+	prefs.proximity.connect(new NotifyProx);
 
 	return xi_devs_n;
 }

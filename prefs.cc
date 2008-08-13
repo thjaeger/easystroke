@@ -296,7 +296,7 @@ void Prefs::on_p_default() {
 	scale_p->set_value(default_p);
 }
 
-extern void update_current(); //TODO
+extern void update_current();
 
 void Prefs::on_selected(std::string str) {
 	bool is_new;

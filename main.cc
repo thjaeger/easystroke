@@ -1212,7 +1212,7 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 	}
 }
 
-extern Window get_app_window(Window &w); //TODO
+extern Window get_app_window(Window &w);
 
 RTriple last_e;
 int last_type = 0;

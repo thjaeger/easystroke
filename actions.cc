@@ -251,8 +251,9 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_current", del);
-	// TODO: What if find fails?
-	del->set_sensitive(actions.ref().lookup(row[cols.id]).strokes.size());
+	const StrokeInfo *si = actions.ref().lookup(row[cols.id]);
+	if (si)
+		del->set_sensitive(si->strokes.size());
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
 	sigc::slot<void, RStroke> *bar = new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run));
@@ -424,7 +425,7 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	if (row[cols.type] != Glib::ustring(BUTTON))
 		return;
 	ButtonInfo bi;
-	RButton bt = boost::static_pointer_cast<Button>(actions.ref().lookup(row[cols.id]).action);
+	RButton bt = boost::static_pointer_cast<Button>(actions.ref().lookup(row[cols.id])->action);
 	bi = bt->get_button_info();
 	SelectButton sb(bi, false);
 	if (!sb.run())

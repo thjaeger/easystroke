@@ -221,7 +221,10 @@ public:
 	const const_iterator end() const { return strokes.end(); }
 	StrokeIterator strokes_begin() const { return StrokeIterator(strokes); }
 
-	const StrokeInfo &lookup(int id) const { return strokes.find(id)->second; }
+	const StrokeInfo *lookup(int id) const {
+		const_iterator i = strokes.find(id);
+		return i != end() ? &(i->second) : 0;
+	}
 	StrokeInfo &operator[](int id) { return strokes[id]; }
 
 	int size() const { return strokes.size(); }

@@ -15,7 +15,7 @@
  */
 #include "prefdb.h"
 #include "main.h"
-#include "win.h" // TODO: We don't need this in the long run
+#include "win.h"
 
 #include <fstream>
 #include <iostream>
