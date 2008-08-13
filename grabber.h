@@ -96,7 +96,7 @@ public:
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
 	std::string get_wm_class(Window w);
-	void update(Window w) { { Atomic a; active = !prefs.exceptions.ref(a).count(get_wm_class(w)); } set(); }
+	void update(Window w) { active = !prefs.exceptions.ref().count(get_wm_class(w)); set(); }
 
 	void get_button();
 	void fake_button(int b);

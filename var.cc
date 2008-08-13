@@ -13,21 +13,51 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
 #include "var.h"
+#include <map>
 
-Glib::StaticRecMutex global_mutex = GLIBMM_STATIC_REC_MUTEX_INIT;
+uint64 In::count = 0;
 
+std::map<uint64, In *> dirty;
+
+void mark_dirty(In *in) { dirty[in->index] = in; }
+
+void update_dirty() {
+	for (;;) {
+		std::map<uint64, In *>::iterator i = dirty.begin();
+		if (i == dirty.end())
+			break;
+		In *in = i->second;
+		dirty.erase(i);
+		in->notify();
+	}
+}
+
+#if TEST_VAR
+/*
 class BiIntLong : public BiFun<int,long> {
 	long run1(const int &x) { return x; }
 	int run2(const long &x) { return x; }
 };
 
-class LongInt : public Fun<long,int> {
-	int run(const long &x) { return x; }
+*/
+class IntLong : public Fun<int, long> {
+	virtual long run(const int &x) { return x; }
+public:
+	IntLong(Out<int> &in) : Fun<int, long>(in) {}
 };
 
-#if TEST_VAR
 void test() {
+	Source<int> x(0);
+	Var<int> y(x);
+	IntLong z(y);
+	Var<long> w(z);
+	printf("0 == %d == %d == %ld == %ld\n", x.get(), y.get(), z.get(), w.get());
+	x.set(2);
+	printf("2 == %d == %d == %ld == %ld\n", x.get(), y.get(), z.get(), w.get());
+
+	/*
 	VarE<int> x(0);
 	VarE<int> y(1);
 	VarE<long> z(1);
@@ -51,6 +81,7 @@ void test() {
 	printf("1 == %d\n", r1->valid());
 	coll.erase(r1);
 	printf("0 == %d\n", r1->valid());
+	*/
 }
 
 int main(int, char**) {

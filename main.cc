@@ -1003,7 +1003,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 		exit(EXIT_FAILURE);
 	}
 
-	actions.unsafe_ref().init();
+	(new ActionDBWatcher)->init(); //TODO
 	prefs.init();
 
 	grabber = new Grabber;
@@ -1179,8 +1179,7 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
 		s->print();
-	Atomic a;
-	const ActionDB &as = actions.ref(a);
+	const ActionDB &as = actions.ref();
 	if (gui) {
 		if (stroke_action) {
 			(*stroke_action)(s);

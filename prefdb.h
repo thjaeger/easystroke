@@ -51,7 +51,6 @@ class PrefDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
 	bool good_state;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
-		Atomic a;
 		ar & exceptions.unsafe_ref();
 		ar & p.unsafe_ref();
 		ar & button.unsafe_ref();
@@ -90,22 +89,22 @@ class PrefDB : public TimeoutWatcher {
 public:
 	PrefDB();
 
-	VarI<std::set<std::string> > exceptions;
-	VarI<double> p;
-	VarI<ButtonInfo> button;
-	VarI<TraceType> trace;
-	VarI<bool> advanced_ignore;
-	VarI<int> radius;
-	VarI<bool> ignore_grab;
-	VarI<bool> timing_workaround;
-	VarI<bool> show_clicks;
-	VarI<bool> pressure_abort;
-	VarI<int> pressure_threshold;
-	VarI<bool> proximity;
-	VarI<bool> feedback;
-	VarI<bool> left_handed;
-	VarI<int> init_timeout;
-	VarI<int> min_speed;
+	Source<std::set<std::string> > exceptions;
+	Source<double> p;
+	Source<ButtonInfo> button;
+	Source<TraceType> trace;
+	Source<bool> advanced_ignore;
+	Source<int> radius;
+	Source<bool> ignore_grab;
+	Source<bool> timing_workaround;
+	Source<bool> show_clicks;
+	Source<bool> pressure_abort;
+	Source<int> pressure_threshold;
+	Source<bool> proximity;
+	Source<bool> feedback;
+	Source<bool> left_handed;
+	Source<int> init_timeout;
+	Source<int> min_speed;
 
 	void init();
 	virtual void timeout();

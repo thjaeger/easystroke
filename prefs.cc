@@ -23,86 +23,90 @@
 #include <set>
 #include <iostream>
 
-VarI<bool> xinput_v = false;
-VarI<bool> supports_pressure = false;
-VarI<bool> supports_proximity = false;
+Source<bool> xinput_v = false;
+Source<bool> supports_pressure = false;
+Source<bool> supports_proximity = false;
 
-class Check : public IO<bool> {
+class Check : public In {
+	IO<bool> &io;
 	Gtk::CheckButton *check;
-	virtual void notify(bool b) { check->set_active(b); }
+	virtual void notify() { check->set_active(io.get()); }
 	virtual bool get() { return check->get_active(); }
 	void on_changed() {
-		if (get() == in->get()) return;
-		update();
+		bool b = check->get_active();
+		if (b == io.get()) return;
+		io.set(b);
 	}
 public:
-	Check(const Glib::ustring &name) {
+	Check(IO<bool> &io_, const Glib::ustring &name) : io(io_) {
 		widgets->get_widget(name, check);
 		check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
 	}
 };
 
-class Spin : public IO<int> {
+class Spin : public In {
+	IO<int> &io;
 	Gtk::SpinButton *spin;
 	Gtk::Button *button;
-	virtual void notify(int x) { spin->set_value(x); }
-	virtual int get() { return spin->get_value(); }
+	virtual void notify() { spin->set_value(io.get()); }
 	void on_changed() {
-		if (get() == in->get()) return;
-		update();
+		int i = spin->get_value();
+		if (i == io.get()) return;
+		io.set(i);
 	}
 public:
-	Spin(const Glib::ustring & name) {
+	Spin(IO<int> &io_, const Glib::ustring & name) : io(io_) {
 		widgets->get_widget(name, spin);
 		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
 	}
 };
 
 template <class T> class ButtonSet {
-	VarI<T> &v;
+	IO<T> &io;
 	T def;
-	void on_click() { v.set(def); }
+	void on_click() { io.set(def); }
 public:
-	ButtonSet(const Glib::ustring & name, VarI<T> &v_, T def_) : v(v_), def(def_) {
+	ButtonSet(IO<T> &io_, const Glib::ustring & name, T def_) : io(io_), def(def_) {
 		Gtk::Button *button;
 		widgets->get_widget(name, button);
 		button->signal_clicked().connect(sigc::mem_fun(*this, &ButtonSet::on_click));
 	}
 };
 
-class Sensitive : public Interface<bool> {
+class Sensitive : public In {
+	IO<bool> &io;
 	Gtk::Widget *widget;
 public:
-	virtual void notify(bool b) { widget->set_sensitive(b); }
-	Sensitive(const Glib::ustring & name) {
+	virtual void notify() { widget->set_sensitive(io.get()); }
+	Sensitive(IO<bool> &io_, const Glib::ustring & name) : io(io_) {
 		widgets->get_widget(name, widget);
 	}
 };
 
 Prefs::Prefs() {
- 	prefs.advanced_ignore.identify(new Check("check_advanced_ignore"));
-	prefs.ignore_grab.identify(new Check("check_ignore_grab"));
-	prefs.timing_workaround.identify(new Check("check_timing_workaround"));
-	prefs.show_clicks.identify(new Check("check_show_clicks"));
+ 	new Check(prefs.advanced_ignore, "check_advanced_ignore");
+	new Check(prefs.ignore_grab, "check_ignore_grab");
+	new Check(prefs.timing_workaround, "check_timing_workaround");
+	new Check(prefs.show_clicks, "check_show_clicks");
 
-	prefs.radius.identify(new Spin("spin_radius"));
+	new Spin(prefs.radius, "spin_radius");
 
-	prefs.pressure_abort.identify(new Check("check_pressure_abort"));
-	prefs.pressure_threshold.identify(new Spin("spin_pressure_threshold"));
-	prefs.pressure_abort.connect(new Sensitive("spin_pressure_threshold"));
-	prefs.pressure_abort.connect(new Sensitive("button_default_pressure_threshold"));
+	new Check(prefs.pressure_abort, "check_pressure_abort");
+	new Spin(prefs.pressure_threshold, "spin_pressure_threshold");
+	new Sensitive(prefs.pressure_abort, "spin_pressure_threshold");
+	new Sensitive(prefs.pressure_abort, "button_default_pressure_threshold");
 
-	prefs.proximity.identify(new Check("check_proximity"));
+	new Check(prefs.proximity, "check_proximity");
 
-	prefs.feedback.identify(new Check("check_feedback"));
-	prefs.left_handed.identify(new Check("check_left_handed"));
-	prefs.feedback.connect(new Sensitive("check_left_handed"));
+	new Check(prefs.feedback, "check_feedback");
+	new Check(prefs.left_handed, "check_left_handed");
+	new Sensitive(prefs.feedback, "check_left_handed");
 
-	prefs.init_timeout.identify(new Spin("spin_timeout"));
-	prefs.min_speed.identify(new Spin("spin_min_speed"));
+	new Spin(prefs.init_timeout, "spin_timeout");
+	new Spin(prefs.min_speed, "spin_min_speed");
 
-	new ButtonSet<int>("button_default_radius", prefs.radius, default_radius);
-	new ButtonSet<int>("button_default_pressure_threshold", prefs.pressure_threshold, default_pressure_threshold);
+	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
+	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
@@ -114,10 +118,10 @@ Prefs::Prefs() {
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("scale_p", scale_p);
 
-	xinput_v.connect(new Sensitive("check_timing_workaround"));
-	xinput_v.connect(new Sensitive("check_ignore_grab"));
-	supports_pressure.connect(new Sensitive("hbox_pressure"));
-	supports_proximity.connect(new Sensitive("check_proximity"));
+	new Sensitive(xinput_v, "check_timing_workaround");
+	new Sensitive(xinput_v, "check_ignore_grab");
+	new Sensitive(supports_pressure, "hbox_pressure");
+	new Sensitive(supports_proximity, "check_proximity");
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -150,8 +154,7 @@ Prefs::Prefs() {
 	}
 	set_button_label();
 
-	Atomic a;
-	std::set<std::string> exceptions = prefs.exceptions.ref(a);
+	std::set<std::string> exceptions = prefs.exceptions.ref();
 	for (std::set<std::string>::iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.col] = *i;
@@ -317,6 +320,5 @@ void Prefs::on_remove() {
 }
 
 void Prefs::set_button_label() {
-	Atomic a;
-	blabel->set_text(prefs.button.ref(a).get_button_text());
+	blabel->set_text(prefs.button.ref().get_button_text());
 }

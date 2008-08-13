@@ -192,8 +192,7 @@ void Stats::on_pdf() {
 	{
 	const int S = 32;
 	const int B = 1;
-	Atomic a;
-	const ActionDB &as = actions.ref(a);
+	const ActionDB &as = actions.ref();
 	const int n = as.nested_size();
 	Cairo::RefPtr<Cairo::PdfSurface> surface = Cairo::PdfSurface::create("/tmp/strokes.pdf", (n+1)*S, (n+1)*S);
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);

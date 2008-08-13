@@ -147,7 +147,7 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-ActionDB::ActionDB() : TimeoutWatcher(5000), good_state(true), current_id(0) {}
+ActionDB::ActionDB() : current_id(0) {}
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version >= 1) {
@@ -167,29 +167,29 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 	}
 }
 
-void ActionDB::init() {
+void ActionDBWatcher::init() {
 	std::string filename = config_dir+"actions";
 	try {
 		ifstream ifs(filename.c_str(), ios::binary);
 		boost::archive::text_iarchive ia(ifs);
-		ia >> *this;
+		ia >> actions.unsafe_ref();
 		if (verbosity >= 2)
-			cout << "Loaded " << strokes.size() << " actions." << endl;
+			cout << "Loaded " << actions.ref().strokes.size() << " actions." << endl;
 	} catch (...) {
 		cout << "Error: Couldn't read action database." << endl;
 	}
 	watch(actions);
 }
 
-void ActionDB::timeout() {
+void ActionDBWatcher::timeout() {
 	std::string filename = config_dir+"actions";
 	try {
 		ofstream ofs(filename.c_str());
 		boost::archive::text_oarchive oa(ofs);
-		const ActionDB db = *this;
+		const ActionDB &db = actions.ref();
 		oa << db;
 		if (verbosity >= 2)
-			cout << "Saved " << strokes.size() << " actions." << endl;
+			cout << "Saved " << actions.ref().strokes.size() << " actions." << endl;
 	} catch (...) {
 		cout << "Error: Couldn't save action database." << endl;
 		if (!good_state)
@@ -270,4 +270,4 @@ Ranking *ActionDB::handle(RStroke s) const {
 	return r;
 }
 
-Var<ActionDB> actions;
+Source<ActionDB> actions;

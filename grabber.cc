@@ -131,7 +131,7 @@ void Children::destroy(Window w) {
 	frame_win.erase2(w);
 }
 
-extern VarI<bool> xinput_v, supports_pressure, supports_proximity;
+extern Source<bool> xinput_v, supports_pressure, supports_proximity;
 
 const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
 
@@ -272,10 +272,10 @@ bool Grabber::init_xi() {
 			supports_proximity.set(true);
 			break;
 		}
-	class NotifyProx : public In<bool> {
-		virtual void notify(Update<bool> &, Out<bool> *) { grabber->select_proximity(); }
+	class NotifyProx : public In {
+		virtual void notify() { grabber->select_proximity(); }
 	};
-	prefs.proximity.connectOut(new NotifyProx);
+	prefs.proximity.connect(new NotifyProx); //TODO
 
 	return xi_devs_n;
 }
@@ -433,9 +433,8 @@ void Grabber::set() {
 }
 
 void Grabber::get_button() {
-	Atomic a;
-	const ButtonInfo &bi = prefs.button.ref(a);
 	buttons.clear();
+	const ButtonInfo &bi = prefs.button.ref();
 	buttons[bi.button] = bi.state;
 }
 

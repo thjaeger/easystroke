@@ -202,10 +202,10 @@ public:
 
 };
 
-class ActionDB : public TimeoutWatcher {
+class ActionDB {
 	friend class boost::serialization::access;
+	friend class ActionDBWatcher;
 	std::map<int, StrokeInfo> strokes;
-	bool good_state;
 	template<class Archive> void load(Archive & ar, const unsigned int version);
 	template<class Archive> void save(Archive & ar, const unsigned int version) const {
 		ar & strokes;
@@ -224,9 +224,6 @@ public:
 	const StrokeInfo &lookup(int id) const { return strokes.find(id)->second; }
 	StrokeInfo &operator[](int id) { return strokes[id]; }
 
-	void init();
-	void timeout();
-
 	int size() const { return strokes.size(); }
 	bool remove(int id);
 	int nested_size() const;
@@ -235,5 +232,13 @@ public:
 };
 BOOST_CLASS_VERSION(ActionDB, 1)
 
-extern Var<ActionDB> actions;
+class ActionDBWatcher : public TimeoutWatcher {
+	bool good_state;
+public:
+	ActionDBWatcher() : TimeoutWatcher(5000), good_state(true) {}
+	void init();
+	virtual void timeout();
+};
+
+extern Source<ActionDB> actions;
 #endif

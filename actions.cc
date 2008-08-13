@@ -58,8 +58,7 @@ Actions::Actions() :
 
 	Gtk::TreeModel::Row row;
 	{
-		Atomic a;
-		const ActionDB &as = actions.ref(a);
+		const ActionDB &as = actions.ref();
 		for (ActionDB::const_iterator i = as.begin(); i!=as.end(); i++) {
 			const StrokeInfo &si = i->second;
 			row = *(tm->append());
@@ -253,10 +252,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_current", del);
 	// TODO: What if find fails?
-	{
-		Atomic a;
-		del->set_sensitive(actions.ref(a).lookup(row[cols.id]).strokes.size());
-	}
+	del->set_sensitive(actions.ref().lookup(row[cols.id]).strokes.size());
 
 	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
 	sigc::slot<void, RStroke> *bar = new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run));
@@ -319,8 +315,8 @@ void Actions::on_button_new() {
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
 	row[cols.type] = COMMAND;
 	char buf[16];
+	snprintf(buf, 15, "Gesture %d", actions.ref().size()+1);
 	Atomic a;
-	snprintf(buf, 15, "Gesture %d", actions.ref(a).size()+1);
 	row[cols.id] = actions.write_ref(a).addCmd(RStroke(), buf, "");
 	row[cols.name] = buf;
 
@@ -428,16 +424,12 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	if (row[cols.type] != Glib::ustring(BUTTON))
 		return;
 	ButtonInfo bi;
-	{
-		Atomic a;
-		const ActionDB &as = actions.ref(a);
-		RButton bt = boost::static_pointer_cast<Button>(as.lookup(row[cols.id]).action);
-		bi = bt->get_button_info();
-	}
+	RButton bt = boost::static_pointer_cast<Button>(actions.ref().lookup(row[cols.id]).action);
+	bi = bt->get_button_info();
 	SelectButton sb(bi, false);
 	if (!sb.run())
 		return;
-	RButton bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
+	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
 	Atomic a;
 	ActionDB &as = actions.write_ref(a);
 	as[row[cols.id]].action = bt;
