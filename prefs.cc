@@ -63,6 +63,23 @@ public:
 	}
 };
 
+class Combo : public In {
+	IO<int> &io;
+	Gtk::ComboBox *combo;
+	virtual void notify() { combo->set_active(io.get()); }
+	void on_changed() {
+		int i = combo->get_active_row_number();
+		if (i == io.get()) return;
+		io.set(i);
+	}
+public:
+	Combo(IO<int> &io_, const Glib::ustring & name) : io(io_) {
+		widgets->get_widget(name, combo);
+		notify();
+		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
+	}
+};
+
 template <class T> class ButtonSet {
 	IO<T> &io;
 	T def;
@@ -111,12 +128,13 @@ Prefs::Prefs() {
 	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
+	new Combo(*new Converter<TraceType, int>(prefs.trace), "combo_trace");
+
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);
 	widgets->get_widget("button_default_p", button_default_p);
 	widgets->get_widget("button_remove_exception", remove_exception);
-	widgets->get_widget("combo_trace", trace);
 	widgets->get_widget("label_button", blabel);
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("scale_p", scale_p);
@@ -136,14 +154,14 @@ Prefs::Prefs() {
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
-	trace->set_active(prefs.trace.get());
 	if (!experimental) {
+		Gtk::ComboBox *trace;
+		widgets->get_widget("combo_trace", trace);
 		Glib::RefPtr<Gtk::ListStore> trace_model = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(trace->get_model());
 		Gtk::TreeIter i = trace_model->children().end();
 		trace_model->erase(--i);
 
 	}
-	trace->signal_changed().connect(sigc::mem_fun(*this, &Prefs::on_trace_changed));
 
 	double p = prefs.p.get();
 	scale_p->set_value(p);
@@ -151,9 +169,11 @@ Prefs::Prefs() {
 	button_default_p->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_p_default));
 
 	if (!experimental) {
-		Gtk::HBox *hbox_experimental;
-	       	widgets->get_widget("hbox_experimental", hbox_experimental);
-		hbox_experimental->hide();
+		Gtk::HBox *hbox;
+	       	widgets->get_widget("hbox_experimental", hbox);
+		hbox->hide();
+	       	widgets->get_widget("hbox_timeout", hbox);
+		hbox->hide();
 	}
 	set_button_label();
 
@@ -266,18 +286,6 @@ void Prefs::on_select_button() {
 	}
 	grabber->regrab();
 	set_button_label();
-}
-
-extern void update_trace(); //TODO
-
-void Prefs::on_trace_changed() {
-	TraceType type = (TraceType) trace->get_active_row_number();
-	if (type >= TraceN)
-		return;
-	if (prefs.trace.get() == type)
-		return;
-	prefs.trace.set(type);
-	update_trace();
 }
 
 void Prefs::on_p_changed() {

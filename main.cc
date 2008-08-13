@@ -1015,6 +1015,14 @@ Main::Main(int argc, char **argv) : kit(0) {
 		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
 
 	trace = init_trace();
+	class NotifyTrace : public In {
+		virtual void notify() { 
+			Trace *new_trace = init_trace();
+			delete trace;
+			trace = new_trace;
+		}
+	};
+	prefs.trace.connect(new NotifyTrace);
 
 	handler = new IdleHandler;
 	handler->init();
@@ -1395,12 +1403,6 @@ void Main::handle_event(XEvent &ev) {
 			printf("Info: Device Presence not implemented\n");
 		}
 	}
-}
-
-void update_trace() {
-	Trace *new_trace = init_trace();
-	delete trace;
-	trace = new_trace;
 }
 
 void update_current() {

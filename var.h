@@ -21,7 +21,7 @@
 #include <boost/shared_ptr.hpp>
 #include <glibmm.h>
 
-#define uint64 unsigned long long int
+typedef unsigned long long int uint64;
 
 class In {
 	static uint64 count;
@@ -52,7 +52,7 @@ public:
 
 template <class T> class IO : public Out<T> {
 public:
-	virtual void set(T x_) = 0;
+	virtual void set(const T x_) = 0;
 };
 
 template <class T> class Source : public IO<T> {
@@ -60,7 +60,7 @@ template <class T> class Source : public IO<T> {
 public:
 	Source() {}
 	Source(T x_) : x(x_) {}
-	virtual void set(T x_) { 
+	virtual void set(const T x_) { 
 		x = x_;
 		Out<T>::update();
 		update_dirty();
@@ -94,6 +94,26 @@ protected:
 public:
 	virtual Y get() { return run(in.get()); }
 	virtual void notify() { Out<Y>::update(); }
+};
+
+template <class X, class Y> class Bijection : public IO<Y>, public In {
+	IO<X> &io;
+protected:
+	virtual Y run(const X &) = 0;
+	virtual X inverse(const Y &) = 0;
+	Bijection(IO<X> &io_) : io(io_) { io.connect(this); }
+public:
+	virtual Y get() { return run(io.get()); }
+	virtual void notify() { Out<Y>::update(); }
+	virtual void set(const Y y) { io.set(inverse(y)); }
+};
+
+template <class X, class Y> class Converter : public Bijection<X, Y> {
+protected:
+	virtual Y run(const X &x) { return (Y)x; }
+	virtual X inverse(const Y &y) { return (X)y; }
+public:
+	Converter(IO<X> &io_) : Bijection<X, Y>(io_) {}
 };
 
 class Watcher : public In {

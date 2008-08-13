@@ -32,7 +32,6 @@ private:
 	void on_p_changed();
 	void on_p_default();
 	void on_select_button();
-	void on_trace_changed();
 
 	struct SelectRow;
 
@@ -46,8 +45,6 @@ private:
 	Glib::RefPtr<Gtk::ListStore> tm;
 	Gtk::TreeView* tv;
 
-	Gtk::ComboBox *trace;
-	Gtk::ComboBoxText *click, *stroke_click;
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
