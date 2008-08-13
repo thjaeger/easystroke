@@ -40,6 +40,7 @@ class Check : public In {
 public:
 	Check(IO<bool> &io_, const Glib::ustring &name) : io(io_) {
 		widgets->get_widget(name, check);
+		notify();
 		check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
 	}
 };
@@ -57,6 +58,7 @@ class Spin : public In {
 public:
 	Spin(IO<int> &io_, const Glib::ustring & name) : io(io_) {
 		widgets->get_widget(name, spin);
+		notify();
 		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
 	}
 };
@@ -80,6 +82,7 @@ public:
 	virtual void notify() { widget->set_sensitive(io.get()); }
 	Sensitive(IO<bool> &io_, const Glib::ustring & name) : io(io_) {
 		widgets->get_widget(name, widget);
+		notify();
 	}
 };
 
