@@ -24,6 +24,13 @@
 
 enum TraceType { TraceStandard, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceN };
 
+#define TO_OFF 0
+#define TO_CONSERVATIVE 1
+#define TO_MEDIUM 2
+#define TO_AGGRESSIVE 3
+#define TO_FLICK 4
+#define TO_CUSTOM 5
+
 class ButtonInfo {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
@@ -85,6 +92,8 @@ class PrefDB : public TimeoutWatcher {
 		ar & left_handed.unsafe_ref();
 		ar & init_timeout.unsafe_ref();
 		ar & min_speed.unsafe_ref();
+		if (version < 8) return;
+		ar & timeout_profile.unsafe_ref();
 	}
 public:
 	PrefDB();
@@ -105,12 +114,13 @@ public:
 	Source<bool> left_handed;
 	Source<int> init_timeout;
 	Source<int> min_speed;
+	Source<int> timeout_profile;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 7)
+BOOST_CLASS_VERSION(PrefDB, 8)
 
 extern PrefDB prefs;
 #endif

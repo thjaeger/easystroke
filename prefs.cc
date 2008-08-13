@@ -39,6 +39,7 @@ class Check : public In {
 	}
 public:
 	Check(IO<bool> &io_, const Glib::ustring &name) : io(io_) {
+		io.connect(this);
 		widgets->get_widget(name, check);
 		notify();
 		check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
@@ -57,6 +58,7 @@ class Spin : public In {
 	}
 public:
 	Spin(IO<int> &io_, const Glib::ustring & name) : io(io_) {
+		io.connect(this);
 		widgets->get_widget(name, spin);
 		notify();
 		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
@@ -69,11 +71,12 @@ class Combo : public In {
 	virtual void notify() { combo->set_active(io.get()); }
 	void on_changed() {
 		int i = combo->get_active_row_number();
-		if (i == io.get()) return;
+		if (i < 0 || i == io.get()) return;
 		io.set(i);
 	}
 public:
 	Combo(IO<int> &io_, const Glib::ustring & name) : io(io_) {
+		io.connect(this);
 		widgets->get_widget(name, combo);
 		notify();
 		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
@@ -93,15 +96,60 @@ public:
 };
 
 class Sensitive : public In {
-	IO<bool> &io;
+	Out<bool> &in;
 	Gtk::Widget *widget;
 public:
-	virtual void notify() { widget->set_sensitive(io.get()); }
-	Sensitive(IO<bool> &io_, const Glib::ustring & name) : io(io_) {
+	virtual void notify() { widget->set_sensitive(in.get()); }
+	Sensitive(Out<bool> &in_, const Glib::ustring & name) : in(in_) {
 		widgets->get_widget(name, widget);
+		in.connect(this);
 		notify();
 	}
 };
+
+class ToIsCustom : public Fun<int, bool> {
+	bool run(const int &profile) { return profile == TO_CUSTOM; }
+public:
+	ToIsCustom(Out<int> &in) : Fun<int, bool>(in) {}
+};
+
+class TimeoutProfile : public In {
+	Out<int> &in;
+public:
+	virtual void notify() {
+		switch (in.get()) {
+			case TO_OFF:
+				prefs.init_timeout.set(0);
+				prefs.min_speed.set(0);
+				break;
+			case TO_CONSERVATIVE:
+				prefs.init_timeout.set(200);
+				prefs.min_speed.set(50);
+				break;
+			case TO_MEDIUM:
+				prefs.init_timeout.set(50);
+				prefs.min_speed.set(80);
+				break;
+			case TO_AGGRESSIVE:
+				prefs.init_timeout.set(20);
+				prefs.min_speed.set(150);
+				break;
+			case TO_FLICK:
+				prefs.init_timeout.set(25);
+				prefs.min_speed.set(400);
+				break;
+		}
+	}
+	TimeoutProfile(Out<int> &in_) : in(in_) { in.connect(this); }
+};
+
+void remove_last_entry(const Glib::ustring & name) {
+	Gtk::ComboBox *combo;
+	widgets->get_widget(name, combo);
+	Glib::RefPtr<Gtk::ListStore> combo_model = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(combo->get_model());
+	Gtk::TreeIter i = combo_model->children().end();
+	combo_model->erase(--i);
+}
 
 Prefs::Prefs() {
  	new Check(prefs.advanced_ignore, "check_advanced_ignore");
@@ -129,6 +177,9 @@ Prefs::Prefs() {
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
 	new Combo(*new Converter<TraceType, int>(prefs.trace), "combo_trace");
+	new Combo(prefs.timeout_profile, "combo_timeout");
+	new Sensitive(*new ToIsCustom(prefs.timeout_profile), "hbox_timeout");
+	new TimeoutProfile(prefs.timeout_profile);
 
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
@@ -155,12 +206,8 @@ Prefs::Prefs() {
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
 	if (!experimental) {
-		Gtk::ComboBox *trace;
-		widgets->get_widget("combo_trace", trace);
-		Glib::RefPtr<Gtk::ListStore> trace_model = Glib::RefPtr<Gtk::ListStore>::cast_dynamic(trace->get_model());
-		Gtk::TreeIter i = trace_model->children().end();
-		trace_model->erase(--i);
-
+		remove_last_entry("combo_trace");
+		remove_last_entry("combo_timeout");
 	}
 
 	double p = prefs.p.get();

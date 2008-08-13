@@ -48,7 +48,8 @@ PrefDB::PrefDB() :
 	feedback(true),
 	left_handed(false),
 	init_timeout(200),
-	min_speed(40)
+	min_speed(40),
+	timeout_profile(TO_CONSERVATIVE)
 {}
 
 void PrefDB::timeout() {
@@ -94,6 +95,7 @@ void PrefDB::init() {
 	watch(proximity);
 	watch(init_timeout);
 	watch(min_speed);
+	watch(timeout_profile);
 }
 
 PrefDB prefs;

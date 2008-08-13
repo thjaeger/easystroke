@@ -711,6 +711,7 @@ class StrokeHandler : public Handler, public Timeout {
 	float min_speed;
 	float speed;
 	static float k;
+	bool use_timeout;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -736,7 +737,7 @@ class StrokeHandler : public Handler, public Timeout {
 	}
 
 	bool calc_speed(RTriple e) {
-		if (!have_xi)
+		if (!have_xi || !use_timeout)
 			return false;
 		int dt = e->t - last->t;
 		float c = exp(k * dt);
@@ -860,7 +861,8 @@ protected:
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
 	repeated(false), have_xi(false), min_speed(0.001*prefs.min_speed.get()), 
-	speed(min_speed * exp(-k*prefs.init_timeout.get())) {
+	speed(min_speed * exp(-k*prefs.init_timeout.get())),
+	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()) {
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
