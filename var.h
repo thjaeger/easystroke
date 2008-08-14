@@ -139,5 +139,13 @@ public:
 		}
 		c = new sigc::connection(Glib::signal_timeout().connect(sigc::mem_fun(*this, &TimeoutWatcher::to), ms));
 	}
+	void execute_now() {
+		if (c) {
+			c->disconnect();
+			delete c;
+			c = 0;
+			timeout();
+		}
+	}
 };
 #endif

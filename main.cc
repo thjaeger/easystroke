@@ -987,6 +987,8 @@ public:
 	~Main();
 };
 
+ActionDBWatcher *action_watcher = 0;
+
 Main::Main(int argc, char **argv) : kit(0) {
 	Glib::thread_init();
 	if (0) {
@@ -1005,7 +1007,8 @@ Main::Main(int argc, char **argv) : kit(0) {
 		exit(EXIT_FAILURE);
 	}
 
-	(new ActionDBWatcher)->init(); //TODO
+	action_watcher = new ActionDBWatcher;
+	action_watcher->init();
 	prefs.init();
 
 	grabber = new Grabber;
@@ -1433,6 +1436,8 @@ Main::~Main() {
 	delete kit;
 	delete grabber;
 	XCloseDisplay(dpy);
+	prefs.execute_now();
+	action_watcher->execute_now();
 }
 
 int main(int argc, char **argv) {
