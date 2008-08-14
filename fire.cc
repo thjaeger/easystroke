@@ -25,7 +25,7 @@ Fire::Fire() {
 		g_error_free(error);
 		throw DBusException();
 	}
-	point_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/firepaint/allscreens/add_point", ofc);
+	point_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/firepaint/allscreens/add_particle", ofc);
 	clear_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/firepaint/allscreens/clear_key", ofc);
 }
 
