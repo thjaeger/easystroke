@@ -1132,8 +1132,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		}
 	optind = 1;
 	opterr = 1;
-	if (gui)
-		kit = new Gtk::Main(argc, argv);
+	kit = new Gtk::Main(argc, argv);
 	oldHandler = XSetErrorHandler(xErrorHandler);
 
 	while ((opt = getopt_long(argc, argv, "c:envx", long_opts2, 0)) != -1) {
