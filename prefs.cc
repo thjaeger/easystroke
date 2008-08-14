@@ -123,20 +123,20 @@ public:
 				prefs.min_speed.set(0);
 				break;
 			case TO_CONSERVATIVE:
-				prefs.init_timeout.set(200);
+				prefs.init_timeout.set(150);
 				prefs.min_speed.set(50);
 				break;
 			case TO_MEDIUM:
-				prefs.init_timeout.set(50);
+				prefs.init_timeout.set(30);
 				prefs.min_speed.set(80);
 				break;
 			case TO_AGGRESSIVE:
-				prefs.init_timeout.set(20);
+				prefs.init_timeout.set(15);
 				prefs.min_speed.set(150);
 				break;
 			case TO_FLICK:
-				prefs.init_timeout.set(25);
-				prefs.min_speed.set(400);
+				prefs.init_timeout.set(20);
+				prefs.min_speed.set(500);
 				break;
 		}
 	}
