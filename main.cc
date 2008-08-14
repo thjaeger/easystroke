@@ -87,15 +87,6 @@ void xi_warn() {
 	warned = true;
 }
 
-int dead = 0;
-
-void quit(int) {
-	if (gui)
-		Gtk::Main::quit();
-	else
-		dead++;
-}
-
 Trace *init_trace() {
 	switch(prefs.trace.get()) {
 		case TraceNone:
@@ -968,6 +959,15 @@ class SelectHandler : public Handler {
 	virtual std::string name() { return "Select"; }
 };
 
+bool dead = false;
+
+void quit(int) {
+	if (handler->top()->idle() || dead)
+		Gtk::Main::quit();
+	else
+		dead = true;
+}
+
 class Main {
 	std::string parse_args_and_init_gtk(int argc, char **argv);
 	void create_config_dir();
@@ -1431,12 +1431,16 @@ bool Main::handle(Glib::IOCondition) {
 			handler->replace_child(0);
 		}
 	}
+	if (handler->top()->idle() && dead)
+		Gtk::Main::quit();
 	return true;
 }
 
 Main::~Main() {
-	delete kit;
+	trace->end();
 	delete grabber;
+	delete trace;
+	delete kit;
 	XCloseDisplay(dpy);
 	prefs.execute_now();
 	action_watcher->execute_now();
