@@ -1,0 +1,3 @@
+This library combines code from cellrendereraccel and cellrenderertext.
+There's also an adapted gtkmm binding.  Modifications are entirely trivial in
+nature.
