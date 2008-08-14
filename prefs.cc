@@ -217,7 +217,7 @@ Prefs::Prefs() {
 
 	if (!experimental) {
 		Gtk::HBox *hbox;
-	       	widgets->get_widget("hbox_experimental", hbox);
+	       	widgets->get_widget("hbox_algo", hbox);
 		hbox->hide();
 	       	widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
