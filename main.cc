@@ -120,6 +120,9 @@ guint replay_button = 0;
 Trace *trace = 0;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+RTriple last_e;
+int last_type = -1;
+guint last_button = 0;
 
 void handle_stroke(RStroke s, int x, int y, int trigger, int button);
 
@@ -338,8 +341,7 @@ public:
 		if (!pressed && !pressed2 && moved) {
 			clear_mods();
 			parent->replace_child(0);
-			if (grabber->is_grabbed(b))
-				parent->press(b, e);
+			last_type = -1;
 			XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 			return;
 		}
@@ -1218,10 +1220,6 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 
 extern Window get_app_window(Window &w);
 
-RTriple last_e;
-int last_type = 0;
-guint last_button = 0;
-
 bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
 	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
 	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
@@ -1259,8 +1257,8 @@ void Main::handle_event(XEvent &ev) {
 			break;
 		}
 		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
-		handler->top()->motion(last_e);
 		last_type = MotionNotify;
+		handler->top()->motion(last_e);
 		break;
 
 	case ButtonPress:
@@ -1269,13 +1267,15 @@ void Main::handle_event(XEvent &ev) {
 		if (handler->top()->only_xi())
 			break;
 		if (last_type == ButtonPress && last_e->t == ev.xbutton.time && last_button == ev.xbutton.button) {
+			if (verbosity >= 3)
+				printf("(repeat)\n");
 			handler->top()->press_repeated();
 			break;
 		}
 		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
-		handler->top()->press(ev.xbutton.button, last_e);
 		last_type = ButtonPress;
 		last_button = ev.xbutton.button;
+		handler->top()->press(ev.xbutton.button, last_e);
 		break;
 
 	case ButtonRelease:
@@ -1286,11 +1286,11 @@ void Main::handle_event(XEvent &ev) {
 		if (last_type == ButtonRelease && last_e->t == ev.xbutton.time && last_button == ev.xbutton.button)
 			break;
 		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
+		last_type = ButtonRelease;
+		last_button = ev.xbutton.button;
 		handler->top()->release(ev.xbutton.button, last_e);
 		// TODO: Do we need this?
 		xinput_pressed.erase(ev.xbutton.button);
-		last_type = ButtonRelease;
-		last_button = ev.xbutton.button;
 		break;
 
 	case KeyPress:
@@ -1353,9 +1353,9 @@ void Main::handle_event(XEvent &ev) {
 				break;
 			}
 			last_e = create_triple(x, y, bev->time);
-			handler->top()->press(bev->button, last_e);
 			last_type = ButtonPress;
 			last_button = bev->button;
+			handler->top()->press(bev->button, last_e);
 		}
 		if (grabber->is_event(ev.type, Grabber::UP)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
@@ -1368,10 +1368,10 @@ void Main::handle_event(XEvent &ev) {
 				break;
 			}
 			last_e = create_triple(x, y, bev->time);
-			handler->top()->release(bev->button, last_e);
-			xinput_pressed.erase(bev->button);
 			last_type = ButtonRelease;
 			last_button = bev->button;
+			handler->top()->release(bev->button, last_e);
+			xinput_pressed.erase(bev->button);
 		}
 		if (grabber->is_event(ev.type, Grabber::MOTION)) {
 			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
@@ -1389,8 +1389,8 @@ void Main::handle_event(XEvent &ev) {
 				break;
 			}
 			last_e = create_triple(x, y, mev->time);
-			handler->top()->motion(last_e);
 			last_type = MotionNotify;
+			handler->top()->motion(last_e);
 		}
 		if (grabber->proximity_selected) {
 			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
