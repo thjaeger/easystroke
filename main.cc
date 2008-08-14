@@ -1228,8 +1228,10 @@ bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, fl
 	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
 	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
 	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
-	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
 	y        = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
+	if (axis_data[0] == sx && axis_data[1] == sy)
+		return true;
+	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
 	float y2 = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
 	float d  = hypot(x - sx, y - sy);
 	float d2 = hypot(x2 - sx, y2 - sy);
