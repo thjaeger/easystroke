@@ -85,6 +85,8 @@ bool Children::handle(XEvent &ev) {
 		case CreateNotify:
 			if (ev.xcreatewindow.parent != parent)
 				return false;
+			if (ev.xcreatewindow.override_redirect)
+				return true;
 			add(ev.xcreatewindow.window);
 			return true;
 		case DestroyNotify:
@@ -116,7 +118,9 @@ bool Children::handle(XEvent &ev) {
 }
 
 void Children::add(Window w) {
-	if (!w) return;
+	if (!w)
+		return;
+
 	XSelectInput(dpy, w, EnterWindowMask | PropertyChangeMask);
 	get_frame(w);
 }
@@ -475,6 +479,8 @@ bool has_wm_state(Window w) {
 }
 
 Window find_wm_state(Window w) {
+	if (!w)
+		return w;
 	if (has_wm_state(w))
 		return w;
 	Window found = None;
@@ -491,6 +497,8 @@ Window find_wm_state(Window w) {
 
 // sets w to 0 if the window is a frame
 Window get_app_window(Window &w) {
+	if (!w)
+		return w;
 	if (frame_win.contains1(w)) {
 		Window w2 = frame_win.find1(w);
 		w = 0;
