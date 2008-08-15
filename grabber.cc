@@ -518,8 +518,8 @@ Window get_app_window(Window &w) {
 		}
 		return w2;
 	}
-	w = 0;
 	if (verbosity >= 1)
 		printf("Window 0x%lx does not have an associated top-level window\n", w);
+	w = 0;
 	return w;
 }
