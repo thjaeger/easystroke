@@ -85,8 +85,6 @@ bool Children::handle(XEvent &ev) {
 		case CreateNotify:
 			if (ev.xcreatewindow.parent != parent)
 				return false;
-			if (ev.xcreatewindow.override_redirect)
-				return true;
 			add(ev.xcreatewindow.window);
 			return true;
 		case DestroyNotify:
