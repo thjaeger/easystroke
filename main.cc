@@ -1037,18 +1037,17 @@ Main::Main(int argc, char **argv) : kit(0) {
 
 }
 
+Glib::Dispatcher *toggler = 0;
 bool state = false;
-
-bool toggle_state() {
+void toggle_state() {
 	state = !state;
-	return false;
 }
 
 void check_endless() {
 	bool last_state;
 	do {
 		last_state = state;
-		Glib::signal_idle().connect(sigc::ptr_fun(&toggle_state));
+		(*toggler)();
 		sleep(10);
 	} while (last_state != state);
 	printf("Error: Endless loop detected\n");
@@ -1059,6 +1058,8 @@ void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::mem_fun(*this, &Main::handle));
 	io->attach();
+	toggler = new Glib::Dispatcher;
+	toggler->connect(sigc::ptr_fun(&toggle_state));
 	Glib::Thread::create(sigc::ptr_fun(&check_endless), false);
 	win = new Win;
 	Gtk::Main::run();
