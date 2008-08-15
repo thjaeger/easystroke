@@ -192,6 +192,8 @@ Prefs::Prefs() {
 
 	new Sensitive(xinput_v, "check_timing_workaround");
 	new Sensitive(xinput_v, "check_ignore_grab");
+	new Sensitive(xinput_v, "hbox_timeout_profile");
+	new Sensitive(xinput_v, "hbox_timeout");
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
 
