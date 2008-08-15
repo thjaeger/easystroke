@@ -123,8 +123,15 @@ boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 RTriple last_e;
 int last_type = -1;
 guint last_button = 0;
+Time last_press_t = 0;
 
 void handle_stroke(RStroke s, int x, int y, int trigger, int button);
+
+void replay(Time t) {
+	XAllowEvents(dpy, ReplayPointer, t);
+	if (!t || t >= last_press_t)
+		last_press_t = 0;
+}
 
 class Handler {
 protected:
@@ -182,7 +189,7 @@ public:
 		grabber->grab(Grabber::ALL_SYNC);
 	}
 	virtual void press(guint b, RTriple e) {
-		XAllowEvents(dpy, ReplayPointer, e->t);
+		replay(e->t);
 		if (!in_proximity)
 			proximity_out();
 	}
@@ -721,7 +728,7 @@ class StrokeHandler : public Handler, public Timeout {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
 		trace->end();
-		XAllowEvents(dpy, ReplayPointer, press_t);
+		replay(press_t);
 		parent->replace_child(0);
 		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
 //		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig.x, orig.y, 0);
@@ -757,7 +764,7 @@ protected:
 	}
 	virtual void pressure() {
 		trace->end();
-		XAllowEvents(dpy, ReplayPointer, press_t);
+		replay(press_t);
 		parent->replace_child(0);
 	}
 	virtual void motion(RTriple e) {
@@ -825,7 +832,7 @@ protected:
 		handle_stroke(s, e->x, e->y, button, 0);
 		if (replay_button) {
 			if (have_xi)
-				XAllowEvents(dpy, ReplayPointer, press_t);
+				replay(press_t);
 			else
 				press_button = replay_button;
 			replay_button = 0;
@@ -924,7 +931,7 @@ protected:
 					replace_child(new WorkaroundHandler);
 					return;
 				} else {
-					XAllowEvents(dpy, ReplayPointer, e->t);
+					replay(e->t);
 					return;
 				}
 			}
@@ -1038,18 +1045,27 @@ Main::Main(int argc, char **argv) : kit(0) {
 
 }
 
-Glib::Dispatcher *toggler = 0;
+Glib::Dispatcher *toggler = 0, *allower = 0;
 bool state = false;
 void toggle_state() {
 	state = !state;
 }
 
+void allow_events() {
+	printf("Warning: press without corresponding release, resetting...\n");
+	bail_out();
+}
+
 void check_endless() {
 	bool last_state;
+	Time last_t;
 	do {
 		last_state = state;
+		last_t = last_press_t;
 		(*toggler)();
 		sleep(10);
+		if (last_t && last_t == last_press_t)
+			(*allower)();
 	} while (last_state != state);
 	printf("Error: Endless loop detected\n");
 	*(int *)0 = 0; // A reliable way to take the app down.  exit() didn't work.
@@ -1061,6 +1077,8 @@ void Main::run() {
 	io->attach();
 	toggler = new Glib::Dispatcher;
 	toggler->connect(sigc::ptr_fun(&toggle_state));
+	allower = new Glib::Dispatcher;
+	allower->connect(sigc::ptr_fun(&allow_events));
 	Glib::Thread::create(sigc::ptr_fun(&check_endless), false);
 	win = new Win;
 	Gtk::Main::run();
@@ -1269,6 +1287,7 @@ void Main::handle_event(XEvent &ev) {
 	case ButtonPress:
 		if (verbosity >= 3)
 			printf("Press: %d (%ld)\n", ev.xbutton.button, ev.xbutton.time);
+		last_press_t = ev.xbutton.time;
 		if (last_e && ev.xmotion.time < last_e->t)
 			break;
 		if (handler->top()->only_xi())
@@ -1288,6 +1307,7 @@ void Main::handle_event(XEvent &ev) {
 	case ButtonRelease:
 		if (verbosity >= 3)
 			printf("Release: %d\n", ev.xbutton.button);
+		last_press_t = 0;
 		if (last_e && ev.xmotion.time < last_e->t)
 			break;
 		if (handler->top()->only_xi())
