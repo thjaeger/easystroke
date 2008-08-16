@@ -22,11 +22,22 @@
 #include <iostream>
 #include <sstream>
 
-#define KEY "Key"
-#define COMMAND "Command"
-#define SCROLL "Scroll"
-#define IGNORE "Ignore"
-#define BUTTON "Button"
+Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
+		const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area, Gtk::CellRendererState flags) {
+	if (mode == TEXT)
+		return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
+	if (mode == KEY) {
+		printf("Error: not implemented\n");
+		exit(EXIT_FAILURE);
+	}
+	return 0;
+}
+
+const char *KEY = "Key";
+const char *COMMAND = "Command";
+const char *SCROLL = "Scroll";
+const char *IGNORE = "Ignore";
+const char *BUTTON = "Button";
 
 Actions::Actions() :
 	tv(0),
@@ -127,7 +138,7 @@ Actions::Actions() :
 	Gtk::TreeView::Column *col_accel = tv->get_column(n-1);
 	col_accel->add_attribute(accel_renderer.property_text(), cols.arg);
 	accel_renderer.property_editable() = true;
-	accel_renderer.signal_accel_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
+//	accel_renderer.signal_accel_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
 	accel_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
 	accel_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 
@@ -297,16 +308,12 @@ void Actions::on_selection_changed() {
 }
 
 void Actions::update_arg(Glib::ustring str) {
-	GtkCellRendererTKMode mode;
 	if (str == KEY || str == SCROLL || str == IGNORE)
-		mode = 	GTK_CELL_RENDERER_TK_CELL_MODE_KEY;
+		accel_renderer.mode = CellRendererTextish::KEY;
 	else if (str == BUTTON)
-		mode = GTK_CELL_RENDERER_TK_CELL_MODE_POPUP;
+		accel_renderer.mode = CellRendererTextish::POPUP;
 	else
-		mode = GTK_CELL_RENDERER_TK_CELL_MODE_TEXT;
-	// 	Fuck it, I'm not going to figure out how to make GtkCellRendererTKMode a proper GObject.
-	//	accel_renderer.property_cell_mode() = mode
-	g_object_set(G_OBJECT(accel_renderer.gobj()), "cell-mode", mode, NULL);
+		accel_renderer.mode = CellRendererTextish::TEXT;
 }
 
 void Actions::on_button_new() {

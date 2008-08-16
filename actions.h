@@ -17,9 +17,19 @@
 #define __ACTIONS_H__
 
 #include <gtkmm.h>
-#include "cellrenderertk/cellrenderertkmm.h"
 
 class Win;
+
+class CellRendererTextish : public Gtk::CellRendererText {
+public:
+	enum Mode { TEXT, KEY, POPUP };
+	Mode mode;
+	CellRendererTextish() : mode(TEXT) {}
+protected:
+	virtual Gtk::CellEditable* start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
+			const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area,
+			Gtk::CellRendererState flags);
+};
 
 class Actions {
 public:
@@ -70,7 +80,7 @@ private:
 	Glib::RefPtr<Gtk::ListStore> type_store;
 
 	Gtk::CellRendererCombo type_renderer;
-	Gtk::CellRendererTK accel_renderer;
+	CellRendererTextish accel_renderer;
 
 	Gtk::Button *button_record, *button_delete;
 
