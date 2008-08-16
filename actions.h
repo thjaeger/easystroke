@@ -84,7 +84,7 @@ private:
 	Glib::RefPtr<Gtk::ListStore> type_store;
 
 	Gtk::CellRendererCombo type_renderer;
-	CellRendererTextish accel_renderer;
+	CellRendererTextish arg_renderer;
 
 	Gtk::Button *button_record, *button_delete;
 

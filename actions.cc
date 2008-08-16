@@ -182,13 +182,13 @@ Actions::Actions() :
 	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
 	col_type->add_attribute(type_renderer.property_text(), cols.type);
 
-	n = tv->append_column("Argument", accel_renderer);
+	n = tv->append_column("Argument", arg_renderer);
 	Gtk::TreeView::Column *col_accel = tv->get_column(n-1);
-	col_accel->add_attribute(accel_renderer.property_text(), cols.arg);
-	accel_renderer.property_editable() = true;
-	accel_renderer.signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
-	accel_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
-	accel_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
+	col_accel->add_attribute(arg_renderer.property_text(), cols.arg);
+	arg_renderer.property_editable() = true;
+	arg_renderer.signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
+	arg_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
+	arg_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 
 	tv->set_model(tm);
 }
@@ -357,11 +357,11 @@ void Actions::on_selection_changed() {
 
 void Actions::update_arg(Glib::ustring str) {
 	if (str == KEY || str == SCROLL || str == IGNORE)
-		accel_renderer.mode = CellRendererTextish::KEY;
+		arg_renderer.mode = CellRendererTextish::KEY;
 	else if (str == BUTTON)
-		accel_renderer.mode = CellRendererTextish::POPUP;
+		arg_renderer.mode = CellRendererTextish::POPUP;
 	else
-		accel_renderer.mode = CellRendererTextish::TEXT;
+		arg_renderer.mode = CellRendererTextish::TEXT;
 }
 
 void Actions::on_button_new() {
