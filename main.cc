@@ -1063,7 +1063,7 @@ void check_endless() {
 		last_state = state;
 		last_t = last_press_t;
 		(*toggler)();
-		sleep(10);
+		sleep(5);
 		if (last_t && last_t == last_press_t)
 			(*allower)();
 	} while (last_state != state);
