@@ -22,13 +22,45 @@
 #include <iostream>
 #include <sstream>
 
+class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
+public:
+	CellEditableAccel(Gtk::Widget &widget) : Glib::ObjectBase( typeid(CellEditableAccel)) {
+		WIDGET(Gtk::Label, label, "Key combination...");
+		label.set_alignment(0.0, 0.5);
+		add(label);
+		modify_bg(Gtk::STATE_NORMAL, widget.get_style()->get_bg(Gtk::STATE_SELECTED));
+		label.modify_fg(Gtk::STATE_NORMAL, widget.get_style()->get_fg(Gtk::STATE_SELECTED));
+		show_all();
+	}
+protected:
+	Glib::ustring path;
+
+	virtual void start_editing_vfunc(GdkEvent *event) {
+		add_modal_grab();
+		signal_key_press_event().connect(sigc::mem_fun(*this, &CellEditableAccel::on_key));
+	}
+
+	bool on_key(GdkEventKey* event) {
+		printf("key\n");
+		editing_done();
+		remove_widget();
+		return true;
+	}
+
+	virtual void on_editing_done() {
+		printf("editing done\n");
+		remove_modal_grab();
+		Gtk::CellEditable::on_editing_done();
+	}
+};
+
 Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
 		const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area, Gtk::CellRendererState flags) {
 	if (mode == TEXT)
 		return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
 	if (mode == KEY) {
-		printf("Error: not implemented\n");
-		exit(EXIT_FAILURE);
+		// TODO: Do we have to check if the cell is editable?
+		return Gtk::manage(new CellEditableAccel(widget));
 	}
 	return 0;
 }
