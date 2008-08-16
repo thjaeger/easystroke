@@ -23,8 +23,13 @@
 #include <sstream>
 
 class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
+	CellRendererTextish *parent;
+	Glib::ustring path;
 public:
-	CellEditableAccel(Gtk::Widget &widget) : Glib::ObjectBase( typeid(CellEditableAccel)) {
+	CellEditableAccel(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget) :
+		Glib::ObjectBase( typeid(CellEditableAccel)),
+		parent(parent_), path(path_)
+	{
 		WIDGET(Gtk::Label, label, "Key combination...");
 		label.set_alignment(0.0, 0.5);
 		add(label);
@@ -33,7 +38,6 @@ public:
 		show_all();
 	}
 protected:
-	Glib::ustring path;
 
 	virtual void start_editing_vfunc(GdkEvent *event) {
 		add_modal_grab();
@@ -41,14 +45,26 @@ protected:
 	}
 
 	bool on_key(GdkEventKey* event) {
-		printf("key\n");
+		if (event->is_modifier)
+			return true;
+		switch (event->keyval) {
+			case GDK_Super_L:
+			case GDK_Super_R:
+			case GDK_Hyper_L:
+			case GDK_Hyper_R:
+				return true;
+		}
+		guint key = gdk_keyval_to_lower(event->keyval);
+		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
+
 		editing_done();
 		remove_widget();
+
+		parent->signal_key_edited().emit(path, key, (Gdk::ModifierType)mods, event->hardware_keycode);
 		return true;
 	}
 
 	virtual void on_editing_done() {
-		printf("editing done\n");
 		remove_modal_grab();
 		Gtk::CellEditable::on_editing_done();
 	}
@@ -60,7 +76,7 @@ Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk
 		return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
 	if (mode == KEY) {
 		// TODO: Do we have to check if the cell is editable?
-		return Gtk::manage(new CellEditableAccel(widget));
+		return Gtk::manage(new CellEditableAccel(this, path, widget));
 	}
 	return 0;
 }
@@ -170,7 +186,7 @@ Actions::Actions() :
 	Gtk::TreeView::Column *col_accel = tv->get_column(n-1);
 	col_accel->add_attribute(accel_renderer.property_text(), cols.arg);
 	accel_renderer.property_editable() = true;
-//	accel_renderer.signal_accel_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
+	accel_renderer.signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
 	accel_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
 	accel_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 

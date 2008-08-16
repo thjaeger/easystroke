@@ -21,12 +21,12 @@ DFLAGS   = #-ggdb #-pg
 OFLAGS   = -Os
 AOFLAGS  = -O3
 CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --cflags`
-LDFLAGS  = $(DFLAGS) -Lcellrenderertk
+LDFLAGS  = $(DFLAGS)
 TARGETS  = easystroke
 
-LIBS     = $(DFLAGS) -lcellrenderertk -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs`
 
-LIBS_STATIC = $(DFLAGS) -lcellrenderertk -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs` /usr/lib/libboost_serialization.a
+LIBS_STATIC = $(DFLAGS) -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs` /usr/lib/libboost_serialization.a
 
 BINARY   = easystroke
 ICON     = easystroke.svg
@@ -46,17 +46,14 @@ all: $(TARGETS)
 clena:	clean
 
 clean:
-	$(MAKE) -C cellrenderertk clean
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE)
 
 include $(DEPFILES)
 
 $(BINARY): $(OFILES)
-	$(MAKE) -C cellrenderertk
 	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS)
 
 static: $(OFILES)
-	$(MAKE) -C cellrenderertk
 	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS_STATIC)
 	strip -s $(BINARY)
 

@@ -25,10 +25,14 @@ public:
 	enum Mode { TEXT, KEY, POPUP };
 	Mode mode;
 	CellRendererTextish() : mode(TEXT) {}
+	typedef sigc::signal<void, const Glib::ustring&, guint, Gdk::ModifierType, guint> key_edited;
+	key_edited &signal_key_edited() { return signal_key_edited_; }
 protected:
 	virtual Gtk::CellEditable* start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
 			const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area,
 			Gtk::CellRendererState flags);
+private:
+	key_edited signal_key_edited_;
 };
 
 class Actions {
