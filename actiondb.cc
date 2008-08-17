@@ -43,7 +43,8 @@ class SendKeyPriv : public SendKey {
 	friend class SendKey;
 	guint key;
 	guint code;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
+	template<class Archive> void load(Archive & ar, const unsigned int version) {
 		ar & boost::serialization::base_object<ModAction>(*this);
 		ar & key;
 		ar & code;
@@ -51,10 +52,21 @@ class SendKeyPriv : public SendKey {
 			bool xtest;
 			ar & xtest;
 		}
+		compute_code();
+	}
+	template<class Archive> void save(Archive & ar, const unsigned int version) const {
+		ar & boost::serialization::base_object<ModAction>(*this);
+		ar & key;
+		ar & code;
 	}
 
 	SendKeyPriv(guint key_, Gdk::ModifierType mods, guint code_) :
-		SendKey(mods), key(key_), code(code_) {}
+		SendKey(mods), key(key_), code(code_) { compute_code(); }
+
+	void compute_code() {
+		if (key)
+			code = XKeysymToKeycode(dpy, key);
+	}
 public:
 	SendKeyPriv() {}
 	virtual bool run() {
