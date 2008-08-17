@@ -404,7 +404,6 @@ class ActionHandler : public Handler {
 			replace_child(new ScrollHandler(button, button2));
 			return;
 		}
-		//TODO
 		if (replay_button) {
 			press_button = replay_button;
 			replay_button = 0;
@@ -436,7 +435,7 @@ public:
 	}
 
 	virtual void release(guint b, RTriple e) {
-		if (b != button2) //TODO
+		if (b != button2)
 			return;
 		clear_mods();
 		parent->replace_child(0);
@@ -512,7 +511,6 @@ public:
 			h->replace_child(new WaitForButtonHandler(button2, false));
 			return;
 		}
-		//TODO
 		if (replay_button) {
 			press_button = replay_button;
 			replay_button = 0;
@@ -543,7 +541,6 @@ public:
 //			h->replace_child(new WaitForButtonHandler(button2, false));
 			return;
 		}
-		//TODO
 		if (replay_button) {
 			press_button = replay_button;
 			replay_button = 0;
