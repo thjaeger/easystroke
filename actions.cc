@@ -41,6 +41,7 @@ protected:
 
 	virtual void start_editing_vfunc(GdkEvent *event) {
 		add_modal_grab();
+		get_window()->keyboard_grab(false, gdk_event_get_time(event));
 		signal_key_press_event().connect(sigc::mem_fun(*this, &CellEditableAccel::on_key));
 	}
 
@@ -66,6 +67,7 @@ protected:
 
 	virtual void on_editing_done() {
 		remove_modal_grab();
+		get_window()->keyboard_ungrab(CurrentTime);
 		Gtk::CellEditable::on_editing_done();
 	}
 };
