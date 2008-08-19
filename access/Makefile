@@ -12,5 +12,10 @@
 #  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 #  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-all:
+all:	track-focus get-comp
+
+track-focus:	track-focus.c
 	g++ -Wall `pkg-config gtkmm-2.4 gthread-2.0 cspi-1.0 --cflags --libs` track-focus.c -o track-focus
+
+get-comp:	get-comp.c
+	g++ -Wall `pkg-config gtkmm-2.4 gthread-2.0 cspi-1.0 --cflags --libs` get-comp.c -o get-comp
