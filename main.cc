@@ -1243,7 +1243,6 @@ bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, fl
 	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
 	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
 	y        = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
-	return true;
 	if (axis_data[0] == sx && axis_data[1] == sy)
 		return true;
 	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
