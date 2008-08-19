@@ -1371,7 +1371,7 @@ void Main::handle_event(XEvent &ev) {
 		if (grabber->is_event(ev.type, Grabber::DOWN)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			if (verbosity >= 3)
-				printf("Press (Xi): %d (%ld)\n", bev->button, bev->time);
+				printf("Button %d pressed (Xi): (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y, bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
 			xinput_pressed.insert(bev->button);
 			float x, y;
 			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
@@ -1388,7 +1388,7 @@ void Main::handle_event(XEvent &ev) {
 		if (grabber->is_event(ev.type, Grabber::UP)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			if (verbosity >= 3)
-				printf("Release (Xi): %d\n", bev->button);
+				printf("Button %d released (Xi): (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y, bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
 			float x, y;
 			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
 			if (last_type == ButtonRelease && last_e->t == bev->time && last_button == bev->button) {
