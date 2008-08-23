@@ -1043,38 +1043,35 @@ Main::Main(int argc, char **argv) : kit(0) {
 
 }
 
-Glib::Dispatcher *toggler = 0, *allower = 0;
-bool state = false;
-void toggle_state() {
-	state = !state;
-}
+Glib::Dispatcher *allower = 0;
+bool needs_allowing = false;
 
 void allow_events() {
 	printf("Warning: press without corresponding release, resetting...\n");
 	bail_out();
+	needs_allowing = false;
 }
 
 void check_endless() {
-	bool last_state;
 	Time last_t;
-	do {
-		last_state = state;
+	for (;;) {
 		last_t = last_press_t;
-		(*toggler)();
 		sleep(5);
-		if (last_t && last_t == last_press_t)
+		if (needs_allowing) {
+			printf("Error: Endless loop detected\n");
+			raise(SIGKILL);
+		}
+		if (last_t && last_t == last_press_t) {
+			needs_allowing = true;
 			(*allower)();
-	} while (last_state != state);
-	printf("Error: Endless loop detected\n");
-	*(int *)0 = 0; // A reliable way to take the app down.  exit() didn't work.
+		}
+	}
 }
 
 void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::mem_fun(*this, &Main::handle));
 	io->attach();
-	toggler = new Glib::Dispatcher;
-	toggler->connect(sigc::ptr_fun(&toggle_state));
 	allower = new Glib::Dispatcher;
 	allower->connect(sigc::ptr_fun(&allow_events));
 	Glib::Thread::create(sigc::ptr_fun(&check_endless), false);
