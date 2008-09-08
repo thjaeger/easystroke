@@ -1007,6 +1007,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 	create_config_dir();
 
 	signal(SIGINT, &quit);
+	signal(SIGCHLD, SIG_IGN);
 
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {
