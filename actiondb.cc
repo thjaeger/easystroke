@@ -249,14 +249,15 @@ Ranking *ActionDB::handle(RStroke s) const {
 	for (StrokeIterator i = strokes_begin(); i; i++) {
 		if (!i.stroke())
 			continue;
-		double score = Stroke::compare(s, i.stroke());
+		double score;
+	       	bool match = Stroke::compare(s, i.stroke(), score);
 		if (score < 0.25)
 			continue;
 		r->r.insert(pair<double, pair<std::string, RStroke> >
 				(score, pair<std::string, RStroke>(i.name(), i.stroke())));
 		if (score >= r->score) {
 			r->score = score;
-			if (score >= 0.7) {
+			if (match) {
 				r->id = i.id();
 				r->name = i.name();
 				r->action = i.action();

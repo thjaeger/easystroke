@@ -319,11 +319,7 @@ void Stroke::integral2(RStroke a, RStroke b, double &int_x, double &int_y, doubl
 	}
 }
 
-double Stroke::compare(RStroke a, RStroke b) {
-	return compare(a, b, prefs.p.get());
-}
-
-double Stroke::compare(RStroke a_, RStroke b_, double p) {
+bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 	if (!a_ || !b_)
 		return -2;
 	if (a_->button != b_->button)
@@ -335,26 +331,21 @@ double Stroke::compare(RStroke a_, RStroke b_, double p) {
 		else
 			return -2;
 	}
-	if (1) {
-		double ab_x, ab_y, dab_x, dab_y;
-		integral2(a_, b_, ab_x, ab_y, dab_x, dab_y);
-		Integral a = a_->integral();
-		Integral b = b_->integral();
-		double A = (a.i.s.x - sqr(a.i.i.x)) + (a.i.s.y - sqr(a.i.i.y));
-		double B = (b.i.s.x - sqr(b.i.i.x)) + (b.i.s.y - sqr(b.i.i.y));
-		double C = (ab_x - a.i.i.x * b.i.i.x) + (ab_y - a.i.i.y * b.i.i.y);
-		double X = a.d.s.x + a.d.s.y;
-		double Y = b.d.s.x + b.d.s.y;
-		double Z = dab_x + dab_y;
-		double q = 1 - p;
-		return (q*C/A+p*Z/X)/sqrt(q*B/A+p*Y/X);
-	} else {
-		Integral d = diff_integral(a_,b_);
-		double scorei = (d.i.s.x - sqr(d.i.i.x)) + (d.i.s.y - sqr(d.i.i.y));
-		double scored = d.d.s.x + d.d.s.y;
-		double q = 1 - p;
-		return 1 - p*scorei*6  - q*scored/2;
-	}
+	double ab_x, ab_y, dab_x, dab_y;
+	integral2(a_, b_, ab_x, ab_y, dab_x, dab_y);
+	Integral a = a_->integral();
+	Integral b = b_->integral();
+	double A = (a.i.s.x - sqr(a.i.i.x)) + (a.i.s.y - sqr(a.i.i.y));
+	double B = (b.i.s.x - sqr(b.i.i.x)) + (b.i.s.y - sqr(b.i.i.y));
+	double C = (ab_x - a.i.i.x * b.i.i.x) + (ab_y - a.i.i.y * b.i.i.y);
+	double X = a.d.s.x + a.d.s.y;
+	double Y = b.d.s.x + b.d.s.y;
+	double Z = dab_x + dab_y;
+
+	double p = prefs.p.get();
+	double q = 1 - p;
+	score = (q*C/A+p*Z/X)/sqrt(q*B/A+p*Y/X);
+	return score > 0.7;
 }
 
 Glib::RefPtr<Gdk::Pixbuf> Stroke::draw(int size) const {

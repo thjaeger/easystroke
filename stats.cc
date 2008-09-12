@@ -211,8 +211,9 @@ void Stats::on_pdf() {
 
 		int l = 1;
 		for (StrokeIterator j= as.strokes_begin(); j; j++, l++) {
-			float score = Stroke::compare(i.stroke(), j.stroke());
-			if (score > 0.7) {
+			double score;
+		        bool match = Stroke::compare(i.stroke(), j.stroke(), score);
+			if (match) {
 				ctx->save();
 				ctx->set_source_rgba(0,0,1,score-0.6);
 				ctx->rectangle(l*S, k*S, S, S);

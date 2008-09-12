@@ -118,8 +118,7 @@ public:
 	bool show_icon();
 
 	static RStroke trefoil();
-	static double compare(RStroke, RStroke);
-	static double compare(RStroke, RStroke, double);
+	static bool compare(RStroke, RStroke, double &);
 	static Glib::RefPtr<Gdk::Pixbuf> drawEmpty(int);
 
 	void print() const;
