@@ -718,7 +718,7 @@ class StrokeHandler : public Handler, public Timeout {
 			cur->clear();
 		if (b && prefs.advanced_ignore.get())
 			cur->clear();
-		return Stroke::create(*cur, button, b);
+		return Stroke::create(*cur, button, b, false);
 	}
 
 	virtual void timeout() {
@@ -905,7 +905,7 @@ public:
 		if (b == 1)
 			return;
 		RPreStroke p = PreStroke::create();
-		RStroke s = Stroke::create(*p, b, 1);
+		RStroke s = Stroke::create(*p, b, 1, false);
 		parent->replace_child(new ActionXiHandler(s, e, 1, b));
 	}
 	virtual std::string name() { return "Workaround"; }

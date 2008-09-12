@@ -53,7 +53,9 @@ struct f : public std::unary_function<RTriple, Stroke::Point> {
 	}
 };
 
-Stroke::Stroke(PreStroke &s, int trigger_, int button_) : trigger(trigger_), button(button_) {
+Stroke::Stroke(PreStroke &s, int trigger_, int button_, bool timeout_) :
+	trigger(trigger_), button(button_), timeout(timeout_)
+{
 	if (s.valid()) {
 		std::transform(s.begin(), s.end(), std::back_inserter(points), f());
 		normalize();
@@ -378,5 +380,5 @@ RStroke Stroke::trefoil() {
 		double r = exp(1.0 + sin(6.0*pi*i/n)) + 2.0;
 		s.add(create_triple(r*cos(phi), r*sin(phi), i));
 	}
-	return Stroke::create(s, 0, 0);
+	return Stroke::create(s, 0, 0, false);
 }

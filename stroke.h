@@ -86,7 +86,7 @@ private:
 	double length() const;
 	int size() const { return points.size(); }
 
-	Stroke(PreStroke &s, int trigger_, int button_);
+	Stroke(PreStroke &s, int trigger_, int button_, bool timeout_);
 
         Glib::RefPtr<Gdk::Pixbuf> draw_(int) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb;
@@ -103,15 +103,20 @@ private:
 			ar & trigger;
 		if (!trigger)
 			trigger = get_default_button();
+		if (version < 3)
+			return;
+		ar & timeout;
 	}
 
 public:
 	int trigger;
 	int button;
+	bool timeout;
 
-	Stroke() : trigger(0), button(0) {}
-	static RStroke create(PreStroke &s, int trigger_, int button_) { return RStroke(new Stroke(s, trigger_, button_)); }
-
+	Stroke() : trigger(0), button(0), timeout(false) {}
+	static RStroke create(PreStroke &s, int trigger_, int button_, bool timeout_) {
+		return RStroke(new Stroke(s, trigger_, button_, timeout_));
+	}
         Glib::RefPtr<Gdk::Pixbuf> draw(int size) const;
 	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert = true) const;
 	void draw_svg(std::string filename) const;
@@ -125,7 +130,7 @@ public:
 	void normalize();
 	bool trivial() const { return size() == 0 && button == 0; }
 };
-BOOST_CLASS_VERSION(Stroke, 2)
+BOOST_CLASS_VERSION(Stroke, 3)
 
 class PreStroke : public std::vector<RTriple> {
 public:
