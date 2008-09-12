@@ -181,6 +181,8 @@ Prefs::Prefs() {
 	new Sensitive(*new ToIsCustom(prefs.timeout_profile), "hbox_timeout");
 	new TimeoutProfile(prefs.timeout_profile);
 
+	new Check(prefs.timeout_gestures, "check_timeout_gestures");
+
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);

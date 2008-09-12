@@ -94,6 +94,8 @@ class PrefDB : public TimeoutWatcher {
 		ar & min_speed.unsafe_ref();
 		if (version < 8) return;
 		ar & timeout_profile.unsafe_ref();
+		if (version < 9) return;
+		ar & timeout_gestures.unsafe_ref();
 	}
 public:
 	PrefDB();
@@ -115,12 +117,13 @@ public:
 	Source<int> init_timeout;
 	Source<int> min_speed;
 	Source<int> timeout_profile;
+	Source<bool> timeout_gestures;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 8)
+BOOST_CLASS_VERSION(PrefDB, 9)
 
 extern PrefDB prefs;
 #endif

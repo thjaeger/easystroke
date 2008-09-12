@@ -49,7 +49,8 @@ PrefDB::PrefDB() :
 	left_handed(false),
 	init_timeout(200),
 	min_speed(40),
-	timeout_profile(TO_CONSERVATIVE)
+	timeout_profile(TO_CONSERVATIVE),
+	timeout_gestures(false)
 {}
 
 void PrefDB::timeout() {
@@ -96,6 +97,7 @@ void PrefDB::init() {
 	watch(init_timeout);
 	watch(min_speed);
 	watch(timeout_profile);
+	watch(timeout_gestures);
 }
 
 PrefDB prefs;
