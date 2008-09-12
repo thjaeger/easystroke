@@ -350,7 +350,7 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 	double q = 1 - p;
 	score = (q*C/A+p*Z/X)/sqrt(q*B/A+p*Y/X);
 	if (a_->timeout)
-		return score > 0.8;
+		return score > 0.85;
 	else
 		return score > 0.7;
 }
