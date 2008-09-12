@@ -238,11 +238,11 @@ int ActionDB::nested_size() const {
 	return size;
 }
 
-Ranking *ActionDB::handle(RStroke s) const {
+Ranking *ActionDB::handle(RStroke s, int button_up) const {
 	Ranking *r = new Ranking;
 	r->stroke = s;
 	r->score = -1;
-	r->id = -2;
+	r->id = -3;
 	bool success = false;
 	if (!s)
 		return r;
@@ -267,13 +267,16 @@ Ranking *ActionDB::handle(RStroke s) const {
 		}
 	}
 	if (!success && s->trivial()) {
-		r->id = -1;
+		r->id = s->is_timeout() ? -2 : -1;
 		r->name = "click (default)";
-		success = true;
+		if (!s->is_timeout())
+			success = true;
 	}
 	if (success) {
 		if (verbosity >= 1)
 			cout << "Excecuting Action " << r->name << "..." << endl;
+		if (button_up)
+			XTestFakeButtonEvent(dpy, button_up, False, CurrentTime);
 		if (r->action)
 			r->action->run();
 	} else {

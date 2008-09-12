@@ -125,10 +125,16 @@ int last_type = -1;
 guint last_button = 0;
 Time last_press_t = 0;
 
-void handle_stroke(RStroke s, int x, int y, int trigger, int button);
+bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up = 0);
 
 void replay(Time t) {
 	XAllowEvents(dpy, ReplayPointer, t);
+	if (!t || t >= last_press_t)
+		last_press_t = 0;
+}
+
+void discard(Time t) {
+	XAllowEvents(dpy, AsyncPointer, t);
 	if (!t || t >= last_press_t)
 		last_press_t = 0;
 }
@@ -209,7 +215,7 @@ void bail_out() {
 	handler->replace_child(0);
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-	XAllowEvents(dpy, AsyncPointer, CurrentTime);
+	discard(CurrentTime);
 }
 
 class WaitForButtonHandler : public Handler, protected Timeout {
@@ -224,7 +230,7 @@ public:
 		bail_out();
 	}
 	virtual void press(guint b, RTriple e) {
-		XAllowEvents(dpy, AsyncPointer, e->t);
+		discard(e->t);
 		if (!down)
 			return;
 		if (b == button)
@@ -450,7 +456,7 @@ public:
 class ScrollXiHandler : public AbstractScrollHandler {
 protected:
 	void grab() {
-		grabber->grab(Grabber::ALL_ASYNC);
+		grabber->grab(Grabber::NONE);
 	}
 public:
 	virtual void release(guint b, RTriple e) {
@@ -459,6 +465,7 @@ public:
 		p->release(b, e);
 	}
 	virtual std::string name() { return "ScrollXi"; }
+	virtual bool only_xi() { return true; }
 };
 
 class ScrollProxHandler : public AbstractScrollHandler {
@@ -725,13 +732,42 @@ class StrokeHandler : public Handler, public Timeout {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
 		trace->end();
-		replay(press_t);
+		if (!prefs.timeout_gestures.get()) {
+			replay(press_t);
+			parent->replace_child(0);
+			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+			return;
+		}
+		if (!is_gesture)
+			cur->clear();
+		RStroke s = Stroke::create(*cur, button, 0, true);
+		if (!handle_stroke(s, last->x, last->y, button, 0, button)) {
+			replay(press_t);
+			parent->replace_child(0);
+			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+			return;
+		}
+		discard(last->t);
+		if (replay_button) {
+			replay_button = false;
+			printf("Error: This can't happen\n");
+		};
+		if (ignore) {
+			ignore = false;
+			// TODO
+		}
+		if (scroll) {
+			scroll = false;
+			parent->replace_child(new ScrollXiHandler);
+			return;
+		}
+		if (press_button && !(!repeated && xinput_pressed.count(button) && press_button == button)) {
+			// TODO: ActionXi
+			grabber->fake_button(press_button);
+		}
+		press_button = 0;
+		clear_mods();
 		parent->replace_child(0);
-		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-//		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig.x, orig.y, 0);
-//		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), last_x, last_y, 5);
-//		XTestFakeRelativeMotionEvent(dpy, orig.x - last_x, orig.y - last_y, 5);
-//		XTestFakeRelativeMotionEvent(dpy, last_x - orig.x, last_y - orig.y, 5);
 	}
 
 	bool calc_speed(RTriple e) {
@@ -805,7 +841,7 @@ protected:
 			return;
 		RStroke s = finish(b);
 		if (have_xi)
-			XAllowEvents(dpy, AsyncPointer, press_t);
+			discard(press_t);
 
 		if (gui && stroke_action) {
 			handle_stroke(s, e->x, e->y, button, b);
@@ -835,7 +871,7 @@ protected:
 			replay_button = 0;
 		} else
 			if (have_xi)
-				XAllowEvents(dpy, AsyncPointer, press_t);
+				discard(press_t);
 		if (ignore) {
 			ignore = false;
 			parent->replace_child(new IgnoreHandler);
@@ -878,14 +914,14 @@ public:
 		if (have_xi) {
 			xinput_pressed.insert(button);
 		} else {
-			XAllowEvents(dpy, AsyncPointer, press_t);
+			discard(press_t);
 			xi_warn();
 		}
 	}
 	~StrokeHandler() {
 		trace->end();
 		if (have_xi)
-			XAllowEvents(dpy, AsyncPointer, press_t);
+			discard(press_t);
 	}
 	virtual std::string name() { return "Stroke"; }
 };
@@ -924,7 +960,7 @@ protected:
 			else { // b == 1
 				unsigned int state = grabber->get_device_button_state();
 				if (state & (state-1)) {
-					XAllowEvents(dpy, AsyncPointer, e->t);
+					discard(e->t);
 					replace_child(new WorkaroundHandler);
 					return;
 				} else {
@@ -1202,7 +1238,8 @@ struct ShowIcon {
 	}
 };
 
-void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
+bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up) {
+	bool success = false;
 	s->trigger = trigger;
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
@@ -1213,23 +1250,26 @@ void handle_stroke(RStroke s, int x, int y, int trigger, int button) {
 			(*stroke_action)(s);
 			stroke_action.reset();
 		} else {
-			Ranking *ranking = as.handle(s);
+			Ranking *ranking = as.handle(s, button_up);
+			success = ranking->id > -2;
 			ranking->x = x;
 			ranking->y = y;
 			if (ranking->id == -1)
 				replay_button = trigger;
-			if (ranking->id != -1 || prefs.show_clicks.get())
+			if ((ranking->id != -1 && ranking->id != -2) || prefs.show_clicks.get())
 				Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
 		}
 		ShowIcon *si = new ShowIcon;
 		si->s = s;
 		Glib::signal_idle().connect(sigc::mem_fun(si, &ShowIcon::run));
 	} else {
-		Ranking *ranking = as.handle(s);
+		Ranking *ranking = as.handle(s, button_up);
+		success = ranking->id > -2;
 		if (ranking->id == -1)
 			replay_button = trigger;
 		delete ranking;
 	}
+	return success;
 }
 
 extern Window get_app_window(Window &w);

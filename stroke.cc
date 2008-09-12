@@ -324,6 +324,8 @@ void Stroke::integral2(RStroke a, RStroke b, double &int_x, double &int_y, doubl
 bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 	if (!a_ || !b_)
 		return -2;
+	if (!a_->timeout != !b_->timeout)
+		return -2;
 	if (a_->button != b_->button)
 		if (!(a_->button == b_->trigger && b_->button == a_->trigger))
 			return -2;
@@ -347,7 +349,10 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 	double p = prefs.p.get();
 	double q = 1 - p;
 	score = (q*C/A+p*Z/X)/sqrt(q*B/A+p*Y/X);
-	return score > 0.7;
+	if (a_->timeout)
+		return score > 0.8;
+	else
+		return score > 0.7;
 }
 
 Glib::RefPtr<Gdk::Pixbuf> Stroke::draw(int size) const {

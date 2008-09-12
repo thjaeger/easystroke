@@ -231,7 +231,7 @@ public:
 	bool remove(int id);
 	int nested_size() const;
 	int addCmd(RStroke, const std::string& name, const std::string& cmd);
-	Ranking *handle(RStroke) const;
+	Ranking *handle(RStroke, int) const;
 };
 BOOST_CLASS_VERSION(ActionDB, 1)
 

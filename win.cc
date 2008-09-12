@@ -66,13 +66,13 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 		ctx->stroke();
 	}
 	ctx->restore();
-	if (!button)
+	if (!button && !timeout)
 		return;
 	if (invert)
 		ctx->set_source_rgba(0, 0, 1, 0.8);
 	else
 		ctx->set_source_rgba(1, 0, 0, 0.8);
-	Glib::ustring str = Glib::ustring::format(button);
+	Glib::ustring str = timeout ? "x" : Glib::ustring::format(button);
 	ctx->set_font_size(h*0.6);
 	Cairo::TextExtents te;
 	ctx->get_text_extents(str, te);

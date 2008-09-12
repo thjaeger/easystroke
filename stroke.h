@@ -129,6 +129,7 @@ public:
 	void print() const;
 	void normalize();
 	bool trivial() const { return size() == 0 && button == 0; }
+	bool is_timeout() const { return timeout; }
 };
 BOOST_CLASS_VERSION(Stroke, 3)
 
