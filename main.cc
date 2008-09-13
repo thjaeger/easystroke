@@ -495,6 +495,25 @@ public:
 	}
 };
 
+class ButtonXiHandler : public Handler {
+	guint emulate, pressed;
+public:
+	ButtonXiHandler(guint emulate_, guint pressed_) : emulate(emulate_), pressed(pressed_) {}
+	virtual void init() {
+		grabber->grab(Grabber::NONE);
+		XTestFakeButtonEvent(dpy, emulate, True, CurrentTime);
+	}
+	virtual void release(guint b, RTriple e) {
+		if (b != pressed)
+			return;
+		XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
+		parent->replace_child(0);
+		clear_mods();
+	}
+	virtual bool only_xi() { return true; }
+	virtual std::string name() { return "ButtonXi"; }
+};
+
 class ActionXiHandler : public Handler {
 	RStroke stroke;
 	RTriple e;
@@ -591,6 +610,7 @@ public:
 	virtual bool only_xi() { return true; }
 	virtual std::string name() { return "ActionXi"; }
 };
+
 
 Trace::Point orig;
 
@@ -762,8 +782,9 @@ class StrokeHandler : public Handler, public Timeout {
 			return;
 		}
 		if (press_button && !(!repeated && xinput_pressed.count(button) && press_button == button)) {
-			// TODO: ActionXi
-			grabber->fake_button(press_button);
+			parent->replace_child(new ButtonXiHandler(press_button, button));
+			press_button = false;
+			return;
 		}
 		press_button = 0;
 		clear_mods();
