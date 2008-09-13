@@ -322,18 +322,21 @@ void Stroke::integral2(RStroke a, RStroke b, double &int_x, double &int_y, doubl
 }
 
 bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
+	score = -2;
 	if (!a_ || !b_)
-		return -2;
+		return false;
 	if (!a_->timeout != !b_->timeout)
-		return -2;
+		return false;
 	if (a_->button != b_->button)
 		if (!(a_->button == b_->trigger && b_->button == a_->trigger))
-			return -2;
+			return false;
 	if (a_->size() == 0 || b_->size() == 0) {
-		if (a_->size() == 0 && b_->size() == 0)
-			return 1;
+		if (a_->size() == 0 && b_->size() == 0) {
+			score = 1;
+			return true;
+		}
 		else
-			return -2;
+			return false;
 	}
 	double ab_x, ab_y, dab_x, dab_y;
 	integral2(a_, b_, ab_x, ab_y, dab_x, dab_y);
