@@ -1280,6 +1280,8 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 				replay_button = trigger;
 			if ((ranking->id != -1 && ranking->id != -2) || prefs.show_clicks.get())
 				Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
+			else
+				delete ranking;
 		}
 		ShowIcon *si = new ShowIcon;
 		si->s = s;
