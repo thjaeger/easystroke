@@ -883,7 +883,8 @@ protected:
 			return;
 		RStroke s = finish(0);
 
-		handle_stroke(s, e->x, e->y, button, 0);
+		if (!handle_stroke(s, e->x, e->y, button, 0))
+			XBell(dpy, 0);
 		if (replay_button) {
 			if (have_xi)
 				replay(press_t);
@@ -1271,6 +1272,7 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 		if (stroke_action) {
 			(*stroke_action)(s);
 			stroke_action.reset();
+			success = true;
 		} else {
 			Ranking *ranking = as.handle(s, button_up);
 			success = ranking->id > -2;
