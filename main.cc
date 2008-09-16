@@ -908,8 +908,8 @@ protected:
 		}
 		if (press_button && !(!repeated && xinput_pressed.count(b) && press_button == button)) {
 			grabber->fake_button(press_button);
-			press_button = 0;
 		}
+		press_button = 0;
 		clear_mods();
 		parent->replace_child(0);
 	}
