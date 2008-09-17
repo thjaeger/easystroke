@@ -415,9 +415,8 @@ void Grabber::set() {
 					GrabModeSync, GrabModeAsync, None, None);
 	}
 	if (grabbed == ALL_SYNC)
-		if (!XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False,
-					ButtonPressMask, GrabModeSync, GrabModeAsync, None, None))
-			throw GrabFailedException();
+		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask,
+				GrabModeSync, GrabModeAsync, None, None);
 	if (grabbed == ALL_ASYNC)
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 				GrabModeAsync, GrabModeAsync, None, None);
