@@ -70,6 +70,7 @@ void Shape::end_() {
 
 void Shape::timeout() {
 	clear();
+	XFlush(dpy);
 }
 
 void Shape::clear() {

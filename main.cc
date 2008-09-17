@@ -219,6 +219,7 @@ void bail_out() {
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 	discard(CurrentTime);
+	XFlush(dpy);
 }
 
 class WaitForButtonHandler : public Handler, protected Timeout {
@@ -731,6 +732,11 @@ class StrokeHandler : public Handler, public Timeout {
 	}
 
 	virtual void timeout() {
+		do_timeout();
+		XFlush(dpy);
+	}
+
+	void do_timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
 		trace->end();
