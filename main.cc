@@ -1498,7 +1498,7 @@ void Main::handle_event(XEvent &ev) {
 				handler->top()->proximity_out();
 			}
 		}
-		if (ev.type == grabber->event_presence) {
+		if (ev.type == grabber->event_presence && verbosity >= 1) {
 			printf("Info: Device Presence not implemented\n");
 		}
 	}
