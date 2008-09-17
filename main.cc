@@ -201,11 +201,7 @@ public:
 	}
 	virtual void proximity_out() {
 		clear_mods();
-		grabber->grab(Grabber::ALL_SYNC);
 		parent->replace_child(0);
-	}
-	virtual ~IgnoreHandler() {
-		clear_mods();
 	}
 	virtual std::string name() { return "Ignore"; }
 };
