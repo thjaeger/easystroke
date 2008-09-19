@@ -38,6 +38,8 @@ bool gui = true;
 extern bool no_xi;
 bool experimental = false;
 int verbosity = 0;
+int offset_x = 0;
+int offset_y = 0;
 
 Display *dpy;
 
@@ -1154,6 +1156,8 @@ void Main::usage(char *me, bool good) {
 	printf("  -x  --no-xi            Don't use the Xinput extension\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
 	printf("  -n, --no-gui           Don't start the gui\n");
+	printf("      --offset-x         XInput workaround\n");
+	printf("      --offset-y         XInput workaround\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
 	printf("      --help             Display this help and exit\n");
 	printf("      --version          Output version information and exit\n");
@@ -1183,6 +1187,8 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"no-gui",0,0,'n'},
 		{"no-xi",0,0,'x'},
 		{"verbose",0,0,'v'},
+		{"offset-x",1,0,'X'},
+		{"offset-y",1,0,'Y'},
 		{0,0,0,0}
 	};
 	std::string display;
@@ -1226,6 +1232,12 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 			case 'd':
 			case 'n':
 			case 'x':
+				break;
+			case 'X':
+				offset_x = atoi(optarg);
+				break;
+			case 'Y':
+				offset_y = atoi(optarg);
 				break;
 			default:
 				usage(argv[0], false);
@@ -1303,6 +1315,8 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 extern Window get_app_window(Window &w);
 
 bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
+	sx += offset_x;
+	sy += offset_y;
 	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
 	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
 	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
