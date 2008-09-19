@@ -135,12 +135,6 @@ void replay(Time t) {
 		last_press_t = 0;
 }
 
-void discard(Time t) {
-	XAllowEvents(dpy, AsyncPointer, t);
-	if (!t || t >= last_press_t)
-		last_press_t = 0;
-}
-
 class Handler {
 protected:
 	Handler *child;
@@ -213,8 +207,7 @@ void bail_out() {
 	handler->replace_child(0);
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-	discard(CurrentTime);
-	XFlush(dpy);
+	XAllowEvents(dpy, AsyncPointer, CurrentTime);
 }
 
 class WaitForButtonHandler : public Handler, protected Timeout {
@@ -229,7 +222,7 @@ public:
 		bail_out();
 	}
 	virtual void press(guint b, RTriple e) {
-		discard(e->t);
+		XAllowEvents(dpy, AsyncPointer, e->t);
 		if (!down)
 			return;
 		if (b == button)
@@ -866,7 +859,7 @@ protected:
 			return;
 		RStroke s = finish(b);
 		if (have_xi)
-			discard(press_t);
+			XAllowEvents(dpy, AsyncPointer, press_t);
 
 		if (gui && stroke_action) {
 			handle_stroke(s, e->x, e->y, button, b);
@@ -897,7 +890,7 @@ protected:
 			replay_button = 0;
 		} else
 			if (have_xi)
-				discard(press_t);
+				XAllowEvents(dpy, AsyncPointer, press_t);
 		if (ignore) {
 			ignore = false;
 			parent->replace_child(new IgnoreHandler);
@@ -940,14 +933,14 @@ public:
 		if (have_xi) {
 			xinput_pressed.insert(button);
 		} else {
-			discard(press_t);
+			XAllowEvents(dpy, AsyncPointer, press_t);
 			xi_warn();
 		}
 	}
 	~StrokeHandler() {
 		trace->end();
 		if (have_xi)
-			discard(press_t);
+			XAllowEvents(dpy, AsyncPointer, press_t);
 	}
 	virtual std::string name() { return "Stroke"; }
 };
@@ -986,7 +979,7 @@ protected:
 			else { // b == 1
 				unsigned int state = grabber->get_device_button_state();
 				if (state & (state-1)) {
-					discard(e->t);
+					XAllowEvents(dpy, AsyncPointer, e->t);
 					replace_child(new WorkaroundHandler);
 					return;
 				} else {
