@@ -60,10 +60,14 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	if (dpy != dpy2) {
 		return oldHandler(dpy2, e);
 	}
-	if (verbosity == 0 && e->error_code == BadWindow && e->request_code == X_ChangeWindowAttributes)
-		return 0;
-	if (verbosity == 0 && e->error_code == BadWindow && e->request_code == X_GetProperty)
-		return 0;
+	if (verbosity == 0 && e->error_code == BadWindow) {
+		switch (e->request_code) {
+			case X_ChangeWindowAttributes:
+			case X_GetProperty:
+			case X_QueryTree:
+				return 0;
+		}
+	}
 	char text[64];
 	XGetErrorText(dpy, e->error_code, text, sizeof text);
 	char msg[16];
