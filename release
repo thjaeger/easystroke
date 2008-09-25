@@ -9,8 +9,7 @@ echo $DIST
 mkdir upload
 
 # tar.gz
-darcs dist --dist-name=$DIST
-mv $DIST.tar.gz upload
+git archive --format=tar --prefix=$DIST/ $1 | gzip > upload/$DIST.tar.gz
 
 # binary .gz
 mkdir build
