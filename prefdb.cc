@@ -93,6 +93,8 @@ void PrefDB::init() {
 	watch(pressure_abort);
 	watch(pressure_threshold);
 	watch(proximity);
+	watch(feedback);
+	watch(left_handed);
 	watch(init_timeout);
 	watch(min_speed);
 	watch(timeout_profile);
