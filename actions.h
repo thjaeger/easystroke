@@ -22,7 +22,7 @@ class Win;
 
 class CellRendererTextish : public Gtk::CellRendererText {
 public:
-	enum Mode { TEXT, KEY, POPUP };
+	enum Mode { TEXT, KEY, POPUP, COMBO };
 	Mode mode;
 	CellRendererTextish() : mode(TEXT) {}
 	typedef sigc::signal<void, const Glib::ustring&, guint, Gdk::ModifierType, guint> key_edited;

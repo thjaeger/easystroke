@@ -72,6 +72,57 @@ protected:
 	}
 };
 
+class CellEditableCombo : public Gtk::EventBox, public Gtk::CellEditable {
+	CellRendererTextish *parent;
+	Glib::ustring path;
+	Gtk::ComboBoxText *combo;
+public:
+	CellEditableCombo(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget) :
+		Glib::ObjectBase( typeid(CellEditableAccel)),
+		parent(parent_), path(path_)
+	{
+		combo = new Gtk::ComboBoxText;
+		combo->append_text("foo");
+		combo->append_text("bar");
+//		combo->set_alignment(0.0, 0.5);
+		add(*combo);
+//		modify_bg(Gtk::STATE_NORMAL, widget.get_style()->get_bg(Gtk::STATE_SELECTED));
+//		label.modify_fg(Gtk::STATE_NORMAL, widget.get_style()->get_fg(Gtk::STATE_SELECTED));
+		show_all();
+	}
+protected:
+
+	virtual void start_editing_vfunc(GdkEvent *event) {
+//		combo->popup();
+	}
+
+	/*
+	bool on_key(GdkEventKey* event) {
+		if (event->is_modifier)
+			return true;
+		switch (event->keyval) {
+			case GDK_Super_L:
+			case GDK_Super_R:
+			case GDK_Hyper_L:
+			case GDK_Hyper_R:
+				return true;
+		}
+		guint key = gdk_keyval_to_lower(event->keyval);
+		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
+
+		editing_done();
+		remove_widget();
+
+		parent->signal_key_edited().emit(path, key, (Gdk::ModifierType)mods, event->hardware_keycode);
+		return true;
+	}
+	*/
+
+	virtual void on_editing_done() {
+		Gtk::CellEditable::on_editing_done();
+	}
+};
+
 Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
 		const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area, Gtk::CellRendererState flags) {
 	if (mode == TEXT)
@@ -79,6 +130,7 @@ Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk
 	if (mode == KEY) {
 		// TODO: Do we have to check if the cell is editable?
 		return Gtk::manage(new CellEditableAccel(this, path, widget));
+		//return Gtk::manage(new CellEditableCombo(this, path, widget));
 	}
 	return 0;
 }
