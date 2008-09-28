@@ -1526,6 +1526,16 @@ void update_current() {
 	grabber->update(current);
 }
 
+void suspend_flush() {
+	grabber->suspend();
+	XFlush(dpy);
+}
+
+void resume_flush() {
+	grabber->resume();
+	XFlush(dpy);
+}
+
 void Prefs::on_add() {
 	handler->top()->replace_child(new SelectHandler);
 }
