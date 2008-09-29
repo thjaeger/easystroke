@@ -16,95 +16,104 @@
 #ifndef __VAR_H__
 #define __VAR_H__
 
-#include <set>
 #include <list>
 #include <boost/shared_ptr.hpp>
 #include <glibmm.h>
 
-typedef unsigned long long int uint64;
-
-class In {
-	static uint64 count;
+class Atomic {
+	typedef sigc::slot<void> Update;
+	std::list<Update> update_queue;
 public:
-	In() : index(count++) {}
-	virtual void notify() = 0;
-	const uint64 index;
+	void defer(Update f) { update_queue.push_back(f); }
+	~Atomic() {
+		for (std::list<Update>::iterator i = update_queue.begin(); i != update_queue.end(); i++)
+			(*i)();
+	}
 };
 
-void mark_dirty(In *);
-void update_dirty();
-
-struct Atomic {
-	~Atomic() { update_dirty(); }
-};
-
+// Think of T as a type of morphisms
 template <class T> class Out {
-	std::set<In *> out;
+	typedef sigc::slot<void, const T> Notifier;
+	std::list<Notifier> out;
 protected:
-	void update() {
-		for (typename std::set<In *>::iterator i = out.begin(); i != out.end(); i++)
-			mark_dirty(*i);
+	void update(const T v) {
+		for (typename std::list<Notifier>::iterator i = out.begin(); i != out.end(); i++) {
+			(*i)(v);
+		}
 	}
 public:
-	void connect(In *o) { out.insert(o); }
+	void connect(Notifier o) { out.push_back(o); }
+};
+
+template <class T> class Value : public Out<T> {
+	public:
 	virtual T get() = 0;
 };
 
-template <class T> class IO : public Out<T> {
+template <class T> class IO : public Value<T> {
 public:
-	virtual void set(const T x_) = 0;
+	virtual void set(const T) = 0;
 };
 
 template <class T> class Source : public IO<T> {
 	T x;
+	void do_update() { Out<T>::update(x); }
 public:
 	Source() {}
 	Source(T x_) : x(x_) {}
-	virtual void set(const T x_) { 
+	virtual void set(const T x_) {
 		x = x_;
-		Out<T>::update();
-		update_dirty();
+		Out<T>::update(x);
 	}
 	virtual T get() { return x; }
 	const T &ref() { return x; } // TODO should be shared w/ Var
 	// write_refs are evil
-	T &write_ref(Atomic &a) { Out<T>::update(); return x; }
+	T &write_ref(Atomic &a) {
+		a.defer(sigc::mem_fun(*this, &Source::do_update));
+		return x;
+	}
 	// unsafe_refs even more so
 	T &unsafe_ref() { return x; }
 };
 
-template <class T> class Var : public Out<T>, public In {
-	Out<T> &in;
+// one input
+template <class T> class In {
+	virtual void notify(const T) = 0;
+public:
+	In(Out<T> &in) { in.connect(sigc::mem_fun(*this, &In::notify)); }
+};
+
+template <class T> class Var : public Value<T>, public In<T> {
 	T x;
 public:
-	Var(Out<T> &in_) : in(in_), x(in.get()) { in.connect(this); }
+	Var(Value<T> &in) : In<T>(in), x(in.get()) {}
 	virtual T get() { return x; }
-	virtual void notify() { 
-		x = in.get();
-		Out<T>::update();
+	virtual void notify(const T x_) {
+		x = x_;
+		Out<T>::update(x);
 	}
 	const T &ref() { return x; }
 };
 
-template <class X, class Y> class Fun : public Out<Y>, public In {
-	Out<X> &in;
+template <class X, class Y> class Fun : public Value<Y>, public In<X> {
+	Value<X> &in;
 protected:
 	virtual Y run(const X &) = 0;
-	Fun(Out<X> &in_) : in(in_) { in.connect(this); }
+	Fun(Value<X> &in_) : In<X>(in_), in(in_) {}
 public:
 	virtual Y get() { return run(in.get()); }
-	virtual void notify() { Out<Y>::update(); }
+	virtual void notify(const X x) { Out<Y>::update(run(x)); }
 };
 
-template <class X, class Y> class Bijection : public IO<Y>, public In {
+template <class X, class Y> class Bijection : public IO<Y>, public In<X> {
 	IO<X> &io;
 protected:
 	virtual Y run(const X &) = 0;
 	virtual X inverse(const Y &) = 0;
-	Bijection(IO<X> &io_) : io(io_) { io.connect(this); }
+	Bijection(IO<X> &io_) : In<X>(io_), io(io_) {}
 public:
 	virtual Y get() { return run(io.get()); }
-	virtual void notify() { Out<Y>::update(); }
+	virtual void notify(const X x) { Out<Y>::update(run(x)); }
 	virtual void set(const Y y) { io.set(inverse(y)); }
 };
 
@@ -116,10 +125,14 @@ public:
 	Converter(IO<X> &io_) : Bijection<X, Y>(io_) {}
 };
 
-class Watcher : public In {
+class Watcher {
+	template <class T> void notify_priv(const T) { notify(); }
+protected:
+	virtual void notify() = 0;
+
 public:
 	template <class T> void watch(Out<T> &v) {
-		v.connect(this);
+		v.connect(sigc::mem_fun(*this, &Watcher::notify_priv<T>));
 	}
 };
 

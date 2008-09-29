@@ -1062,6 +1062,12 @@ public:
 
 ActionDBWatcher *action_watcher = 0;
 
+void reload_trace(TraceType) { 
+	Trace *new_trace = init_trace();
+	delete trace;
+	trace = new_trace;
+}
+
 Main::Main(int argc, char **argv) : kit(0) {
 	Glib::thread_init();
 	if (0) {
@@ -1094,14 +1100,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
 
 	trace = init_trace();
-	class NotifyTrace : public In {
-		virtual void notify() { 
-			Trace *new_trace = init_trace();
-			delete trace;
-			trace = new_trace;
-		}
-	};
-	prefs.trace.connect(new NotifyTrace);
+	prefs.trace.connect(sigc::ptr_fun(&reload_trace));
 
 	handler = new IdleHandler;
 	handler->init();

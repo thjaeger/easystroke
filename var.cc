@@ -15,30 +15,12 @@
  */
 
 #include "var.h"
-#include <map>
-
-uint64 In::count = 0;
-
-std::map<uint64, In *> dirty;
-
-void mark_dirty(In *in) { dirty[in->index] = in; }
-
-void update_dirty() {
-	for (;;) {
-		std::map<uint64, In *>::iterator i = dirty.begin();
-		if (i == dirty.end())
-			break;
-		In *in = i->second;
-		dirty.erase(i);
-		in->notify();
-	}
-}
 
 #if TEST_VAR
 class IntLong : public Fun<int, long> {
 	virtual long run(const int &x) { return x; }
 public:
-	IntLong(Out<int> &in) : Fun<int, long>(in) {}
+	IntLong(Value<int> &in) : Fun<int, long>(in) {}
 };
 
 void test() {
