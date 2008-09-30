@@ -98,18 +98,33 @@ public:
 template <class X, class Y> class Fun : public Value<Y>, public In<X> {
 	Value<X> &in;
 protected:
-	virtual Y run(const X &) = 0;
+	virtual Y run(const X) = 0;
 	Fun(Value<X> &in_) : In<X>(in_), in(in_) {}
 public:
 	virtual Y get() { return run(in.get()); }
 	virtual void notify(const X x) { Out<Y>::update(run(x)); }
 };
 
+template <class X, class Y, class Z> class Fun2 : public Value<Z> {
+	Value<X> &inX;
+	Value<Y> &inY;
+protected:
+	virtual Z run(const X, const Y) = 0;
+	Fun2(Value<X> &inX_, Value<Y> &inY_) : inX(inX_), inY(inY_) {
+		inX.connect(sigc::mem_fun(*this, &Fun2::notifyX));
+		inY.connect(sigc::mem_fun(*this, &Fun2::notifyY));
+	}
+public:
+	virtual Z get() { return run(inX.get(), inY.get()); }
+	virtual void notifyX(const X x) { Out<Z>::update(run(x, inY.get())); }
+	virtual void notifyY(const Y y) { Out<Z>::update(run(inX.get(), y)); }
+};
+
 template <class X, class Y> class Bijection : public IO<Y>, public In<X> {
 	IO<X> &io;
 protected:
-	virtual Y run(const X &) = 0;
-	virtual X inverse(const Y &) = 0;
+	virtual Y run(const X) = 0;
+	virtual X inverse(const Y) = 0;
 	Bijection(IO<X> &io_) : In<X>(io_), io(io_) {}
 public:
 	virtual Y get() { return run(io.get()); }
@@ -119,8 +134,8 @@ public:
 
 template <class X, class Y> class Converter : public Bijection<X, Y> {
 protected:
-	virtual Y run(const X &x) { return (Y)x; }
-	virtual X inverse(const Y &y) { return (X)y; }
+	virtual Y run(const X x) { return (Y)x; }
+	virtual X inverse(const Y y) { return (X)y; }
 public:
 	Converter(IO<X> &io_) : Bijection<X, Y>(io_) {}
 };

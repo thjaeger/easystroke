@@ -101,8 +101,14 @@ public:
 	}
 };
 
+class And : public Fun2<bool, bool, bool> {
+	virtual bool run(bool x, bool y) { return x && y; }
+public:
+	And(Value<bool> &inX, Value<bool> &inY) : Fun2<bool, bool, bool>(inX, inY) {}
+};
+
 class ToIsCustom : public Fun<int, bool> {
-	bool run(const int &profile) { return profile == TO_CUSTOM; }
+	virtual bool run(const int profile) { return profile == TO_CUSTOM; }
 public:
 	ToIsCustom(Value<int> &in) : Fun<int, bool>(in) {}
 };
@@ -173,7 +179,6 @@ Prefs::Prefs() {
 
 	new Combo(*new Converter<TraceType, int>(prefs.trace), "combo_trace");
 	new Combo(prefs.timeout_profile, "combo_timeout");
-	new Sensitive(*new ToIsCustom(prefs.timeout_profile), "hbox_timeout");
 	new TimeoutProfile(prefs.timeout_profile);
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
@@ -190,7 +195,7 @@ Prefs::Prefs() {
 	new Sensitive(xinput_v, "check_timing_workaround");
 	new Sensitive(xinput_v, "check_ignore_grab");
 	new Sensitive(xinput_v, "hbox_timeout_profile");
-	new Sensitive(xinput_v, "hbox_timeout");
+	new Sensitive(*new And(xinput_v, *new ToIsCustom(prefs.timeout_profile)), "hbox_timeout");
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
 
