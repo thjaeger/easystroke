@@ -1011,6 +1011,13 @@ public:
 
 ActionDBWatcher *action_watcher = 0;
 
+void open_uri(Gtk::LinkButton *button, const Glib::ustring& uri) {
+	if (!fork()) {
+		execlp("xdg-open", "xdg-open", uri.c_str(), NULL);
+		exit(EXIT_FAILURE);
+	}
+}
+
 Main::Main(int argc, char **argv) : kit(0) {
 	Glib::thread_init();
 	if (0) {
@@ -1024,6 +1031,8 @@ Main::Main(int argc, char **argv) : kit(0) {
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
+
+	Gtk::LinkButton::set_uri_hook(sigc::ptr_fun(&open_uri));
 
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {
