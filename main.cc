@@ -1005,6 +1005,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 	}
 	display = parse_args_and_init_gtk(argc, argv);
 	create_config_dir();
+	unsetenv("DESKTOP_AUTOSTART_ID");
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
