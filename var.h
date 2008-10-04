@@ -31,123 +31,170 @@ public:
 	}
 };
 
-// Think of T as a type of morphisms
-template <class T> class Out {
-	typedef sigc::slot<void, const T> Notifier;
-	std::list<Notifier> out;
+template <class S> struct SetterBase {
+	virtual void operator()(S *s) = 0;
+};
+
+template <class S> struct Setter : boost::shared_ptr<SetterBase<S> > {
+	virtual void operator()(S *s) { (*(*this))(s); }
+	Setter(SetterBase<S> *s) : boost::shared_ptr<SetterBase<S> >(s) {}
+};
+
+template <class S> class Setter0 : public SetterBase<S> {
+	void (S::*f)();
+public:
+	Setter0(void (S::*f_)()) : f(f_) {}
+	virtual void operator()(S *s) { (s->*f)(); }
+};
+template <class S, class T> Setter<S> setter0(void (S::*f)()) {
+	return Setter<S>(new Setter0<S>(f));
+}
+
+template <class S, class T> class Setter1 : public SetterBase<S> {
+	void (S::*f)(T);
+	T x;
+public:
+	Setter1(void (S::*f_)(T), T x_) : f(f_), x(x_) {}
+	virtual void operator()(S *s) { (s->*f)(x); }
+};
+template <class S, class T> Setter<S> setter1(void (S::*f)(T), T x) {
+	return Setter<S>(new Setter1<S, T>(f, x));
+}
+
+template <class S, class T1, class T2> class Setter2 : public SetterBase<S> {
+	void (S::*f)(T1, T2);
+	T1 x1;
+	T2 x2;
+public:
+	Setter2(void (S::*f_)(T1, T2), T1 x1_, T2 x2_) : f(f_), x1(x1_), x2(x2_) {}
+	virtual void operator()(S *s) { (s->*f)(x1, x2); }
+};
+template <class S, class T1, class T2> Setter<S> setter2(void (S::*f)(T1, T2), T1 x1, T2 x2) {
+	return Setter<S>(new Setter2<S, T1, T2>(f, x1, x2));
+}
+
+
+template <class G, class S> class Out : public G {
+	std::list<S *> out;
 protected:
-	void update(const T v) {
-		for (typename std::list<Notifier>::iterator i = out.begin(); i != out.end(); i++) {
-			(*i)(v);
-		}
-	}
+	void foreach(Setter<S> f) { for_each(out.begin(), out.end(), f); }
 public:
-	void connect(Notifier o) { out.push_back(o); }
+	void connect(S *s) { out.push_back(s); }
 };
 
-template <class T> class Value : public Out<T> {
-	public:
-	virtual T get() = 0;
+template <class T> struct ValueG {
+		virtual T get() = 0;
 };
 
-template <class T> class IO : public Value<T> {
-public:
+template <class T> struct ValueS {
 	virtual void set(const T) = 0;
 };
 
-template <class T> class Source : public IO<T> {
+template <class T> class ValueOut : public Out<ValueG<T>, ValueS<T> > {
+protected:
+	void do_set(T x) { foreach(setter1(&ValueS<T>::set, x)); }
+};
+
+template <class T> class ValueIO : public ValueOut<T>, public ValueS<T> {};
+
+template <class T> class ValueProxy : public ValueS<T> {
+	sigc::slot<void, const T> set_slot;
+public:
+	ValueProxy(sigc::slot<void, const T> set_slot_) : set_slot(set_slot_) {}
+	virtual void set(const T x) { return set_slot(x); }
+};
+
+template <class T> class Source : public ValueIO<T> {
 	T x;
-	void do_update() { Out<T>::update(x); }
+	void update() { do_set(x); }
 public:
 	Source() {}
 	Source(T x_) : x(x_) {}
 	virtual void set(const T x_) {
 		x = x_;
-		Out<T>::update(x);
+		update();
 	}
 	virtual T get() { return x; }
-	const T &ref() { return x; } // TODO should be shared w/ Var
+	const T &ref() { return x; }
 	// write_refs are evil
 	T &write_ref(Atomic &a) {
-		a.defer(sigc::mem_fun(*this, &Source::do_update));
+		a.defer(sigc::mem_fun(*this, &Source::update));
 		return x;
 	}
 	// unsafe_refs even more so
 	T &unsafe_ref() { return x; }
 };
 
-// one input
-template <class T> class In {
-	virtual void notify(const T) = 0;
-public:
-	In(Out<T> &in) { in.connect(sigc::mem_fun(*this, &In::notify)); }
-};
-
-template <class T> class Var : public Value<T>, public In<T> {
+template <class T> class Var : public ValueOut<T>, private ValueS<T> {
 	T x;
 public:
-	Var(Value<T> &in) : In<T>(in), x(in.get()) {}
-	virtual T get() { return x; }
-	virtual void notify(const T x_) {
+	Var(ValueOut<T> &in) : x(in.get()) { in.connect(this); }
+	virtual void set(const T x_) {
 		x = x_;
-		Out<T>::update(x);
+		do_set(x);
 	}
-	const T &ref() { return x; }
+	virtual T get() { return x; }
 };
 
-template <class X, class Y> class Fun : public Value<Y>, public In<X> {
-	Value<X> &in;
-protected:
-	virtual Y run(const X) = 0;
-	Fun(Value<X> &in_) : In<X>(in_), in(in_) {}
+template <class X, class Y> class Fun : public ValueOut<Y>, private ValueS<X> {
+	sigc::slot<Y, X> f;
+	ValueOut<X> &in;
 public:
-	virtual Y get() { return run(in.get()); }
-	virtual void notify(const X x) { Out<Y>::update(run(x)); }
-};
-
-template <class X, class Y, class Z> class Fun2 : public Value<Z> {
-	Value<X> &inX;
-	Value<Y> &inY;
-protected:
-	virtual Z run(const X, const Y) = 0;
-	Fun2(Value<X> &inX_, Value<Y> &inY_) : inX(inX_), inY(inY_) {
-		inX.connect(sigc::mem_fun(*this, &Fun2::notifyX));
-		inY.connect(sigc::mem_fun(*this, &Fun2::notifyY));
+	Fun(sigc::slot<Y, X> f_, ValueOut<X> &in_) : f(f_), in(in_) { in.connect(this); }
+	virtual Y get() { return f(in.get()); }
+	virtual void set(const X x) {
+		do_set(f(x));
 	}
-public:
-	virtual Z get() { return run(inX.get(), inY.get()); }
-	virtual void notifyX(const X x) { Out<Z>::update(run(x, inY.get())); }
-	virtual void notifyY(const Y y) { Out<Z>::update(run(inX.get(), y)); }
 };
 
-template <class X, class Y> class Bijection : public IO<Y>, public In<X> {
-	IO<X> &io;
-protected:
-	virtual Y run(const X) = 0;
-	virtual X inverse(const Y) = 0;
-	Bijection(IO<X> &io_) : In<X>(io_), io(io_) {}
+template <class X, class Y> Fun<X, Y> *fun(Y (*f)(X), ValueOut<X> &in) {
+	return new Fun<X, Y>(sigc::ptr_fun(f), in);
+}
+
+template <class X, class Y, class Z> class Fun2 : public ValueOut<Z> {
+	sigc::slot<Z, X, Y> f;
+	ValueOut<X> &inX;
+	ValueOut<Y> &inY;
 public:
-	virtual Y get() { return run(io.get()); }
-	virtual void notify(const X x) { Out<Y>::update(run(x)); }
-	virtual void set(const Y y) { io.set(inverse(y)); }
+	Fun2(sigc::slot<Z, X, Y> f_, ValueOut<X> &inX_, ValueOut<Y> &inY_) : f(f_), inX(inX_), inY(inY_) {
+		inX.connect(new ValueProxy<X>(sigc::mem_fun(*this, &Fun2::setX)));
+		inY.connect(new ValueProxy<Y>(sigc::mem_fun(*this, &Fun2::setY)));
+	}
+	virtual Z get() { return f(inX.get(), inY.get()); }
+	virtual void setX(const X x) { do_set(f(x, inY.get())); }
+	virtual void setY(const Y y) { do_set(f(inX.get(), y)); }
 };
 
-template <class X, class Y> class Converter : public Bijection<X, Y> {
-protected:
-	virtual Y run(const X x) { return (Y)x; }
-	virtual X inverse(const Y y) { return (X)y; }
+template <class X1, class X2, class Y> Fun2<X1, X2, Y> *fun2(Y (*f)(X1, X2), ValueOut<X1> &in1, ValueOut<X2> &in2) {
+	return new Fun2<X1, X2, Y>(sigc::ptr_fun(f), in1, in2);
+}
+
+template <class X, class Y> class Bijection : public ValueIO<Y> {
+	sigc::slot<Y, X> f;
+	sigc::slot<X, Y> g;
+	ValueIO<X> &in;
 public:
-	Converter(IO<X> &io_) : Bijection<X, Y>(io_) {}
+	Bijection(sigc::slot<Y, X> f_, sigc::slot<X, Y> g_, ValueIO<X> &in_) : f(f_), g(g_), in(in_) {
+		in.connect(new ValueProxy<X>(sigc::mem_fun(*this, &Bijection::notify)));
+	}
+	virtual Y get() { return f(in.get()); }
+	virtual void notify(const X x) { do_set(f(x)); }
+	virtual void set(const Y y) { in.set(g(y)); }
 };
+
+template <class X, class Y> Y convert(X x) { return (Y)x; }
+template <class X, class Y> Bijection<X, Y> *converter(ValueIO<X> &in) {
+	return new Bijection<X, Y>(sigc::ptr_fun(&convert<X, Y>), sigc::ptr_fun(&convert<Y, X>), in);
+}
 
 class Watcher {
-	template <class T> void notify_priv(const T) { notify(); }
+	template <class T> void notify_set(const T) { notify(); }
 protected:
 	virtual void notify() = 0;
 
 public:
-	template <class T> void watch(Out<T> &v) {
-		v.connect(sigc::mem_fun(*this, &Watcher::notify_priv<T>));
+	template <class T> void watchValue(ValueOut<T> &v) {
+		v.connect(new ValueProxy<T>(sigc::mem_fun(*this, &Watcher::notify_set<T>)));
 	}
 };
 

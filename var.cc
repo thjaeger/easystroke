@@ -17,20 +17,20 @@
 #include "var.h"
 
 #if TEST_VAR
-class IntLong : public Fun<int, long> {
-	virtual long run(const int &x) { return x; }
-public:
-	IntLong(Value<int> &in) : Fun<int, long>(in) {}
-};
+int plus(int x, int y) { return x + y; }
 
 void test() {
 	Source<int> x(0);
 	Var<int> y(x);
-	IntLong z(y);
-	Var<long> w(z);
-	printf("0 == %d == %d == %ld == %ld\n", x.get(), y.get(), z.get(), w.get());
+	Fun<int, long> *z = fun(&convert<int, long>, x);
+	Var<long> w(*z);
+	Fun2<int, int, int> *v = fun2(&plus, x, y);
+
+	printf("0 == %d == %d == %ld == %ld\n", x.get(), y.get(), z->get(), w.get());
+	printf("%d = %d + %d\n", v->get(), x.get(), y.get());
 	x.set(2);
-	printf("2 == %d == %d == %ld == %ld\n", x.get(), y.get(), z.get(), w.get());
+	printf("2 == %d == %d == %ld == %ld\n", x.get(), y.get(), z->get(), w.get());
+	printf("%d = %d + %d\n", v->get(), x.get(), y.get());
 }
 
 int main(int, char**) {

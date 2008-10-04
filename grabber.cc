@@ -273,7 +273,7 @@ bool Grabber::init_xi() {
 			supports_proximity.set(true);
 			break;
 		}
-	prefs.proximity.connect(sigc::mem_fun(*grabber, &Grabber::select_proximity));
+	prefs.proximity.connect(new ValueProxy<bool>(sigc::mem_fun(*grabber, &Grabber::select_proximity)));
 
 	return xi_devs_n;
 }

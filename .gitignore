@@ -1,5 +1,7 @@
 *.o
 *.Po
 easystroke
+easystroke.gz
+vartest
 gui.*
 *.swp
