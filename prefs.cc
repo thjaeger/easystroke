@@ -23,101 +23,95 @@
 #include <set>
 #include <iostream>
 
-Source<bool> xinput_v = false;
-Source<bool> supports_pressure = false;
-Source<bool> supports_proximity = false;
+Source<bool> xinput_v(false);
+Source<bool> supports_pressure(false);
+Source<bool> supports_proximity(false);
 
-class Check : public In {
-	IO<bool> &io;
+class Check : private ValueS<bool> {
+	ValueIO<bool> &io;
 	Gtk::CheckButton *check;
-	virtual void notify() { check->set_active(io.get()); }
-	virtual bool get() { return check->get_active(); }
+	virtual void set(const bool v) { check->set_active(v); }
 	void on_changed() {
 		bool b = check->get_active();
 		if (b == io.get()) return;
 		io.set(b);
 	}
 public:
-	Check(IO<bool> &io_, const Glib::ustring &name) : io(io_) {
+	Check(ValueIO<bool> &io_, const Glib::ustring &name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, check);
-		notify();
+		set(io.get());
 		check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
 	}
 };
 
-class Spin : public In {
-	IO<int> &io;
+class Spin : private ValueS<int> {
+	ValueIO<int> &io;
 	Gtk::SpinButton *spin;
 	Gtk::Button *button;
-	virtual void notify() { spin->set_value(io.get()); }
+	virtual void set(const int x) { spin->set_value(x); }
 	void on_changed() {
 		int i = spin->get_value();
 		if (i == io.get()) return;
 		io.set(i);
 	}
 public:
-	Spin(IO<int> &io_, const Glib::ustring & name) : io(io_) {
+	Spin(ValueIO<int> &io_, const Glib::ustring & name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, spin);
-		notify();
+		set(io.get());
 		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
 	}
 };
 
-class Combo : public In {
-	IO<int> &io;
+class Combo : private ValueS<int> {
+	ValueIO<int> &io;
 	Gtk::ComboBox *combo;
-	virtual void notify() { combo->set_active(io.get()); }
+	virtual void set(const int v) { combo->set_active(v); }
 	void on_changed() {
 		int i = combo->get_active_row_number();
 		if (i < 0 || i == io.get()) return;
 		io.set(i);
 	}
 public:
-	Combo(IO<int> &io_, const Glib::ustring & name) : io(io_) {
+	Combo(ValueIO<int> &io_, const Glib::ustring &name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, combo);
-		notify();
+		set(io.get());
 		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
 	}
 };
 
 template <class T> class ButtonSet {
-	IO<T> &io;
+	ValueIO<T> &io;
 	T def;
 	void on_click() { io.set(def); }
 public:
-	ButtonSet(IO<T> &io_, const Glib::ustring & name, T def_) : io(io_), def(def_) {
+	ButtonSet(ValueIO<T> &io_, const Glib::ustring &name, T def_) : io(io_), def(def_) {
 		Gtk::Button *button;
 		widgets->get_widget(name, button);
 		button->signal_clicked().connect(sigc::mem_fun(*this, &ButtonSet::on_click));
 	}
 };
 
-class Sensitive : public In {
-	Out<bool> &in;
+class Sensitive : private ValueS<bool> {
 	Gtk::Widget *widget;
 public:
-	virtual void notify() { widget->set_sensitive(in.get()); }
-	Sensitive(Out<bool> &in_, const Glib::ustring & name) : in(in_) {
-		widgets->get_widget(name, widget);
+	virtual void set(const bool v) { widget->set_sensitive(v); }
+	Sensitive(ValueOut<bool> &in, const Glib::ustring &name) {
 		in.connect(this);
-		notify();
+		widgets->get_widget(name, widget);
+		set(in.get());
 	}
 };
 
-class ToIsCustom : public Fun<int, bool> {
-	bool run(const int &profile) { return profile == TO_CUSTOM; }
-public:
-	ToIsCustom(Out<int> &in) : Fun<int, bool>(in) {}
-};
+bool and_(bool x, bool y) { return x && y; }
+bool is_custom(int profile) { return profile == TO_CUSTOM; }
 
-class TimeoutProfile : public In {
-	Out<int> &in;
+class TimeoutProfile : private ValueS<int> {
 public:
-	virtual void notify() {
-		switch (in.get()) {
+	virtual void set(const int v) {
+		switch (v) {
 			case TO_OFF:
 				prefs.init_timeout.set(0);
 				prefs.min_speed.set(0);
@@ -140,7 +134,10 @@ public:
 				break;
 		}
 	}
-	TimeoutProfile(Out<int> &in_) : in(in_) { in.connect(this); }
+	TimeoutProfile(ValueOut<int> &in) {
+		in.connect(this);
+		set(in.get());
+	}
 };
 
 void remove_last_entry(const Glib::ustring & name) {
@@ -176,9 +173,8 @@ Prefs::Prefs() {
 	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
-	new Combo(*new Converter<TraceType, int>(prefs.trace), "combo_trace");
+	new Combo(*converter<TraceType, int>(prefs.trace), "combo_trace");
 	new Combo(prefs.timeout_profile, "combo_timeout");
-	new Sensitive(*new ToIsCustom(prefs.timeout_profile), "hbox_timeout");
 	new TimeoutProfile(prefs.timeout_profile);
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
@@ -195,7 +191,7 @@ Prefs::Prefs() {
 	new Sensitive(xinput_v, "check_timing_workaround");
 	new Sensitive(xinput_v, "check_ignore_grab");
 	new Sensitive(xinput_v, "hbox_timeout_profile");
-	new Sensitive(xinput_v, "hbox_timeout");
+	new Sensitive(*fun2(&and_, xinput_v, *fun(&is_custom, prefs.timeout_profile)), "hbox_timeout");
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
 

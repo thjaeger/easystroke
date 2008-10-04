@@ -190,7 +190,7 @@ void ActionDBWatcher::init() {
 	} catch (...) {
 		cout << "Error: Couldn't read action database." << endl;
 	}
-	watch(actions);
+	watchValue(actions);
 }
 
 void ActionDBWatcher::timeout() {

@@ -1062,6 +1062,19 @@ public:
 
 ActionDBWatcher *action_watcher = 0;
 
+void reload_trace(TraceType) { 
+	Trace *new_trace = init_trace();
+	delete trace;
+	trace = new_trace;
+}
+
+void open_uri(Gtk::LinkButton *button, const Glib::ustring& uri) {
+	if (!fork()) {
+		execlp("xdg-open", "xdg-open", uri.c_str(), NULL);
+		exit(EXIT_FAILURE);
+	}
+}
+
 Main::Main(int argc, char **argv) : kit(0) {
 	Glib::thread_init();
 	if (0) {
@@ -1071,9 +1084,12 @@ Main::Main(int argc, char **argv) : kit(0) {
 	}
 	display = parse_args_and_init_gtk(argc, argv);
 	create_config_dir();
+	unsetenv("DESKTOP_AUTOSTART_ID");
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
+
+	Gtk::LinkButton::set_uri_hook(sigc::ptr_fun(&open_uri));
 
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {
@@ -1094,14 +1110,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
 
 	trace = init_trace();
-	class NotifyTrace : public In {
-		virtual void notify() { 
-			Trace *new_trace = init_trace();
-			delete trace;
-			trace = new_trace;
-		}
-	};
-	prefs.trace.connect(new NotifyTrace);
+	prefs.trace.connect(new ValueProxy<TraceType>(sigc::ptr_fun(&reload_trace)));
 
 	handler = new IdleHandler;
 	handler->init();
@@ -1524,6 +1533,16 @@ void Main::handle_event(XEvent &ev) {
 
 void update_current() {
 	grabber->update(current);
+}
+
+void suspend_flush() {
+	grabber->suspend();
+	XFlush(dpy);
+}
+
+void resume_flush() {
+	grabber->resume();
+	XFlush(dpy);
 }
 
 void Prefs::on_add() {

@@ -355,6 +355,8 @@ public:
 };
 
 extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+void suspend_flush();
+void resume_flush();
 
 void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
 	Gtk::Dialog *dialog;
@@ -362,8 +364,17 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	Gtk::TreeRow row(*tm->get_iter(path));
 	FormatLabel foo(widgets, "label_record", Glib::ustring(row[cols.name]).c_str());
 
-	Gtk::Button *del;
-	widgets->get_widget("button_delete_current", del);
+	static Gtk::Button *del = 0, *cancel = 0;
+	if (!del) {
+		widgets->get_widget("button_record_delete", del);
+		del->signal_enter().connect(sigc::ptr_fun(&suspend_flush));
+		del->signal_leave().connect(sigc::ptr_fun(&resume_flush));
+	}
+	if (!cancel) {
+		widgets->get_widget("button_record_cancel", cancel);
+		cancel->signal_enter().connect(sigc::ptr_fun(&suspend_flush));
+		cancel->signal_leave().connect(sigc::ptr_fun(&resume_flush));
+	}
 	const StrokeInfo *si = actions.ref().lookup(row[cols.id]);
 	if (si)
 		del->set_sensitive(si->strokes.size());

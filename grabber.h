@@ -57,7 +57,7 @@ public:
 	bool proximity_selected;
 	bool is_event(int, EventType);
 	unsigned int get_device_button_state();
-	void select_proximity();
+	void select_proximity(bool);
 
 	struct XiDevice {
 		XDevice *dev;
