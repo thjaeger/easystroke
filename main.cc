@@ -35,6 +35,7 @@
 #include <getopt.h>
 
 bool gui = true;
+bool show_gui = false;
 extern bool no_xi;
 bool experimental = false;
 int verbosity = 0;
@@ -1079,6 +1080,8 @@ void Main::run() {
 	allower->connect(sigc::ptr_fun(&allow_events));
 	Glib::Thread::create(sigc::ptr_fun(&check_endless), false);
 	win = new Win;
+	if (show_gui)
+		win->get_window().show();
 	Gtk::Main::run();
 	delete win;
 	gui = false;
@@ -1097,6 +1100,7 @@ void Main::usage(char *me, bool good) {
 	printf("  -x  --no-xi            Don't use the Xinput extension\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
 	printf("  -n, --no-gui           Don't start the gui\n");
+	printf("  -g, --show-gui         Show the configuration dialog on startup\n");
 	printf("      --offset-x         XInput workaround\n");
 	printf("      --offset-y         XInput workaround\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
@@ -1118,6 +1122,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"help",0,0,'h'},
 		{"version",0,0,'V'},
 		{"no-gui",1,0,'n'},
+		{"show-gui",0,0,'g'},
 		{"no-xi",1,0,'x'},
 		{0,0,0,0}
 	};
@@ -1126,6 +1131,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"display",1,0,'d'},
 		{"experimental",0,0,'e'},
 		{"no-gui",0,0,'n'},
+		{"show-gui",0,0,'g'},
 		{"no-xi",0,0,'x'},
 		{"verbose",0,0,'v'},
 		{"offset-x",1,0,'X'},
@@ -1136,13 +1142,16 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	char opt;
 	// parse --display here, before Gtk::Main(...) takes it away from us
 	opterr = 0;
-	while ((opt = getopt_long(argc, argv, "nhx", long_opts1, 0)) != -1)
+	while ((opt = getopt_long(argc, argv, "nghx", long_opts1, 0)) != -1)
 		switch (opt) {
 			case 'd':
 				display = optarg;
 				break;
 			case 'n':
 				gui = false;
+				break;
+			case 'g':
+				show_gui = true;
 				break;
 			case 'h':
 				usage(argv[0], true);
@@ -1159,7 +1168,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	kit = new Gtk::Main(argc, argv);
 	oldHandler = XSetErrorHandler(xErrorHandler);
 
-	while ((opt = getopt_long(argc, argv, "c:envx", long_opts2, 0)) != -1) {
+	while ((opt = getopt_long(argc, argv, "c:engvx", long_opts2, 0)) != -1) {
 		switch (opt) {
 			case 'c':
 				config_dir = optarg;
@@ -1172,6 +1181,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 				break;
 			case 'd':
 			case 'n':
+			case 'g':
 			case 'x':
 				break;
 			case 'X':
