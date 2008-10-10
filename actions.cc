@@ -72,54 +72,26 @@ protected:
 	}
 };
 
-class CellEditableCombo : public Gtk::EventBox, public Gtk::CellEditable {
+class CellEditableCombo : public Gtk::ComboBoxText, public Gtk::CellEditable {
 	CellRendererTextish *parent;
 	Glib::ustring path;
-	Gtk::ComboBoxText *combo;
 public:
 	CellEditableCombo(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget) :
 		Glib::ObjectBase( typeid(CellEditableAccel)),
 		parent(parent_), path(path_)
 	{
-		combo = new Gtk::ComboBoxText;
-		combo->append_text("foo");
-		combo->append_text("bar");
-//		combo->set_alignment(0.0, 0.5);
-		add(*combo);
-//		modify_bg(Gtk::STATE_NORMAL, widget.get_style()->get_bg(Gtk::STATE_SELECTED));
-//		label.modify_fg(Gtk::STATE_NORMAL, widget.get_style()->get_fg(Gtk::STATE_SELECTED));
-		show_all();
+		append_text("foo");
+		append_text("bar");
+		show();
 	}
 protected:
-
 	virtual void start_editing_vfunc(GdkEvent *event) {
-//		combo->popup();
+		popup();
 	}
 
-	/*
-	bool on_key(GdkEventKey* event) {
-		if (event->is_modifier)
-			return true;
-		switch (event->keyval) {
-			case GDK_Super_L:
-			case GDK_Super_R:
-			case GDK_Hyper_L:
-			case GDK_Hyper_R:
-				return true;
-		}
-		guint key = gdk_keyval_to_lower(event->keyval);
-		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
-
+	virtual void on_changed() {
 		editing_done();
 		remove_widget();
-
-		parent->signal_key_edited().emit(path, key, (Gdk::ModifierType)mods, event->hardware_keycode);
-		return true;
-	}
-	*/
-
-	virtual void on_editing_done() {
-		Gtk::CellEditable::on_editing_done();
 	}
 };
 
@@ -130,7 +102,9 @@ Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk
 	if (mode == KEY) {
 		// TODO: Do we have to check if the cell is editable?
 		return Gtk::manage(new CellEditableAccel(this, path, widget));
-		//return Gtk::manage(new CellEditableCombo(this, path, widget));
+	}
+	if (mode == COMBO) {
+		return Gtk::manage(new CellEditableCombo(this, path, widget));
 	}
 	return 0;
 }
