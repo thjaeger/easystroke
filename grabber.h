@@ -46,6 +46,8 @@ class Grabber;
 extern Grabber *grabber;
 
 float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
+bool has_wm_state(Window w);
+bool has_atom(Window w, Atom prop, Atom value);
 
 class Grabber {
 public:
@@ -105,6 +107,8 @@ public:
 	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
 	void grab_xi_devs(bool);
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
+
+	void unminimize();
 };
 
 class GrabFailedException : public std::exception {

@@ -39,12 +39,20 @@ public:
 		map1.erase(i2->second);
 		map2.erase(i2->first);
 	}
+	void pop(X1 &x1, X2 &x2) {
+		typename std::map<X1, X2>::reverse_iterator i1 = map1.rbegin();
+		x1 = i1->first;
+		x2 = i1->second;
+		map2.erase(i1->second);
+		map1.erase(i1->first);
+	}
 	void add(X1 x1, X2 x2) {
 		erase1(x1);
 		erase2(x2);
 		map1[x1] = x2;
 		map2[x2] = x1;
 	}
+	bool empty() { return map1.empty(); }
 	bool contains1(X1 x1) { return map1.find(x1) != map1.end(); }
 	bool contains2(X2 x2) { return map2.find(x2) != map2.end(); }
 	X2 find1(X1 x1) { return map1.find(x1)->second; }
@@ -60,6 +68,12 @@ Atom XAtom::operator*() {
 BiMap<Window, Window> frame_win;
 std::map<Window, Window> frame_child;
 XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
+XAtom _NET_WM_STATE("_NET_WM_STATE");
+XAtom _NET_WM_STATE_HIDDEN("_NET_WM_STATE_HIDDEN");
+XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
+
+BiMap<unsigned int, Window> minimized;
+unsigned int minimized_n = 0;
 
 extern Window get_window(Window w, Atom prop);
 
@@ -103,12 +117,22 @@ bool Children::handle(XEvent &ev) {
 				remove(ev.xreparent.window);
 			return true;
 		case PropertyNotify:
-			if (ev.xproperty.atom != *_NET_FRAME_WINDOW)
-				return true;
-			if (ev.xproperty.state == PropertyDelete)
-				frame_win.erase1(ev.xproperty.window);
-			if (ev.xproperty.state == PropertyNewValue)
-				get_frame(ev.xproperty.window);
+			if (ev.xproperty.atom == *_NET_FRAME_WINDOW) {
+				if (ev.xproperty.state == PropertyDelete)
+					frame_win.erase1(ev.xproperty.window);
+				if (ev.xproperty.state == PropertyNewValue)
+					get_frame(ev.xproperty.window);
+			}
+			if (ev.xproperty.atom == *_NET_WM_STATE) {
+				if (ev.xproperty.state == PropertyDelete) {
+					minimized.erase2(ev.xproperty.window);
+					return true;
+				}
+				if (has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN))
+					minimized.add(minimized_n++, ev.xproperty.window);
+				else
+					minimized.erase2(ev.xproperty.window);
+			}
 			return true;
 		default:
 			return false;
@@ -131,6 +155,29 @@ void Children::remove(Window w) {
 void Children::destroy(Window w) {
 	frame_win.erase1(w);
 	frame_win.erase2(w);
+}
+
+void activate(Window w, Time t) {
+	XClientMessageEvent ev;
+	ev.type = ClientMessage;
+	ev.window = w;
+	ev.message_type = *_NET_ACTIVE_WINDOW;
+	ev.format = 32;
+	ev.data.l[0] = 0; // 1 app, 2 pager
+	ev.data.l[1] = t;
+	ev.data.l[2] = 0;
+	ev.data.l[3] = 0;
+	ev.data.l[4] = 0;
+	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
+}
+
+void Grabber::unminimize() {
+	if (minimized.empty())
+		return;
+	Window w;
+	unsigned int n;
+	minimized.pop(n, w);
+	activate(w, CurrentTime);
 }
 
 extern Source<bool> xinput_v, supports_pressure, supports_proximity;

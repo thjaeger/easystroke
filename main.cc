@@ -1657,7 +1657,7 @@ bool Misc::run() {
 			win->show_hide();
 			return true;
 		case UNMINIMIZE:
-			printf("Not implemented yet...\n");
+			grabber->unminimize();
 			return true;
 		default:
 			return true;
