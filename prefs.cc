@@ -167,6 +167,8 @@ Prefs::Prefs() {
 	new Check(prefs.left_handed, "check_left_handed");
 	new Sensitive(prefs.feedback, "check_left_handed");
 
+	new Check(prefs.tray_icon, "check_tray_icon");
+
 	new Spin(prefs.init_timeout, "spin_timeout");
 	new Spin(prefs.min_speed, "spin_min_speed");
 

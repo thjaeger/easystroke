@@ -120,14 +120,11 @@ int run_dialog(const char *str) {
 Win::Win() {
 	widgets = Gtk::Builder::create_from_string(gui_buffer),
 	actions = new Actions;
-	prefs = new Prefs;
+	prefs_tab = new Prefs;
 	stats = new Stats;
 
-	current_icon = Stroke::trefoil();
-	icon = Gtk::StatusIcon::create("");
-	icon->signal_size_changed().connect(sigc::mem_fun(*this, &Win::on_icon_size_changed));
-	icon->signal_activate().connect(sigc::mem_fun(*this, &Win::show_hide));
-	icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
+	show_hide_icon(prefs.tray_icon.get());
+	prefs.tray_icon.connect(new ValueProxy<bool>(sigc::mem_fun(*this, &Win::show_hide_icon)));
 
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
 	menu.append(menu_quit);
@@ -151,8 +148,25 @@ Win::Win() {
 
 Win::~Win() {
 	delete actions;
-	delete prefs;
+	delete prefs_tab;
 	delete stats;
+}
+
+void Win::show_hide_icon(bool show) {
+	if (show) {
+		if (icon)
+			return;
+		current_icon = Stroke::trefoil();
+
+		icon = Gtk::StatusIcon::create("");
+		icon->signal_size_changed().connect(sigc::mem_fun(*this, &Win::on_icon_size_changed));
+		icon->signal_activate().connect(sigc::mem_fun(*this, &Win::show_hide));
+		icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
+	} else {
+		if (!icon)
+			return;
+		icon.reset();
+	}
 }
 
 void Win::show_popup(guint button, guint32 activate_time) {

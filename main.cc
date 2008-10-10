@@ -1322,9 +1322,11 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 			else
 				delete ranking;
 		}
-		ShowIcon *si = new ShowIcon;
-		si->s = s;
-		Glib::signal_idle().connect(sigc::mem_fun(si, &ShowIcon::run));
+		if (win->has_icon()) {
+			ShowIcon *si = new ShowIcon;
+			si->s = s;
+			Glib::signal_idle().connect(sigc::mem_fun(si, &ShowIcon::run));
+		}
 	} else {
 		Ranking *ranking = as.handle(s, button_up);
 		success = ranking->id > -2;
@@ -1458,7 +1460,7 @@ void Main::handle_event(XEvent &ev) {
 		} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
 		grabber->update(current);
 		if (window_selected) {
-			win->prefs->on_selected(grabber->get_wm_class(current));
+			win->prefs_tab->on_selected(grabber->get_wm_class(current));
 			window_selected = false;
 		}
 		break;

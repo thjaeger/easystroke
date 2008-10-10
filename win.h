@@ -38,14 +38,16 @@ public:
 
 	Gtk::Window& get_window() { return *win; }
 	Actions *actions;
-	Prefs *prefs;
+	Prefs *prefs_tab;
 	Stats *stats;
 	void on_icon_changed(RStroke s);
 	void show_hide();
+	bool has_icon() { return icon; }
 private:
 	bool on_icon_size_changed(int);
 	void on_help_toggled();
 	void show_popup(guint, guint32);
+	void show_hide_icon(bool show);
 
 	Gtk::Window *win;
 

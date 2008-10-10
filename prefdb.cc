@@ -50,7 +50,8 @@ PrefDB::PrefDB() :
 	init_timeout(200),
 	min_speed(40),
 	timeout_profile(TO_CONSERVATIVE),
-	timeout_gestures(false)
+	timeout_gestures(false),
+	tray_icon(true)
 {}
 
 void PrefDB::timeout() {
@@ -100,6 +101,7 @@ void PrefDB::init() {
 	watchValue(min_speed);
 	watchValue(timeout_profile);
 	watchValue(timeout_gestures);
+	watchValue(tray_icon);
 }
 
 PrefDB prefs;

@@ -96,6 +96,7 @@ class PrefDB : public TimeoutWatcher {
 		ar & timeout_profile.unsafe_ref();
 		if (version < 9) return;
 		ar & timeout_gestures.unsafe_ref();
+		ar & tray_icon.unsafe_ref();
 	}
 public:
 	PrefDB();
@@ -118,6 +119,7 @@ public:
 	Source<int> min_speed;
 	Source<int> timeout_profile;
 	Source<bool> timeout_gestures;
+	Source<bool> tray_icon;
 
 	void init();
 	virtual void timeout();
