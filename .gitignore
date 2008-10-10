@@ -5,3 +5,4 @@ easystroke.gz
 vartest
 gui.*
 *.swp
+dbus-server.h

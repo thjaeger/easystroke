@@ -35,9 +35,9 @@ MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 CFILES   = gui.c
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES)) 
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES))
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.gb gui.c
+GENFILES = gui.gb gui.c dbus-server.h
 
 all: $(TARGETS)
 
@@ -70,6 +70,11 @@ gui.c: gui.gb
 	echo "const char *gui_buffer = \"\\" > gui.c
 	sed 's/"/\\"/g' gui.gb | sed 's/.*/&\\n\\/' >> gui.c
 	echo "\";" >> gui.c
+
+dbus-server.cc: dbus-server.h
+
+dbus-server.h: dbus.xml
+	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
 
 vartest: var.cc var.h
 	g++ -ggdb `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` -DTEST_VAR var.cc -o vartest

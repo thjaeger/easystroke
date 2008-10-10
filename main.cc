@@ -1033,6 +1033,18 @@ class SelectHandler : public Handler {
 	virtual std::string name() { return "Select"; }
 };
 
+
+void run_by_name(const char *str) {
+	for (ActionDB::const_iterator i = actions.ref().begin(); i != actions.ref().end(); i++) {
+		if (i->second.name == std::string(str)) {
+			i->second.action->run();
+			clear_mods();
+			return;
+		}
+	}
+	printf("Warning: No action \"%s\" defined\n", str);
+}
+
 bool dead = false;
 
 void quit(int) {
@@ -1076,13 +1088,35 @@ void open_uri(Gtk::LinkButton *button, const Glib::ustring& uri) {
 	}
 }
 
+// dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
+void send_dbus(char *str) {
+	GError *error = 0;
+	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
+	if (!bus) {
+		printf("Error initializing D-BUS\n");
+		exit(EXIT_FAILURE);
+	}
+	DBusGProxy *proxy = dbus_g_proxy_new_for_name(bus, "org.easystroke", "/org/easystroke", "org.easystroke");
+	dbus_g_proxy_call_no_reply(proxy, "send", G_TYPE_STRING, str, G_TYPE_INVALID);
+}
+
+bool start_dbus();
+
 Main::Main(int argc, char **argv) : kit(0) {
-	Glib::thread_init();
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("easystroke.svg");
 		exit(EXIT_SUCCESS);
 	}
+	if (argc > 1 && !strcmp(argv[1], "send")) {
+		if (argc == 2)
+			usage(argv[0], false);
+		gtk_init(&argc, &argv);
+		send_dbus(argv[2]);
+		exit(EXIT_SUCCESS);
+	}
+
+	Glib::thread_init();
 	display = parse_args_and_init_gtk(argc, argv);
 	create_config_dir();
 	unsetenv("DESKTOP_AUTOSTART_ID");
@@ -1117,6 +1151,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 	handler->init();
 	XTestGrabControl(dpy, True);
 
+	start_dbus();
 }
 
 Glib::Dispatcher *allower = 0;
@@ -1165,6 +1200,7 @@ void Main::usage(char *me, bool good) {
 	printf("http://easystroke.wiki.sourceforge.net/Documentation#content\n");
 	printf("\n");
 	printf("Usage: %s [OPTION]...\n", me);
+	printf("       %s send <action name>\n", me);
 	printf("\n");
 	printf("Options:\n");
 	printf("  -c, --config-dir       Directory for config files\n");
