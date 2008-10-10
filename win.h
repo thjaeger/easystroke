@@ -41,8 +41,8 @@ public:
 	Prefs *prefs;
 	Stats *stats;
 	void on_icon_changed(RStroke s);
+	void show_hide();
 private:
-	void on_icon_click();
 	bool on_icon_size_changed(int);
 	void on_help_toggled();
 	void show_popup(guint, guint32);

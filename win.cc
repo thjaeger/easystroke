@@ -126,7 +126,7 @@ Win::Win() {
 	current_icon = Stroke::trefoil();
 	icon = Gtk::StatusIcon::create("");
 	icon->signal_size_changed().connect(sigc::mem_fun(*this, &Win::on_icon_size_changed));
-	icon->signal_activate().connect(sigc::mem_fun(*this, &Win::on_icon_click));
+	icon->signal_activate().connect(sigc::mem_fun(*this, &Win::show_hide));
 	icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
 
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
@@ -164,7 +164,7 @@ void Win::on_icon_changed(RStroke s) {
 	on_icon_size_changed(icon->get_size());
 }
 
-void Win::on_icon_click() {
+void Win::show_hide() {
 	if (win->is_mapped())
 		win->hide();
 	else

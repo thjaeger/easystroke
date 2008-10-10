@@ -34,6 +34,7 @@ class SendKey;
 class Scroll;
 class Ignore;
 class Button;
+class Misc;
 
 typedef boost::shared_ptr<Action> RAction;
 typedef boost::shared_ptr<Command> RCommand;
@@ -41,6 +42,7 @@ typedef boost::shared_ptr<SendKey> RSendKey;
 typedef boost::shared_ptr<Scroll> RScroll;
 typedef boost::shared_ptr<Ignore> RIgnore;
 typedef boost::shared_ptr<Button> RButton;
+typedef boost::shared_ptr<Misc> RMisc;
 
 class Action {
 	friend class boost::serialization::access;
@@ -115,6 +117,22 @@ public:
 	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
 	virtual bool run();
 	virtual const Glib::ustring get_label() const;
+};
+
+class Misc : public Action {
+	friend class boost::serialization::access;
+public:
+	enum Type { NONE, UNMINIMIZE, SHOWHIDE };
+private:
+	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+	Misc(Type t) : type(t) {}
+	Type type;
+public:
+	static const char *types[4];
+	Misc() {}
+	virtual const Glib::ustring get_label() const { return types[type]; }
+	static RMisc create(Type t) { return RMisc(new Misc(t)); }
+	virtual bool run();
 };
 
 class StrokeSet : public std::set<RStroke> {

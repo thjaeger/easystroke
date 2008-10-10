@@ -1650,3 +1650,16 @@ bool Ignore::run() {
 	ignore = true;
 	return true;
 }
+
+bool Misc::run() {
+	switch (type) {
+		case SHOWHIDE:
+			win->show_hide();
+			return true;
+		case UNMINIMIZE:
+			printf("Not implemented yet...\n");
+			return true;
+		default:
+			return true;
+	}
+}

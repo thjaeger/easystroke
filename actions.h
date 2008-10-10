@@ -24,15 +24,19 @@ class CellRendererTextish : public Gtk::CellRendererText {
 public:
 	enum Mode { TEXT, KEY, POPUP, COMBO };
 	Mode mode;
+	const char **items;
 	CellRendererTextish() : mode(TEXT) {}
 	typedef sigc::signal<void, const Glib::ustring&, guint, Gdk::ModifierType, guint> key_edited;
+	typedef sigc::signal<void, const Glib::ustring&, guint> combo_edited;
 	key_edited &signal_key_edited() { return signal_key_edited_; }
+	combo_edited &signal_combo_edited() { return signal_combo_edited_; }
 protected:
 	virtual Gtk::CellEditable* start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
 			const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area,
 			Gtk::CellRendererState flags);
 private:
 	key_edited signal_key_edited_;
+	combo_edited signal_combo_edited_;
 };
 
 class Actions {
@@ -48,6 +52,7 @@ private:
 	void on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_type_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode);
+	void on_combo_edited(const Glib::ustring& path_string, guint item);
 	void on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_something_editing_canceled();

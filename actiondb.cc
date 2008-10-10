@@ -37,6 +37,7 @@ BOOST_CLASS_EXPORT(ModAction)
 BOOST_CLASS_EXPORT(Scroll)
 BOOST_CLASS_EXPORT(Ignore)
 BOOST_CLASS_EXPORT(Button)
+BOOST_CLASS_EXPORT(Misc)
 
 class SendKeyPriv : public SendKey {
 	friend class boost::serialization::access;
@@ -120,6 +121,11 @@ template<class Archive> void Button::serialize(Archive & ar, const unsigned int 
 	ar & button;
 }
 
+template<class Archive> void Misc::serialize(Archive & ar, const unsigned int version) {
+	ar & boost::serialization::base_object<Action>(*this);
+	ar & type;
+}
+
 template<class Archive> void StrokeSet::serialize(Archive & ar, const unsigned int version) {
 	ar & boost::serialization::base_object<std::set<RStroke> >(*this);
 }
@@ -158,6 +164,8 @@ ButtonInfo Button::get_button_info() const {
 const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
+
+const char *Misc::types[4] = { "None", "Unminimize", "Show/Hide", NULL };
 
 ActionDB::ActionDB() : current_id(0) {}
 

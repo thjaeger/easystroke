@@ -76,13 +76,12 @@ class CellEditableCombo : public Gtk::ComboBoxText, public Gtk::CellEditable {
 	CellRendererTextish *parent;
 	Glib::ustring path;
 public:
-	CellEditableCombo(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget) :
+	CellEditableCombo(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget, const char **items) :
 		Glib::ObjectBase( typeid(CellEditableAccel)),
 		parent(parent_), path(path_)
 	{
-		append_text("foo");
-		append_text("bar");
-		show();
+		while (*items)
+			append_text(*(items++));
 	}
 protected:
 	virtual void start_editing_vfunc(GdkEvent *event) {
@@ -91,7 +90,9 @@ protected:
 
 	virtual void on_changed() {
 		editing_done();
+		int active = get_active_row_number();
 		remove_widget();
+		parent->signal_combo_edited().emit(path, active);
 	}
 };
 
@@ -104,7 +105,7 @@ Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk
 		return Gtk::manage(new CellEditableAccel(this, path, widget));
 	}
 	if (mode == COMBO) {
-		return Gtk::manage(new CellEditableCombo(this, path, widget));
+		return Gtk::manage(new CellEditableCombo(this, path, widget, items));
 	}
 	return 0;
 }
@@ -114,6 +115,7 @@ const char *COMMAND = "Command";
 const char *SCROLL = "Scroll";
 const char *IGNORE = "Ignore";
 const char *BUTTON = "Button";
+const char *MISC = "Misc";
 
 Actions::Actions() :
 	tv(0),
@@ -177,6 +179,11 @@ Actions::Actions() :
 				row[cols.arg] = button->get_label();
 				row[cols.type] = BUTTON;
 			}
+			RMisc misc = boost::dynamic_pointer_cast<Misc>(si.action);
+			if (misc) {
+				row[cols.arg] = misc->get_label();
+				row[cols.type] = MISC;
+			}
 		}
 	}
 
@@ -195,6 +202,7 @@ Actions::Actions() :
 	type_store = Gtk::ListStore::create(type);
 	(*(type_store->append()))[type.type] = COMMAND;
 	(*(type_store->append()))[type.type] = KEY;
+	(*(type_store->append()))[type.type] = MISC;
 	(*(type_store->append()))[type.type] = IGNORE;
 	(*(type_store->append()))[type.type] = SCROLL;
 	(*(type_store->append()))[type.type] = BUTTON;
@@ -215,6 +223,7 @@ Actions::Actions() :
 	col_accel->add_attribute(arg_renderer.property_text(), cols.arg);
 	arg_renderer.property_editable() = true;
 	arg_renderer.signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
+	arg_renderer.signal_combo_edited().connect(sigc::mem_fun(*this, &Actions::on_combo_edited));
 	arg_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
 	arg_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 
@@ -262,6 +271,11 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 		if (new_type == BUTTON) {
 			row[cols.arg] = "";
 			as[id].action = Button::create((Gdk::ModifierType)0, 0);
+			edit = true;
+		}
+		if (new_type == BUTTON) {
+			row[cols.arg] = "";
+			as[id].action = Misc::create(Misc::NONE);
 			edit = true;
 		}
 		update_arg(new_type);
@@ -399,7 +413,10 @@ void Actions::update_arg(Glib::ustring str) {
 		arg_renderer.mode = CellRendererTextish::KEY;
 	else if (str == BUTTON)
 		arg_renderer.mode = CellRendererTextish::POPUP;
-	else
+	else if (str == MISC) {
+		arg_renderer.mode = CellRendererTextish::COMBO;
+		arg_renderer.items = Misc::types;
+	} else
 		arg_renderer.mode = CellRendererTextish::TEXT;
 }
 
@@ -503,6 +520,20 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		ActionDB &as = actions.write_ref(a);
 		as[row[cols.id]].action = boost::static_pointer_cast<Action>(ignore);
 	}
+}
+
+void Actions::on_combo_edited(const Glib::ustring& path_string, guint item) {
+	if (item < 0)
+		item = 0;
+	RMisc misc = Misc::create((Misc::Type)item);
+	Glib::ustring str = misc->get_label();
+	Gtk::TreeRow row(*tm->get_iter(path_string));
+	if (row[cols.arg] == str)
+		return;
+	row[cols.arg] = str;
+	Atomic a;
+	ActionDB &as = actions.write_ref(a);
+	as[row[cols.id]].action = boost::static_pointer_cast<Action>(misc);
 }
 
 void Actions::on_something_editing_canceled() {
