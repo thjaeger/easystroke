@@ -273,8 +273,8 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 			as[id].action = Button::create((Gdk::ModifierType)0, 0);
 			edit = true;
 		}
-		if (new_type == BUTTON) {
-			row[cols.arg] = "";
+		if (new_type == MISC) {
+			row[cols.arg] = "None";
 			as[id].action = Misc::create(Misc::NONE);
 			edit = true;
 		}
