@@ -205,9 +205,6 @@ Prefs::Prefs() {
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
 
-	remove_last_entry("combo_trace");
-	remove_last_entry("combo_timeout");
-
 	double p = prefs.p.get();
 	scale_p->set_value(p);
 	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
