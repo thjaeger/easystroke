@@ -27,7 +27,7 @@ class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
 	Glib::ustring path;
 public:
 	CellEditableAccel(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget) :
-		Glib::ObjectBase( typeid(CellEditableAccel)),
+		Glib::ObjectBase(typeid(CellEditableAccel)),
 		parent(parent_), path(path_)
 	{
 		WIDGET(Gtk::Label, label, "Key combination...");
@@ -77,31 +77,25 @@ class CellEditableCombo : public Gtk::ComboBoxText, public Gtk::CellEditable {
 	Glib::ustring path;
 public:
 	CellEditableCombo(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget, const char **items) :
-		Glib::ObjectBase( typeid(CellEditableAccel)),
+		Glib::ObjectBase(typeid(CellEditableCombo)),
 		parent(parent_), path(path_)
 	{
 		while (*items)
 			append_text(*(items++));
 	}
 protected:
-	virtual void start_editing_vfunc(GdkEvent *event) {
-		popup();
-	}
-
 	virtual void on_changed() {
-		editing_done();
-		int active = get_active_row_number();
-		remove_widget();
-		parent->signal_combo_edited().emit(path, active);
+		parent->signal_combo_edited().emit(path, get_active_row_number());
 	}
 };
 
 Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
 		const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area, Gtk::CellRendererState flags) {
+	if (!property_editable())
+		    return 0;
 	if (mode == TEXT)
 		return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
 	if (mode == KEY) {
-		// TODO: Do we have to check if the cell is editable?
 		return Gtk::manage(new CellEditableAccel(this, path, widget));
 	}
 	if (mode == COMBO) {
