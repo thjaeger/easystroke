@@ -78,7 +78,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	char dbtext[128];
 	XGetErrorDatabaseText(dpy, "XRequest", msg,
 			def, dbtext, sizeof dbtext);
-	std::cerr << "XError: " << text << ": " << dbtext << std::endl;
+	printf("XError: %s: %s\n", text, dbtext);
 	return 0;
 
 }
