@@ -195,6 +195,7 @@ bool wm_running() {
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
 	suspended = false;
+	xi_suspended = false;
 	disabled = false;
 	active = true;
 	grabbed = NONE;
@@ -371,33 +372,33 @@ void Grabber::grab_xi(bool grab) {
 	if (!xi_grabbed == !grab)
 		return;
 	xi_grabbed = grab;
-	if (grab) {
-		for (int i = 0; i < xi_devs_n; i++)
-			for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-				XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
+	for (int i = 0; i < xi_devs_n; i++)
+		if (!prefs.excluded_devices.get().count(xi_devs[i]->name))
+			if (grab) {
+				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
 							button_events_n, xi_devs[i]->events,
 							GrabModeAsync, GrabModeAsync);
-				XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask, NULL, ROOT, False,
-							button_events_n, xi_devs[i]->events,
+					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask, NULL, ROOT,
+							False, button_events_n, xi_devs[i]->events,
 							GrabModeAsync, GrabModeAsync);
-			}
+				}
 
-	} else for (int i = 0; i < xi_devs_n; i++)
-		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask, NULL, ROOT);
-			XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
-		}
+			} else
+				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second^Mod2Mask, NULL, ROOT);
+					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
+				}
 }
 
 void Grabber::grab_xi_devs(bool grab) {
-	if (grab) {
-		for (int i = 0; i < xi_devs_n; i++)
+	for (int i = 0; i < xi_devs_n; i++)
+		if (grab) {
 			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False,
 						xi_devs[i]->all_events_n,
 						xi_devs[i]->events, GrabModeAsync, GrabModeAsync, CurrentTime))
 				throw GrabFailedException();
-	} else
-		for (int i = 0; i < xi_devs_n; i++)
+		} else
 			XUngrabDevice(dpy, xi_devs[i]->dev, CurrentTime);
 }
 
@@ -423,7 +424,7 @@ void Grabber::select_proximity(bool select) {
 
 void Grabber::set() {
 	bool act = (current == NONE || current == BUTTON) ? active : true;
-	grab_xi(!disabled && act);
+	grab_xi(!xi_suspended && !disabled && act);
 	State old = grabbed;
 	grabbed = (!disabled && !suspended && act) ? current : NONE;
 	if (old == grabbed)

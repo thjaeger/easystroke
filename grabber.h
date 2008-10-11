@@ -86,7 +86,7 @@ private:
 
 	State current, grabbed;
 	bool xi_grabbed;
-	bool suspended;
+	bool suspended, xi_suspended;
 	bool disabled;
 	bool active;
 	Cursor cursor_scroll, cursor_select;
@@ -107,6 +107,8 @@ public:
 	void grab(State s) { current = s; set(); }
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }
+	void xi_suspend() { xi_suspended = true; set(); }
+	void xi_resume() { xi_suspended = false; set(); }
 	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
 	void grab_xi_devs(bool);
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
