@@ -2,7 +2,6 @@
 
 <node name="/org/easystroke">
 	<interface name="org.easystroke">
-		<!--annotation name="org.freedesktop.DBus.GLib.CSymbol" value="server"/-->
 		<method name="send">
 			<arg type="s" name="action" direction="in" />
 		</method>

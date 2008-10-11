@@ -925,7 +925,7 @@ protected:
 	}
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
-	repeated(false), have_xi(false), min_speed(0.001*prefs.min_speed.get()), 
+	repeated(false), have_xi(false), min_speed(0.001*prefs.min_speed.get()),
 	speed(min_speed * exp(-k*prefs.init_timeout.get())),
 	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(e->t) {
 		orig.x = e->x; orig.y = e->y;
@@ -1075,7 +1075,7 @@ public:
 
 ActionDBWatcher *action_watcher = 0;
 
-void reload_trace(TraceType) { 
+void reload_trace(TraceType) {
 	Trace *new_trace = init_trace();
 	delete trace;
 	trace = new_trace;

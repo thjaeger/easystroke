@@ -38,7 +38,7 @@ void Annotate::draw(Point p, Point q) {
 			G_TYPE_INVALID);
 }
 void Annotate::end_() {
-	dbus_g_proxy_call_no_reply(clear_proxy, "activate", 
+	dbus_g_proxy_call_no_reply(clear_proxy, "activate",
 			G_TYPE_STRING, "root", G_TYPE_INT,    gint(ROOT),
 			G_TYPE_INVALID);
 }
