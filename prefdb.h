@@ -97,6 +97,8 @@ class PrefDB : public TimeoutWatcher {
 		if (version < 9) return;
 		ar & timeout_gestures.unsafe_ref();
 		ar & tray_icon.unsafe_ref();
+		if (version < 10) return;
+		ar & excluded_devices.unsafe_ref();
 	}
 public:
 	PrefDB();
@@ -120,12 +122,13 @@ public:
 	Source<int> timeout_profile;
 	Source<bool> timeout_gestures;
 	Source<bool> tray_icon;
+	Source<std::set<std::string> > excluded_devices;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 9)
+BOOST_CLASS_VERSION(PrefDB, 10)
 
 extern PrefDB prefs;
 #endif

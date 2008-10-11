@@ -62,6 +62,7 @@ public:
 	void select_proximity(bool);
 
 	struct XiDevice {
+		std::string name;
 		XDevice *dev;
 		XEventClass events[6];
 		int event_type[6];
@@ -76,10 +77,11 @@ public:
 	XiDevice *get_xi_dev(XID id);
 	int event_presence;
 	XEventClass presence_class;
-private:
-	int button_events_n;
+
 	XiDevice **xi_devs;
 	int xi_devs_n;
+private:
+	int button_events_n;
 	bool init_xi();
 
 	State current, grabbed;

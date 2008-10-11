@@ -284,6 +284,7 @@ bool Grabber::init_xi() {
 			delete xi_dev;
 			continue;
 		}
+		xi_dev->name = dev->name;
 
 		DeviceButtonPress(xi_dev->dev, xi_dev->event_type[DOWN], xi_dev->events[DOWN]);
 		DeviceButtonRelease(xi_dev->dev, xi_dev->event_type[UP], xi_dev->events[UP]);

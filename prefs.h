@@ -32,6 +32,7 @@ private:
 	void on_p_changed();
 	void on_p_default();
 	void on_select_button();
+	void on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
 
 	struct SelectRow;
 
@@ -41,9 +42,18 @@ private:
 		Gtk::TreeModelColumn<Glib::ustring> col;
 	};
 	SingleColumn cols;
-
 	Glib::RefPtr<Gtk::ListStore> tm;
 	Gtk::TreeView* tv;
+
+	class DeviceColumns : public Gtk::TreeModel::ColumnRecord {
+	public:
+		DeviceColumns() { add(enabled); add(name); }
+		Gtk::TreeModelColumn<bool> enabled;
+		Gtk::TreeModelColumn<Glib::ustring> name;
+	};
+	DeviceColumns dcs;
+	Gtk::TreeView* dtv;
+	Glib::RefPtr<Gtk::ListStore> dtm;
 
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;

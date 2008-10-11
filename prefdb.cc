@@ -102,6 +102,7 @@ void PrefDB::init() {
 	watchValue(timeout_profile);
 	watchValue(timeout_gestures);
 	watchValue(tray_icon);
+	watchValue(excluded_devices);
 }
 
 PrefDB prefs;

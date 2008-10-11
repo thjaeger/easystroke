@@ -188,6 +188,7 @@ Prefs::Prefs() {
 	widgets->get_widget("button_remove_exception", remove_exception);
 	widgets->get_widget("label_button", blabel);
 	widgets->get_widget("treeview_exceptions", tv);
+	widgets->get_widget("treeview_devices", dtv);
 	widgets->get_widget("scale_p", scale_p);
 
 	new Sensitive(xinput_v, "check_timing_workaround");
@@ -206,6 +207,18 @@ Prefs::Prefs() {
 
 	add_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add));
 	remove_exception->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove));
+
+	dtm = Gtk::ListStore::create(dcs);
+	dtv->set_model(dtm);
+	dtv->append_column_editable("Enabled", dcs.enabled);
+	dtv->append_column("Device", dcs.name);
+	for (int i = 0; i < grabber->xi_devs_n; i++) {
+		std::string name = grabber->xi_devs[i]->name;
+		Gtk::TreeModel::Row row = *(dtm->append());
+		row[dcs.enabled] = !prefs.excluded_devices.get().count(name);
+		row[dcs.name] = name;
+	}
+	dtm->signal_row_changed().connect(sigc::mem_fun(*this, &Prefs::on_device_toggled));
 
 	double p = prefs.p.get();
 	scale_p->set_value(p);
@@ -372,6 +385,17 @@ void Prefs::on_remove() {
 		tm->erase(iter);
 		update_current();
 	}
+}
+
+
+void Prefs::on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
+	Atomic a;
+	std::set<std::string> &ex = prefs.excluded_devices.write_ref(a);
+	Glib::ustring device = (*iter)[dcs.name];
+	if ((*iter)[dcs.enabled])
+		ex.erase(device);
+	else
+		ex.insert(device);
 }
 
 void Prefs::set_button_label() {
