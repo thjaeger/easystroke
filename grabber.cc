@@ -195,6 +195,7 @@ bool wm_running() {
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
 	suspended = false;
+	disabled = false;
 	active = true;
 	grabbed = NONE;
 	xi_grabbed = false;
@@ -421,9 +422,9 @@ void Grabber::select_proximity(bool select) {
 
 void Grabber::set() {
 	bool act = (current == NONE || current == BUTTON) ? active : true;
-	grab_xi(act);
+	grab_xi(!disabled && act);
 	State old = grabbed;
-	grabbed = (!suspended && act) ? current : NONE;
+	grabbed = (!disabled && !suspended && act) ? current : NONE;
 	if (old == grabbed)
 		return;
 	if (verbosity >= 2)

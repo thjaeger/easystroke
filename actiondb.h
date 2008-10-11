@@ -122,13 +122,13 @@ public:
 class Misc : public Action {
 	friend class boost::serialization::access;
 public:
-	enum Type { NONE, UNMINIMIZE, SHOWHIDE };
+	enum Type { NONE, UNMINIMIZE, SHOWHIDE, DISABLE };
 private:
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 	Misc(Type t) : type(t) {}
 	Type type;
 public:
-	static const char *types[4];
+	static const char *types[5];
 	Misc() {}
 	virtual const Glib::ustring get_label() const { return types[type]; }
 	static RMisc create(Type t) { return RMisc(new Misc(t)); }

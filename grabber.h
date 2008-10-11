@@ -85,6 +85,7 @@ private:
 	State current, grabbed;
 	bool xi_grabbed;
 	bool suspended;
+	bool disabled;
 	bool active;
 	Cursor cursor_scroll, cursor_select;
 	std::map<guint, guint> buttons;
@@ -107,6 +108,7 @@ public:
 	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
 	void grab_xi_devs(bool);
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
+	void toggle_disabled() { disabled = !disabled; set(); }
 
 	void unminimize();
 };

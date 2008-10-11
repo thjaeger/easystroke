@@ -165,7 +165,7 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-const char *Misc::types[4] = { "None", "Unminimize", "Show/Hide", NULL };
+const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", NULL };
 
 ActionDB::ActionDB() : current_id(0) {}
 

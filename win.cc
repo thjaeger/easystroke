@@ -18,6 +18,7 @@
 #include "stats.h"
 #include "win.h"
 #include "main.h"
+#include "grabber.h"
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
@@ -126,6 +127,10 @@ Win::Win() {
 	show_hide_icon(prefs.tray_icon.get());
 	prefs.tray_icon.connect(new ValueProxy<bool>(sigc::mem_fun(*this, &Win::show_hide_icon)));
 
+	WIDGET(Gtk::CheckMenuItem, menu_disabled, "D_isabled", true);
+	this->menu_disabled = &menu_disabled;
+	menu.append(menu_disabled);
+	menu_disabled.signal_toggled().connect(sigc::mem_fun(*grabber, &Grabber::toggle_disabled));
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
 	menu.append(menu_quit);
 	menu_quit.signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
@@ -150,6 +155,11 @@ Win::~Win() {
 	delete actions;
 	delete prefs_tab;
 	delete stats;
+}
+
+void Win::toggle_disabled() {
+	bool disabled = menu_disabled->get_active();
+	menu_disabled->set_active(!disabled);
 }
 
 void Win::show_hide_icon(bool show) {

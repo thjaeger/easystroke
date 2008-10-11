@@ -43,6 +43,7 @@ public:
 	void on_icon_changed(RStroke s);
 	void show_hide();
 	bool has_icon() { return icon; }
+	void toggle_disabled();
 private:
 	bool on_icon_size_changed(int);
 	void on_help_toggled();
@@ -52,6 +53,7 @@ private:
 	Gtk::Window *win;
 
 	Gtk::Menu menu;
+	Gtk::CheckMenuItem *menu_disabled;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
 	RStroke current_icon;

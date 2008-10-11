@@ -1697,6 +1697,8 @@ bool Misc::run() {
 		case UNMINIMIZE:
 			grabber->unminimize();
 			return true;
+		case DISABLE:
+			win->toggle_disabled();
 		default:
 			return true;
 	}
