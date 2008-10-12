@@ -205,7 +205,7 @@ Grabber::Grabber() : children(ROOT) {
 
 	xinput = init_xi();
 	if (xinput)
-		select_proximity(false);
+		select_proximity(prefs.proximity.get());
 
 	cursor_scroll = XCreateFontCursor(dpy, XC_double_arrow);
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
