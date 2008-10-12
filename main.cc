@@ -1461,9 +1461,8 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 	}
 }
 
+// Preconditions: me1 != 0, if !grabber->xinput, then me2 == 0.
 void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
-	if (!me1 && !me2)
-		return;
 	MouseEvent me;
 	if (grabber->xinput) {
 		bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
@@ -1473,8 +1472,8 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 			else
 				me = *me2;
 		}
-		if (me.type == MouseEvent::PRESS && !xi_1 && !xi_2) {
-			replay(me1 ? me1->t : me2->t);
+		if (!xi_1 && !xi_2 && me1->type == MouseEvent::PRESS && !xi_1 && !xi_2) {
+			replay(me1->t);
 			return;
 		}
 		delete me1;
