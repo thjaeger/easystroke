@@ -303,50 +303,7 @@ public:
 	}
 };
 
-// TODO: Unify ScrollHandler and ScrollProxHandler
 class ScrollHandler : public AbstractScrollHandler {
-	guint pressed;
-	bool moved;
-public:
-	ScrollHandler() : pressed(0), moved(false) {
-	}
-	virtual void init() {
-		grabber->grab(Grabber::SCROLL);
-	}
-	virtual void fake_button(int b1, int n1, int b2, int n2) {
-		if (pressed)
-			XTestFakeButtonEvent(dpy, pressed, False, CurrentTime);
-		AbstractScrollHandler::fake_button(b1,n1, b2,n2);
-		if (pressed)
-			XTestFakeButtonEvent(dpy, pressed, True, CurrentTime);
-	}
-	virtual void motion(RTriple e) {
-		if (!pressed)
-			moved = true;
-		AbstractScrollHandler::motion(e);
-	}
-	virtual void press(guint b, RTriple e) {
-		if (!pressed && moved) {
-			clear_mods();
-			parent->replace_child(0);
-			XTestFakeButtonEvent(dpy, b, True, CurrentTime);
-			return;
-		}
-		if (b != 4 && b != 5 && !pressed)
-			pressed = b;
-	}
-	virtual void release(guint b, RTriple e) {
-		if (b != pressed)
-			return;
-		parent->replace_child(0);
-	}
-	virtual ~ScrollHandler() {
-		clear_mods();
-	}
-	virtual std::string name() { return "Scroll"; }
-};
-
-class ScrollProxHandler : public AbstractScrollHandler {
 protected:
 	void grab() {
 		grabber->grab(Grabber::ALL_ASYNC);
@@ -363,11 +320,15 @@ public:
 	virtual void press(guint b, RTriple e) {
 		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
+	virtual void release(guint b, RTriple e) {
+		if (!in_proximity)
+			parent->replace_child(0);
+	}
 	virtual void proximity_out() {
 		parent->replace_child(0);
 	}
-	virtual std::string name() { return "ScrollProx"; }
-	virtual ~ScrollProxHandler() {
+	virtual std::string name() { return "Scroll"; }
+	virtual ~ScrollHandler() {
 		clear_mods();
 		grabber->grab_xi_devs(false);
 	}
@@ -835,11 +796,7 @@ protected:
 		}
 		if (scroll) {
 			scroll = false;
-			if (!grabber->xinput)
-				return;
-			if (in_proximity)
-				parent->replace_child(new ScrollProxHandler);
-			else
+			if (grabber->xinput)
 				parent->replace_child(new ScrollHandler);
 			return;
 		}

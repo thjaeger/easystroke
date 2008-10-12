@@ -207,12 +207,10 @@ Grabber::Grabber() : children(ROOT) {
 	if (xinput)
 		select_proximity(prefs.proximity.get());
 
-	cursor_scroll = XCreateFontCursor(dpy, XC_double_arrow);
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 }
 
 Grabber::~Grabber() {
-	XFreeCursor(dpy, cursor_scroll);
 	XFreeCursor(dpy, cursor_select);
 }
 
@@ -444,9 +442,9 @@ void Grabber::set() {
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (old == ALL_ASYNC)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-	if (old == SCROLL || old == SELECT) {
+	if (old == SELECT)
 		XUngrabPointer(dpy, CurrentTime);
-	}
+
 	if (grabbed == BUTTON) {
 		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
 			XGrabButton(dpy, j->first, j->second, ROOT, False,
@@ -467,11 +465,10 @@ void Grabber::set() {
 	if (grabbed == ALL_ASYNC)
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
 				GrabModeAsync, GrabModeAsync, None, None);
-	if (grabbed == SCROLL || grabbed == SELECT) {
+	if (grabbed == SELECT) {
 		int i = 0;
 		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask,
-					GrabModeAsync, GrabModeAsync, ROOT,
-					grabbed == SCROLL ? cursor_scroll : cursor_select, CurrentTime) != GrabSuccess) {
+					GrabModeAsync, GrabModeAsync, ROOT, cursor_select, CurrentTime) != GrabSuccess) {
 			if (++i > 10)
 				throw GrabFailedException();
 			usleep(10000);

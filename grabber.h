@@ -52,7 +52,7 @@ bool has_atom(Window w, Atom prop, Atom value);
 class Grabber {
 public:
 	Children children;
-	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, SCROLL, SELECT };
+	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, SELECT };
 	static const char *state_name[6];
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	bool xinput;
@@ -89,7 +89,7 @@ private:
 	bool suspended, xi_suspended;
 	bool disabled;
 	bool active;
-	Cursor cursor_scroll, cursor_select;
+	Cursor cursor_select;
 	std::map<guint, guint> buttons;
 	bool timing_workaround;
 
