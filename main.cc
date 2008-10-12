@@ -353,7 +353,7 @@ class AdvancedLegacyHandler : public Handler {
 		press_button = 0;
 	}
 public:
-	AdvancedLegacyHandler(RStroke s, RTriple e_, guint b, guint b2) : stroke(s), button(b), button2(b2) {}
+	AdvancedLegacyHandler(RStroke s, RTriple e_, guint b, guint b2) : stroke(s), e(e_), button(b), button2(b2) {}
 
 	virtual void init() {
 		do_press(e->x, e->y);
@@ -806,6 +806,8 @@ public:
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
+		if (!grabber->xinput)
+			discard(press_t);
 	}
 	~StrokeHandler() {
 		trace->end();
@@ -1463,18 +1465,26 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	if (!me1 && !me2)
 		return;
 	MouseEvent me;
-	bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
-	if (xi_1 || xi_2) {
-		if (xi_1)
-			me = *me1;
-		else
-			me = *me2;
-	}
-	delete me1;
-	delete me2;
-	if (!xi_1 && !xi_2) {
-		replay(me1 ? me1->t : me2->t);
-		return;
+	if (grabber->xinput) {
+		bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
+		if (xi_1 || xi_2) {
+			if (xi_1)
+				me = *me1;
+			else
+				me = *me2;
+		}
+		if (me.type == MouseEvent::PRESS && !xi_1 && !xi_2) {
+			replay(me1 ? me1->t : me2->t);
+			return;
+		}
+		delete me1;
+		delete me2;
+	} else {
+		// me2 == 0
+		me = *me1;
+		delete me1;
+		me.x_xi = me.x;
+		me.y_xi = me.y;
 	}
 
 	switch (me.type) {
@@ -1509,6 +1519,13 @@ bool Main::handle(Glib::IOCondition) {
 		if (grabber->handle(ev))
 			continue;
 		MouseEvent *me2 = get_mouse_event(ev);
+		if (!grabber->xinput) {
+			if (me2)
+				handle_mouse_event(me2, 0);
+			else
+				handle_event(ev);
+			continue;
+		}
 		if (me && me2 && me->type == me2->type && me->button == me2->button && me->t == me2->t) {
 			handle_mouse_event(me, me2);
 			me = 0;
