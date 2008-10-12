@@ -902,7 +902,7 @@ protected:
 		}
 		if (scroll) {
 			scroll = false;
-			if (xinput_pressed.size() && in_proximity)
+			if (grabber->xinput && in_proximity)
 				parent->replace_child(new ScrollProxHandler);
 			else
 				parent->replace_child(new ScrollHandler);
@@ -1065,6 +1065,7 @@ public:
 	MouseEvent *get_mouse_event(XEvent &ev);
 	bool handle(Glib::IOCondition);
 	void handle_mouse_event(MouseEvent *me1, MouseEvent *me2);
+	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	~Main();
 };
@@ -1397,6 +1398,35 @@ bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, fl
 	return true;
 }
 
+void Main::handle_enter_leave(XEvent &ev) {
+	do {
+		if (ev.xcrossing.mode == NotifyGrab)
+			continue;
+		if (ev.xcrossing.detail == NotifyInferior)
+			continue;
+		if (ev.type == EnterNotify) {
+			Window app = get_app_window(ev.xcrossing.window);
+			if (!app)
+				continue;
+			current = ev.xcrossing.window;
+			current_app = app;
+			if (verbosity >= 3)
+				printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current_app);
+		} else if (ev.type == LeaveNotify) {
+			if (ev.xcrossing.window != current)
+				continue;
+			if (verbosity >= 3)
+				printf("Left window 0x%lx\n", ev.xcrossing.window);
+			current = 0;
+		} else printf("Error: Bogus Enter/Leave event\n");
+	} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
+	grabber->update(current);
+	if (window_selected) {
+		win->prefs_tab->on_selected(grabber->get_wm_class(current));
+		window_selected = false;
+	}
+}
+
 void Main::handle_event(XEvent &ev) {
 	switch(ev.type) {
 	case KeyPress:
@@ -1414,32 +1444,7 @@ void Main::handle_event(XEvent &ev) {
 
 	case EnterNotify:
 	case LeaveNotify:
-		do {
-			if (ev.xcrossing.mode == NotifyGrab)
-				continue;
-			if (ev.xcrossing.detail == NotifyInferior)
-				continue;
-			if (ev.type == EnterNotify) {
-				Window app = get_app_window(ev.xcrossing.window);
-				if (!app)
-					continue;
-				current = ev.xcrossing.window;
-				current_app = app;
-				if (verbosity >= 3)
-					printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current_app);
-			} else if (ev.type == LeaveNotify) {
-				if (ev.xcrossing.window != current)
-					continue;
-				if (verbosity >= 3)
-					printf("Left window 0x%lx\n", ev.xcrossing.window);
-				current = 0;
-			} else printf("Error: Bogus Enter/Leave event\n");
-		} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
-		grabber->update(current);
-		if (window_selected) {
-			win->prefs_tab->on_selected(grabber->get_wm_class(current));
-			window_selected = false;
-		}
+		handle_enter_leave(ev);
 		break;
 
 	default:
