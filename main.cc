@@ -44,16 +44,8 @@ int offset_y = 0;
 
 Display *dpy;
 
-int fdw;
-
 std::string config_dir;
 Win *win;
-
-void send(char c) {
-	char cs[2] = {c, 0};
-	if (write(fdw, cs, 1) != 1)
-		printf("Error: write() failed\n");
-}
 
 int (*oldHandler)(Display *, XErrorEvent *) = 0;
 
