@@ -1648,8 +1648,10 @@ bool Main::handle(Glib::IOCondition) {
 		me = me2;
 		if (!me)
 			handle_event(ev);
-		if (me && !XPending(dpy))
+		if (me && !XPending(dpy)) {
 			handle_mouse_event(me, 0);
+			me = 0;
+		}
 	}
 	if (handler->top()->idle() && dead)
 		Gtk::Main::quit();
