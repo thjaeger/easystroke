@@ -44,8 +44,6 @@ int offset_y = 0;
 
 Display *dpy;
 
-int fdw;
-
 std::string config_dir;
 Win *win;
 
@@ -60,12 +58,6 @@ boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Time last_press_t = 0;
 
 std::set<guint> xinput_pressed;
-
-void send(char c) {
-	char cs[2] = {c, 0};
-	if (write(fdw, cs, 1) != 1)
-		printf("Error: write() failed\n");
-}
 
 int (*oldHandler)(Display *, XErrorEvent *) = 0;
 
