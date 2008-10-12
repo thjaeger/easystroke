@@ -127,9 +127,6 @@ guint replay_button = 0;
 Trace *trace = 0;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
-RTriple last_e;
-int last_type = -1;
-guint last_button = 0;
 Time last_press_t = 0;
 
 bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up = 0);
@@ -189,7 +186,6 @@ public:
 	}
 	virtual void init() { grab(); }
 	virtual bool idle() { return false; }
-	virtual bool only_xi() { return false; }
 	virtual ~Handler() {
 		if (child)
 			delete child;
@@ -358,7 +354,6 @@ public:
 		if (!pressed && !pressed2 && moved) {
 			clear_mods();
 			parent->replace_child(0);
-			last_type = -1;
 			XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 			return;
 		}
@@ -374,7 +369,7 @@ public:
 				XTestFakeButtonEvent(dpy, pressed2, False, CurrentTime);
 				// Make sure event handling continues as usual
 				Handler *p = parent;
-				if (p->only_xi()) {
+				if (/*TODO: p->only_xi()*/false) {
 					p->replace_child(0);
 					p->release(b,e);
 				} else {
@@ -469,7 +464,6 @@ public:
 		p->release(b, e);
 	}
 	virtual std::string name() { return "ScrollXi"; }
-	virtual bool only_xi() { return true; }
 };
 
 class ScrollProxHandler : public AbstractScrollHandler {
@@ -514,7 +508,6 @@ public:
 		parent->replace_child(0);
 		clear_mods();
 	}
-	virtual bool only_xi() { return true; }
 	virtual std::string name() { return "ButtonXi"; }
 };
 
@@ -611,7 +604,6 @@ public:
 		clear_mods();
 		grabber->grab_xi_devs(false);
 	}
-	virtual bool only_xi() { return true; }
 	virtual std::string name() { return "ActionXi"; }
 };
 
@@ -1054,6 +1046,8 @@ void quit(int) {
 		dead = true;
 }
 
+struct MouseEvent;
+
 class Main {
 	std::string parse_args_and_init_gtk(int argc, char **argv);
 	void create_config_dir();
@@ -1068,7 +1062,9 @@ class Main {
 public:
 	Main(int argc, char **argv);
 	void run();
+	MouseEvent *get_mouse_event(XEvent &ev);
 	bool handle(Glib::IOCondition);
+	void handle_mouse_event(MouseEvent *me1, MouseEvent *me2);
 	void handle_event(XEvent &ev);
 	~Main();
 };
@@ -1402,62 +1398,7 @@ bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, fl
 }
 
 void Main::handle_event(XEvent &ev) {
-	if (grabber->handle(ev))
-		return;
 	switch(ev.type) {
-	case MotionNotify:
-		if (verbosity >= 3)
-			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
-		if (last_e && ev.xmotion.time < last_e->t)
-			break;
-		if (handler->top()->only_xi())
-			break;
-		if (last_type == MotionNotify && last_e->t == ev.xmotion.time) {
-			break;
-		}
-		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
-		last_type = MotionNotify;
-		handler->top()->motion(last_e);
-		break;
-
-	case ButtonPress:
-		if (verbosity >= 3)
-			printf("Press: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
-		last_press_t = ev.xbutton.time;
-		if (last_e && ev.xmotion.time < last_e->t)
-			break;
-		if (handler->top()->only_xi())
-			break;
-		if (last_type == ButtonPress && last_e->t == ev.xbutton.time && last_button == ev.xbutton.button) {
-			if (verbosity >= 3)
-				printf("(repeat)\n");
-			handler->top()->press_repeated();
-			break;
-		}
-		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
-		last_type = ButtonPress;
-		last_button = ev.xbutton.button;
-		handler->top()->press(ev.xbutton.button, last_e);
-		break;
-
-	case ButtonRelease:
-		if (verbosity >= 3)
-			printf("Release: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
-		last_press_t = 0;
-		if (last_e && ev.xmotion.time < last_e->t)
-			break;
-		if (handler->top()->only_xi())
-			break;
-		if (last_type == ButtonRelease && last_e->t == ev.xbutton.time && last_button == ev.xbutton.button)
-			break;
-		last_e = create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time);
-		last_type = ButtonRelease;
-		last_button = ev.xbutton.button;
-		handler->top()->release(ev.xbutton.button, last_e);
-		// TODO: Do we need this?
-		xinput_pressed.erase(ev.xbutton.button);
-		break;
-
 	case KeyPress:
 		if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
 			break;
@@ -1508,58 +1449,6 @@ void Main::handle_event(XEvent &ev) {
 			delete trace;
 			trace = new_trace;
 		}
-		if (grabber->is_event(ev.type, Grabber::DOWN)) {
-			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Press (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y, bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
-			xinput_pressed.insert(bev->button);
-			float x, y;
-			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
-			if (last_type == ButtonPress && last_e->t == bev->time && last_button == bev->button) {
-				update_triple(last_e, x, y, bev->time);
-				handler->top()->press_repeated();
-				break;
-			}
-			last_e = create_triple(x, y, bev->time);
-			last_type = ButtonPress;
-			last_button = bev->button;
-			handler->top()->press(bev->button, last_e);
-		}
-		if (grabber->is_event(ev.type, Grabber::UP)) {
-			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y, bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
-			float x, y;
-			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
-			if (last_type == ButtonRelease && last_e->t == bev->time && last_button == bev->button) {
-				update_triple(last_e, x, y, bev->time);
-				break;
-			}
-			last_e = create_triple(x, y, bev->time);
-			last_type = ButtonRelease;
-			last_button = bev->button;
-			handler->top()->release(bev->button, last_e);
-			xinput_pressed.erase(bev->button);
-		}
-		if (grabber->is_event(ev.type, Grabber::MOTION)) {
-			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y, mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
-			float x, y;
-			translate_coordinates(mev->deviceid, mev->x, mev->y, mev->axis_data, x, y);
-			Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
-			if (xi_dev && xi_dev->supports_pressure && prefs.pressure_abort.get())
-				if (xi_dev->normalize_pressure(mev->axis_data[2]) >=
-						prefs.pressure_threshold.get())
-					handler->top()->pressure();
-			if (last_type == MotionNotify && last_e->t == mev->time) {
-				update_triple(last_e, x, y, mev->time);
-				break;
-			}
-			last_e = create_triple(x, y, mev->time);
-			last_type = MotionNotify;
-			handler->top()->motion(last_e);
-		}
 		if (grabber->proximity_selected) {
 			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
 				in_proximity = true;
@@ -1597,16 +1486,170 @@ void Prefs::on_add() {
 	handler->top()->replace_child(new SelectHandler);
 }
 
+struct MouseEvent {
+	enum Type { PRESS, RELEASE, MOTION };
+	Type type;
+	guint button;
+	bool xi;
+	int x, y;
+	Time t;
+	float x_xi, y_xi, z_xi;
+};
+
+MouseEvent *Main::get_mouse_event(XEvent &ev) {
+	MouseEvent *me = 0;
+	switch(ev.type) {
+	case MotionNotify:
+		if (verbosity >= 3)
+			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
+		me = new MouseEvent;
+		me->type = MouseEvent::MOTION;
+		me->button = 0;
+		me->xi = false;
+		me->t = ev.xmotion.time;
+		me->x = ev.xmotion.x;
+		me->y = ev.xmotion.y;
+		return me;
+
+	case ButtonPress:
+		if (verbosity >= 3)
+			printf("Press: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
+		last_press_t = ev.xbutton.time;
+		me = new MouseEvent;
+		me->type = MouseEvent::PRESS;
+		me->button = ev.xbutton.button;
+		me->xi = false;
+		me->t = ev.xbutton.time;
+		me->x = ev.xbutton.x;
+		me->y = ev.xbutton.y;
+		return me;
+
+	case ButtonRelease:
+		if (verbosity >= 3)
+			printf("Release: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
+		me = new MouseEvent;
+		me->type = MouseEvent::RELEASE;
+		me->button = ev.xbutton.button;
+		me->xi = false;
+		me->t = ev.xbutton.time;
+		me->x = ev.xbutton.x;
+		me->y = ev.xbutton.y;
+		return me;
+
+	default:
+		if (grabber->is_event(ev.type, Grabber::DOWN)) {
+			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+			if (verbosity >= 3)
+				printf("Press (Xi): %d (%d, %d, %d, %d, %d)\n",bev->button, bev->x, bev->y,
+						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+			xinput_pressed.insert(bev->button);
+			me = new MouseEvent;
+			me->type = MouseEvent::PRESS;
+			me->button = bev->button;
+			me->xi = true;
+			me->t = bev->time;
+			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			me->z_xi = 0;
+			return me;
+		}
+		if (grabber->is_event(ev.type, Grabber::UP)) {
+			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+			if (verbosity >= 3)
+				printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
+						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+			xinput_pressed.erase(bev->button);
+			me = new MouseEvent;
+			me->type = MouseEvent::RELEASE;
+			me->button = bev->button;
+			me->xi = true;
+			me->t = bev->time;
+			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			me->z_xi = 0;
+			return me;
+		}
+		if (grabber->is_event(ev.type, Grabber::MOTION)) {
+			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
+			if (verbosity >= 3)
+				printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
+						mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
+			me = new MouseEvent;
+			me->type = MouseEvent::MOTION;
+			me->button = 0;
+			me->xi = true;
+			me->t = mev->time;
+			translate_coordinates(mev->deviceid, mev->x, mev->y, mev->axis_data, me->x_xi, me->y_xi);
+			me->z_xi = 0;
+			Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
+			if (xi_dev && xi_dev->supports_pressure)
+				me->z_xi = xi_dev->normalize_pressure(mev->axis_data[2]);
+			return me;
+		}
+		return 0;
+	}
+}
+
+void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
+	if (!me1 && !me2)
+		return;
+	MouseEvent me;
+	bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
+	if (xi_1 || xi_2) {
+		if (xi_1)
+			me = *me1;
+		else
+			me = *me2;
+	}
+	delete me1;
+	delete me2;
+	if (!xi_1 && !xi_2) {
+		replay(me1 ? me1->t : me2->t);
+		return;
+	}
+
+	switch (me.type) {
+	case MouseEvent::MOTION:
+		if (prefs.pressure_abort.get() && me.z_xi >= prefs.pressure_threshold.get())
+			handler->top()->pressure();
+		handler->top()->motion(create_triple(me.x_xi, me.y_xi, me.t));
+		break;
+	case MouseEvent::PRESS:
+		handler->top()->press(me.button, create_triple(me.x_xi, me.y_xi, me.t));
+		if (me1 && me2)
+			handler->top()->press_repeated(); //TODO
+		break;
+	case MouseEvent::RELEASE:
+		handler->top()->release(me.button, create_triple(me.x_xi, me.y_xi, me.t));
+		break;
+	}
+}
+
+/* TODO
+try {
+} catch (GrabFailedException) {
+	printf("Error: A grab failed.  Resetting...\n");
+	handler->replace_child(0);
+}
+*/
 bool Main::handle(Glib::IOCondition) {
+	MouseEvent *me = 0;
 	while (XPending(dpy)) {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
-		try {
-			handle_event(ev);
-		} catch (GrabFailedException) {
-			printf("Error: A grab failed.  Resetting...\n");
-			handler->replace_child(0);
+		if (grabber->handle(ev))
+			continue;
+		MouseEvent *me2 = get_mouse_event(ev);
+		if (me && me2 && me->type == me2->type && me->button == me2->button && me->t == me2->t) {
+			handle_mouse_event(me, me2);
+			me = 0;
+			continue;
 		}
+		if (me)
+			handle_mouse_event(me, 0);
+		me = me2;
+		if (!me)
+			handle_event(ev);
+		if (me && !XPending(dpy))
+			handle_mouse_event(me, 0);
 	}
 	if (handler->top()->idle() && dead)
 		Gtk::Main::quit();
