@@ -111,6 +111,15 @@ const char *IGNORE = "Ignore";
 const char *BUTTON = "Button";
 const char *MISC = "Misc";
 
+void Actions::on_cell_data(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+	Gtk::CellRendererText * renderer = dynamic_cast<Gtk::CellRendererText *>(cell);
+	bool foo = (*iter)[cols.type] == "Key";
+	if (renderer) {
+		renderer->property_sensitive().set_value(foo);
+		renderer->property_weight().set_value(foo ? 700 : 400);
+	}
+}
+
 Actions::Actions() :
 	tv(0),
 	editing_new(false),
@@ -211,6 +220,7 @@ Actions::Actions() :
 	n = tv->append_column("Type", type_renderer);
 	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
 	col_type->add_attribute(type_renderer.property_text(), cols.type);
+	// col_type->set_cell_data_func(type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data));
 
 	n = tv->append_column("Argument", arg_renderer);
 	Gtk::TreeView::Column *col_accel = tv->get_column(n-1);

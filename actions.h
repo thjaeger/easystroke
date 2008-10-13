@@ -57,6 +57,7 @@ private:
 	void on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_something_editing_canceled();
 	void on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
+	void on_cell_data(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	class OnStroke;
 	Gtk::TreeRow get_selected_row();
 
