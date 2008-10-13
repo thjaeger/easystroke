@@ -30,6 +30,7 @@
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xproto.h>
 
+#include <string.h>
 #include <signal.h>
 #include <fcntl.h>
 #include <getopt.h>

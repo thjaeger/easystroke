@@ -371,7 +371,7 @@ void Grabber::grab_xi(bool grab) {
 		return;
 	xi_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (!prefs.excluded_devices.get().count(xi_devs[i]->name))
+		if (!prefs.excluded_devices.get().count(xi_devs[i]->name)) {
 			if (grab) {
 				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
 					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
@@ -387,6 +387,7 @@ void Grabber::grab_xi(bool grab) {
 					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second^Mod2Mask, NULL, ROOT);
 					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
 				}
+		}
 }
 
 void Grabber::grab_xi_devs(bool grab) {
