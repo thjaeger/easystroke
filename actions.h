@@ -57,22 +57,25 @@ private:
 	void on_something_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_something_editing_canceled();
 	void on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
-	void on_cell_data(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+	void on_cell_data_name(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+	void on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+	void on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	class OnStroke;
 	Gtk::TreeRow get_selected_row();
 
-	void update_arg(Glib::ustring);
 	void focus(int id, int col, bool edit);
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
-		ModelColumns() { add(stroke); add(name); add(type); add(arg); add(cmd_save); add(id); }
+		ModelColumns() {
+			add(stroke); add(name); add(type); add(arg); add(cmd_save); add(id);
+			add(name_bold); add(type_bold); add(arg_bold); add(deactivated);
+		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > stroke;
-		Gtk::TreeModelColumn<Glib::ustring> name;
-		Gtk::TreeModelColumn<Glib::ustring> type;
-		Gtk::TreeModelColumn<Glib::ustring> arg;
-		Gtk::TreeModelColumn<Glib::ustring> cmd_save;
+		Gtk::TreeModelColumn<Glib::ustring> name, type, arg, cmd_save;
 		Gtk::TreeModelColumn<int> id;
+		Gtk::TreeModelColumn<bool> name_bold, type_bold, arg_bold;
+		Gtk::TreeModelColumn<bool> deactivated;
 	};
 	ModelColumns cols;
 	Gtk::TreeView* tv;
@@ -88,9 +91,6 @@ private:
 	struct Focus;
 
 	Glib::RefPtr<Gtk::ListStore> type_store;
-
-	Gtk::CellRendererCombo type_renderer;
-	CellRendererTextish arg_renderer;
 
 	Gtk::Button *button_record, *button_delete;
 

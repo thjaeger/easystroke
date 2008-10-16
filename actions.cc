@@ -111,15 +111,6 @@ const char *IGNORE = "Ignore";
 const char *BUTTON = "Button";
 const char *MISC = "Misc";
 
-void Actions::on_cell_data(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
-	Gtk::CellRendererText * renderer = dynamic_cast<Gtk::CellRendererText *>(cell);
-	bool foo = (*iter)[cols.type] == "Key";
-	if (renderer) {
-		renderer->property_sensitive().set_value(foo);
-		renderer->property_weight().set_value(foo ? 700 : 400);
-	}
-}
-
 Actions::Actions() :
 	tv(0),
 	editing_new(false),
@@ -194,13 +185,15 @@ Actions::Actions() :
 	tv->append_column("Stroke", cols.stroke);
 
 	n = tv->append_column("Name", cols.name);
-	Gtk::CellRendererText *name = dynamic_cast<Gtk::CellRendererText *>(tv->get_column_cell_renderer(n-1));
-	name->property_editable() = true;
-	name->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_name_edited));
-	name->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
-	name->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
+	Gtk::CellRendererText *name_renderer = dynamic_cast<Gtk::CellRendererText *>(tv->get_column_cell_renderer(n-1));
+	name_renderer->property_editable() = true;
+	name_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_name_edited));
+	name_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
+	name_renderer->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 	Gtk::TreeView::Column *col_name = tv->get_column(n-1);
 	col_name->set_sort_column(cols.name);
+//	col_name->add_attribute(name_renderer->property_text(), cols.name);
+	col_name->set_cell_data_func(*name_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_name));
 
 	type_store = Gtk::ListStore::create(type);
 	(*(type_store->append()))[type.type] = COMMAND;
@@ -209,29 +202,71 @@ Actions::Actions() :
 	(*(type_store->append()))[type.type] = IGNORE;
 	(*(type_store->append()))[type.type] = SCROLL;
 	(*(type_store->append()))[type.type] = BUTTON;
-	type_renderer.property_model() = type_store;
-	type_renderer.property_editable() = true;
-	type_renderer.property_text_column() = 0;
-	type_renderer.property_has_entry() = false;
-	type_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_type_edited));
-	type_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
-	type_renderer.signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
+	Gtk::CellRendererCombo *type_renderer = Gtk::manage(new Gtk::CellRendererCombo);
+	type_renderer->property_model() = type_store;
+	type_renderer->property_editable() = true;
+	type_renderer->property_text_column() = 0;
+	type_renderer->property_has_entry() = false;
+	type_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_type_edited));
+	type_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
+	type_renderer->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 
-	n = tv->append_column("Type", type_renderer);
+	n = tv->append_column("Type", *type_renderer);
 	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
-	col_type->add_attribute(type_renderer.property_text(), cols.type);
-	// col_type->set_cell_data_func(type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data));
+	col_type->add_attribute(type_renderer->property_text(), cols.type);
+	col_type->set_cell_data_func(*type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_type));
 
-	n = tv->append_column("Argument", arg_renderer);
-	Gtk::TreeView::Column *col_accel = tv->get_column(n-1);
-	col_accel->add_attribute(arg_renderer.property_text(), cols.arg);
-	arg_renderer.property_editable() = true;
-	arg_renderer.signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
-	arg_renderer.signal_combo_edited().connect(sigc::mem_fun(*this, &Actions::on_combo_edited));
-	arg_renderer.signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
-	arg_renderer.signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
+	CellRendererTextish *arg_renderer = Gtk::manage(new CellRendererTextish);
+	n = tv->append_column("Argument", *arg_renderer);
+	Gtk::TreeView::Column *col_arg = tv->get_column(n-1);
+	col_arg->add_attribute(arg_renderer->property_text(), cols.arg);
+	col_arg->set_cell_data_func(*arg_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_arg));
+	arg_renderer->property_editable() = true;
+	arg_renderer->signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
+	arg_renderer->signal_combo_edited().connect(sigc::mem_fun(*this, &Actions::on_combo_edited));
+	arg_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
+	arg_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 
 	tv->set_model(tm);
+}
+
+void Actions::on_cell_data_name(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+	bool bold = (*iter)[cols.name_bold];
+	bool deactivated = (*iter)[cols.deactivated];
+	Gtk::CellRendererText *renderer = dynamic_cast<Gtk::CellRendererText *>(cell);
+	if (renderer)
+		renderer->property_weight().set_value(bold ? 700 : 400);
+	cell->property_sensitive().set_value(!deactivated);
+}
+
+void Actions::on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+	bool bold = (*iter)[cols.type_bold];
+	bool deactivated = (*iter)[cols.deactivated];
+	Gtk::CellRendererText *renderer = dynamic_cast<Gtk::CellRendererText *>(cell);
+	if (renderer)
+		renderer->property_weight().set_value(bold ? 700 : 400);
+	cell->property_sensitive().set_value(!deactivated);
+}
+
+void Actions::on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+	bool bold = (*iter)[cols.arg_bold];
+	bool deactivated = (*iter)[cols.deactivated];
+	cell->property_sensitive().set_value(!deactivated);
+	CellRendererTextish *renderer = dynamic_cast<CellRendererTextish *>(cell);
+	if (!renderer)
+		return;
+	renderer->property_weight().set_value(bold ? 700 : 400);
+
+	Glib::ustring str = (*iter)[cols.type];
+	if (str == KEY || str == SCROLL || str == IGNORE)
+		renderer->mode = CellRendererTextish::KEY;
+	else if (str == BUTTON)
+		renderer->mode = CellRendererTextish::POPUP;
+	else if (str == MISC) {
+		renderer->mode = CellRendererTextish::COMBO;
+		renderer->items = Misc::types;
+	} else
+		renderer->mode = CellRendererTextish::TEXT;
 }
 
 void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new_type) {
@@ -282,7 +317,6 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 			as[id].action = Misc::create(Misc::NONE);
 			edit = true;
 		}
-		update_arg(new_type);
 		row[cols.type] = new_type;
 	}
 	editing_new = false;
@@ -398,7 +432,6 @@ void Actions::on_cursor_changed() {
 	Gtk::TreeViewColumn *col;
 	tv->get_cursor(path, col);
 	Gtk::TreeRow row(*tm->get_iter(path));
-	update_arg(row[cols.type]);
 }
 
 Gtk::TreeRow Actions::get_selected_row() {
@@ -410,18 +443,6 @@ void Actions::on_selection_changed() {
 	int n = tv->get_selection()->count_selected_rows();
 	button_record->set_sensitive(n == 1);
 	button_delete->set_sensitive(n >= 1);
-}
-
-void Actions::update_arg(Glib::ustring str) {
-	if (str == KEY || str == SCROLL || str == IGNORE)
-		arg_renderer.mode = CellRendererTextish::KEY;
-	else if (str == BUTTON)
-		arg_renderer.mode = CellRendererTextish::POPUP;
-	else if (str == MISC) {
-		arg_renderer.mode = CellRendererTextish::COMBO;
-		arg_renderer.items = Misc::types;
-	} else
-		arg_renderer.mode = CellRendererTextish::TEXT;
 }
 
 void Actions::on_button_new() {
