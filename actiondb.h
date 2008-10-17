@@ -26,8 +26,6 @@
 #include "stroke.h"
 #include "prefdb.h"
 
-#include <X11/extensions/XTest.h>
-
 class Action;
 class Command;
 class SendKey;
@@ -55,6 +53,7 @@ class Action {
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
 	virtual bool run() = 0;
+	virtual const Glib::ustring get_label() const = 0;
 	virtual ~Action() {};
 };
 
@@ -67,6 +66,7 @@ public:
 	Command() {}
 	static RCommand create(const std::string &c) { return RCommand(new Command(c)); }
 	virtual bool run();
+	virtual const Glib::ustring get_label() const { return cmd; }
 };
 
 class ModAction : public Action {
@@ -81,14 +81,27 @@ public:
 	virtual const Glib::ustring get_label() const;
 };
 
-struct SendKey : public ModAction {
-	static RSendKey create(guint key, Gdk::ModifierType mods, guint code);
-	virtual bool run() = 0;
-	virtual const Glib::ustring get_label() const = 0;
-protected:
-	SendKey(Gdk::ModifierType mods) : ModAction(mods) {}
+class SendKey : public ModAction {
+	friend class boost::serialization::access;
+	guint key;
+	guint code;
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
+	template<class Archive> void load(Archive & ar, const unsigned int version);
+	template<class Archive> void save(Archive & ar, const unsigned int version) const;
+	SendKey(guint key_, Gdk::ModifierType mods, guint code_) :
+		ModAction(mods), key(key_), code(code_) { compute_code(); }
+
+	void compute_code();
+public:
 	SendKey() {}
+	static RSendKey create(guint key, Gdk::ModifierType mods, guint code) {
+		return RSendKey(new SendKey(key, mods, code));
+	}
+
+	virtual bool run();
+	virtual const Glib::ustring get_label() const;
 };
+BOOST_CLASS_VERSION(SendKey, 1)
 
 class Scroll : public ModAction {
 	friend class boost::serialization::access;
@@ -155,8 +168,8 @@ public:
 	RAction action;
 	std::string name;
 };
+typedef boost::shared_ptr<StrokeInfo> RStrokeInfo;
 BOOST_CLASS_VERSION(StrokeInfo, 1)
-
 
 struct Ranking {
 	RStroke stroke, best_stroke;
@@ -169,68 +182,54 @@ struct Ranking {
 	bool show();
 };
 
-class StrokeIterator {
-	const std::map<Unique *, StrokeInfo> &ids;
-	std::map<Unique *, StrokeInfo>::const_iterator i;
-	const StrokeSet *strokes;
-	StrokeSet::const_iterator j;
-	void init_j() {
-		strokes = &(i->second.strokes);
-		j = strokes->begin();
-	}
-	void next() {
-		while (1) {
-			while (j == strokes->end()) {
-				i++;
-				if (i == ids.end())
-					return;
-				init_j();
-			}
-			if (*j)
-				return;
-			j++;
-		}
-	}
-public:
-	// This is why C++ sucks balls. It's really easy to shoot yourself in
-	// the foot even if you know what you're doing.  In this case I forgot
-	// the `&'.  Took me 2 hours to figure out what was going wrong.
-	StrokeIterator(const std::map<Unique *, StrokeInfo> &ids_) : ids(ids_) {
-		i = ids.begin();
-		if (i == ids.end())
-			return;
-		init_j();
-		next();
-	}
-	operator bool() {
-		return i != ids.end() && j != strokes->end();
-	}
-	void operator++(int) {
-		j++;
-		next();
-	}
-	Unique *id() {
-		return i->first;
-	}
-	const std::string name() {
-		return i->second.name;
-	}
-	// Guaranteed to be dereferencable
-	RStroke stroke() {
-		return *j;
-	}
-	RAction action() {
-		return i->second.action;
-	}
-
-};
-
 class ActionListDiff {
 	friend class boost::serialization::access;
+	friend class ActionDB;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 	ActionListDiff *parent;
+	std::set<Unique *> deleted;
+	std::map<Unique *, StrokeInfo> added;
+	std::string name;
+	std::list<ActionListDiff> children;
 public:
+	ActionListDiff() : parent(0) {}
+	RStrokeInfo get_info(Unique *id) const {
+		RStrokeInfo si = parent ? parent->get_info(id) : RStrokeInfo(new StrokeInfo);
+		std::map<Unique *, StrokeInfo>::const_iterator i = added.find(id);
+		if (i == added.end())
+			return si;
+		if (i->second.name != "")
+			si->name = i->second.name;
+		if (i->second.strokes.size())
+			si->strokes = i->second.strokes;
+		if (i->second.action)
+			si->action = i->second.action;
+		return si;
+	}
+	void add(StrokeInfo &si) { added.insert(std::pair<Unique *, StrokeInfo>(new Unique, si)); }
+	void set_action(Unique *id, RAction action) { added[id].action = action; }
+	void set_strokes(Unique *id, StrokeSet strokes) { added[id].strokes = strokes; }
+	void set_name(Unique *id, std::string name) { added[id].name = name; }
+	bool contains(Unique *id) {
+		if (deleted.count(id))
+			return false;
+		if (added.count(id))
+			return true;
+		return parent && parent->contains(id);
+	}
+	bool remove(Unique *id) {
+		bool really = !(parent && parent->contains(id));
+		if (really)
+			added.erase(id);
+		else
+			deleted.insert(id);
+		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++)
+			i->remove(id);
+		return really;
+	}
 
+	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
+	Ranking *handle(RStroke, int) const;
 };
 
 extern Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
@@ -238,31 +237,24 @@ extern Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
 class ActionDB {
 	friend class boost::serialization::access;
 	friend class ActionDBWatcher;
-	std::map<Unique *, StrokeInfo> strokes;
 	template<class Archive> void load(Archive & ar, const unsigned int version);
-	template<class Archive> void save(Archive & ar, const unsigned int version) const {
-		ar & strokes;
-	}
+	template<class Archive> void save(Archive & ar, const unsigned int version) const;
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
+	ActionListDiff root;
+	std::map<std::string, ActionListDiff *> apps;
 	Unique *add(StrokeInfo &);
 public:
 	typedef std::map<Unique *, StrokeInfo>::const_iterator const_iterator;
-	const const_iterator begin() const { return strokes.begin(); }
-	const const_iterator end() const { return strokes.end(); }
-	StrokeIterator strokes_begin() const { return StrokeIterator(strokes); }
+	const const_iterator begin() const { return root.added.begin(); }
+	const const_iterator end() const { return root.added.end(); }
+	ActionListDiff *get_root() { return &root; }
+	std::set<RStroke> all_strokes() const;
 
-	const StrokeInfo *lookup(Unique *id) const {
-		const_iterator i = strokes.find(id);
-		return i != end() ? &(i->second) : 0;
+	const ActionListDiff *get_action_list(std::string wm_class) const {
+		std::map<std::string, ActionListDiff *>::const_iterator i = apps.find(wm_class);
+		return i == apps.end() ? &root : i->second;
 	}
-	StrokeInfo &operator[](Unique *id) { return strokes[id]; }
-
-	int size() const { return strokes.size(); }
-	bool remove(Unique *id);
-	int nested_size() const;
-	Unique *add_cmd(RStroke, const std::string& name, const std::string& cmd);
-	Ranking *handle(RStroke, int) const;
 };
 BOOST_CLASS_VERSION(ActionDB, 2)
 
@@ -274,5 +266,6 @@ public:
 	virtual void timeout();
 };
 
-extern Source<ActionDB> actions;
+extern ActionDB actions;
+void update_actions();
 #endif

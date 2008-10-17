@@ -95,12 +95,14 @@ private:
 
 	void set();
 	void grab_xi(bool);
+	std::string get_wm_class(Window w);
+	std::string wm_class;
 public:
 	Grabber();
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
-	std::string get_wm_class(Window w);
-	void update(Window w) { active = !prefs.exceptions.ref().count(get_wm_class(w)); set(); }
+	void update(Window w) { wm_class = get_wm_class(w); active = !prefs.exceptions.ref().count(wm_class); set(); }
+	std::string get_wm_class() { return wm_class; }
 
 	void get_button();
 	void fake_button(int b);

@@ -20,6 +20,7 @@
 
 class Unique;
 class Win;
+class ActionListDiff;
 
 class CellRendererTextish : public Gtk::CellRendererText {
 public:
@@ -97,6 +98,8 @@ private:
 
 	bool editing_new;
 	bool editing;
+	
+	ActionListDiff *action_list;
 };
 
 #endif

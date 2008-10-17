@@ -664,7 +664,6 @@ class StrokeHandler : public Handler, public Timeout {
 		};
 		if (ignore) {
 			ignore = false;
-			// TODO
 		}
 		if (scroll) {
 			scroll = false;
@@ -896,7 +895,7 @@ class SelectHandler : public Handler {
 
 
 void run_by_name(const char *str) {
-	for (ActionDB::const_iterator i = actions.ref().begin(); i != actions.ref().end(); i++) {
+	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
 			i->second.action->run();
 			clear_mods();
@@ -1206,14 +1205,13 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
 		s->print();
-	const ActionDB &as = actions.ref();
 	if (gui) {
 		if (stroke_action) {
 			(*stroke_action)(s);
 			stroke_action.reset();
 			success = true;
 		} else {
-			Ranking *ranking = as.handle(s, button_up);
+			Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
 			success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
 			ranking->x = x;
 			ranking->y = y;
@@ -1230,7 +1228,7 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 			Glib::signal_idle().connect(sigc::mem_fun(si, &ShowIcon::run));
 		}
 	} else {
-		Ranking *ranking = as.handle(s, button_up);
+		Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
 		success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
 		if (ranking->id == &stroke_is_click)
 			replay_button = trigger;
@@ -1291,7 +1289,7 @@ void Main::handle_enter_leave(XEvent &ev) {
 	} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
 	grabber->update(current);
 	if (window_selected) {
-		win->prefs_tab->on_selected(grabber->get_wm_class(current));
+		win->prefs_tab->on_selected(grabber->get_wm_class());
 		window_selected = false;
 	}
 }
@@ -1562,6 +1560,13 @@ int main(int argc, char **argv) {
 	if (verbosity >= 2)
 		printf("Exiting...\n");
 	return EXIT_SUCCESS;
+}
+
+bool SendKey::run() {
+	press();
+	XTestFakeKeyEvent(dpy, code, true, 0);
+	XTestFakeKeyEvent(dpy, code, false, 0);
+	return true;
 }
 
 bool Button::run() {

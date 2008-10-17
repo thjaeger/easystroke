@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <typeinfo>
 
 class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
 	CellRendererTextish *parent;
@@ -111,10 +112,40 @@ const char *IGNORE = "Ignore";
 const char *BUTTON = "Button";
 const char *MISC = "Misc";
 
+struct NameType {
+	const char *name;
+	const std::type_info *type;
+};
+
+NameType name_type[7] = {
+	{ COMMAND, &typeid(Command) },
+	{ KEY,     &typeid(SendKey) },
+	{ SCROLL,  &typeid(Scroll)  },
+	{ IGNORE,  &typeid(Ignore)  },
+	{ BUTTON,  &typeid(Button)  },
+	{ MISC,    &typeid(Misc)    },
+	{ 0,       0                }
+};
+
+const std::type_info *name_to_type(Glib::ustring name) {
+	for (NameType *i = name_type; i->name; i++)
+		if (i->name == name)
+			return i->type;
+	return 0;
+}
+
+const char *type_to_name(const std::type_info *type) {
+	for (NameType *i = name_type; i->name; i++)
+		if (i->type == type)
+			return i->name;
+	return "";
+}
+
 Actions::Actions() :
 	tv(0),
 	editing_new(false),
-	editing(false)
+	editing(false),
+	action_list(actions.get_root())
 {
 	widgets->get_widget("treeview_actions", tv);
 
@@ -132,53 +163,18 @@ Actions::Actions() :
 
 	tm = Gtk::ListStore::create(cols);
 
-#if 0
-	tv->set_reorderable();
-//	tv->set_level_indentation(STROKE_SIZE/2);
-	tv->set_enable_tree_lines();
-#endif
 	tv->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
 	Gtk::TreeModel::Row row;
-	{
-		const ActionDB &as = actions.ref();
-		for (ActionDB::const_iterator i = as.begin(); i!=as.end(); i++) {
-			const StrokeInfo &si = i->second;
-			row = *(tm->append());
-			row[cols.stroke] = !si.strokes.empty() && *si.strokes.begin() ? (*si.strokes.begin())->draw(STROKE_SIZE) : Stroke::drawEmpty(STROKE_SIZE);
-			row[cols.name] = i->second.name;
-			row[cols.type] = COMMAND;
-			row[cols.id]   = i->first;
-
-			RCommand cmd = boost::dynamic_pointer_cast<Command>(si.action);
-			if (cmd)
-				row[cols.arg] = cmd->cmd;
-			RSendKey key = boost::dynamic_pointer_cast<SendKey>(si.action);
-			if (key) {
-				row[cols.arg] = key->get_label();
-				row[cols.type] = KEY;
-			}
-			RScroll scroll = boost::dynamic_pointer_cast<Scroll>(si.action);
-			if (scroll) {
-				row[cols.arg] = scroll->get_label();
-				row[cols.type] = SCROLL;
-			}
-			RIgnore ignore = boost::dynamic_pointer_cast<Ignore>(si.action);
-			if (ignore) {
-				row[cols.arg] = ignore->get_label();
-				row[cols.type] = IGNORE;
-			}
-			RButton button = boost::dynamic_pointer_cast<Button>(si.action);
-			if (button) {
-				row[cols.arg] = button->get_label();
-				row[cols.type] = BUTTON;
-			}
-			RMisc misc = boost::dynamic_pointer_cast<Misc>(si.action);
-			if (misc) {
-				row[cols.arg] = misc->get_label();
-				row[cols.type] = MISC;
-			}
-		}
+	for (ActionDB::const_iterator i = actions.begin(); i!=actions.end(); i++) {
+		const StrokeInfo &si = i->second;
+		row = *(tm->append());
+		row[cols.stroke] = !si.strokes.empty() && *si.strokes.begin() ? (*si.strokes.begin())->draw(STROKE_SIZE) : Stroke::drawEmpty(STROKE_SIZE);
+		row[cols.name] = i->second.name;
+		row[cols.id]   = i->first;
+		row[cols.type] = si.action ? type_to_name(&typeid(*si.action)) : "";
+		if (si.action)
+			row[cols.arg] = si.action->get_label();
 	}
 
 	int n;
@@ -196,12 +192,9 @@ Actions::Actions() :
 	col_name->set_cell_data_func(*name_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_name));
 
 	type_store = Gtk::ListStore::create(type);
-	(*(type_store->append()))[type.type] = COMMAND;
-	(*(type_store->append()))[type.type] = KEY;
-	(*(type_store->append()))[type.type] = MISC;
-	(*(type_store->append()))[type.type] = IGNORE;
-	(*(type_store->append()))[type.type] = SCROLL;
-	(*(type_store->append()))[type.type] = BUTTON;
+	for (NameType *i = name_type; i->name; i++)
+		(*(type_store->append()))[type.type] = i->name;
+
 	Gtk::CellRendererCombo *type_renderer = Gtk::manage(new Gtk::CellRendererCombo);
 	type_renderer->property_model() = type_store;
 	type_renderer->property_editable() = true;
@@ -278,46 +271,40 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 		edit = editing_new;
 	} else {
 		row[cols.type] = new_type;
-		Unique *id = row[cols.id];
-		Atomic a;
-		ActionDB &as = actions.write_ref(a);
+		RAction new_action;
 		if (new_type == COMMAND) {
 			Glib::ustring cmd_save = row[cols.cmd_save];
-			row[cols.arg] = cmd_save;
 			if (cmd_save != "")
 				edit = false;
-
-			as[id].action.reset();
+			new_action = Command::create(cmd_save);
 		}
 		if (old_type == COMMAND) {
 			row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
 		}
 		if (new_type == KEY) {
-			row[cols.arg] = "";
-			as[id].action = SendKey::create(0, (Gdk::ModifierType)0, 0);
+			new_action = SendKey::create(0, (Gdk::ModifierType)0, 0);
 			edit = true;
 		}
 		if (new_type == SCROLL) {
-			row[cols.arg] = "No Modifiers";
-			as[id].action = Scroll::create((Gdk::ModifierType)0);
+			new_action = Scroll::create((Gdk::ModifierType)0);
 			edit = false;
 		}
 		if (new_type == IGNORE) {
-			row[cols.arg] = "No Modifiers";
-			as[id].action = Ignore::create((Gdk::ModifierType)0);
+			new_action = Ignore::create((Gdk::ModifierType)0);
 			edit = false;
 		}
 		if (new_type == BUTTON) {
-			row[cols.arg] = "";
-			as[id].action = Button::create((Gdk::ModifierType)0, 0);
+			new_action = Button::create((Gdk::ModifierType)0, 0);
 			edit = true;
 		}
 		if (new_type == MISC) {
-			row[cols.arg] = "None";
-			as[id].action = Misc::create(Misc::NONE);
+			new_action = Misc::create(Misc::NONE);
 			edit = true;
 		}
 		row[cols.type] = new_type;
+		action_list->set_action(row[cols.id], new_action);
+		row[cols.arg] = new_action->get_label();
+		update_actions();
 	}
 	editing_new = false;
 	focus(row[cols.id], 3, edit);
@@ -354,10 +341,9 @@ void Actions::on_button_delete() {
 	}
 	for (std::vector<Gtk::TreeRowReference>::iterator i = refs.begin(); i != refs.end(); ++i)
 		tm->erase(*tm->get_iter(i->get_path()));
-	Atomic a;
-	ActionDB &as = actions.write_ref(a);
 	for (std::vector<Unique *>::iterator i = ids.begin(); i != ids.end(); ++i)
-		as.remove(*i);
+		action_list->remove(*i);
+	update_actions();
 }
 
 class Actions::OnStroke {
@@ -369,11 +355,10 @@ public:
 	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, Unique *id_, Gtk::TreeValueProxy<Glib::RefPtr<Gdk::Pixbuf> > pb_)
 		: parent(parent_), dialog(dialog_), id(id_), pb(pb_) {}
 	void run(RStroke stroke) {
-		Atomic a;
-		ActionDB &as = actions.write_ref(a);
-		StrokeInfo &si = as[id];
-		si.strokes.clear();
-		si.strokes.insert(stroke);
+		StrokeSet strokes;
+		strokes.insert(stroke);
+		parent->action_list->set_strokes(id, strokes);
+		update_actions();
 		dialog->response(0);
 		Glib::RefPtr<Gdk::Pixbuf> pb2 = stroke->draw(STROKE_SIZE);
 		pb = pb2;
@@ -401,7 +386,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 		cancel->signal_enter().connect(sigc::ptr_fun(&suspend_flush));
 		cancel->signal_leave().connect(sigc::ptr_fun(&resume_flush));
 	}
-	const StrokeInfo *si = actions.ref().lookup(row[cols.id]);
+	RStrokeInfo si = action_list->get_info(row[cols.id]);
 	if (si)
 		del->set_sensitive(si->strokes.size());
 
@@ -416,8 +401,8 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 		return;
 
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
-	Atomic a;
-	actions.write_ref(a)[row[cols.id]].strokes.clear();
+	action_list->set_strokes(row[cols.id], StrokeSet());
+	update_actions();
 }
 
 void Actions::on_button_record() {
@@ -452,13 +437,16 @@ void Actions::on_button_new() {
 	row[cols.stroke] = Stroke::drawEmpty(STROKE_SIZE);
 	row[cols.type] = COMMAND;
 	char buf[16];
-	snprintf(buf, 15, "Gesture %d", actions.ref().size()+1);
-	Atomic a;
-	row[cols.id] = actions.write_ref(a).add_cmd(RStroke(), buf, "");
+	snprintf(buf, 15, "Gesture %d", 0); // TODO: actions.ref().size()+1);
+	StrokeInfo si;
+	si.name = buf;
+	si.action = Command::create("");
+	action_list->add(si);
 	row[cols.name] = buf;
 
 	Gtk::TreePath path = tm->get_path(row);
 	focus(row[cols.id], 1, true);
+	update_actions();
 }
 
 struct Actions::Focus {
@@ -492,10 +480,8 @@ void Actions::focus(Unique *id, int col, bool edit) {
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
 	Gtk::TreeRow row(*tm->get_iter(path));
-	{
-		Atomic a;
-		actions.write_ref(a)[row[cols.id]].name = new_text;
-	}
+	action_list->set_name(row[cols.id], new_text);
+	update_actions();
 	row[cols.name] = new_text;
 	focus(row[cols.id], 2, editing_new);
 }
@@ -503,14 +489,8 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_cmd) {
 	Gtk::TreeRow row(*tm->get_iter(path));
 	row[cols.arg] = new_cmd;
-	Unique *id = row[cols.id];
-	Atomic a;
-	ActionDB &as = actions.write_ref(a);
-	RCommand c = boost::dynamic_pointer_cast<Command>(as[id].action);
-	if (c)
-		c->cmd = new_cmd;
-	else
-		as[id].action = Command::create(new_cmd);
+	action_list->set_action(row[cols.id], Command::create(new_cmd));
+	update_actions();
 }
 
 void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
@@ -521,9 +501,7 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		if (row[cols.arg] == str)
 			return;
 		row[cols.arg] = str;
-		Atomic a;
-		ActionDB &as = actions.write_ref(a);
-		as[row[cols.id]].action = boost::static_pointer_cast<Action>(send_key);
+		action_list->set_action(row[cols.id], boost::static_pointer_cast<Action>(send_key));
 	}
 	if (row[cols.type] == SCROLL) {
 		RScroll scroll = Scroll::create(accel_mods);
@@ -531,9 +509,7 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		if (row[cols.arg] == str)
 			return;
 		row[cols.arg] = str;
-		Atomic a;
-		ActionDB &as = actions.write_ref(a);
-		as[row[cols.id]].action = boost::static_pointer_cast<Action>(scroll);
+		action_list->set_action(row[cols.id], boost::static_pointer_cast<Action>(scroll));
 	}
 	if (row[cols.type] == IGNORE) {
 		RIgnore ignore = Ignore::create(accel_mods);
@@ -541,10 +517,9 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 		if (row[cols.arg] == str)
 			return;
 		row[cols.arg] = str;
-		Atomic a;
-		ActionDB &as = actions.write_ref(a);
-		as[row[cols.id]].action = boost::static_pointer_cast<Action>(ignore);
+		action_list->set_action(row[cols.id], boost::static_pointer_cast<Action>(ignore));
 	}
+	update_actions();
 }
 
 void Actions::on_combo_edited(const Glib::ustring& path_string, guint item) {
@@ -556,9 +531,8 @@ void Actions::on_combo_edited(const Glib::ustring& path_string, guint item) {
 	if (row[cols.arg] == str)
 		return;
 	row[cols.arg] = str;
-	Atomic a;
-	ActionDB &as = actions.write_ref(a);
-	as[row[cols.id]].action = boost::static_pointer_cast<Action>(misc);
+	action_list->set_action(row[cols.id], boost::static_pointer_cast<Action>(misc));
+	update_actions();
 }
 
 void Actions::on_something_editing_canceled() {
@@ -575,16 +549,26 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	if (row[cols.type] != Glib::ustring(BUTTON))
 		return;
 	ButtonInfo bi;
-	RButton bt = boost::static_pointer_cast<Button>(actions.ref().lookup(row[cols.id])->action);
-	bi = bt->get_button_info();
+	RButton bt = boost::static_pointer_cast<Button>(action_list->get_info(row[cols.id])->action);
+	if (bt)
+		bi = bt->get_button_info();
 	SelectButton sb(bi, false);
 	if (!sb.run())
 		return;
 	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
-	Atomic a;
-	ActionDB &as = actions.write_ref(a);
-	as[row[cols.id]].action = bt;
+	action_list->set_action(row[cols.id], bt);
 	row[cols.arg] = bt->get_label();
+	update_actions();
+}
+
+const Glib::ustring SendKey::get_label() const {
+	Glib::ustring str = Gtk::AccelGroup::get_label(key, mods);
+	if (key == 0) {
+		char buf[10];
+		snprintf(buf, 9, "0x%x", code);
+		str += buf;
+	}
+	return str;
 }
 
 const Glib::ustring ModAction::get_label() const {

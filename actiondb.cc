@@ -23,77 +23,23 @@
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/set.hpp>
+#include <boost/serialization/list.hpp>
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/shared_ptr.hpp>
-//#include <boost/serialization/base_object.hpp>
 
-// I don't know WHY I need this, I'm just glad I found out I did...
+#include <X11/extensions/XTest.h>
+
 BOOST_CLASS_EXPORT(StrokeSet)
 
 BOOST_CLASS_EXPORT(Action)
 BOOST_CLASS_EXPORT(Command)
 BOOST_CLASS_EXPORT(ModAction)
+BOOST_CLASS_EXPORT(SendKey)
 BOOST_CLASS_EXPORT(Scroll)
 BOOST_CLASS_EXPORT(Ignore)
 BOOST_CLASS_EXPORT(Button)
 BOOST_CLASS_EXPORT(Misc)
-
-class SendKeyPriv : public SendKey {
-	friend class boost::serialization::access;
-	friend class SendKey;
-	guint key;
-	guint code;
-	BOOST_SERIALIZATION_SPLIT_MEMBER()
-	template<class Archive> void load(Archive & ar, const unsigned int version) {
-		ar & boost::serialization::base_object<ModAction>(*this);
-		ar & key;
-		ar & code;
-		if (version < 1) {
-			bool xtest;
-			ar & xtest;
-		}
-		compute_code();
-	}
-	template<class Archive> void save(Archive & ar, const unsigned int version) const {
-		ar & boost::serialization::base_object<ModAction>(*this);
-		ar & key;
-		ar & code;
-	}
-
-	SendKeyPriv(guint key_, Gdk::ModifierType mods, guint code_) :
-		SendKey(mods), key(key_), code(code_) { compute_code(); }
-
-	void compute_code() {
-		if (key)
-			code = XKeysymToKeycode(dpy, key);
-	}
-public:
-	SendKeyPriv() {}
-	virtual bool run() {
-		press();
-		XTestFakeKeyEvent(dpy, code, true, 0);
-		XTestFakeKeyEvent(dpy, code, false, 0);
-		return true;
-	}
-
-	virtual const Glib::ustring get_label() const {
-		Glib::ustring str = Gtk::AccelGroup::get_label(key, mods);
-		if (key == 0) {
-			char buf[10];
-			snprintf(buf, 9, "0x%x", code);
-			str += buf;
-		}
-		return str;
-	}
-};
-
-BOOST_CLASS_VERSION(SendKeyPriv, 1)
-BOOST_CLASS_EXPORT_GUID(SendKeyPriv, "SendKey")
-
-RSendKey SendKey::create(guint key, Gdk::ModifierType mods, guint code) {
-	return RSendKey(new SendKeyPriv(key, mods, code));
-}
 
 template<class Archive> void Unique::serialize(Archive & ar, const unsigned int version) {}
 
@@ -107,6 +53,23 @@ template<class Archive> void Command::serialize(Archive & ar, const unsigned int
 template<class Archive> void ModAction::serialize(Archive & ar, const unsigned int version) {
 	ar & boost::serialization::base_object<Action>(*this);
 	ar & mods;
+}
+
+template<class Archive> void SendKey::load(Archive & ar, const unsigned int version) {
+	ar & boost::serialization::base_object<ModAction>(*this);
+	ar & key;
+	ar & code;
+	if (version < 1) {
+		bool xtest;
+		ar & xtest;
+	}
+	compute_code();
+}
+
+template<class Archive> void SendKey::save(Archive & ar, const unsigned int version) const {
+	ar & boost::serialization::base_object<ModAction>(*this);
+	ar & key;
+	ar & code;
 }
 
 template<class Archive> void Scroll::serialize(Archive & ar, const unsigned int version) {
@@ -140,6 +103,11 @@ template<class Archive> void StrokeInfo::serialize(Archive & ar, const unsigned 
 
 using namespace std;
 
+void SendKey::compute_code() {
+	if (key)
+		code = XKeysymToKeycode(dpy, key);
+}
+
 bool Command::run() {
 	if (cmd == "")
 		return false;
@@ -168,25 +136,43 @@ const Glib::ustring Button::get_label() const {
 
 const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", NULL };
 
+template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
+	ar & parent;
+	ar & deleted;
+	ar & added;
+	ar & name;
+	ar & children;
+}
+
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
-	if (version >= 2) {
-		ar & strokes;
-		return;
+	if (version == 2) {
+		ar & root;
+		ar & apps;
 	}
 	if (version == 1) {
-		std::map<int, StrokeInfo> strokes2;
-		ar & strokes2;
-		for (std::map<int, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i)
-			add(i->second);
+		std::map<int, StrokeInfo> strokes;
+		ar & strokes;
+		for (std::map<int, StrokeInfo>::iterator i = strokes.begin(); i != strokes.end(); ++i)
+			root.add(i->second);
 	}
 	if (version == 0) {
-		std::map<std::string, StrokeInfo> strokes2;
-		ar & strokes2;
-		for (std::map<std::string, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i) {
+		std::map<std::string, StrokeInfo> strokes;
+		ar & strokes;
+		for (std::map<std::string, StrokeInfo>::iterator i = strokes.begin(); i != strokes.end(); ++i) {
 			i->second.name = i->first;
-			add(i->second);
+			root.add(i->second);
 		}
 	}
+}
+
+template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
+	ar & root;
+}
+
+Source<bool> action_dummy;
+
+void update_actions() {
+	action_dummy.set(false);
 }
 
 void ActionDBWatcher::init() {
@@ -194,13 +180,13 @@ void ActionDBWatcher::init() {
 	try {
 		ifstream ifs(filename.c_str(), ios::binary);
 		boost::archive::text_iarchive ia(ifs);
-		ia >> actions.unsafe_ref();
+		ia >> actions;
 		if (verbosity >= 2)
-			cout << "Loaded " << actions.ref().strokes.size() << " actions." << endl;
+			printf("Loaded actions.\n");
 	} catch (...) {
 		cout << "Error: Couldn't read action database." << endl;
 	}
-	watchValue(actions);
+	watchValue(action_dummy);
 }
 
 void ActionDBWatcher::timeout() {
@@ -208,10 +194,9 @@ void ActionDBWatcher::timeout() {
 	try {
 		ofstream ofs(filename.c_str());
 		boost::archive::text_oarchive oa(ofs);
-		const ActionDB &db = actions.ref();
-		oa << db;
+		oa << (const ActionDB &)actions;
 		if (verbosity >= 2)
-			cout << "Saved " << actions.ref().strokes.size() << " actions." << endl;
+			printf("Saved actions.\n");
 	} catch (...) {
 		cout << "Error: Couldn't save action database." << endl;
 		if (!good_state)
@@ -221,39 +206,20 @@ void ActionDBWatcher::timeout() {
 	}
 }
 
-bool ActionDB::remove(Unique *id) {
-	bool ans = strokes.erase(id);
-	delete id;
-	return ans;
-}
-
-Unique *ActionDB::add(StrokeInfo &si) {
-	Unique *id = new Unique;
-	strokes[id] = si;
-	return id;
-}
-
-
-Unique *ActionDB::add_cmd(RStroke stroke, const string& name, const string& cmd) {
-	StrokeInfo si;
-	if (stroke)
-		si.strokes.insert(stroke);
-	si.name = name;
-	si.action = Command::create(cmd);
-	return add(si);
-}
-
-
-int ActionDB::nested_size() const {
-	int size = 0;
-	for (const_iterator i = begin(); i != end(); i++)
-		size += i->second.strokes.size();
-	return size;
+boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() const {
+	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = parent ? parent->get_strokes() :
+	       	boost::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
+	for (std::set<Unique *>::const_iterator i = deleted.begin(); i != deleted.end(); i++)
+		strokes->erase(*i);
+	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
+		if (i->second.strokes.size())
+			(*strokes)[i->first] = i->second.strokes;
+	return strokes;
 }
 
 Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
 
-Ranking *ActionDB::handle(RStroke s, int button_up) const {
+Ranking *ActionListDiff::handle(RStroke s, int button_up) const {
 	Ranking *r = new Ranking;
 	r->stroke = s;
 	r->score = -1;
@@ -261,23 +227,25 @@ Ranking *ActionDB::handle(RStroke s, int button_up) const {
 	bool success = false;
 	if (!s)
 		return r;
-	for (StrokeIterator i = strokes_begin(); i; i++) {
-		if (!i.stroke())
-			continue;
-		double score;
-	       	bool match = Stroke::compare(s, i.stroke(), score);
-		if (score < 0.25)
-			continue;
-		r->r.insert(pair<double, pair<std::string, RStroke> >
-				(score, pair<std::string, RStroke>(i.name(), i.stroke())));
-		if (score >= r->score) {
-			r->score = score;
-			if (match) {
-				r->id = i.id();
-				r->name = i.name();
-				r->action = i.action();
-				r->best_stroke = i.stroke();
-				success = true;
+	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
+	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
+		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+			double score;
+			bool match = Stroke::compare(s, *j, score);
+			if (score < 0.25)
+				continue;
+			RStrokeInfo si = get_info(i->first);
+			r->r.insert(pair<double, pair<std::string, RStroke> >
+					(score, pair<std::string, RStroke>(si->name, *j)));
+			if (score >= r->score) {
+				r->score = score;
+				if (match) {
+					r->id = i->first;
+					r->name = si->name;
+					r->action = si->action;
+					r->best_stroke = *j;
+					success = true;
+				}
 			}
 		}
 	}
@@ -301,4 +269,4 @@ Ranking *ActionDB::handle(RStroke s, int button_up) const {
 	return r;
 }
 
-Source<ActionDB> actions;
+ActionDB actions;
