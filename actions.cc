@@ -240,7 +240,7 @@ void Actions::on_cell_data_name(Gtk::CellRenderer* cell, const Gtk::TreeModel::i
 }
 
 void Actions::on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
-	bool bold = (*iter)[cols.type_bold];
+	bool bold = (*iter)[cols.action_bold];
 	bool deactivated = (*iter)[cols.deactivated];
 	Gtk::CellRendererText *renderer = dynamic_cast<Gtk::CellRendererText *>(cell);
 	if (renderer)
@@ -249,7 +249,7 @@ void Actions::on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::i
 }
 
 void Actions::on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
-	bool bold = (*iter)[cols.arg_bold];
+	bool bold = (*iter)[cols.action_bold];
 	bool deactivated = (*iter)[cols.deactivated];
 	cell->property_sensitive().set_value(!deactivated);
 	CellRendererTextish *renderer = dynamic_cast<CellRendererTextish *>(cell);
@@ -278,7 +278,7 @@ void Actions::on_type_edited(const Glib::ustring& path, const Glib::ustring& new
 		edit = editing_new;
 	} else {
 		row[cols.type] = new_type;
-		int id = row[cols.id];
+		Unique *id = row[cols.id];
 		Atomic a;
 		ActionDB &as = actions.write_ref(a);
 		if (new_type == COMMAND) {
@@ -344,29 +344,29 @@ void Actions::on_button_delete() {
 	// complete craziness
 	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
 	std::vector<Gtk::TreeRowReference> refs;
-	std::vector<int> ids;
+	std::vector<Unique *> ids;
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
 		Gtk::TreeRowReference ref(tm, *i);
 		refs.push_back(ref);
 		Gtk::TreeRow row(*tm->get_iter(*i));
-		int id = row[cols.id];
+		Unique *id = row[cols.id];
 		ids.push_back(id);
 	}
 	for (std::vector<Gtk::TreeRowReference>::iterator i = refs.begin(); i != refs.end(); ++i)
 		tm->erase(*tm->get_iter(i->get_path()));
 	Atomic a;
 	ActionDB &as = actions.write_ref(a);
-	for (std::vector<int>::iterator i = ids.begin(); i != ids.end(); ++i)
+	for (std::vector<Unique *>::iterator i = ids.begin(); i != ids.end(); ++i)
 		as.remove(*i);
 }
 
 class Actions::OnStroke {
 	Actions *parent;
 	Gtk::Dialog *dialog;
-	int id;
+	Unique *id;
 	Gtk::TreeValueProxy<Glib::RefPtr<Gdk::Pixbuf> > pb;
 public:
-	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, int id_, Gtk::TreeValueProxy<Glib::RefPtr<Gdk::Pixbuf> > pb_)
+	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, Unique *id_, Gtk::TreeValueProxy<Glib::RefPtr<Gdk::Pixbuf> > pb_)
 		: parent(parent_), dialog(dialog_), id(id_), pb(pb_) {}
 	void run(RStroke stroke) {
 		Atomic a;
@@ -454,7 +454,7 @@ void Actions::on_button_new() {
 	char buf[16];
 	snprintf(buf, 15, "Gesture %d", actions.ref().size()+1);
 	Atomic a;
-	row[cols.id] = actions.write_ref(a).addCmd(RStroke(), buf, "");
+	row[cols.id] = actions.write_ref(a).add_cmd(RStroke(), buf, "");
 	row[cols.name] = buf;
 
 	Gtk::TreePath path = tm->get_path(row);
@@ -463,7 +463,7 @@ void Actions::on_button_new() {
 
 struct Actions::Focus {
 	Actions *parent;
-	int id;
+	Unique *id;
 	Gtk::TreeViewColumn* col;
 	bool edit;
 	bool focus() {
@@ -479,7 +479,7 @@ struct Actions::Focus {
 	}
 };
 
-void Actions::focus(int id, int col, bool edit) {
+void Actions::focus(Unique *id, int col, bool edit) {
 	// More C++ closure fun.
 	Focus* focus = new Focus;
 	focus->parent = this;
@@ -503,7 +503,7 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 void Actions::on_cmd_edited(const Glib::ustring& path, const Glib::ustring& new_cmd) {
 	Gtk::TreeRow row(*tm->get_iter(path));
 	row[cols.arg] = new_cmd;
-	int id = row[cols.id];
+	Unique *id = row[cols.id];
 	Atomic a;
 	ActionDB &as = actions.write_ref(a);
 	RCommand c = boost::dynamic_pointer_cast<Command>(as[id].action);

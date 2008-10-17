@@ -1214,12 +1214,12 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 			success = true;
 		} else {
 			Ranking *ranking = as.handle(s, button_up);
-			success = ranking->id > -2;
+			success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
 			ranking->x = x;
 			ranking->y = y;
-			if (ranking->id == -1)
+			if (ranking->id == &stroke_is_click)
 				replay_button = trigger;
-			if ((ranking->id != -1 && ranking->id != -2) || prefs.show_clicks.get())
+			if ((ranking->id!=&stroke_is_click && ranking->id!=&stroke_is_timeout) || prefs.show_clicks.get())
 				Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
 			else
 				delete ranking;
@@ -1231,8 +1231,8 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 		}
 	} else {
 		Ranking *ranking = as.handle(s, button_up);
-		success = ranking->id > -2;
-		if (ranking->id == -1)
+		success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
+		if (ranking->id == &stroke_is_click)
 			replay_button = trigger;
 		delete ranking;
 	}

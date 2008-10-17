@@ -95,8 +95,9 @@ RSendKey SendKey::create(guint key, Gdk::ModifierType mods, guint code) {
 	return RSendKey(new SendKeyPriv(key, mods, code));
 }
 
-template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {
-}
+template<class Archive> void Unique::serialize(Archive & ar, const unsigned int version) {}
+
+template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {}
 
 template<class Archive> void Command::serialize(Archive & ar, const unsigned int version) {
 	ar & boost::serialization::base_object<Action>(*this);
@@ -167,23 +168,24 @@ const Glib::ustring Button::get_label() const {
 
 const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", NULL };
 
-ActionDB::ActionDB() : current_id(0) {}
-
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
-	if (version >= 1) {
+	if (version >= 2) {
+		ar & strokes;
+		return;
+	}
+	if (version == 1) {
 		std::map<int, StrokeInfo> strokes2;
 		ar & strokes2;
 		for (std::map<int, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i)
 			add(i->second);
-		return;
-	} else {
+	}
+	if (version == 0) {
 		std::map<std::string, StrokeInfo> strokes2;
 		ar & strokes2;
 		for (std::map<std::string, StrokeInfo>::iterator i = strokes2.begin(); i != strokes2.end(); ++i) {
 			i->second.name = i->first;
 			add(i->second);
 		}
-		return;
 	}
 }
 
@@ -219,17 +221,20 @@ void ActionDBWatcher::timeout() {
 	}
 }
 
-bool ActionDB::remove(int id) {
-	return strokes.erase(id);
+bool ActionDB::remove(Unique *id) {
+	bool ans = strokes.erase(id);
+	delete id;
+	return ans;
 }
 
-int ActionDB::add(StrokeInfo &si) {
-	strokes[current_id] = si;
-	return current_id++;
+Unique *ActionDB::add(StrokeInfo &si) {
+	Unique *id = new Unique;
+	strokes[id] = si;
+	return id;
 }
 
 
-int ActionDB::addCmd(RStroke stroke, const string& name, const string& cmd) {
+Unique *ActionDB::add_cmd(RStroke stroke, const string& name, const string& cmd) {
 	StrokeInfo si;
 	if (stroke)
 		si.strokes.insert(stroke);
@@ -246,11 +251,13 @@ int ActionDB::nested_size() const {
 	return size;
 }
 
+Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
+
 Ranking *ActionDB::handle(RStroke s, int button_up) const {
 	Ranking *r = new Ranking;
 	r->stroke = s;
 	r->score = -1;
-	r->id = -3;
+	r->id = &stroke_not_found;
 	bool success = false;
 	if (!s)
 		return r;
@@ -275,7 +282,7 @@ Ranking *ActionDB::handle(RStroke s, int button_up) const {
 		}
 	}
 	if (!success && s->trivial()) {
-		r->id = s->is_timeout() ? -2 : -1;
+		r->id = s->is_timeout() ? &stroke_is_timeout : &stroke_is_click;
 		r->name = "click (default)";
 		if (!s->is_timeout())
 			success = true;

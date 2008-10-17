@@ -18,6 +18,7 @@
 
 #include <gtkmm.h>
 
+class Unique;
 class Win;
 
 class CellRendererTextish : public Gtk::CellRendererText {
@@ -63,18 +64,18 @@ private:
 	class OnStroke;
 	Gtk::TreeRow get_selected_row();
 
-	void focus(int id, int col, bool edit);
+	void focus(Unique *id, int col, bool edit);
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
 		ModelColumns() {
 			add(stroke); add(name); add(type); add(arg); add(cmd_save); add(id);
-			add(name_bold); add(type_bold); add(arg_bold); add(deactivated);
+			add(name_bold); add(action_bold); add(deactivated);
 		}
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > stroke;
 		Gtk::TreeModelColumn<Glib::ustring> name, type, arg, cmd_save;
-		Gtk::TreeModelColumn<int> id;
-		Gtk::TreeModelColumn<bool> name_bold, type_bold, arg_bold;
+		Gtk::TreeModelColumn<Unique *> id;
+		Gtk::TreeModelColumn<bool> name_bold, action_bold;
 		Gtk::TreeModelColumn<bool> deactivated;
 	};
 	ModelColumns cols;

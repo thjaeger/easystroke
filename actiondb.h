@@ -35,6 +35,10 @@ class Scroll;
 class Ignore;
 class Button;
 class Misc;
+class Unique {
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+};
 
 typedef boost::shared_ptr<Action> RAction;
 typedef boost::shared_ptr<Command> RCommand;
@@ -43,6 +47,7 @@ typedef boost::shared_ptr<Scroll> RScroll;
 typedef boost::shared_ptr<Ignore> RIgnore;
 typedef boost::shared_ptr<Button> RButton;
 typedef boost::shared_ptr<Misc> RMisc;
+
 
 class Action {
 	friend class boost::serialization::access;
@@ -157,7 +162,7 @@ struct Ranking {
 	RStroke stroke, best_stroke;
 	RAction action;
 	double score;
-	int id;
+	Unique *id;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
 	int x, y;
@@ -165,8 +170,8 @@ struct Ranking {
 };
 
 class StrokeIterator {
-	const std::map<int, StrokeInfo> &ids;
-	std::map<int, StrokeInfo>::const_iterator i;
+	const std::map<Unique *, StrokeInfo> &ids;
+	std::map<Unique *, StrokeInfo>::const_iterator i;
 	const StrokeSet *strokes;
 	StrokeSet::const_iterator j;
 	void init_j() {
@@ -190,7 +195,7 @@ public:
 	// This is why C++ sucks balls. It's really easy to shoot yourself in
 	// the foot even if you know what you're doing.  In this case I forgot
 	// the `&'.  Took me 2 hours to figure out what was going wrong.
-	StrokeIterator(const std::map<int, StrokeInfo> &ids_) : ids(ids_) {
+	StrokeIterator(const std::map<Unique *, StrokeInfo> &ids_) : ids(ids_) {
 		i = ids.begin();
 		if (i == ids.end())
 			return;
@@ -204,7 +209,7 @@ public:
 		j++;
 		next();
 	}
-	const int& id() {
+	Unique *id() {
 		return i->first;
 	}
 	const std::string name() {
@@ -220,38 +225,46 @@ public:
 
 };
 
+class ActionListDiff {
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+	ActionListDiff *parent;
+public:
+
+};
+
+extern Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
+
 class ActionDB {
 	friend class boost::serialization::access;
 	friend class ActionDBWatcher;
-	std::map<int, StrokeInfo> strokes;
+	std::map<Unique *, StrokeInfo> strokes;
 	template<class Archive> void load(Archive & ar, const unsigned int version);
 	template<class Archive> void save(Archive & ar, const unsigned int version) const {
 		ar & strokes;
 	}
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
-	int current_id;
-	int add(StrokeInfo &);
+	Unique *add(StrokeInfo &);
 public:
-	ActionDB();
-	typedef std::map<int, StrokeInfo>::const_iterator const_iterator;
+	typedef std::map<Unique *, StrokeInfo>::const_iterator const_iterator;
 	const const_iterator begin() const { return strokes.begin(); }
 	const const_iterator end() const { return strokes.end(); }
 	StrokeIterator strokes_begin() const { return StrokeIterator(strokes); }
 
-	const StrokeInfo *lookup(int id) const {
+	const StrokeInfo *lookup(Unique *id) const {
 		const_iterator i = strokes.find(id);
 		return i != end() ? &(i->second) : 0;
 	}
-	StrokeInfo &operator[](int id) { return strokes[id]; }
+	StrokeInfo &operator[](Unique *id) { return strokes[id]; }
 
 	int size() const { return strokes.size(); }
-	bool remove(int id);
+	bool remove(Unique *id);
 	int nested_size() const;
-	int addCmd(RStroke, const std::string& name, const std::string& cmd);
+	Unique *add_cmd(RStroke, const std::string& name, const std::string& cmd);
 	Ranking *handle(RStroke, int) const;
 };
-BOOST_CLASS_VERSION(ActionDB, 1)
+BOOST_CLASS_VERSION(ActionDB, 2)
 
 class ActionDBWatcher : public TimeoutWatcher {
 	bool good_state;
