@@ -6,3 +6,4 @@ vartest
 gui.*
 *.swp
 dbus-server.h
+debug.mk

@@ -17,8 +17,8 @@ PREFIX   = /usr/local
 BINDIR   = $(PREFIX)/bin
 ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
 MENUDIR  = $(PREFIX)/share/applications
-DFLAGS   = -ggdb #-pg
-OFLAGS   = #-Os
+DFLAGS   =
+OFLAGS   = -Os
 AOFLAGS  = -O3
 CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
@@ -38,6 +38,8 @@ CFILES   = gui.c
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES))
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
+
+-include debug.mk
 
 all: $(TARGETS)
 
