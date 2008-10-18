@@ -878,18 +878,21 @@ public:
 	}
 };
 
-bool window_selected = false;
+boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
 
 class SelectHandler : public Handler {
+	sigc::slot<void, std::string> callback;
 	virtual void grab() {
 		grabber->grab(Grabber::SELECT);
 		XEvent ev;
 		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
 	}
 	virtual void press(guint b, RTriple e) {
-		window_selected = true;
+		window_selected.reset(new sigc::slot<void, std::string>(callback));
 		parent->replace_child(0);
 	}
+	public:
+	SelectHandler(sigc::slot<void, std::string> callback_) : callback(callback_) {}
 	virtual std::string name() { return "Select"; }
 };
 
@@ -1289,8 +1292,8 @@ void Main::handle_enter_leave(XEvent &ev) {
 	} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
 	grabber->update(current);
 	if (window_selected) {
-		win->prefs_tab->on_selected(grabber->get_wm_class());
-		window_selected = false;
+		(*window_selected)(grabber->get_wm_class());
+		window_selected.reset();
 	}
 }
 
@@ -1354,8 +1357,8 @@ void resume_flush() {
 	XFlush(dpy);
 }
 
-void Prefs::on_add() {
-	handler->top()->replace_child(new SelectHandler);
+void select_window(sigc::slot<void, std::string> f) {
+	handler->top()->replace_child(new SelectHandler(f));
 }
 
 struct MouseEvent {

@@ -67,6 +67,13 @@ private:
 
 	void focus(Unique *id, int col, bool edit);
 
+	struct SelectApp;
+	void on_add_app();
+	void on_app_selected(std::string);
+	void on_apps_selection_changed();
+	void load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions);
+	void on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
 		ModelColumns() {
@@ -80,8 +87,11 @@ private:
 		Gtk::TreeModelColumn<bool> deactivated;
 	};
 	ModelColumns cols;
-	Gtk::TreeView* tv;
+	Gtk::TreeView *tv;
 	Glib::RefPtr<Gtk::ListStore> tm;
+
+	Gtk::TreeView *apps_view;
+	Glib::RefPtr<Gtk::TreeStore> apps_model;
 
 	class Single : public Gtk::TreeModel::ColumnRecord {
 	public:
@@ -89,6 +99,14 @@ private:
 		Gtk::TreeModelColumn<Glib::ustring> type;
 	};
 	Single type;
+
+	class Apps : public Gtk::TreeModel::ColumnRecord {
+	public:
+		Apps() { add(app); add(actions); }
+		Gtk::TreeModelColumn<Glib::ustring> app;
+		Gtk::TreeModelColumn<ActionListDiff *> actions;
+	};
+	Apps ca;
 
 	struct Focus;
 

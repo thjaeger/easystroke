@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Sat Oct 11 00:28:22 2008 -->
+<!--Generated with glade3 3.4.5 on Fri Oct 17 22:14:44 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -58,8 +58,10 @@
                     </child>
                     <child>
                       <widget class="GtkVButtonBox" id="vbuttonbox1">
+                        <property name="height_request">130</property>
                         <property name="visible">True</property>
-                        <property name="layout_style">GTK_BUTTONBOX_SPREAD</property>
+                        <property name="spacing">6</property>
+                        <property name="layout_style">GTK_BUTTONBOX_START</property>
                         <child>
                           <widget class="GtkButton" id="button_add_app">
                             <property name="visible">True</property>
@@ -68,6 +70,10 @@
                             <property name="label" translatable="yes">Add Application</property>
                             <property name="response_id">0</property>
                           </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                          </packing>
                         </child>
                         <child>
                           <widget class="GtkButton" id="button_remove_app">
@@ -78,7 +84,25 @@
                             <property name="response_id">0</property>
                           </widget>
                           <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
                             <property name="position">1</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkButton" id="button_add_group">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="label" translatable="yes">Add Group</property>
+                            <property name="response_id">0</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="pack_type">GTK_PACK_END</property>
+                            <property name="position">2</property>
+                            <property name="secondary">True</property>
                           </packing>
                         </child>
                       </widget>

@@ -143,19 +143,23 @@ const char *type_to_name(const std::type_info *type) {
 
 Actions::Actions() :
 	tv(0),
+	apps_view(0),
 	editing_new(false),
 	editing(false),
 	action_list(actions.get_root())
 {
 	widgets->get_widget("treeview_actions", tv);
+	widgets->get_widget("treeview_apps", apps_view);
 
-	Gtk::Button *button_add = 0;
+	Gtk::Button *button_add = 0, *button_add_app = 0;
 	widgets->get_widget("button_add_action", button_add);
 	widgets->get_widget("button_delete_action", button_delete);
 	widgets->get_widget("button_record", button_record);
+	widgets->get_widget("button_add_app", button_add_app);
 	button_record->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_record));
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
+	button_add_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_app));
 
 	tv->signal_cursor_changed().connect(sigc::mem_fun(*this, &Actions::on_cursor_changed));
 	tv->signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
@@ -165,7 +169,7 @@ Actions::Actions() :
 
 	tv->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
 
-	Gtk::TreeModel::Row row;
+	Gtk::TreeRow row;
 	for (ActionDB::const_iterator i = actions.begin(); i!=actions.end(); i++) {
 		const StrokeInfo &si = i->second;
 		row = *(tm->append());
@@ -221,6 +225,26 @@ Actions::Actions() :
 	arg_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 
 	tv->set_model(tm);
+
+	///////////////////////
+	apps_view->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
+	apps_model = Gtk::TreeStore::create(ca);
+
+	load_app_list(apps_model->children(), actions.get_root());
+
+	apps_view->append_column("Application", ca.app);
+	apps_view->get_column(0)->set_cell_data_func(
+			*apps_view->get_column_cell_renderer(0), sigc::mem_fun(*this, &Actions::on_cell_data_apps));
+
+	apps_view->set_model(apps_model);
+}
+
+void Actions::load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions) {
+	Gtk::TreeRow row = *(apps_model->append(ch));
+	row[ca.app] = actions->name;
+	row[ca.actions] = actions;
+	for (ActionListDiff::iterator i = actions->begin(); i != actions->end(); i++)
+		load_app_list(row.children(), &(*i));
 }
 
 void Actions::on_cell_data_name(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
@@ -346,6 +370,55 @@ void Actions::on_button_delete() {
 	update_actions();
 }
 
+void Actions::on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+	ActionListDiff *as = (*iter)[ca.actions];
+	Gtk::CellRendererText *renderer = dynamic_cast<Gtk::CellRendererText *>(cell);
+	if (renderer)
+		renderer->property_editable().set_value(actions.get_root() != as && !as->app);
+}
+
+void select_window(sigc::slot<void, std::string> f);
+
+void Actions::on_add_app() {
+	select_window(sigc::mem_fun(*this, &Actions::on_app_selected));
+}
+
+struct Actions::SelectApp {
+	Actions *parent;
+	ActionListDiff *actions;
+	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
+		if ((*iter)[parent->ca.actions] == actions) {
+			parent->apps_view->expand_to_path(path);
+			parent->apps_view->set_cursor(path);
+			return true;
+		}
+		return false;
+	}
+};
+
+void Actions::on_app_selected(std::string name) {
+	if (actions.apps.count(name)) {
+		SelectApp cb;
+		cb.parent = this;
+		cb.actions = actions.apps[name];
+		apps_model->foreach(sigc::mem_fun(cb, &SelectApp::test));
+		return;
+	}
+	ActionListDiff *child = actions.get_root()->add_child(name, true);
+	const Gtk::TreeNodeChildren &ch = apps_model->children().begin()->children();
+	Gtk::TreeRow row = *(apps_model->append(ch));
+	row[ca.app] = name;
+	row[ca.actions] = child;
+	actions.apps[name] = child;
+	Gtk::TreePath path = apps_model->get_path(row);
+	apps_view->expand_to_path(path);
+	apps_view->set_cursor(path);
+	update_actions();
+}
+
+void Actions::on_apps_selection_changed() {
+}
+
 class Actions::OnStroke {
 	Actions *parent;
 	Gtk::Dialog *dialog;
@@ -441,7 +514,7 @@ void Actions::on_button_new() {
 	StrokeInfo si;
 	si.name = buf;
 	si.action = Command::create("");
-	action_list->add(si);
+	row[cols.id] = action_list->add(si);
 	row[cols.name] = buf;
 
 	Gtk::TreePath path = tm->get_path(row);

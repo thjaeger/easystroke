@@ -142,12 +142,12 @@ template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsig
 	ar & added;
 	ar & name;
 	ar & children;
+	ar & app;
 }
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version == 2) {
 		ar & root;
-		ar & apps;
 	}
 	if (version == 1) {
 		std::map<int, StrokeInfo> strokes;
@@ -163,6 +163,9 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 			root.add(i->second);
 		}
 	}
+
+	root.add_apps(apps);
+	root.name = "Default";
 }
 
 template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
@@ -183,8 +186,8 @@ void ActionDBWatcher::init() {
 		ia >> actions;
 		if (verbosity >= 2)
 			printf("Loaded actions.\n");
-	} catch (...) {
-		cout << "Error: Couldn't read action database." << endl;
+	} catch (exception &e) {
+		printf("Error: Couldn't read action database: %s.\n", e.what());
 	}
 	watchValue(action_dummy);
 }
@@ -197,8 +200,8 @@ void ActionDBWatcher::timeout() {
 		oa << (const ActionDB &)actions;
 		if (verbosity >= 2)
 			printf("Saved actions.\n");
-	} catch (...) {
-		cout << "Error: Couldn't save action database." << endl;
+	} catch (exception &e) {
+		printf("Error: Couldn't save action database: %s.\n", e.what());
 		if (!good_state)
 			return;
 		good_state = false;

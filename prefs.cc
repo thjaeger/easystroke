@@ -355,6 +355,12 @@ void Prefs::on_p_default() {
 
 extern void update_current();
 
+void select_window(sigc::slot<void, std::string> f);
+
+void Prefs::on_add() {
+	select_window(sigc::mem_fun(*this, &Prefs::on_selected));
+}
+
 void Prefs::on_selected(std::string str) {
 	bool is_new;
 	{
@@ -386,7 +392,6 @@ void Prefs::on_remove() {
 		update_current();
 	}
 }
-
 
 void Prefs::on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
 	Atomic a;

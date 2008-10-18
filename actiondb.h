@@ -189,10 +189,17 @@ class ActionListDiff {
 	ActionListDiff *parent;
 	std::set<Unique *> deleted;
 	std::map<Unique *, StrokeInfo> added;
-	std::string name;
 	std::list<ActionListDiff> children;
 public:
-	ActionListDiff() : parent(0) {}
+	bool app;
+	std::string name;
+
+	ActionListDiff() : parent(0), app(false) {}
+
+	typedef std::list<ActionListDiff>::iterator iterator;
+	iterator begin() { return children.begin(); }
+	iterator end() { return children.end(); }
+
 	RStrokeInfo get_info(Unique *id) const {
 		RStrokeInfo si = parent ? parent->get_info(id) : RStrokeInfo(new StrokeInfo);
 		std::map<Unique *, StrokeInfo>::const_iterator i = added.find(id);
@@ -206,7 +213,11 @@ public:
 			si->action = i->second.action;
 		return si;
 	}
-	void add(StrokeInfo &si) { added.insert(std::pair<Unique *, StrokeInfo>(new Unique, si)); }
+	Unique *add(StrokeInfo &si) {
+		Unique *id = new Unique;
+		added.insert(std::pair<Unique *, StrokeInfo>(id, si));
+		return id;
+	}
 	void set_action(Unique *id, RAction action) { added[id].action = action; }
 	void set_strokes(Unique *id, StrokeSet strokes) { added[id].strokes = strokes; }
 	void set_name(Unique *id, std::string name) { added[id].name = name; }
@@ -227,6 +238,20 @@ public:
 			i->remove(id);
 		return really;
 	}
+	void add_apps(std::map<std::string, ActionListDiff *> &apps) {
+		if (app)
+			apps[name] = this;
+		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++)
+			i->add_apps(apps);
+	}
+	ActionListDiff *add_child(std::string name, bool app) {
+		children.push_back(ActionListDiff());
+		ActionListDiff *child = &(children.back());
+		child->name = name;
+		child->app = app;
+		child->parent = this;
+		return child;
+	}
 
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
 	Ranking *handle(RStroke, int) const;
@@ -242,10 +267,10 @@ class ActionDB {
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 	ActionListDiff root;
-	std::map<std::string, ActionListDiff *> apps;
 	Unique *add(StrokeInfo &);
 public:
 	typedef std::map<Unique *, StrokeInfo>::const_iterator const_iterator;
+	std::map<std::string, ActionListDiff *> apps;
 	const const_iterator begin() const { return root.added.begin(); }
 	const const_iterator end() const { return root.added.end(); }
 	ActionListDiff *get_root() { return &root; }
