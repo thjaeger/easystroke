@@ -82,7 +82,7 @@ extern Win *win;
 
 class SelectButton {
 public:
-	SelectButton(ButtonInfo bi, bool def=true);
+	SelectButton(ButtonInfo bi, bool def);
 	~SelectButton();
 	bool run();
 	GdkEventButton event;

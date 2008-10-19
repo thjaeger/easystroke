@@ -320,7 +320,7 @@ bool SelectButton::run() {
 				event.state |= GDK_SUPER_MASK;
 			return true;
 		case 2: // Default
-			event.button = prefs.button.get().button;
+			event.button = 0;
 			event.state = 0;
 			return true;
 		case 3: // Click - all the work has already been done
@@ -343,10 +343,10 @@ bool SelectButton::on_button_press(GdkEventButton *ev) {
 void Prefs::on_select_button() {
 	Atomic a;
 	ButtonInfo &bi = prefs.button.write_ref(a);
-	SelectButton sb(bi);
+	SelectButton sb(bi, true);
 	if (!sb.run())
 		return;
-	bi.button = sb.event.button;
+	bi.button = sb.event.button ? sb.event.button : prefs.button.get().button;
 	bi.state = sb.event.state;
 	grabber->update_button(bi);
 	set_button_label();
@@ -397,13 +397,16 @@ void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::u
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(app);
 	if (i != prefs.exceptions.ref().end() && i->second)
 		bi = *i->second;
-	SelectButton sb(bi, false);
+	SelectButton sb(bi, true);
 	if (!sb.run())
 		return;
-	RButtonInfo bi2(new ButtonInfo);
-	bi2->button = sb.event.button;
-	bi2->state = sb.event.state;
-	row[cols.button] = bi2->get_button_text();
+	RButtonInfo bi2;
+	if (sb.event.button) {
+		bi2.reset(new ButtonInfo);
+		bi2->button = sb.event.button;
+		bi2->state = sb.event.state;
+	}
+	row[cols.button] = bi2 ? bi2->get_button_text() : "<App disabled>";
 	Atomic a;
 	prefs.exceptions.write_ref(a)[app] = bi2; 
 }
