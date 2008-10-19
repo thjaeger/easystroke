@@ -373,8 +373,9 @@ void Actions::on_reset_actions() {
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
 		Gtk::TreeRow row(*tm->get_iter(*i));
 		action_list->reset(row[cols.id]);
-		update_row(row);
+//		update_row(row); // This can't handle deleted rows...
 	}
+	update_action_list();
 }
 
 struct Actions::SelectApp {
@@ -422,7 +423,7 @@ void Actions::on_apps_selection_changed() {
 	}
 	if (action_list != new_action_list) {
 		action_list = new_action_list;
-		update_actions();
+		update_action_list();
 	}
 }
 
@@ -461,19 +462,16 @@ void Actions::update_row(const Gtk::TreeRow &row) {
 class Actions::OnStroke {
 	Actions *parent;
 	Gtk::Dialog *dialog;
-	Unique *id;
-	Gtk::TreeValueProxy<Glib::RefPtr<Gdk::Pixbuf> > pb;
+	Gtk::TreeRow &row;
 public:
-	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, Unique *id_, Gtk::TreeValueProxy<Glib::RefPtr<Gdk::Pixbuf> > pb_)
-		: parent(parent_), dialog(dialog_), id(id_), pb(pb_) {}
+	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, Gtk::TreeRow &row_) : parent(parent_), dialog(dialog_), row(row_) {}
 	void run(RStroke stroke) {
 		StrokeSet strokes;
 		strokes.insert(stroke);
-		parent->action_list->set_strokes(id, strokes);
+		parent->action_list->set_strokes(row[parent->cols.id], strokes);
+		parent->update_row(row);
 		update_actions();
 		dialog->response(0);
-		Glib::RefPtr<Gdk::Pixbuf> pb2 = stroke->draw(STROKE_SIZE);
-		pb = pb2;
 	}
 };
 
@@ -502,9 +500,8 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	if (si)
 		del->set_sensitive(si->strokes.size());
 
-	OnStroke ps(this, dialog, row[cols.id], row[cols.stroke]);
-	sigc::slot<void, RStroke> *bar = new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run));
-	stroke_action.reset(bar);
+	OnStroke ps(this, dialog, row);
+	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run)));
 
 	int response = dialog->run();
 	dialog->hide();
