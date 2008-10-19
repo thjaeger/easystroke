@@ -51,6 +51,7 @@ private:
 	void on_add_app();
 	void on_add_group();
 	void on_app_selected(std::string);
+	void on_group_name_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_apps_selection_changed();
 	void load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions);
 	void on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);

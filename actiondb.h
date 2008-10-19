@@ -190,6 +190,13 @@ class ActionListDiff {
 	std::set<Unique *> deleted;
 	std::map<Unique *, StrokeInfo> added;
 	std::list<ActionListDiff> children;
+
+	void fix_parents() {
+		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++) {
+			i->parent = this;
+			i->fix_parents();
+		}
+	}
 public:
 	bool app;
 	std::string name;
@@ -262,6 +269,8 @@ public:
 	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
 	void all_strokes(std::list<RStroke> &strokes) const;
 	Ranking *handle(RStroke, int) const;
+
+	~ActionListDiff();
 };
 
 extern Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
@@ -273,13 +282,15 @@ class ActionDB {
 	template<class Archive> void save(Archive & ar, const unsigned int version) const;
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
+public:
+	std::map<std::string, ActionListDiff *> apps;
+private:
 	ActionListDiff root;
 public:
 	typedef std::map<Unique *, StrokeInfo>::const_iterator const_iterator;
 	const const_iterator begin() const { return root.added.begin(); }
 	const const_iterator end() const { return root.added.end(); }
 
-	std::map<std::string, ActionListDiff *> apps;
 	ActionListDiff *get_root() { return &root; }
 
 	const ActionListDiff *get_action_list(std::string wm_class) const {

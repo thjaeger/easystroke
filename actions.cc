@@ -230,9 +230,12 @@ Actions::Actions() :
 
 	load_app_list(apps_model->children(), actions.get_root());
 
-	apps_view->append_column("Application", ca.app);
+	apps_view->append_column_editable("Application", ca.app);
 	apps_view->get_column(0)->set_cell_data_func(
 			*apps_view->get_column_cell_renderer(0), sigc::mem_fun(*this, &Actions::on_cell_data_apps));
+	Gtk::CellRendererText *app_name_renderer =
+		dynamic_cast<Gtk::CellRendererText *>(apps_view->get_column_cell_renderer(0));
+	app_name_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_group_name_edited));
 
 	apps_view->set_model(apps_model);
 	apps_view->expand_all();
@@ -379,9 +382,6 @@ void Actions::on_remove_app() {
 	update_actions();
 }
 
-void Actions::on_add_group() {
-}
-
 void Actions::on_reset_actions() {
 	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
@@ -413,8 +413,11 @@ void Actions::on_app_selected(std::string name) {
 		apps_model->foreach(sigc::mem_fun(cb, &SelectApp::test));
 		return;
 	}
-	ActionListDiff *child = actions.get_root()->add_child(name, true);
-	const Gtk::TreeNodeChildren &ch = apps_model->children().begin()->children();
+	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
+	ActionListDiff *child = parent->add_child(name, true);
+	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
+	       	apps_model->children().begin()->children() :
+		apps_view->get_selection()->get_selected()->children();
 	Gtk::TreeRow row = *(apps_model->append(ch));
 	row[ca.app] = name;
 	row[ca.actions] = child;
@@ -422,6 +425,31 @@ void Actions::on_app_selected(std::string name) {
 	Gtk::TreePath path = apps_model->get_path(row);
 	apps_view->expand_to_path(path);
 	apps_view->set_cursor(path);
+	update_actions();
+}
+
+void Actions::on_add_group() {
+	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
+	Glib::ustring name = "Group 0"; //TODO
+	ActionListDiff *child = parent->add_child(name, false);
+	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
+	       	apps_model->children().begin()->children() :
+		apps_view->get_selection()->get_selected()->children();
+	Gtk::TreeRow row = *(apps_model->append(ch));
+	row[ca.app] = name;
+	row[ca.actions] = child;
+	actions.apps[name] = child;
+	Gtk::TreePath path = apps_model->get_path(row);
+	apps_view->expand_to_path(path);
+	apps_view->set_cursor(path, *apps_view->get_column(0), true);
+	update_actions();
+}
+
+void Actions::on_group_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
+	Gtk::TreeRow row(*apps_model->get_iter(path));
+	row[ca.app] = new_text;
+	ActionListDiff *as = row[ca.actions];
+	as->name = new_text;
 	update_actions();
 }
 

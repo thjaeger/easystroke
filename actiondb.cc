@@ -137,7 +137,6 @@ const Glib::ustring Button::get_label() const {
 const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", NULL };
 
 template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
-	ar & parent;
 	ar & deleted;
 	ar & added;
 	ar & name;
@@ -164,8 +163,10 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 		}
 	}
 
+	root.fix_parents();
 	root.add_apps(apps);
 	root.name = "Default";
+
 }
 
 template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
@@ -326,6 +327,11 @@ Ranking *ActionListDiff::handle(RStroke s, int button_up) const {
 			cout << "Couldn't find matching stroke." << endl;
 	}
 	return r;
+}
+
+ActionListDiff::~ActionListDiff() {
+	if (app)
+		actions.apps.erase(name);
 }
 
 ActionDB actions;
