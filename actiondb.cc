@@ -209,6 +209,43 @@ void ActionDBWatcher::timeout() {
 	}
 }
 
+
+RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bool *name, bool *action) const {
+	if (deleted)
+		*deleted = this->deleted.count(id);
+	if (stroke)
+		*stroke = false;
+	if (name)
+		*name = false;
+	if (action)
+		*action = false;
+	RStrokeInfo si = parent ? parent->get_info(id) : RStrokeInfo(new StrokeInfo);
+	std::map<Unique *, StrokeInfo>::const_iterator i = added.find(id);
+	for (i = added.begin(); i != added.end(); i++) {
+		if (i->first == id)
+			break;
+	}
+	if (i == added.end()) {
+		return si;
+	}
+	if (i->second.name != "") {
+		si->name = i->second.name;
+		if (name)
+			*name = parent;
+	}
+	if (i->second.strokes.size()) {
+		si->strokes = i->second.strokes;
+		if (stroke)
+			*stroke = parent;
+	}
+	if (i->second.action) {
+		si->action = i->second.action;
+		if (action)
+			*action = parent;
+	}
+	return si;
+}
+
 boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() const {
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = parent ? parent->get_strokes() :
 	       	boost::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
@@ -218,6 +255,25 @@ boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() 
 		if (i->second.strokes.size())
 			(*strokes)[i->first] = i->second.strokes;
 	return strokes;
+}
+
+boost::shared_ptr<std::set<Unique *> > ActionListDiff::get_ids(bool include_deleted) const {
+	boost::shared_ptr<std::set<Unique *> > ids = parent ? parent->get_ids(false) :
+	       	boost::shared_ptr<std::set<Unique *> >(new std::set<Unique *>);
+	if (!include_deleted)
+		for (std::set<Unique *>::const_iterator i = deleted.begin(); i != deleted.end(); i++)
+			ids->erase(*i);
+	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
+		ids->insert(i->first);
+	return ids;
+}
+
+void ActionListDiff::all_strokes(std::list<RStroke> &strokes) const {
+	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
+		for (std::set<RStroke>::const_iterator j = i->second.strokes.begin(); j != i->second.strokes.end(); j++)
+			strokes.push_back(*j);
+	for (std::list<ActionListDiff>::const_iterator i = children.begin(); i != children.end(); i++)
+		i->all_strokes(strokes);
 }
 
 Unique stroke_not_found, stroke_is_click, stroke_is_timeout;

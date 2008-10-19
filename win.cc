@@ -29,13 +29,13 @@ inline void curve(const Cairo::RefPtr<Cairo::Context> ctx,
 	ctx->stroke();
 }
 
-void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool invert) const {
+void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big, bool invert) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	x++; y++; w -= 2; h -= 2;
 	ctx->save();
 	ctx->translate(x,y);
 	ctx->scale(w,h);
-	ctx->set_line_width(4.0/(w+h));
+	ctx->set_line_width((big ? 7.0 : 4.0)/(w+h));
 	if (size()) {
 		int n = points.size();
 		const std::vector<Point> &p = points;
@@ -85,18 +85,18 @@ void Stroke::draw_svg(std::string filename) const {
 	const int S = 32;
 	const int B = 1;
 	Cairo::RefPtr<Cairo::SvgSurface> s = Cairo::SvgSurface::create(filename, S, S);
-	draw(s, B, B, S-2*B, S-2*B, false);
+	draw(s, B, B, S-2*B, S-2*B, false, false);
 }
 
 
-Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size) const {
+Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size, bool big) const {
 	Glib::RefPtr<Gdk::Pixbuf> pb = drawEmpty_(size);
 	// This is all pretty messed up
 	// http://www.archivum.info/gtkmm-list@gnome.org/2007-05/msg00112.html
 	Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create (pb->get_pixels(),
 			Cairo::FORMAT_ARGB32, size, size, pb->get_rowstride());
 
-	draw(surface, 0, 0, pb->get_width(), size);
+	draw(surface, 0, 0, pb->get_width(), size, big, true);
 	return pb;
 }
 

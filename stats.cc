@@ -192,14 +192,15 @@ void Stats::on_pdf() {
 	{
 	const int S = 32;
 	const int B = 1;
-	std::set<RStroke> strokes; // TODO: = actions.all_strokes();
+	std::list<RStroke> strokes;
+	actions.get_root()->all_strokes(strokes);
 	const int n = strokes.size();
 	Cairo::RefPtr<Cairo::PdfSurface> surface = Cairo::PdfSurface::create("/tmp/strokes.pdf", (n+1)*S, (n+1)*S);
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
 	int k = 1;
-	for (std::set<RStroke>::iterator i = strokes.begin(); i != strokes.end(); i++, k++) {
-		(*i)->draw(surface, k*S+B, B, S-2*B, S-2*B, false);
-		(*i)->draw(surface, B, k*S+B, S-2*B, S-2*B, false);
+	for (std::list<RStroke>::iterator i = strokes.begin(); i != strokes.end(); i++, k++) {
+		(*i)->draw(surface, k*S+B, B, S-2*B, S-2*B, false, false);
+		(*i)->draw(surface, B, k*S+B, S-2*B, S-2*B, false, false);
 
 		ctx->set_source_rgba(0,0,0,1);
 		ctx->set_line_width(1);
@@ -210,7 +211,7 @@ void Stats::on_pdf() {
 		ctx->stroke();
 
 		int l = 1;
-		for (std::set<RStroke>::iterator j = strokes.begin(); j != strokes.end(); j++, l++) {
+		for (std::list<RStroke>::iterator j = strokes.begin(); j != strokes.end(); j++, l++) {
 			double score;
 		        bool match = Stroke::compare(*i, *j, score);
 			if (match) {
@@ -239,7 +240,6 @@ void Stats::on_pdf() {
 		}
 	}
 	}
-	if (system("evince /tmp/strokes.pdf &") == -1)
-		printf("Error: system() failed\n");
+	system("evince /tmp/strokes.pdf &");
 }
 

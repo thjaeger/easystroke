@@ -200,19 +200,8 @@ public:
 	iterator begin() { return children.begin(); }
 	iterator end() { return children.end(); }
 
-	RStrokeInfo get_info(Unique *id) const {
-		RStrokeInfo si = parent ? parent->get_info(id) : RStrokeInfo(new StrokeInfo);
-		std::map<Unique *, StrokeInfo>::const_iterator i = added.find(id);
-		if (i == added.end())
-			return si;
-		if (i->second.name != "")
-			si->name = i->second.name;
-		if (i->second.strokes.size())
-			si->strokes = i->second.strokes;
-		if (i->second.action)
-			si->action = i->second.action;
-		return si;
-	}
+	RStrokeInfo get_info(Unique *id, bool *deleted = 0, bool *stroke = 0, bool *name = 0, bool *action = 0) const;
+
 	Unique *add(StrokeInfo &si) {
 		Unique *id = new Unique;
 		added.insert(std::pair<Unique *, StrokeInfo>(id, si));
@@ -254,6 +243,8 @@ public:
 	}
 
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
+	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
+	void all_strokes(std::list<RStroke> &strokes) const;
 	Ranking *handle(RStroke, int) const;
 };
 
@@ -267,14 +258,13 @@ class ActionDB {
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 
 	ActionListDiff root;
-	Unique *add(StrokeInfo &);
 public:
 	typedef std::map<Unique *, StrokeInfo>::const_iterator const_iterator;
-	std::map<std::string, ActionListDiff *> apps;
 	const const_iterator begin() const { return root.added.begin(); }
 	const const_iterator end() const { return root.added.end(); }
+
+	std::map<std::string, ActionListDiff *> apps;
 	ActionListDiff *get_root() { return &root; }
-	std::set<RStroke> all_strokes() const;
 
 	const ActionListDiff *get_action_list(std::string wm_class) const {
 		std::map<std::string, ActionListDiff *>::const_iterator i = apps.find(wm_class);

@@ -73,6 +73,7 @@ private:
 	void on_apps_selection_changed();
 	void load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions);
 	void on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+	void update_row(const Gtk::TreeRow &row);
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
@@ -112,7 +113,8 @@ private:
 
 	Glib::RefPtr<Gtk::ListStore> type_store;
 
-	Gtk::Button *button_record, *button_delete;
+	Gtk::Button *button_record, *button_delete, *button_remove_app;
+	Gtk::Expander *expander_apps;
 
 	bool editing_new;
 	bool editing;
