@@ -44,12 +44,12 @@ private:
 	void on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	class OnStroke;
-	Gtk::TreeRow get_selected_row();
 
 	void focus(Unique *id, int col, bool edit);
 
 	struct SelectApp;
 	void on_add_app();
+	void on_add_group();
 	void on_app_selected(std::string);
 	void on_apps_selection_changed();
 	void load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions);
@@ -57,6 +57,7 @@ private:
 	void update_action_list();
 	void update_row(const Gtk::TreeRow &row);
 	void on_reset_actions();
+	void on_remove_app();
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:

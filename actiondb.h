@@ -245,6 +245,18 @@ public:
 		child->parent = this;
 		return child;
 	}
+	bool remove() {
+		if (!parent)
+			return false;
+		for (std::list<ActionListDiff>::iterator i = parent->children.begin(); i != parent->children.end(); i++) {
+			if (&*i == this) {
+				parent->children.erase(i);
+				return true;
+			}
+
+		}
+		return false;
+	}
 
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
 	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;

@@ -151,11 +151,12 @@ Actions::Actions() :
 	widgets->get_widget("treeview_actions", tv);
 	widgets->get_widget("treeview_apps", apps_view);
 
-	Gtk::Button *button_add, *button_add_app, *button_reset_actions;
+	Gtk::Button *button_add, *button_add_app, *button_add_group, *button_reset_actions;
 	widgets->get_widget("button_add_action", button_add);
 	widgets->get_widget("button_delete_action", button_delete);
 	widgets->get_widget("button_record", button_record);
 	widgets->get_widget("button_add_app", button_add_app);
+	widgets->get_widget("button_add_group", button_add_group);
 	widgets->get_widget("button_remove_app", button_remove_app);
 	widgets->get_widget("button_reset_actions", button_reset_actions);
 	widgets->get_widget("check_show_deleted", check_show_deleted);
@@ -164,6 +165,8 @@ Actions::Actions() :
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
 	button_add_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_app));
+	button_add_group->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_group));
+	button_remove_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_remove_app));
 	button_reset_actions->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_reset_actions));
 
 	tv->signal_cursor_changed().connect(sigc::mem_fun(*this, &Actions::on_cursor_changed));
@@ -232,6 +235,7 @@ Actions::Actions() :
 			*apps_view->get_column_cell_renderer(0), sigc::mem_fun(*this, &Actions::on_cell_data_apps));
 
 	apps_view->set_model(apps_model);
+	apps_view->expand_all();
 }
 
 void Actions::load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions) {
@@ -333,7 +337,7 @@ void Actions::on_button_delete() {
 
 	std::stringstream msg;
 	if (n == 1)
-		msg << "Action \"" << get_selected_row()[cols.name] << "\" is";
+		msg << "Action \"" << (*tv->get_selection()->get_selected())[cols.name] << "\" is";
 	else
 		msg << n << " actions are";
 
@@ -366,6 +370,16 @@ void select_window(sigc::slot<void, std::string> f);
 
 void Actions::on_add_app() {
 	select_window(sigc::mem_fun(*this, &Actions::on_app_selected));
+}
+
+void Actions::on_remove_app() {
+	if (!action_list->remove())
+		return;
+	apps_model->erase(*apps_view->get_selection()->get_selected());
+	update_actions();
+}
+
+void Actions::on_add_group() {
 }
 
 void Actions::on_reset_actions() {
@@ -414,12 +428,11 @@ void Actions::on_app_selected(std::string name) {
 void Actions::on_apps_selection_changed() {
 	ActionListDiff *new_action_list = actions.get_root();
 	if (expander_apps->property_expanded().get_value()) {
-		int sel = apps_view->get_selection()->count_selected_rows();
-		button_remove_app->set_sensitive(sel);
-		if (sel) {
+		if (apps_view->get_selection()->count_selected_rows()) {
 			Gtk::TreeIter i = apps_view->get_selection()->get_selected();
 			new_action_list = (*i)[ca.actions];
 		}
+		button_remove_app->set_sensitive(new_action_list != actions.get_root());
 	}
 	if (action_list != new_action_list) {
 		action_list = new_action_list;
@@ -526,11 +539,6 @@ void Actions::on_cursor_changed() {
 	Gtk::TreeViewColumn *col;
 	tv->get_cursor(path, col);
 	Gtk::TreeRow row(*tm->get_iter(path));
-}
-
-Gtk::TreeRow Actions::get_selected_row() {
-	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
-	return Gtk::TreeRow(*tm->get_iter(*paths.begin()));
 }
 
 void Actions::on_selection_changed() {
