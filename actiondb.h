@@ -227,6 +227,10 @@ public:
 			i->remove(id);
 		return really;
 	}
+	void reset(Unique *id) {
+		added.erase(id);
+		deleted.erase(id);
+	}
 	void add_apps(std::map<std::string, ActionListDiff *> &apps) {
 		if (app)
 			apps[name] = this;

@@ -146,22 +146,25 @@ Actions::Actions() :
 	apps_view(0),
 	editing_new(false),
 	editing(false),
-	action_list(0)
+	action_list(actions.get_root())
 {
 	widgets->get_widget("treeview_actions", tv);
 	widgets->get_widget("treeview_apps", apps_view);
 
-	Gtk::Button *button_add = 0, *button_add_app = 0;
+	Gtk::Button *button_add, *button_add_app, *button_reset_actions;
 	widgets->get_widget("button_add_action", button_add);
 	widgets->get_widget("button_delete_action", button_delete);
 	widgets->get_widget("button_record", button_record);
 	widgets->get_widget("button_add_app", button_add_app);
 	widgets->get_widget("button_remove_app", button_remove_app);
+	widgets->get_widget("button_reset_actions", button_reset_actions);
+	widgets->get_widget("check_show_deleted", check_show_deleted);
 	widgets->get_widget("expander_apps", expander_apps);
 	button_record->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_record));
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
 	button_add_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_app));
+	button_reset_actions->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_reset_actions));
 
 	tv->signal_cursor_changed().connect(sigc::mem_fun(*this, &Actions::on_cursor_changed));
 	tv->signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
@@ -214,9 +217,10 @@ Actions::Actions() :
 	arg_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_cmd_edited));
 	arg_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
 
-	on_apps_selection_changed();
+	update_action_list();
 	tv->set_model(tm);
 
+	check_show_deleted->signal_toggled().connect(sigc::mem_fun(*this, &Actions::update_action_list));
 	expander_apps->property_expanded().signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
 	apps_view->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
 	apps_model = Gtk::TreeStore::create(ca);
@@ -342,21 +346,12 @@ void Actions::on_button_delete() {
 	if (!ok)
 		return;
 
-	// complete craziness
 	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
-	std::vector<Gtk::TreeRowReference> refs;
-	std::vector<Unique *> ids;
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
-		Gtk::TreeRowReference ref(tm, *i);
-		refs.push_back(ref);
 		Gtk::TreeRow row(*tm->get_iter(*i));
-		Unique *id = row[cols.id];
-		ids.push_back(id);
+		action_list->remove(row[cols.id]);
 	}
-	for (std::vector<Gtk::TreeRowReference>::iterator i = refs.begin(); i != refs.end(); ++i)
-		tm->erase(*tm->get_iter(i->get_path()));
-	for (std::vector<Unique *>::iterator i = ids.begin(); i != ids.end(); ++i)
-		action_list->remove(*i);
+	update_action_list();
 	update_actions();
 }
 
@@ -371,6 +366,15 @@ void select_window(sigc::slot<void, std::string> f);
 
 void Actions::on_add_app() {
 	select_window(sigc::mem_fun(*this, &Actions::on_app_selected));
+}
+
+void Actions::on_reset_actions() {
+	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
+		Gtk::TreeRow row(*tm->get_iter(*i));
+		action_list->reset(row[cols.id]);
+		update_row(row);
+	}
 }
 
 struct Actions::SelectApp {
@@ -416,10 +420,14 @@ void Actions::on_apps_selection_changed() {
 			new_action_list = (*i)[ca.actions];
 		}
 	}
-	if (action_list == new_action_list)
-		return;
-	action_list = new_action_list;
-	boost::shared_ptr<std::set<Unique *> > ids = action_list->get_ids(true);
+	if (action_list != new_action_list) {
+		action_list = new_action_list;
+		update_actions();
+	}
+}
+
+void Actions::update_action_list() {
+	boost::shared_ptr<std::set<Unique *> > ids = action_list->get_ids(check_show_deleted->get_active());
 	const Gtk::TreeNodeChildren &ch = tm->children();
 	for (Gtk::TreeIter i = ch.begin(); i != ch.end(); i++) {
 		std::set<Unique *>::iterator id = ids->find((*i)[cols.id]);
