@@ -22,6 +22,8 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/set.hpp>
+#include <boost/serialization/map.hpp>
+#include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/export.hpp>
 
 #include <X11/Xlib.h>
@@ -53,6 +55,55 @@ PrefDB::PrefDB() :
 	timeout_gestures(false),
 	tray_icon(true)
 {}
+
+template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
+	if (version < 11) {
+		std::set<std::string> old;
+		ar & old;
+		for (std::set<std::string>::iterator i = old.begin(); i != old.end(); i++)
+			exceptions.unsafe_ref()[*i] = RButtonInfo();
+	} else ar & exceptions.unsafe_ref();
+	ar & p.unsafe_ref();
+	ar & button.unsafe_ref();
+	if (version < 2) {
+		bool help;
+		ar & help;
+	}
+	ar & trace.unsafe_ref();
+	if (version < 3) {
+		int delay;
+		ar & delay;
+	}
+	if (version == 1) {
+		ButtonInfo foo;
+		ar & foo;
+		ar & foo;
+		return;
+	}
+	if (version < 2) return;
+	if (version != 6)
+		ar & advanced_ignore.unsafe_ref();
+	ar & radius.unsafe_ref();
+	if (version < 4) return;
+	ar & ignore_grab.unsafe_ref();
+	ar & timing_workaround.unsafe_ref();
+	ar & show_clicks.unsafe_ref();
+	ar & pressure_abort.unsafe_ref();
+	ar & pressure_threshold.unsafe_ref();
+	ar & proximity.unsafe_ref();
+	if (version < 5) return;
+	ar & feedback.unsafe_ref();
+	ar & left_handed.unsafe_ref();
+	ar & init_timeout.unsafe_ref();
+	ar & min_speed.unsafe_ref();
+	if (version < 8) return;
+	ar & timeout_profile.unsafe_ref();
+	if (version < 9) return;
+	ar & timeout_gestures.unsafe_ref();
+	ar & tray_icon.unsafe_ref();
+	if (version < 10) return;
+	ar & excluded_devices.unsafe_ref();
+}
 
 void PrefDB::timeout() {
 	std::string filename = config_dir+"preferences";

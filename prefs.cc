@@ -200,8 +200,16 @@ Prefs::Prefs() {
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
-	tv->append_column("WM__CLASS name", cols.col);
-	tm->set_sort_column(cols.col, Gtk::SORT_ASCENDING);
+	tv->append_column("Application (WM__CLASS)", cols.app);
+	tm->set_sort_column(cols.app, Gtk::SORT_ASCENDING);
+
+	CellRendererTextish *button_renderer = Gtk::manage(new CellRendererTextish);
+	button_renderer->mode = CellRendererTextish::POPUP;
+	tv->append_column("Button", *button_renderer);
+	Gtk::TreeView::Column *col_button = tv->get_column(1);
+	col_button->add_attribute(button_renderer->property_text(), cols.button);
+	button_renderer->property_editable() = true;
+	button_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Prefs::on_button_editing_started));
 
 	bbutton->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_select_button));
 
@@ -234,10 +242,11 @@ Prefs::Prefs() {
 	}
 	set_button_label();
 
-	std::set<std::string> exceptions = prefs.exceptions.ref();
-	for (std::set<std::string>::iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
+	const std::map<std::string, RButtonInfo> &exceptions = prefs.exceptions.ref();
+	for (std::map<std::string, RButtonInfo>::const_iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
-		row[cols.col] = *i;
+		row[cols.app] = i->first;
+		row[cols.button] = i->second ? i->second->get_button_text() : "<App disabled>";
 	}
 }
 
@@ -245,7 +254,7 @@ struct Prefs::SelectRow {
 	Prefs *parent;
 	std::string name;
 	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
-		if ((*iter)[parent->cols.col] == name) {
+		if ((*iter)[parent->cols.app] == name) {
 			parent->tv->set_cursor(path);
 			return true;
 		}
@@ -337,11 +346,9 @@ void Prefs::on_select_button() {
 	SelectButton sb(bi);
 	if (!sb.run())
 		return;
-	{
-		bi.button = sb.event.button;
-		bi.state = sb.event.state;
-	}
-	grabber->regrab();
+	bi.button = sb.event.button;
+	bi.state = sb.event.state;
+	grabber->update_button(bi);
 	set_button_label();
 }
 
@@ -365,11 +372,12 @@ void Prefs::on_selected(std::string str) {
 	bool is_new;
 	{
 		Atomic a;
-		is_new = prefs.exceptions.write_ref(a).insert(str).second;
+		is_new = prefs.exceptions.write_ref(a).insert(
+				std::pair<std::string, RButtonInfo>(str, RButtonInfo())).second;
 	}
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
-		row[cols.col] = str;
+		row[cols.app] = str;
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);
 	} else {
@@ -380,6 +388,27 @@ void Prefs::on_selected(std::string str) {
 	}
 }
 
+void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
+	Gtk::TreeRow row(*tm->get_iter(path));
+	Glib::ustring app = row[cols.app];
+	ButtonInfo bi;
+	bi.button = 0;
+	bi.state = 0;
+	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(app);
+	if (i != prefs.exceptions.ref().end() && i->second)
+		bi = *i->second;
+	SelectButton sb(bi, false);
+	if (!sb.run())
+		return;
+	RButtonInfo bi2(new ButtonInfo);
+	bi2->button = sb.event.button;
+	bi2->state = sb.event.state;
+	row[cols.button] = bi2->get_button_text();
+	Atomic a;
+	prefs.exceptions.write_ref(a)[app] = bi2; 
+}
+
+
 void Prefs::on_remove() {
 	Gtk::TreePath path;
 	Gtk::TreeViewColumn *col;
@@ -387,7 +416,7 @@ void Prefs::on_remove() {
 	if (path.gobj() != 0) {
 		Gtk::TreeIter iter = *tm->get_iter(path);
 		Atomic a;
-		prefs.exceptions.write_ref(a).erase((Glib::ustring)((*iter)[cols.col]));
+		prefs.exceptions.write_ref(a).erase((Glib::ustring)((*iter)[cols.app]));
 		tm->erase(iter);
 		update_current();
 	}

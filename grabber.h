@@ -90,6 +90,7 @@ private:
 	bool disabled;
 	bool active;
 	Cursor cursor_select;
+	ButtonInfo grabbed_button;
 	std::map<guint, guint> buttons;
 	bool timing_workaround;
 
@@ -101,17 +102,16 @@ public:
 	Grabber();
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
-	void update(Window w) { wm_class = get_wm_class(w); active = !prefs.exceptions.ref().count(wm_class); set(); }
+	void update(Window w);
 	std::string get_wm_class() { return wm_class; }
 
-	void get_button();
 	void fake_button(int b);
 	void grab(State s) { current = s; set(); }
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }
 	void xi_suspend() { xi_suspended = true; set(); }
 	void xi_resume() { xi_suspended = false; set(); }
-	void regrab() { suspend(); grab_xi(false); get_button(); resume(); grab_xi(true); }
+	void update_button(ButtonInfo bi);
 	void grab_xi_devs(bool);
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
 	void toggle_disabled() { disabled = !disabled; set(); }

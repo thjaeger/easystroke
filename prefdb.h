@@ -17,6 +17,7 @@
 #define __PREFDB_H__
 #include <string>
 #include <set>
+#include <map>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/version.hpp>
 
@@ -50,6 +51,8 @@ public:
 };
 BOOST_CLASS_VERSION(ButtonInfo, 2)
 
+typedef boost::shared_ptr<ButtonInfo> RButtonInfo;
+
 extern const double default_p;
 extern const int default_radius;
 extern const int default_pressure_threshold;
@@ -57,53 +60,11 @@ extern const int default_pressure_threshold;
 class PrefDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
 	bool good_state;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
-		ar & exceptions.unsafe_ref();
-		ar & p.unsafe_ref();
-		ar & button.unsafe_ref();
-		if (version < 2) {
-			bool help;
-			ar & help;
-		}
-		ar & trace.unsafe_ref();
-		if (version < 3) {
-			int delay;
-			ar & delay;
-		}
-		if (version == 1) {
-			ButtonInfo foo;
-			ar & foo;
-			ar & foo;
-			return;
-		}
-		if (version < 2) return;
-		if (version != 6)
-			ar & advanced_ignore.unsafe_ref();
-		ar & radius.unsafe_ref();
-		if (version < 4) return;
-		ar & ignore_grab.unsafe_ref();
-		ar & timing_workaround.unsafe_ref();
-		ar & show_clicks.unsafe_ref();
-		ar & pressure_abort.unsafe_ref();
-		ar & pressure_threshold.unsafe_ref();
-		ar & proximity.unsafe_ref();
-		if (version < 5) return;
-		ar & feedback.unsafe_ref();
-		ar & left_handed.unsafe_ref();
-		ar & init_timeout.unsafe_ref();
-		ar & min_speed.unsafe_ref();
-		if (version < 8) return;
-		ar & timeout_profile.unsafe_ref();
-		if (version < 9) return;
-		ar & timeout_gestures.unsafe_ref();
-		ar & tray_icon.unsafe_ref();
-		if (version < 10) return;
-		ar & excluded_devices.unsafe_ref();
-	}
+	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
 	PrefDB();
 
-	Source<std::set<std::string> > exceptions;
+	Source<std::map<std::string, RButtonInfo> > exceptions;
 	Source<double> p;
 	Source<ButtonInfo> button;
 	Source<TraceType> trace;
@@ -128,7 +89,7 @@ public:
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 10)
+BOOST_CLASS_VERSION(PrefDB, 11)
 
 extern PrefDB prefs;
 #endif

@@ -201,13 +201,16 @@ Grabber::Grabber() : children(ROOT) {
 	grabbed = NONE;
 	xi_grabbed = false;
 	proximity_selected = false;
-	get_button();
+	grabbed_button.button = 0;
+	grabbed_button.state = 0;
 
 	xinput = init_xi();
 	if (xinput)
 		select_proximity(prefs.proximity.get());
 
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
+
+	update_button(prefs.button.get());
 }
 
 Grabber::~Grabber() {
@@ -477,10 +480,36 @@ void Grabber::set() {
 	}
 }
 
-void Grabber::get_button() {
+void Grabber::update_button(ButtonInfo bi) {
+	if (grabbed_button.button == bi.button && grabbed_button.state == bi.state)
+		return;
+	if (grabbed_button.button) {
+		suspended = true;
+		xi_suspended = true;
+		set();
+	}
 	buttons.clear();
-	const ButtonInfo &bi = prefs.button.ref();
 	buttons[bi.button] = bi.state;
+	grabbed_button = bi;
+	suspended = false;
+	xi_suspended = false;
+	set();
+}
+
+void Grabber::update(Window w) {
+	wm_class = get_wm_class(w);
+	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
+	active = true;
+	ButtonInfo bi = prefs.button.ref();
+	if (i != prefs.exceptions.ref().end()) {
+		if (i->second) {
+			bi = *i->second;
+		} else {
+			active = false;
+		}
+	}
+	update_button(bi);
+	set();
 }
 
 void Grabber::fake_button(int b) {
