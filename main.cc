@@ -148,6 +148,7 @@ public:
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_repeated() {}
 	virtual void pressure() {}
+	virtual bool need_xi() { return true; }
 	virtual void proximity_out() {}
 	void replace_child(Handler *c) {
 		bool had_child = child;
@@ -889,11 +890,13 @@ class SelectHandler : public Handler, public Timeout {
 		XFlush(dpy);
 	}
 	virtual void press(guint b, RTriple e) {
+		discard(e->t);
 		if (!active)
 			return;
 		window_selected.reset(new sigc::slot<void, std::string>(callback));
 		parent->replace_child(0);
 	}
+	virtual bool need_xi() { return false; }
 	public:
 	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
 		win->get_window().get_window()->lower();
@@ -1470,30 +1473,31 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 	}
 }
 
-// Preconditions: me1 != 0, if !grabber->xinput, then me2 == 0.
+// Preconditions: me1 != 0
 void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
-	MouseEvent me = { MouseEvent::MOTION, 0, 0, 0, 0, 0, 0, 0, 0 };
-	if (grabber->xinput) {
-		bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
-		if (!xi_1 && !xi_2) {
+	MouseEvent me;
+	bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
+	if (!xi_1 && !xi_2) {
+		if (grabber->xinput && handler->top()->need_xi()) {
 			if (me1->type == MouseEvent::PRESS)
 				replay(me1->t);
 			delete me1;
 			delete me2;
 			return;
+		} else {
+			me = *me1;
+			delete me1;
+			delete me2;
+			me.x_xi = me.x;
+			me.y_xi = me.y;
 		}
+	} else {
 		if (xi_1)
 			me = *me1;
 		else
 			me = *me2;
 		delete me1;
 		delete me2;
-	} else {
-		// me2 == 0
-		me = *me1;
-		delete me1;
-		me.x_xi = me.x;
-		me.y_xi = me.y;
 	}
 
 	switch (me.type) {
