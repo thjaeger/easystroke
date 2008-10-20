@@ -53,7 +53,8 @@ PrefDB::PrefDB() :
 	min_speed(40),
 	timeout_profile(TO_CONSERVATIVE),
 	timeout_gestures(false),
-	tray_icon(true)
+	tray_icon(true),
+	color(0x980101)
 {}
 
 template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
@@ -154,6 +155,7 @@ void PrefDB::init() {
 	watch(timeout_gestures);
 	watch(tray_icon);
 	watch(excluded_devices);
+	watch(color);
 }
 
 PrefDB prefs;

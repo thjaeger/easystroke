@@ -13,6 +13,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include "prefdb.h"
 #include "copy.h"
 #include <X11/Xutil.h>
 
@@ -29,7 +30,7 @@ Copy::Copy() {
 	XChangeWindowAttributes(dpy, win, CWOverrideRedirect | CWSaveUnder | CWBackPixmap, &attr);
 
 	XGCValues gcv;
-	gcv.foreground = TRACE_COLOR;
+	gcv.foreground = prefs.color.get();
 	gcv.line_width = WIDTH;
 	gc = XCreateGC(dpy, win, GCForeground | GCLineWidth, &gcv);
 }

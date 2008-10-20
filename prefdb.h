@@ -84,6 +84,7 @@ public:
 	Source<bool> timeout_gestures;
 	Source<bool> tray_icon;
 	Source<std::set<std::string> > excluded_devices;
+	Source<unsigned long> color;
 
 	void init();
 	virtual void timeout();

@@ -13,6 +13,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include "prefdb.h"
 #include "shape.h"
 #include "main.h"
 
@@ -24,7 +25,7 @@ Shape::Shape() {
 	Window root = RootWindow(dpy, screen);
 	int w = DisplayWidth(dpy, screen);
 	int h = DisplayHeight(dpy, screen);
-	unsigned long bg = TRACE_COLOR;
+	unsigned long bg = prefs.color.get();
 	win = XCreateSimpleWindow(dpy, root, 0, 0, w, h, 0, CopyFromParent, bg);
 	XSetWindowAttributes attr;
 	attr.override_redirect = True;

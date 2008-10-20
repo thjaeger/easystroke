@@ -1022,7 +1022,9 @@ Main::Main(int argc, char **argv) : kit(0) {
 		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
 
 	trace = init_trace();
-	prefs.trace.connect(new Notifier(sigc::ptr_fun(&reload_trace)));
+	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&reload_trace));
+	prefs.trace.connect(trace_notify);
+	prefs.color.connect(trace_notify);
 
 	handler = new IdleHandler;
 	handler->init();

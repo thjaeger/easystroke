@@ -64,6 +64,30 @@ public:
 	}
 };
 
+class Color : private Base {
+	IO<unsigned long> &io;
+	Gtk::ColorButton *color;
+	virtual void notify() {
+		unsigned long c = io.get();
+		Gdk::Color col = color->get_color();
+		col.set_rgb(257*(c >> 16), 257*((c >> 8) % 256), 257*(c % 256));
+		color->set_color(col);
+	}
+	void on_changed() {
+		Gdk::Color col = color->get_color();
+		unsigned long c = ((col.get_red()/257)<<16) + ((col.get_green()/257)<<8) + col.get_blue()/257;
+		if (c == io.get()) return;
+		io.set(c);
+	}
+public:
+	Color(IO<unsigned long> &io_, const Glib::ustring &name) : io(io_) {
+		io.connect(this);
+		widgets->get_widget(name, color);
+		notify();
+		color->signal_color_set().connect(sigc::mem_fun(*this, &Color::on_changed));
+	}
+};
+
 class Combo : private Base {
 	IO<int> &io;
 	Gtk::ComboBox *combo;
@@ -108,6 +132,7 @@ public:
 
 bool and_(bool x, bool y) { return x && y; }
 bool is_custom(int profile) { return profile == TO_CUSTOM; }
+bool draw_line(TraceType t) { return t == TraceStandard || t == TraceShape; }
 
 class TimeoutProfile : private Base {
 	Out<int> &in;
@@ -178,6 +203,7 @@ Prefs::Prefs() {
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
 	new Combo(*converter<TraceType, int>(prefs.trace), "combo_trace");
+	new Color(prefs.color, "button_color");
 	new Combo(prefs.timeout_profile, "combo_timeout");
 	new TimeoutProfile(prefs.timeout_profile);
 
@@ -199,6 +225,7 @@ Prefs::Prefs() {
 	new Sensitive(*fun2(&and_, xinput_v, *fun(&is_custom, prefs.timeout_profile)), "hbox_timeout");
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
+	new Sensitive(*fun(&draw_line, prefs.trace), "button_color");
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
