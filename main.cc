@@ -191,6 +191,7 @@ public:
 		clear_mods();
 		parent->replace_child(0);
 	}
+	virtual bool need_xi() { return false; }
 	virtual std::string name() { return "Ignore"; }
 };
 
