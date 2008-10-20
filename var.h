@@ -138,11 +138,6 @@ public:
 	virtual void set(const Y y) { in.set(g(y)); }
 };
 
-template <class X, class Y> Y convert(X x) { return (Y)x; }
-template <class X, class Y> Bijection<X, Y> *converter(IO<X> &in) {
-	return new Bijection<X, Y>(sigc::ptr_fun(&convert<X, Y>), sigc::ptr_fun(&convert<Y, X>), in);
-}
-
 class Watcher : private Base {
 public:
 	template <class T> void watch(Out<T> &v) { v.connect(this); }

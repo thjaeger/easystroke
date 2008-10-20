@@ -134,6 +134,42 @@ bool and_(bool x, bool y) { return x && y; }
 bool is_custom(int profile) { return profile == TO_CUSTOM; }
 bool draw_line(TraceType t) { return t == TraceStandard || t == TraceShape; }
 
+#define TRACE_NONE 0
+#define TRACE_SHAPE 1
+#define TRACE_LEGACY 2
+#define TRACE_ANNOTATE 3
+#define TRACE_FIRE 4
+
+int trace_to_int(TraceType t) {
+	switch (t) {
+		case TraceShape:
+			return TRACE_SHAPE;
+		case TraceStandard:
+			return TRACE_LEGACY;
+		case TraceAnnotate:
+			return TRACE_ANNOTATE;
+		case TraceFire:
+			return TRACE_FIRE;
+		default:
+			return TRACE_NONE;
+	}
+}
+
+TraceType int_to_trace(int i) {
+	switch (i) {
+		case TRACE_SHAPE:
+			return TraceShape;
+		case TRACE_LEGACY:
+			return TraceStandard;
+		case TRACE_ANNOTATE:
+			return TraceAnnotate;
+		case TRACE_FIRE:
+			return TraceFire;
+		default:
+			return TraceNone;
+	}
+}
+
 class TimeoutProfile : private Base {
 	Out<int> &in;
 public:
@@ -202,7 +238,7 @@ Prefs::Prefs() {
 	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
-	new Combo(*converter<TraceType, int>(prefs.trace), "combo_trace");
+	new Combo(*new Bijection<TraceType, int>(&trace_to_int, &int_to_trace, prefs.trace), "combo_trace");
 	new Color(prefs.color, "button_color");
 	new Combo(prefs.timeout_profile, "combo_timeout");
 	new TimeoutProfile(prefs.timeout_profile);
