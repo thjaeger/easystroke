@@ -143,11 +143,12 @@ Win::Win() {
 	icons.push_back(trefoil->draw(64));
 	win->set_icon_list(icons);
 
-	Gtk::Button* button_hide[3];
+	Gtk::Button* button_hide[4];
 	widgets->get_widget("button_hide1", button_hide[0]);
 	widgets->get_widget("button_hide2", button_hide[1]);
 	widgets->get_widget("button_hide3", button_hide[2]);
-	for (int i = 0; i < 3; i++)
+	widgets->get_widget("button_hide4", button_hide[3]);
+	for (int i = 0; i < 4; i++)
 		button_hide[i]->signal_clicked().connect(sigc::mem_fun(win, &Gtk::Window::hide));
 }
 

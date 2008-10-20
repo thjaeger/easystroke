@@ -1465,7 +1465,7 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 
 // Preconditions: me1 != 0, if !grabber->xinput, then me2 == 0.
 void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
-	MouseEvent me;
+	MouseEvent me = { MouseEvent::PRESS, 0, 0, 0, 0, 0, 0, 0, 0 };
 	if (grabber->xinput) {
 		bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
 		if (xi_1 || xi_2) {

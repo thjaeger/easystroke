@@ -240,6 +240,9 @@ void Stats::on_pdf() {
 		}
 	}
 	}
-	system("evince /tmp/strokes.pdf &");
+	if (!fork()) {
+		execlp("evince", "evince", "/tmp/strokes.pdf", NULL);
+		exit(EXIT_FAILURE);
+	}
 }
 
