@@ -151,7 +151,7 @@ Actions::Actions() :
 	widgets->get_widget("treeview_actions", tv);
 	widgets->get_widget("treeview_apps", apps_view);
 
-	Gtk::Button *button_add, *button_add_app, *button_add_group, *button_reset_actions;
+	Gtk::Button *button_add, *button_add_app, *button_add_group;
 	widgets->get_widget("button_add_action", button_add);
 	widgets->get_widget("button_delete_action", button_delete);
 	widgets->get_widget("button_record", button_record);
@@ -461,6 +461,7 @@ void Actions::on_apps_selection_changed() {
 			new_action_list = (*i)[ca.actions];
 		}
 		button_remove_app->set_sensitive(new_action_list != actions.get_root());
+		button_reset_actions->set_sensitive(new_action_list != actions.get_root());
 	}
 	if (action_list != new_action_list) {
 		action_list = new_action_list;

@@ -235,6 +235,8 @@ public:
 		return really;
 	}
 	void reset(Unique *id) {
+		if (!parent)
+			return;
 		added.erase(id);
 		deleted.erase(id);
 	}
