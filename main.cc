@@ -880,19 +880,25 @@ public:
 
 boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
 
-class SelectHandler : public Handler {
+class SelectHandler : public Handler, public Timeout {
+	bool active;
 	sigc::slot<void, std::string> callback;
-	virtual void grab() {
+	virtual void timeout() {
+		active = true;
 		grabber->grab(Grabber::SELECT);
-		XEvent ev;
-		while (XCheckMaskEvent(dpy, EnterWindowMask, &ev));
+		XFlush(dpy);
 	}
 	virtual void press(guint b, RTriple e) {
+		if (!active)
+			return;
 		window_selected.reset(new sigc::slot<void, std::string>(callback));
 		parent->replace_child(0);
 	}
 	public:
-	SelectHandler(sigc::slot<void, std::string> callback_) : callback(callback_) {}
+	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
+		win->get_window().get_window()->lower();
+		set_timeout(100);
+	}
 	virtual std::string name() { return "Select"; }
 };
 
@@ -1294,6 +1300,7 @@ void Main::handle_enter_leave(XEvent &ev) {
 	if (window_selected) {
 		(*window_selected)(grabber->get_wm_class());
 		window_selected.reset();
+		win->get_window().raise();
 	}
 }
 
@@ -1465,19 +1472,20 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 
 // Preconditions: me1 != 0, if !grabber->xinput, then me2 == 0.
 void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
-	MouseEvent me = { MouseEvent::PRESS, 0, 0, 0, 0, 0, 0, 0, 0 };
+	MouseEvent me = { MouseEvent::MOTION, 0, 0, 0, 0, 0, 0, 0, 0 };
 	if (grabber->xinput) {
 		bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
-		if (xi_1 || xi_2) {
-			if (xi_1)
-				me = *me1;
-			else
-				me = *me2;
-		}
-		if (!xi_1 && !xi_2 && me1->type == MouseEvent::PRESS && !xi_1 && !xi_2) {
-			replay(me1->t);
+		if (!xi_1 && !xi_2) {
+			if (me1->type == MouseEvent::PRESS)
+				replay(me1->t);
+			delete me1;
+			delete me2;
 			return;
 		}
+		if (xi_1)
+			me = *me1;
+		else
+			me = *me2;
 		delete me1;
 		delete me2;
 	} else {
