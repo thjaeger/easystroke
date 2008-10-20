@@ -104,6 +104,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & tray_icon.unsafe_ref();
 	if (version < 10) return;
 	ar & excluded_devices.unsafe_ref();
+	ar & color.unsafe_ref();
 }
 
 void PrefDB::timeout() {
