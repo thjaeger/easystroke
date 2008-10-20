@@ -66,7 +66,7 @@ Atom XAtom::operator*() {
 }
 
 BiMap<Window, Window> frame_win;
-std::map<Window, Window> frame_child;
+BiMap<Window, Window> frame_child;
 XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
 XAtom _NET_WM_STATE("_NET_WM_STATE");
 XAtom _NET_WM_STATE_HIDDEN("_NET_WM_STATE_HIDDEN");
@@ -102,8 +102,9 @@ bool Children::handle(XEvent &ev) {
 			add(ev.xcreatewindow.window);
 			return true;
 		case DestroyNotify:
-			if (ev.xdestroywindow.event != parent)
-				return false;
+			frame_child.erase1(ev.xdestroywindow.window);
+			frame_child.erase2(ev.xdestroywindow.window);
+			minimized.erase2(ev.xdestroywindow.window);
 			destroy(ev.xdestroywindow.window);
 			return true;
 		case ReparentNotify:
@@ -576,19 +577,18 @@ Window get_app_window(Window &w) {
 		w = 0;
 		return w2;
 	}
-	std::map<Window, Window>::iterator i = frame_child.find(w);
-	if (i != frame_child.end()) {
-		Window w2 = i->second;
+	if (frame_child.contains1(w)) {
+		Window w2 = frame_child.find1(w);
 		if (w != w2)
 			w = 0;
 		return w2;
 	}
 	Window w2 = find_wm_state(w);
 	if (w2) {
-		frame_child[w] = w2;
+		frame_child.add(w, w2);
 		if (w2 != w) {
 			w = w2;
-			XSelectInput(dpy, w2, EnterWindowMask | LeaveWindowMask);
+			XSelectInput(dpy, w2, EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask);
 		}
 		return w2;
 	}
