@@ -206,7 +206,7 @@ Grabber::Grabber() : children(ROOT) {
 
 	xinput = init_xi();
 	if (xinput)
-		select_proximity(prefs.proximity.get());
+		select_proximity();
 
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 
@@ -324,7 +324,7 @@ bool Grabber::init_xi() {
 			supports_proximity.set(true);
 			break;
 		}
-	prefs.proximity.connect(new ValueProxy<bool>(sigc::mem_fun(*this, &Grabber::select_proximity)));
+	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
 
 	return xi_devs_n;
 }
@@ -405,7 +405,8 @@ void Grabber::grab_xi_devs(bool grab) {
 }
 
 extern bool in_proximity;
-void Grabber::select_proximity(bool select) {
+void Grabber::select_proximity() {
+	bool select = prefs.proximity.get();
 	if (!select != !proximity_selected) {
 		proximity_selected = !proximity_selected;
 		if (!proximity_selected)

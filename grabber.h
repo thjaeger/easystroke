@@ -59,7 +59,7 @@ public:
 	bool proximity_selected;
 	bool is_event(int, EventType);
 	unsigned int get_device_button_state();
-	void select_proximity(bool);
+	void select_proximity();
 
 	struct XiDevice {
 		std::string name;

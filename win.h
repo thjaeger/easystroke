@@ -67,7 +67,7 @@ private:
 	bool on_icon_size_changed(int);
 	void on_help_toggled();
 	void show_popup(guint, guint32);
-	void show_hide_icon(bool show);
+	void show_hide_icon();
 
 	Gtk::Window *win;
 

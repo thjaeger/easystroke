@@ -124,8 +124,8 @@ Win::Win() {
 	prefs_tab = new Prefs;
 	stats = new Stats;
 
-	show_hide_icon(prefs.tray_icon.get());
-	prefs.tray_icon.connect(new ValueProxy<bool>(sigc::mem_fun(*this, &Win::show_hide_icon)));
+	show_hide_icon();
+	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
 
 	WIDGET(Gtk::CheckMenuItem, menu_disabled, "D_isabled", true);
 	this->menu_disabled = &menu_disabled;
@@ -163,7 +163,8 @@ void Win::toggle_disabled() {
 	menu_disabled->set_active(!disabled);
 }
 
-void Win::show_hide_icon(bool show) {
+void Win::show_hide_icon() {
+	bool show = prefs.tray_icon.get();
 	if (show) {
 		if (icon)
 			return;

@@ -190,7 +190,7 @@ void ActionDBWatcher::init() {
 	} catch (exception &e) {
 		printf("Error: Couldn't read action database: %s.\n", e.what());
 	}
-	watchValue(action_dummy);
+	watch(action_dummy);
 }
 
 void ActionDBWatcher::timeout() {

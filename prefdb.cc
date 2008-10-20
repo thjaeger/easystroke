@@ -134,26 +134,26 @@ void PrefDB::init() {
 	} catch (...) {
 		std::cout << "Error: Couldn't read preferences." << std::endl;
 	}
-	watchValue(exceptions);
-	watchValue(p);
-	watchValue(button);
-	watchValue(trace);
-	watchValue(advanced_ignore);
-	watchValue(radius);
-	watchValue(ignore_grab);
-	watchValue(timing_workaround);
-	watchValue(show_clicks);
-	watchValue(pressure_abort);
-	watchValue(pressure_threshold);
-	watchValue(proximity);
-	watchValue(feedback);
-	watchValue(left_handed);
-	watchValue(init_timeout);
-	watchValue(min_speed);
-	watchValue(timeout_profile);
-	watchValue(timeout_gestures);
-	watchValue(tray_icon);
-	watchValue(excluded_devices);
+	watch(exceptions);
+	watch(p);
+	watch(button);
+	watch(trace);
+	watch(advanced_ignore);
+	watch(radius);
+	watch(ignore_grab);
+	watch(timing_workaround);
+	watch(show_clicks);
+	watch(pressure_abort);
+	watch(pressure_threshold);
+	watch(proximity);
+	watch(feedback);
+	watch(left_handed);
+	watch(init_timeout);
+	watch(min_speed);
+	watch(timeout_profile);
+	watch(timeout_gestures);
+	watch(tray_icon);
+	watch(excluded_devices);
 }
 
 PrefDB prefs;

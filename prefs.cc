@@ -27,91 +27,93 @@ Source<bool> xinput_v(false);
 Source<bool> supports_pressure(false);
 Source<bool> supports_proximity(false);
 
-class Check : private ValueS<bool> {
-	ValueIO<bool> &io;
+class Check : private Base {
+	IO<bool> &io;
 	Gtk::CheckButton *check;
-	virtual void set(const bool v) { check->set_active(v); }
+	virtual void notify() { check->set_active(io.get()); }
 	void on_changed() {
 		bool b = check->get_active();
 		if (b == io.get()) return;
 		io.set(b);
 	}
 public:
-	Check(ValueIO<bool> &io_, const Glib::ustring &name) : io(io_) {
+	Check(IO<bool> &io_, const Glib::ustring &name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, check);
-		set(io.get());
+		notify();
 		check->signal_toggled().connect(sigc::mem_fun(*this, &Check::on_changed));
 	}
 };
 
-class Spin : private ValueS<int> {
-	ValueIO<int> &io;
+class Spin : private Base {
+	IO<int> &io;
 	Gtk::SpinButton *spin;
 	Gtk::Button *button;
-	virtual void set(const int x) { spin->set_value(x); }
+	virtual void notify() { spin->set_value(io.get()); }
 	void on_changed() {
 		int i = spin->get_value();
 		if (i == io.get()) return;
 		io.set(i);
 	}
 public:
-	Spin(ValueIO<int> &io_, const Glib::ustring & name) : io(io_) {
+	Spin(IO<int> &io_, const Glib::ustring & name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, spin);
-		set(io.get());
+		notify();
 		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
 	}
 };
 
-class Combo : private ValueS<int> {
-	ValueIO<int> &io;
+class Combo : private Base {
+	IO<int> &io;
 	Gtk::ComboBox *combo;
-	virtual void set(const int v) { combo->set_active(v); }
+	virtual void notify() { combo->set_active(io.get()); }
 	void on_changed() {
 		int i = combo->get_active_row_number();
 		if (i < 0 || i == io.get()) return;
 		io.set(i);
 	}
 public:
-	Combo(ValueIO<int> &io_, const Glib::ustring &name) : io(io_) {
+	Combo(IO<int> &io_, const Glib::ustring &name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, combo);
-		set(io.get());
+		notify();
 		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
 	}
 };
 
 template <class T> class ButtonSet {
-	ValueIO<T> &io;
+	IO<T> &io;
 	T def;
 	void on_click() { io.set(def); }
 public:
-	ButtonSet(ValueIO<T> &io_, const Glib::ustring &name, T def_) : io(io_), def(def_) {
+	ButtonSet(IO<T> &io_, const Glib::ustring &name, T def_) : io(io_), def(def_) {
 		Gtk::Button *button;
 		widgets->get_widget(name, button);
 		button->signal_clicked().connect(sigc::mem_fun(*this, &ButtonSet::on_click));
 	}
 };
 
-class Sensitive : private ValueS<bool> {
+class Sensitive : private Base {
 	Gtk::Widget *widget;
+	Out<bool> &in;
 public:
-	virtual void set(const bool v) { widget->set_sensitive(v); }
-	Sensitive(ValueOut<bool> &in, const Glib::ustring &name) {
+	virtual void notify() { widget->set_sensitive(in.get()); }
+	Sensitive(Out<bool> &in_, const Glib::ustring &name) : in(in_) {
 		in.connect(this);
 		widgets->get_widget(name, widget);
-		set(in.get());
+		notify();
 	}
 };
 
 bool and_(bool x, bool y) { return x && y; }
 bool is_custom(int profile) { return profile == TO_CUSTOM; }
 
-class TimeoutProfile : private ValueS<int> {
+class TimeoutProfile : private Base {
+	Out<int> &in;
 public:
-	virtual void set(const int v) {
-		switch (v) {
+	virtual void notify() {
+		switch (in.get()) {
 			case TO_OFF:
 				prefs.init_timeout.set(0);
 				prefs.min_speed.set(0);
@@ -134,9 +136,9 @@ public:
 				break;
 		}
 	}
-	TimeoutProfile(ValueOut<int> &in) {
+	TimeoutProfile(Out<int> &in_) : in(in_) {
 		in.connect(this);
-		set(in.get());
+		notify();
 	}
 };
 
