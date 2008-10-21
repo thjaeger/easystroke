@@ -147,6 +147,7 @@ public:
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_repeated() {}
+	virtual void press_no_xi(guint b, Time t) { replay(t); }
 	virtual void pressure() {}
 	virtual bool need_xi() { return true; }
 	virtual void proximity_out() {}
@@ -833,10 +834,13 @@ public:
 	virtual void press(guint b, RTriple e) {
 		if (b == 1)
 			return;
+		grabber->fake_device_release(1);
+		grabber->fake_device_release(b);
 		RPreStroke p = PreStroke::create();
 		RStroke s = Stroke::create(*p, b, 1, false);
 		parent->replace_child(new AdvancedHandler(s, e, 1, b));
 	}
+	virtual bool need_xi() { return false; }
 	virtual std::string name() { return "Workaround"; }
 };
 
@@ -846,22 +850,20 @@ protected:
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		grab();
 	}
-	virtual void press(guint b, RTriple e) {
-		if (!grabber->is_grabbed(b)) {
-			if (b != 1)
-				return;
-			else { // b == 1
-				unsigned int state = grabber->get_device_button_state();
-				if (state & (state-1)) {
-					discard(e->t);
-					replace_child(new WorkaroundHandler);
-					return;
-				} else {
-					replay(e->t);
-					return;
-				}
-			}
+	virtual void press_no_xi(guint b, Time t) {
+		if (grabber->is_grabbed(b))
+			return;
+		if (b != 1)
+			return;
+		unsigned int state = grabber->get_device_button_state();
+		if (state & (state-1)) {
+			discard(t);
+			replace_child(new WorkaroundHandler);
+		} else {
+			replay(t);
 		}
+	}
+	virtual void press(guint b, RTriple e) {
 		if (current_app)
 			activate_window(current_app, e->t);
 		replace_child(new StrokeHandler(b, e));
@@ -1483,7 +1485,7 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	if (!xi_1 && !xi_2) {
 		if (grabber->xinput && handler->top()->need_xi()) {
 			if (me1->type == MouseEvent::PRESS)
-				replay(me1->t);
+				handler->top()->press_no_xi(me1->button, me1->t);
 			delete me1;
 			delete me2;
 			return;

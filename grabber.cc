@@ -522,6 +522,11 @@ void Grabber::fake_button(int b) {
 	resume();
 }
 
+void Grabber::fake_device_release(guint b) {
+	for (int i = 0; i < xi_devs_n; i++)
+		XTestFakeDeviceButtonEvent(dpy, xi_devs[i]->dev, b, False, 0, 0, 0);
+}
+
 std::string Grabber::get_wm_class(Window w) {
 	if (!w)
 		return "(window manager frame)";
