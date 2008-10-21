@@ -851,10 +851,10 @@ protected:
 		grab();
 	}
 	virtual void press_no_xi(guint b, Time t) {
-		if (grabber->is_grabbed(b))
+		if (b != 1 || grabber->is_grabbed(b)) {
+			replay(t);
 			return;
-		if (b != 1)
-			return;
+		}
 		unsigned int state = grabber->get_device_button_state();
 		if (state & (state-1)) {
 			discard(t);
