@@ -1546,41 +1546,40 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	}
 }
 
-/* TODO
-try {
-} catch (GrabFailedException) {
-	printf("Error: A grab failed.  Resetting...\n");
-	handler->replace_child(0);
-}
-*/
 bool Main::handle(Glib::IOCondition) {
 	MouseEvent *me = 0;
 	while (XPending(dpy)) {
-		XEvent ev;
-		XNextEvent(dpy, &ev);
-		if (grabber->handle(ev))
-			continue;
-		MouseEvent *me2 = get_mouse_event(ev);
-		if (!grabber->xinput) {
-			if (me2)
-				handle_mouse_event(me2, 0);
-			else
+		try {
+			XEvent ev;
+			XNextEvent(dpy, &ev);
+			if (grabber->handle(ev))
+				continue;
+			MouseEvent *me2 = get_mouse_event(ev);
+			if (!grabber->xinput) {
+				if (me2)
+					handle_mouse_event(me2, 0);
+				else
+					handle_event(ev);
+				continue;
+			}
+			if (me && me2 && me->type == me2->type && me->button == me2->button && me->t == me2->t) {
+				handle_mouse_event(me, me2);
+				me = 0;
+				continue;
+			}
+			if (me)
+				handle_mouse_event(me, 0);
+			me = me2;
+			if (!me)
 				handle_event(ev);
-			continue;
-		}
-		if (me && me2 && me->type == me2->type && me->button == me2->button && me->t == me2->t) {
-			handle_mouse_event(me, me2);
+			if (me && !XPending(dpy)) {
+				handle_mouse_event(me, 0);
+				me = 0;
+			}
+		} catch (GrabFailedException) {
+			printf("Error: A grab failed.  Resetting...\n");
 			me = 0;
-			continue;
-		}
-		if (me)
-			handle_mouse_event(me, 0);
-		me = me2;
-		if (!me)
-			handle_event(ev);
-		if (me && !XPending(dpy)) {
-			handle_mouse_event(me, 0);
-			me = 0;
+			bail_out();
 		}
 	}
 	if (handler->top()->idle() && dead)
