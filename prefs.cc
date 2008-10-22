@@ -304,6 +304,7 @@ Prefs::Prefs() {
 		hbox->hide();
 	       	widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
+		remove_last_entry("combo_timeout");
 	}
 	set_button_label();
 
