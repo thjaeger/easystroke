@@ -80,6 +80,7 @@ public:
 
 	XiDevice **xi_devs;
 	int xi_devs_n;
+	int nMajor;
 private:
 	int button_events_n;
 	bool init_xi();

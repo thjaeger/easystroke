@@ -233,7 +233,7 @@ bool Grabber::init_xi() {
 	button_events_n = 3;
 	if (no_xi)
 		return false;
-	int nMajor, nFEV, nFER;
+	int nFEV, nFER;
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
 

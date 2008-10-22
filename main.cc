@@ -29,6 +29,9 @@
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xproto.h>
+// From #include <X11/extensions/XIproto.h>
+// which is not C++-safe
+#define X_GrabDeviceButton              17
 
 #include <string.h>
 #include <signal.h>
@@ -59,34 +62,6 @@ boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Time last_press_t = 0;
 
 std::set<guint> xinput_pressed;
-
-int (*oldHandler)(Display *, XErrorEvent *) = 0;
-
-int xErrorHandler(Display *dpy2, XErrorEvent *e) {
-	if (dpy != dpy2) {
-		return oldHandler(dpy2, e);
-	}
-	if (verbosity == 0 && e->error_code == BadWindow) {
-		switch (e->request_code) {
-			case X_ChangeWindowAttributes:
-			case X_GetProperty:
-			case X_QueryTree:
-				return 0;
-		}
-	}
-	char text[64];
-	XGetErrorText(dpy, e->error_code, text, sizeof text);
-	char msg[16];
-	snprintf(msg, sizeof msg, "%d", e->request_code);
-	char def[32];
-	snprintf(def, sizeof def, "request_code=%d", e->request_code);
-	char dbtext[128];
-	XGetErrorDatabaseText(dpy, "XRequest", msg,
-			def, dbtext, sizeof dbtext);
-	printf("XError: %s: %s\n", text, dbtext);
-	return 0;
-
-}
 
 Trace *init_trace() {
 	switch(prefs.trace.get()) {
@@ -219,13 +194,51 @@ public:
 	virtual std::string name() { return "Ignore"; }
 };
 
-Handler *handler;
+Handler *handler = 0;
 void bail_out() {
 	handler->replace_child(0);
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 	discard(CurrentTime);
 	XFlush(dpy);
+}
+
+int (*oldHandler)(Display *, XErrorEvent *) = 0;
+
+int xErrorHandler(Display *dpy2, XErrorEvent *e) {
+	if (dpy != dpy2) {
+		return oldHandler(dpy2, e);
+	}
+	if (verbosity == 0 && e->error_code == BadWindow) {
+		switch (e->request_code) {
+			case X_ChangeWindowAttributes:
+			case X_GetProperty:
+			case X_QueryTree:
+				return 0;
+		}
+	}
+	if (e->request_code == X_GrabButton || 
+			(grabber->xinput && e->request_code == grabber->nMajor && e->minor_code == X_GrabDeviceButton)) {
+		if (!handler || handler->idle()) {
+			printf("Error: A%s grab failed.  Is easystroke already running?\n",
+					e->request_code == X_GrabButton ? "" : "n XInput");
+		} else {
+			printf("Error: A grab failed.  Resetting...\n");
+			bail_out();
+		}
+	} else {
+		char text[64];
+		XGetErrorText(dpy, e->error_code, text, sizeof text);
+		char msg[16];
+		snprintf(msg, sizeof msg, "%d", e->request_code);
+		char def[32];
+		snprintf(def, sizeof def, "request_code=%d", e->request_code);
+		char dbtext[128];
+		XGetErrorDatabaseText(dpy, "XRequest", msg,
+				def, dbtext, sizeof dbtext);
+		printf("XError: %s: %s\n", text, dbtext);
+	}
+	return 0;
 }
 
 class WaitForButtonHandler : public Handler, protected Timeout {
