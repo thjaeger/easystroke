@@ -178,8 +178,31 @@ public:
 	}
 };
 
-class IgnoreHandler : public Handler {
+
+class OSD : public Gtk::Window {
 public:
+	OSD(Glib::ustring txt) : Gtk::Window(Gtk::WINDOW_POPUP) {
+		int w,h;
+		set_accept_focus(false);
+		set_border_width(20);
+		WIDGET(Gtk::Label, label, "<big><b>" + txt + "</b></big>");
+		label.set_use_markup();
+		label.modify_fg(Gtk::STATE_NORMAL, Gdk::Color("White"));
+		modify_bg(Gtk::STATE_NORMAL, Gdk::Color("RoyalBlue3"));
+		set_opacity(0.75);
+		add(label);
+		label.show();
+		get_size(w,h);
+		int screen = DefaultScreen(dpy);
+		move(DisplayWidth(dpy, screen) - w - 50, 50);
+		show();
+	}
+};
+
+class IgnoreHandler : public Handler {
+	OSD osd;
+public:
+	IgnoreHandler() : osd("Ignore") {}
 	void grab() {
 		grabber->grab(Grabber::ALL_SYNC);
 	}
@@ -235,12 +258,13 @@ public:
 inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
+	OSD osd;
 	int last_x, last_y;
 	Time last_t;
 	float offset_x, offset_y;
 
 protected:
-	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {}
+	AbstractScrollHandler() : osd("Scroll"), last_t(0), offset_x(0.0), offset_y(0.0) {}
 	virtual void fake_button(int b1, int n1, int b2, int n2) {
 		grabber->suspend();
 		for (int i = 0; i<n1; i++) {
