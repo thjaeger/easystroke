@@ -22,7 +22,7 @@
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
-void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big, bool invert) const {
+void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	x++; y++; w -= 2; h -= 2;
 	ctx->save();
@@ -50,10 +50,7 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 		}
 		for (int j = 0; j < n-1; j++) {
 			// j -> j+1
-			if (invert)
-				ctx->set_source_rgba(1-points[j].time, points[j].time, 0, 1);
-			else
-				ctx->set_source_rgba(0, points[j].time, 1-points[j].time, 1);
+			ctx->set_source_rgba(0, points[j].time, 1-points[j].time, 1);
 			ctx->move_to(points[j].x, points[j].y);
 			ctx->curve_to(
 					points[j].x + y[j].x + z[j].x,
@@ -65,10 +62,7 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 			ctx->stroke();
 		}
 	} else if (!button) {
-		if (invert)
-			ctx->set_source_rgba(1, 0, 0, 1);
-		else
-			ctx->set_source_rgba(0, 0, 1, 1);
+		ctx->set_source_rgba(0, 0, 1, 1);
 		ctx->move_to(0.33, 0.33);
 		ctx->line_to(0.67, 0.67);
 		ctx->move_to(0.33, 0.67);
@@ -78,10 +72,7 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	ctx->restore();
 	if (!button && !timeout)
 		return;
-	if (invert)
-		ctx->set_source_rgba(0, 0, 1, 0.8);
-	else
-		ctx->set_source_rgba(1, 0, 0, 0.8);
+	ctx->set_source_rgba(1, 0, 0, 0.8);
 	Glib::ustring str = timeout ? "x" : Glib::ustring::format(button);
 	ctx->set_font_size(h*0.6);
 	Cairo::TextExtents te;
@@ -94,25 +85,44 @@ void Stroke::draw_svg(std::string filename) const {
 	const int S = 32;
 	const int B = 1;
 	Cairo::RefPtr<Cairo::SvgSurface> s = Cairo::SvgSurface::create(filename, S, S);
-	draw(s, B, B, S-2*B, S-2*B, false, false);
+	draw(s, B, B, S-2*B, S-2*B, false);
 }
 
 
 Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size, bool big) const {
 	Glib::RefPtr<Gdk::Pixbuf> pb = drawEmpty_(size);
+	int w = size;
+	int h = size;
+	int stride = pb->get_rowstride();
+	guint8 *row = pb->get_pixels();
 	// This is all pretty messed up
 	// http://www.archivum.info/gtkmm-list@gnome.org/2007-05/msg00112.html
-	Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create (pb->get_pixels(),
-			Cairo::FORMAT_ARGB32, size, size, pb->get_rowstride());
-
-	draw(surface, 0, 0, pb->get_width(), size, big, true);
+	Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(row, Cairo::FORMAT_ARGB32, w, h, stride);
+	draw(surface, 0, 0, pb->get_width(), size, big);
+	for (int i = 0; i < w; i++) {
+		guint8 *px = row;
+		for (int j = 0; j < h; j++) {
+			guint8 a = px[3];
+			guint8 r = px[2];
+			guint8 g = px[1];
+			guint8 b = px[0];
+			
+			if (a) {
+				px[0] = ((((guint)r) << 8) - r) / a;
+				px[1] = ((((guint)g) << 8) - g) / a;
+				px[2] = ((((guint)b) << 8) - b) / a;
+			}
+			px += 4;
+		}
+		row += stride;
+	}
 	return pb;
 }
 
 
 Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty_(int size) {
 	Glib::RefPtr<Gdk::Pixbuf> pb = Gdk::Pixbuf::create(Gdk::COLORSPACE_RGB,true,8,size,size);
-	pb->fill(0xffffff00);
+	pb->fill(0x00000000);
 	return pb;
 }
 

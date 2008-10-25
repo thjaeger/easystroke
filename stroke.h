@@ -118,7 +118,7 @@ public:
 		return RStroke(new Stroke(s, trigger_, button_, timeout_));
 	}
         Glib::RefPtr<Gdk::Pixbuf> draw(int size, bool big = false) const;
-	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big, bool invert) const;
+	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big) const;
 	void draw_svg(std::string filename) const;
 	bool show_icon();
 
