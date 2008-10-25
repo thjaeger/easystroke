@@ -187,8 +187,6 @@ void Win::show_hide_icon() {
 	if (show) {
 		if (icon)
 			return;
-		current_icon = Stroke::trefoil();
-
 		icon = Gtk::StatusIcon::create("");
 		icon->signal_size_changed().connect(sigc::mem_fun(*this, &Win::on_icon_size_changed));
 		icon->signal_activate().connect(sigc::mem_fun(*this, &Win::show_hide));
@@ -204,11 +202,6 @@ void Win::show_popup(guint button, guint32 activate_time) {
 	icon->popup_menu_at_position(menu, button, activate_time);
 }
 
-void Win::on_icon_changed(RStroke s) {
-	current_icon = s;
-	on_icon_size_changed(icon->get_size());
-}
-
 void Win::show_hide() {
 	if (win->is_mapped())
 		win->hide();
@@ -217,9 +210,7 @@ void Win::show_hide() {
 }
 
 bool Win::on_icon_size_changed(int size) {
-	if (!current_icon)
-		return true;
-	icon->set(current_icon->draw(size));
+	icon->set(Stroke::trefoil()->draw(size));
 	return true;
 }
 

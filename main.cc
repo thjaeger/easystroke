@@ -1244,15 +1244,6 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-struct ShowIcon {
-	RStroke s;
-	bool run() {
-		win->on_icon_changed(s);
-		delete this;
-		return false;
-	}
-};
-
 bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up) {
 	bool success = false;
 	s->trigger = trigger;
@@ -1275,11 +1266,6 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 				Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
 			else
 				delete ranking;
-		}
-		if (win->has_icon()) {
-			ShowIcon *si = new ShowIcon;
-			si->s = s;
-			Glib::signal_idle().connect(sigc::mem_fun(si, &ShowIcon::run));
 		}
 	} else {
 		Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
