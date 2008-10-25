@@ -24,7 +24,7 @@ Glib::RefPtr<Gtk::Builder> widgets;
 
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
-	x++; y++; w -= 2; h -= 2;
+	x+=2; y+=2; w -= 4; h -= 4;
 	ctx->save();
 	ctx->translate(x,y);
 	ctx->scale(w,h);
