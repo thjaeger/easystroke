@@ -22,38 +22,47 @@
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
-inline void curve(const Cairo::RefPtr<Cairo::Context> ctx,
-		const Stroke::Point &p1, const Stroke::Point &p2, const Stroke::Point &p3, const Stroke::Point &p4) {
-	ctx->move_to(p2.x, p2.y);
-	ctx->line_to(p3.x, p3.y);
-	ctx->stroke();
-}
-
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big, bool invert) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	x++; y++; w -= 2; h -= 2;
 	ctx->save();
 	ctx->translate(x,y);
 	ctx->scale(w,h);
-	ctx->set_line_width((big ? 7.0 : 4.0)/(w+h));
+	ctx->set_line_width((big ? 8.0 : 4.0)/(w+h));
 	if (size()) {
+		ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 		int n = points.size();
-		const std::vector<Point> &p = points;
-		for (int j = 0;; j++) {
+		float lambda = sqrt(3)-2.0;
+		float sum = lambda / (1 - lambda);
+		std::vector<Point> y(n);
+		y[0].x = sum * points[0].x;
+		y[0].y = sum * points[0].y;
+		for (int j = 0; j < n-1; j++) {
+			y[j+1].x = lambda * (y[j].x + points[j].x);
+			y[j+1].y = lambda * (y[j].y + points[j].y);
+		}
+		std::vector<Point> z(n);
+		z[n-1].x = -1.0 * sum * points[n-1].x;
+		z[n-1].y = -1.0 * sum * points[n-1].y;
+		for (int j = n-1; j > 0; j--) {
+			z[j-1].x = lambda * (z[j].x - points[j].x);
+			z[j-1].y = lambda * (z[j].y - points[j].y);
+		}
+		for (int j = 0; j < n-1; j++) {
 			// j -> j+1
 			if (invert)
-				ctx->set_source_rgba(1-p[j].time, p[j].time, 0, 1);
+				ctx->set_source_rgba(1-points[j].time, points[j].time, 0, 1);
 			else
-				ctx->set_source_rgba(0, p[j].time, 1-p[j].time, 1);
-			if (j == 0) {
-				curve(ctx, p[j], p[j], p[j+1], p[j+2]);
-				continue;
-			}
-			if (j == n-2) {
-				curve(ctx, p[j-1], p[j], p[j+1], p[j+1]);
-				break;
-			}
-			curve(ctx, p[j-1], p[j], p[j+1], p[j+2]);
+				ctx->set_source_rgba(0, points[j].time, 1-points[j].time, 1);
+			ctx->move_to(points[j].x, points[j].y);
+			ctx->curve_to(
+					points[j].x + y[j].x + z[j].x,
+					points[j].y + y[j].y + z[j].y,
+					points[j+1].x - y[j+1].x - z[j+1].x,
+					points[j+1].y - y[j+1].y - z[j+1].y,
+					points[j+1].x,
+					points[j+1].y);
+			ctx->stroke();
 		}
 	} else if (!button) {
 		if (invert)

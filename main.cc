@@ -1390,6 +1390,7 @@ void Main::handle_event(XEvent &ev) {
 			}
 		}
 		if (ev.type == grabber->event_presence && verbosity >= 1) {
+			// TODO
 			printf("Info: Device Presence not implemented\n");
 		}
 	}
