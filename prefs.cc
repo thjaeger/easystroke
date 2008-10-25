@@ -197,10 +197,7 @@ public:
 				break;
 		}
 	}
-	TimeoutProfile(Out<int> &in_) : in(in_) {
-		in.connect(this);
-		notify();
-	}
+	TimeoutProfile(Out<int> &in_) : in(in_) { in.connect(this); }
 };
 
 void remove_last_entry(const Glib::ustring & name) {
