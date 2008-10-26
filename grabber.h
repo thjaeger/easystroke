@@ -117,6 +117,7 @@ public:
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
 	void toggle_disabled() { disabled = !disabled; set(); }
 	void fake_device_release(guint b);
+	bool update_device_list();
 
 	void unminimize();
 };

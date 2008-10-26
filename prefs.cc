@@ -282,13 +282,8 @@ Prefs::Prefs() {
 	dtv->set_model(dtm);
 	dtv->append_column_editable("Enabled", dcs.enabled);
 	dtv->append_column("Device", dcs.name);
-	for (int i = 0; i < grabber->xi_devs_n; i++) {
-		std::string name = grabber->xi_devs[i]->name;
-		Gtk::TreeModel::Row row = *(dtm->append());
-		row[dcs.enabled] = !prefs.excluded_devices.get().count(name);
-		row[dcs.name] = name;
-	}
 	dtm->signal_row_changed().connect(sigc::mem_fun(*this, &Prefs::on_device_toggled));
+	update_device_list();
 
 	double p = prefs.p.get();
 	scale_p->set_value(p);
@@ -311,6 +306,18 @@ Prefs::Prefs() {
 		row[cols.app] = i->first;
 		row[cols.button] = i->second ? i->second->get_button_text() : "<App disabled>";
 	}
+}
+
+void Prefs::update_device_list() {
+	ignore_device_toggled = true;
+	dtm->clear();
+	for (int i = 0; i < grabber->xi_devs_n; i++) {
+		std::string name = grabber->xi_devs[i]->name;
+		Gtk::TreeModel::Row row = *(dtm->append());
+		row[dcs.enabled] = !prefs.excluded_devices.get().count(name);
+		row[dcs.name] = name;
+	}
+	ignore_device_toggled = false;
 }
 
 struct Prefs::SelectRow {
@@ -489,6 +496,8 @@ void Prefs::on_remove() {
 }
 
 void Prefs::on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
+	if (ignore_device_toggled)
+		return;
 	Atomic a;
 	std::set<std::string> &ex = prefs.excluded_devices.write_ref(a);
 	Glib::ustring device = (*iter)[dcs.name];

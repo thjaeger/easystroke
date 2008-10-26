@@ -1335,6 +1335,13 @@ void Main::handle_enter_leave(XEvent &ev) {
 	}
 }
 
+class PresenceWatcher : public Timeout {
+	virtual void timeout() {
+		grabber->update_device_list();
+		win->prefs_tab->update_device_list();
+	}
+} presence_watcher;
+
 void Main::handle_event(XEvent &ev) {
 	switch(ev.type) {
 	case KeyPress:
@@ -1375,9 +1382,10 @@ void Main::handle_event(XEvent &ev) {
 				handler->top()->proximity_out();
 			}
 		}
-		if (ev.type == grabber->event_presence && verbosity >= 1) {
-			// TODO
-			printf("Info: Device Presence not implemented\n");
+		if (ev.type == grabber->event_presence) {
+			if (verbosity >= 2)
+				printf("Device Presence\n");
+			presence_watcher.set_timeout(2000);
 		}
 	}
 }

@@ -24,6 +24,7 @@ public:
 	Prefs();
 	virtual ~Prefs() {}
 	void on_selected(std::string);
+	void update_device_list();
 private:
 	void set_button_label();
 
@@ -59,6 +60,7 @@ private:
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
+	bool ignore_device_toggled;
 };
 
 #endif

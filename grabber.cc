@@ -194,6 +194,7 @@ bool wm_running() {
 }
 
 Grabber::Grabber() : children(ROOT) {
+	XSynchronize(dpy, True);
 	current = BUTTON;
 	suspended = false;
 	xi_suspended = false;
@@ -204,12 +205,8 @@ Grabber::Grabber() : children(ROOT) {
 	proximity_selected = false;
 	grabbed_button.button = 0;
 	grabbed_button.state = 0;
-
-	xinput = init_xi();
-	if (xinput)
-		select_proximity();
-
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
+	xinput = init_xi();
 
 	update_button(prefs.button.get());
 }
@@ -229,7 +226,7 @@ extern "C" {
 }
 
 bool Grabber::init_xi() {
-	xi_devs_n = 0;
+	xi_devs = 0;
 	button_events_n = 3;
 	if (no_xi)
 		return false;
@@ -237,15 +234,48 @@ bool Grabber::init_xi() {
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
 
-	int i, n;
-	XDeviceInfo *devs;
-	devs = XListInputDevices(dpy, &n);
+	// Macro not c++-safe
+	// DevicePresence(dpy, event_presence, presence_class);
+	event_presence = _XiGetDevicePresenceNotifyEvent(dpy);
+	presence_class =  (0x10000 | _devicePresence);
+
+	if (!update_device_list())
+		return false;
+
+	xinput_v.set(xi_devs_n);
+
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_pressure) {
+			supports_pressure.set(true);
+			break;
+		}
+
+	for (int i = 0; i < xi_devs_n; i++)
+		if (xi_devs[i]->supports_proximity) {
+			supports_proximity.set(true);
+			break;
+		}
+	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
+
+	return xi_devs_n;
+}
+
+bool Grabber::update_device_list() {
+	if (xi_devs) {
+		for (int i = 0; i < xi_devs_n; i++)
+			XCloseDevice(dpy, xi_devs[i]->dev);
+		delete[] xi_devs;
+	}
+
+	int n;
+	XDeviceInfo *devs = XListInputDevices(dpy, &n);
 	if (!devs)
 		return false;
 
 	xi_devs = new XiDevice *[n];
+	xi_devs_n = 0;
 
-	for (i=0; i<n; ++i) {
+	for (int i = 0; i < n; i++) {
 		XDeviceInfo *dev = devs + i;
 
 		if (dev->use == IsXKeyboard || dev->use == IsXPointer)
@@ -306,28 +336,11 @@ bool Grabber::init_xi() {
 					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 	XFreeDeviceList(devs);
-
-	// Macro not c++-safe
-	// DevicePresence(dpy, event_presence, presence_class);
-	event_presence = _XiGetDevicePresenceNotifyEvent(dpy);
-	presence_class =  (0x10000 | _devicePresence);
-
-	xinput_v.set(xi_devs_n);
-
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_pressure) {
-			supports_pressure.set(true);
-			break;
-		}
-
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity) {
-			supports_proximity.set(true);
-			break;
-		}
-	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
-
-	return xi_devs_n;
+	proximity_selected = false;
+	select_proximity();
+	xi_grabbed = false;
+	set();
+	return true;
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
