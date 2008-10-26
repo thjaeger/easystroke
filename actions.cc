@@ -502,7 +502,7 @@ void Actions::on_app_selected(std::string name) {
 
 void Actions::on_add_group() {
 	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
-	Glib::ustring name = "Group 0"; //TODO
+	Glib::ustring name = "Group";
 	ActionListDiff *child = parent->add_child(name, false);
 	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
 	       	apps_model->children().begin()->children() :
