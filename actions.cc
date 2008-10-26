@@ -544,10 +544,18 @@ void Actions::on_apps_selection_changed() {
 void Actions::update_action_list() {
 	boost::shared_ptr<std::set<Unique *> > ids = action_list->get_ids(check_show_deleted->get_active());
 	const Gtk::TreeNodeChildren &ch = tm->children();
+
+	std::list<Gtk::TreeRowReference> refs;
 	for (Gtk::TreeIter i = ch.begin(); i != ch.end(); i++) {
+		Gtk::TreeRowReference ref(tm, Gtk::TreePath(*i));
+		refs.push_back(ref);
+	}
+
+	for (std::list<Gtk::TreeRowReference>::iterator ref = refs.begin(); ref != refs.end(); ref++) {
+		Gtk::TreeIter i = tm->get_iter(ref->get_path());
 		std::set<Unique *>::iterator id = ids->find((*i)[cols.id]);
 		if (id == ids->end()) {
-			tm->erase(*i);
+			tm->erase(i);
 		} else {
 			ids->erase(id);
 			update_row(*i);
