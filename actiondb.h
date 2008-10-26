@@ -33,10 +33,6 @@ class Scroll;
 class Ignore;
 class Button;
 class Misc;
-class Unique {
-	friend class boost::serialization::access;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version);
-};
 
 typedef boost::shared_ptr<Action> RAction;
 typedef boost::shared_ptr<Command> RCommand;
@@ -46,6 +42,7 @@ typedef boost::shared_ptr<Ignore> RIgnore;
 typedef boost::shared_ptr<Button> RButton;
 typedef boost::shared_ptr<Misc> RMisc;
 
+class Unique;
 
 class Action {
 	friend class boost::serialization::access;
@@ -182,6 +179,14 @@ struct Ranking {
 	bool show();
 };
 
+class Unique {
+	friend class boost::serialization::access;
+	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+public:
+	int level;
+	int i;
+};
+
 class ActionListDiff {
 	friend class boost::serialization::access;
 	friend class ActionDB;
@@ -189,19 +194,35 @@ class ActionListDiff {
 	ActionListDiff *parent;
 	std::set<Unique *> deleted;
 	std::map<Unique *, StrokeInfo> added;
+	std::list<Unique *> order;
 	std::list<ActionListDiff> children;
 
-	void fix_parents() {
+	void update_order() {
+		int j = 0;
+		for (std::list<Unique *>::iterator i = order.begin(); i != order.end(); i++, j++) {
+			(*i)->level = level;
+			(*i)->i = j;
+		}
+	}
+
+	void fix_tree(bool rebuild_order) {
+		if (rebuild_order)
+			for (std::map<Unique *, StrokeInfo>::iterator i = added.begin(); i != added.end(); i++)
+				if (!(parent && parent->contains(i->first)))
+					order.push_back(i->first);
+		update_order();
 		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++) {
 			i->parent = this;
-			i->fix_parents();
+			i->level = level + 1;
+			i->fix_tree(rebuild_order);
 		}
 	}
 public:
+	int level;
 	bool app;
 	std::string name;
 
-	ActionListDiff() : parent(0), app(false) {}
+	ActionListDiff() : parent(0), level(0), app(false) {}
 
 	typedef std::list<ActionListDiff>::iterator iterator;
 	iterator begin() { return children.begin(); }
@@ -212,6 +233,9 @@ public:
 	Unique *add(StrokeInfo &si) {
 		Unique *id = new Unique;
 		added.insert(std::pair<Unique *, StrokeInfo>(id, si));
+		id->level = level;
+		id->i = order.size();
+		order.push_back(id);
 		return id;
 	}
 	void set_action(Unique *id, RAction action) { added[id].action = action; }
@@ -226,9 +250,11 @@ public:
 	}
 	bool remove(Unique *id) {
 		bool really = !(parent && parent->contains(id));
-		if (really)
+		if (really) {
 			added.erase(id);
-		else
+			order.remove(id);
+			update_order();
+		} else
 			deleted.insert(id);
 		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++)
 			i->remove(id);
@@ -252,6 +278,7 @@ public:
 		child->name = name;
 		child->app = app;
 		child->parent = this;
+		child->level = level + 1;
 		return child;
 	}
 	bool remove() {
@@ -266,6 +293,12 @@ public:
 		}
 		return false;
 	}
+	void move(Unique *src, Unique *dest) {
+		// TODO: We need a few checks here...
+		order.remove(src);
+		order.insert(dest ? std::find(order.begin(), order.end(), dest) : order.end(), src);
+		update_order();
+	}
 
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
 	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
@@ -274,6 +307,7 @@ public:
 
 	~ActionListDiff();
 };
+BOOST_CLASS_VERSION(ActionListDiff, 1)
 
 extern Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
 
@@ -300,7 +334,7 @@ public:
 		return i == apps.end() ? &root : i->second;
 	}
 };
-BOOST_CLASS_VERSION(ActionDB, 2)
+BOOST_CLASS_VERSION(ActionDB, 3)
 
 class ActionDBWatcher : public TimeoutWatcher {
 	bool good_state;

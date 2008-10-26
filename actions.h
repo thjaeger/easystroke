@@ -43,7 +43,10 @@ private:
 	void on_cell_data_name(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
+	bool on_row_separator(const Glib::RefPtr<Gtk::TreeModel> &model, const Gtk::TreeModel::iterator &iter);
+	int compare_ids(const Gtk::TreeModel::iterator &a, const Gtk::TreeModel::iterator &b);
 	class OnStroke;
+	Gtk::TreeRow get_selected_row();
 
 	void focus(Unique *id, int col, bool edit);
 
@@ -72,9 +75,21 @@ private:
 		Gtk::TreeModelColumn<bool> name_bold, action_bold;
 		Gtk::TreeModelColumn<bool> deactivated;
 	};
+	class Store : public Gtk::ListStore {
+		Actions *parent;
+	public:
+		Store(const Gtk::TreeModelColumnRecord &columns, Actions *p) : Gtk::ListStore(columns), parent(p) {}
+		static Glib::RefPtr<Store> create(const Gtk::TreeModelColumnRecord &columns, Actions *parent) {
+			return Glib::RefPtr<Store>(new Store(columns, parent));
+		}
+	protected:
+		bool row_draggable_vfunc(const Gtk::TreeModel::Path &path) const;
+		bool row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) const;
+		bool drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData& selection);
+	};
 	ModelColumns cols;
 	Gtk::TreeView *tv;
-	Glib::RefPtr<Gtk::ListStore> tm;
+	Glib::RefPtr<Store> tm;
 
 	Gtk::TreeView *apps_view;
 	Glib::RefPtr<Gtk::TreeStore> apps_model;

@@ -142,10 +142,13 @@ template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsig
 	ar & name;
 	ar & children;
 	ar & app;
+	if (version == 0)
+		return;
+	ar & order;
 }
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
-	if (version == 2) {
+	if (version >= 2) {
 		ar & root;
 	}
 	if (version == 1) {
@@ -163,10 +166,9 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 		}
 	}
 
-	root.fix_parents();
+	root.fix_tree(version == 2);
 	root.add_apps(apps);
 	root.name = "Default";
-
 }
 
 template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
