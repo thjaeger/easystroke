@@ -182,6 +182,8 @@ Actions::Actions() :
 	n = tv->append_column("Stroke", cols.stroke);
 	tv->get_column(n-1)->set_sort_column(cols.id);
 	tm->set_sort_func(cols.id, sigc::mem_fun(*this, &Actions::compare_ids));
+	tm->set_default_sort_func(sigc::mem_fun(*this, &Actions::compare_ids));
+	tm->set_sort_column(Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID, Gtk::SORT_ASCENDING);
 
 	n = tv->append_column("Name", cols.name);
 	Gtk::CellRendererText *name_renderer = dynamic_cast<Gtk::CellRendererText *>(tv->get_column_cell_renderer(n-1));
@@ -315,6 +317,13 @@ int Actions::compare_ids(const Gtk::TreeModel::iterator &a, const Gtk::TreeModel
 }
 
 bool Actions::Store::row_draggable_vfunc(const Gtk::TreeModel::Path &path) const {
+	int col;
+	Gtk::SortType sort;
+	parent->tm->get_sort_column_id(col, sort); 
+	if (col != Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID)
+		return false;
+	if (sort != Gtk::SORT_ASCENDING)
+		return false;
 	Unique *id = (*parent->tm->get_iter(path))[parent->cols.id];
 	return id->level == parent->action_list->level;
 }
