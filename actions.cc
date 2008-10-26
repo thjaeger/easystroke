@@ -657,12 +657,16 @@ void Actions::on_button_new() {
 	editing_new = true;
 
 	Gtk::TreeModel::Row row = *(tm->append());
-	char buf[16];
-	snprintf(buf, 15, "Gesture %d", 0); // TODO: actions.ref().size()+1);
 	StrokeInfo si;
-	si.name = buf;
 	si.action = Command::create("");
-	row[cols.id] = action_list->add(si);
+	Unique *id = action_list->add(si);
+	row[cols.id] = id;
+	std::string name;
+	if (action_list != actions.get_root())
+		name = action_list->name + " ";
+	char buf[16];
+	snprintf(buf, 15, "Gesture %d", id->i);
+	action_list->set_name(id, name + buf);
 
 	update_row(row);
 	focus(row[cols.id], 1, true);
