@@ -194,7 +194,6 @@ bool wm_running() {
 }
 
 Grabber::Grabber() : children(ROOT) {
-	XSynchronize(dpy, True);
 	current = BUTTON;
 	suspended = false;
 	xi_suspended = false;
