@@ -293,11 +293,23 @@ public:
 		}
 		return false;
 	}
-	void move(Unique *src, Unique *dest) {
-		// TODO: We need a few checks here...
+	bool move(Unique *src, Unique *dest) {
+		if (!src)
+			return false;
+		if (src == dest)
+			return false;
+		if (parent && parent->contains(src))
+			return false;
+		if (dest && parent && parent->contains(dest))
+			return false;
+		if (!added.count(src))
+			return false;
+		if (dest && !added.count(dest))
+			return false;
 		order.remove(src);
 		order.insert(dest ? std::find(order.begin(), order.end(), dest) : order.end(), src);
 		update_order();
+		return true;
 	}
 
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;

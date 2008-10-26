@@ -355,8 +355,10 @@ bool Actions::Store::drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, 
 	Unique *dest_id = dest_iter ? (*dest_iter)[parent->cols.id] : (Unique *)0;
 	if (dest_id && src_id->level != dest_id->level)
 		return false;
-	parent->action_list->move(src_id, dest_id);
-	(*parent->tm->get_iter(src))[parent->cols.id] = src_id;
+	if (parent->action_list->move(src_id, dest_id)) {
+		(*parent->tm->get_iter(src))[parent->cols.id] = src_id;
+		update_actions();
+	}
 	return false;
 }
 
