@@ -203,12 +203,10 @@ void Win::show_popup(guint button, guint32 activate_time) {
 }
 
 void Win::show_hide() {
-	if (win->is_mapped()) {
+	if (win->is_mapped())
 		win->hide();
-	} else {
+	else
 		win->show();
-		win->raise();
-	}
 }
 
 bool Win::on_icon_size_changed(int size) {
