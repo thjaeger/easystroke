@@ -385,6 +385,7 @@ public:
 		p->replace_child(0);
 		p->release(b, e);
 	}
+	~ScrollXiHandler() { clear_mods(); }
 	virtual std::string name() { return "ScrollXi"; }
 };
 
