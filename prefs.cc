@@ -170,36 +170,6 @@ TraceType int_to_trace(int i) {
 	}
 }
 
-class TimeoutProfile : private Base {
-	Out<int> &in;
-public:
-	virtual void notify() {
-		switch (in.get()) {
-			case TO_OFF:
-				prefs.init_timeout.set(0);
-				prefs.min_speed.set(0);
-				break;
-			case TO_CONSERVATIVE:
-				prefs.init_timeout.set(150);
-				prefs.min_speed.set(50);
-				break;
-			case TO_MEDIUM:
-				prefs.init_timeout.set(30);
-				prefs.min_speed.set(80);
-				break;
-			case TO_AGGRESSIVE:
-				prefs.init_timeout.set(15);
-				prefs.min_speed.set(150);
-				break;
-			case TO_FLICK:
-				prefs.init_timeout.set(20);
-				prefs.min_speed.set(500);
-				break;
-		}
-	}
-	TimeoutProfile(Out<int> &in_) : in(in_) { in.connect(this); }
-};
-
 void remove_last_entry(const Glib::ustring & name) {
 	Gtk::ComboBox *combo;
 	widgets->get_widget(name, combo);
@@ -238,7 +208,6 @@ Prefs::Prefs() {
 	new Combo(*new Bijection<TraceType, int>(&trace_to_int, &int_to_trace, prefs.trace), "combo_trace");
 	new Color(prefs.color, "button_color");
 	new Combo(prefs.timeout_profile, "combo_timeout");
-	new TimeoutProfile(prefs.timeout_profile);
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
 

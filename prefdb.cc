@@ -125,6 +125,40 @@ void PrefDB::timeout() {
 	}
 }
 
+
+class TimeoutProfile : private Base {
+	Out<int> &in;
+public:
+	virtual void notify() {
+		switch (in.get()) {
+			case TO_OFF:
+				prefs.init_timeout.set(0);
+				prefs.min_speed.set(0);
+				break;
+			case TO_CONSERVATIVE:
+				prefs.init_timeout.set(240);
+				prefs.min_speed.set(60);
+				break;
+			case TO_MEDIUM:
+				prefs.init_timeout.set(30);
+				prefs.min_speed.set(80);
+				break;
+			case TO_AGGRESSIVE:
+				prefs.init_timeout.set(15);
+				prefs.min_speed.set(150);
+				break;
+			case TO_FLICK:
+				prefs.init_timeout.set(20);
+				prefs.min_speed.set(500);
+				break;
+		}
+	}
+	TimeoutProfile(Out<int> &in_) : in(in_) {
+		in.connect(this);
+		notify();
+	}
+};
+
 void PrefDB::init() {
 	std::string filename = config_dir+"preferences";
 	try {
@@ -136,6 +170,7 @@ void PrefDB::init() {
 	} catch (...) {
 		std::cout << "Error: Couldn't read preferences." << std::endl;
 	}
+	new TimeoutProfile(prefs.timeout_profile);
 	watch(exceptions);
 	watch(p);
 	watch(button);
