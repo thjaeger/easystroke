@@ -204,11 +204,11 @@ void bail_out() {
 }
 
 int (*oldHandler)(Display *, XErrorEvent *) = 0;
+int (*oldIOHandler)(Display *) = 0;
 
 int xErrorHandler(Display *dpy2, XErrorEvent *e) {
-	if (dpy != dpy2) {
+	if (dpy != dpy2)
 		return oldHandler(dpy2, e);
-	}
 	if (verbosity == 0 && e->error_code == BadWindow) {
 		switch (e->request_code) {
 			case X_ChangeWindowAttributes:
@@ -239,6 +239,13 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 		printf("XError: %s: %s\n", text, dbtext);
 	}
 	return 0;
+}
+
+int xIOErrorHandler(Display *dpy2) {
+	if (dpy != dpy2)
+		return oldIOHandler(dpy2);
+	printf("Fatal Error: Connection to X server lost\n");
+	exit(EXIT_FAILURE);
 }
 
 class WaitForButtonHandler : public Handler, protected Timeout {
@@ -1194,6 +1201,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	opterr = 1;
 	kit = new Gtk::Main(argc, argv);
 	oldHandler = XSetErrorHandler(xErrorHandler);
+	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 
 	while ((opt = getopt_long(argc, argv, "c:engvx", long_opts2, 0)) != -1) {
 		switch (opt) {
