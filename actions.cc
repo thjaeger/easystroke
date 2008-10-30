@@ -683,7 +683,7 @@ void Actions::on_button_new() {
 	if (action_list != actions.get_root())
 		name = action_list->name + " ";
 	char buf[16];
-	snprintf(buf, 15, "Gesture %d", id->i);
+	snprintf(buf, 15, "Gesture %d", action_list->order_size());
 	action_list->set_name(id, name + buf);
 
 	update_row(row);

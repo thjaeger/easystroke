@@ -229,6 +229,7 @@ public:
 	iterator end() { return children.end(); }
 
 	RStrokeInfo get_info(Unique *id, bool *deleted = 0, bool *stroke = 0, bool *name = 0, bool *action = 0) const;
+	int order_size() { return order.size(); }
 
 	Unique *add(StrokeInfo &si, Unique *before = 0) {
 		Unique *id = new Unique;
