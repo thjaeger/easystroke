@@ -665,11 +665,19 @@ void Actions::on_selection_changed() {
 
 void Actions::on_button_new() {
 	editing_new = true;
+	Unique *before = 0;
+	if (tv->get_selection()->count_selected_rows()) {
+		std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+		Gtk::TreeIter i = tm->get_iter(paths[paths.size()-1]);
+		i++;
+		if (i != tm->children().end())
+			before = (*i)[cols.id];
+	}
 
 	Gtk::TreeModel::Row row = *(tm->append());
 	StrokeInfo si;
 	si.action = Command::create("");
-	Unique *id = action_list->add(si);
+	Unique *id = action_list->add(si, before);
 	row[cols.id] = id;
 	std::string name;
 	if (action_list != actions.get_root())
@@ -679,7 +687,7 @@ void Actions::on_button_new() {
 	action_list->set_name(id, name + buf);
 
 	update_row(row);
-	focus(row[cols.id], 1, true);
+	focus(id, 1, true);
 	update_actions();
 }
 

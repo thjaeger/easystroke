@@ -230,12 +230,16 @@ public:
 
 	RStrokeInfo get_info(Unique *id, bool *deleted = 0, bool *stroke = 0, bool *name = 0, bool *action = 0) const;
 
-	Unique *add(StrokeInfo &si) {
+	Unique *add(StrokeInfo &si, Unique *before = 0) {
 		Unique *id = new Unique;
 		added.insert(std::pair<Unique *, StrokeInfo>(id, si));
 		id->level = level;
 		id->i = order.size();
-		order.push_back(id);
+		if (before)
+			order.insert(std::find(order.begin(), order.end(), before), id);
+		else
+			order.push_back(id);
+		update_order();
 		return id;
 	}
 	void set_action(Unique *id, RAction action) { added[id].action = action; }
