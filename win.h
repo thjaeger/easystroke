@@ -17,6 +17,7 @@
 #define __WIN_H__
 #include "stroke.h"
 #include <gtkmm.h>
+#include "util.h"
 
 class Actions;
 class Prefs;
@@ -50,7 +51,7 @@ private:
 	combo_edited signal_combo_edited_;
 };
 
-class Win {
+class Win : Timeout {
 public:
 	Win();
 	virtual ~Win();
@@ -61,8 +62,10 @@ public:
 	Stats *stats;
 	void show_hide();
 	void toggle_disabled();
+	void show_success(bool good);
 private:
 	bool on_icon_size_changed(int);
+	virtual void timeout();
 	void on_help_toggled();
 	void show_popup(guint, guint32);
 	void show_hide_icon();
@@ -73,6 +76,7 @@ private:
 	Gtk::CheckMenuItem *menu_disabled;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
+	Glib::RefPtr<Gdk::Pixbuf> icon_pb[3];
 };
 
 extern Win *win;

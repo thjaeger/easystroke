@@ -209,9 +209,34 @@ void Win::show_hide() {
 		win->show();
 }
 
+void composite_stock(Glib::RefPtr<Gdk::Pixbuf> dest, Glib::ustring name, double scale) {
+		Glib::RefPtr<Gdk::Pixbuf> pb = win->render_icon(Gtk::StockID(name), Gtk::ICON_SIZE_MENU);
+		int w = dest->get_width() * scale;
+		int h = dest->get_height() * scale;
+		int x = dest->get_width() - w;
+		int y = 0;
+		double scale_x = (double)w/(double)(pb->get_width());
+		double scale_y = (double)h/(double)(pb->get_height());
+		pb->composite(dest, x, y, w, h, x, y, scale_x, scale_y, Gdk::INTERP_HYPER, 255);
+}
+
 bool Win::on_icon_size_changed(int size) {
-	icon->set(Stroke::trefoil()->draw(size));
+	icon_pb[0] = Stroke::trefoil()->draw(size);
+	icon_pb[1] = Stroke::trefoil()->draw(size);
+	icon_pb[2] = Stroke::trefoil()->draw(size);
+	composite_stock(icon_pb[1], "gtk-yes", 0.6);
+	composite_stock(icon_pb[2], "gtk-no", 0.5);
+	icon->set(icon_pb[0]);
 	return true;
+}
+
+void Win::timeout() {
+	icon->set(icon_pb[0]);
+}
+
+void Win::show_success(bool good) {
+	icon->set(icon_pb[good ? 1 : 2]);
+	set_timeout(2000);
 }
 
 FormatLabel::FormatLabel(Glib::RefPtr<Gtk::Builder> builder, Glib::ustring name, ...) {

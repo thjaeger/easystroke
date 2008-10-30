@@ -818,7 +818,10 @@ protected:
 			return;
 		RStroke s = finish(0);
 
-		if (!handle_stroke(s, e->x, e->y, button, 0))
+		// TODO
+		bool good = handle_stroke(s, e->x, e->y, button, 0);
+		win->show_success(good);
+		if (!good)
 			XBell(dpy, 0);
 		if (replay_button) {
 			if (grabber->xinput)
