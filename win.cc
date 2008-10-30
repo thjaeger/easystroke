@@ -209,8 +209,8 @@ void Win::show_hide() {
 		win->show();
 }
 
-void composite_stock(Glib::RefPtr<Gdk::Pixbuf> dest, Glib::ustring name, double scale) {
-		Glib::RefPtr<Gdk::Pixbuf> pb = win->render_icon(Gtk::StockID(name), Gtk::ICON_SIZE_MENU);
+void composite_stock(Gtk::Widget *widget, Glib::RefPtr<Gdk::Pixbuf> dest, Glib::ustring name, double scale) {
+		Glib::RefPtr<Gdk::Pixbuf> pb = widget->render_icon(Gtk::StockID(name), Gtk::ICON_SIZE_MENU);
 		int w = dest->get_width() * scale;
 		int h = dest->get_height() * scale;
 		int x = dest->get_width() - w;
@@ -224,8 +224,8 @@ bool Win::on_icon_size_changed(int size) {
 	icon_pb[0] = Stroke::trefoil()->draw(size);
 	icon_pb[1] = Stroke::trefoil()->draw(size);
 	icon_pb[2] = Stroke::trefoil()->draw(size);
-	composite_stock(icon_pb[1], "gtk-yes", 0.6);
-	composite_stock(icon_pb[2], "gtk-no", 0.5);
+	composite_stock(win, icon_pb[1], "gtk-yes", 0.6);
+	composite_stock(win, icon_pb[2], "gtk-no", 0.5);
 	icon->set(icon_pb[0]);
 	return true;
 }
