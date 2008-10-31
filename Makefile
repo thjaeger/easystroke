@@ -22,11 +22,8 @@ OFLAGS   = -Os
 AOFLAGS  = -O3
 CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
-TARGETS  = easystroke
 
 LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs`
-
-LIBS_STATIC = $(DFLAGS) -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs` /usr/lib/libboost_serialization.a
 
 BINARY   = easystroke
 ICON     = easystroke.svg
@@ -39,13 +36,14 @@ OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES))
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
 
+VERSION  = $(shell test -e version && cat version || git describe)
+GIT      = $(shell test -e .git/HEAD && echo .git/HEAD)
+
 -include debug.mk
 
-all: $(TARGETS)
+all: $(BINARY)
 
-.PHONY: all clean $(BINARY)
-
-clena:	clean
+.PHONY: all clean release
 
 clean:
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE)
@@ -53,17 +51,15 @@ clean:
 include $(DEPFILES)
 
 $(BINARY): $(OFILES)
-	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS)
-
-static: $(OFILES)
-	$(CXX) $(LDFLAGS) -o $(BINARY) $(OFILES) $(LIBS_STATIC)
-	strip -s $(BINARY)
+	$(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 stroke.o: stroke.cc
 	$(CXX) $(CXXFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.cc
-	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(OFLAGS) -DVERSION=\"$(VERSION)\" -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+
+main.o: $(GIT)
 
 gui.gb: gui.glade
 	gtk-builder-convert gui.glade gui.gb

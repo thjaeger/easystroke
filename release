@@ -4,7 +4,11 @@ DIST=easystroke-$VERSION
 TGZ=$DIST.tar.gz
 
 whiptail --yesno "create and upload $TGZ?" 7 70 || exit 0
-git archive --format=tar --prefix=$DIST/ $1 | gzip > $TGZ
+git archive --format=tar --prefix=$DIST/ HEAD | (cd /tmp && tar x)
+pushd /tmp
+echo $VERSION > $DIST/version
+tar czf $TGZ $DIST
+popd
 
-rsync -avP $TGZ thjaeger@frs.sourceforge.net:uploads/
-rm $TGZ
+rsync -avP /tmp/$TGZ thjaeger@frs.sourceforge.net:uploads/
+rm -R /tmp/$DIST /tmp/$TGZ

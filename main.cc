@@ -1148,7 +1148,7 @@ void Main::usage(char *me, bool good) {
 }
 
 void Main::version() {
-	printf("easystroke 0.3.0-beta1\n");
+	printf("easystroke %s\n", VERSION);
 	printf("\n");
 	printf("Written by Thomas Jaeger <ThJaeger@gmail.com>.\n");
 	exit(EXIT_SUCCESS);
