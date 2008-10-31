@@ -37,7 +37,7 @@ DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
 
 VERSION  = $(shell test -e version && cat version || git describe)
-GIT      = $(shell test -e .git/HEAD && echo .git/HEAD)
+GIT      = $(shell test -e .git/index && echo .git/index)
 
 -include debug.mk
 
