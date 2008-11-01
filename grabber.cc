@@ -206,7 +206,6 @@ Grabber::Grabber() : children(ROOT) {
 	grabbed_button.state = 0;
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 	xinput = init_xi();
-
 	update_button(prefs.button.get());
 }
 
@@ -499,11 +498,9 @@ void Grabber::set() {
 void Grabber::update_button(ButtonInfo bi) {
 	if (grabbed_button.button == bi.button && grabbed_button.state == bi.state)
 		return;
-	if (grabbed_button.button) {
-		suspended = true;
-		xi_suspended = true;
-		set();
-	}
+	suspended = true;
+	xi_suspended = true;
+	set();
 	buttons.clear();
 	buttons[bi.button] = bi.state;
 	grabbed_button = bi;
