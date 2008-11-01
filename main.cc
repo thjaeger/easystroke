@@ -1572,16 +1572,7 @@ bool Main::handle(Glib::IOCondition) {
 		try {
 			XEvent ev;
 			XNextEvent(dpy, &ev);
-			if (grabber->handle(ev))
-				continue;
 			MouseEvent *me2 = get_mouse_event(ev);
-			if (!grabber->xinput) {
-				if (me2)
-					handle_mouse_event(me2, 0);
-				else
-					handle_event(ev);
-				continue;
-			}
 			if (me && me2 && me->type == me2->type && me->button == me2->button && me->t == me2->t) {
 				handle_mouse_event(me, me2);
 				me = 0;
@@ -1590,11 +1581,14 @@ bool Main::handle(Glib::IOCondition) {
 			if (me)
 				handle_mouse_event(me, 0);
 			me = me2;
-			if (!me)
-				handle_event(ev);
-			if (me && !XPending(dpy)) {
-				handle_mouse_event(me, 0);
-				me = 0;
+			if (me) {
+				if (!grabber->xinput || !XPending(dpy)) {
+					handle_mouse_event(me, 0);
+					me = 0;
+				}
+			} else {
+				if (!grabber->handle(ev))
+					handle_event(ev);
 			}
 		} catch (GrabFailedException) {
 			printf("Error: A grab failed.  Resetting...\n");
