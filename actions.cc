@@ -421,7 +421,11 @@ void Actions::on_button_delete() {
 	Gtk::Dialog *dialog;
 	widgets->get_widget("dialog_delete", dialog);
 	FormatLabel foo(widgets, "label_delete", msg.str().c_str());
+	Gtk::Button *del;
+	widgets->get_widget("button_delete_delete", del);
 
+	dialog->show();
+	del->grab_focus();
 	bool ok = dialog->run() == 1;
 	dialog->hide();
 	if (!ok)
@@ -627,6 +631,8 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	OnStroke ps(this, dialog, row);
 	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run)));
 
+	dialog->show();
+	cancel->grab_focus();
 	int response = dialog->run();
 	dialog->hide();
 	stroke_action.reset();

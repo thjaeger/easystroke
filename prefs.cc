@@ -337,10 +337,11 @@ SelectButton::~SelectButton() {
 
 bool SelectButton::run() {
 	grabber->suspend();
-	int response;
-	do {
-		response = dialog->run();
-	} while (response == 0);
+	dialog->show();
+	Gtk::Button *select_ok;
+	widgets->get_widget("select_ok", select_ok);
+	select_ok->grab_focus();
+	int response = dialog->run();
 	dialog->hide();
 	grabber->resume();
 	switch (response) {
