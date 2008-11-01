@@ -362,6 +362,8 @@ bool Grabber::is_event(int type, EventType et) {
 unsigned int Grabber::get_device_button_state() {
 	unsigned int mask = 0;
 	for (int i = 0; i < xi_devs_n; i++) {
+		if (prefs.excluded_devices.get().count(xi_devs[i]->name))
+			continue;
 		XDeviceState *state = XQueryDeviceState(dpy, xi_devs[i]->dev);
 		if (!state)
 			continue;
