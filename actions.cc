@@ -535,11 +535,11 @@ void Actions::on_apps_selection_changed() {
 			new_action_list = (*i)[ca.actions];
 		}
 		button_remove_app->set_sensitive(new_action_list != actions.get_root());
-		button_reset_actions->set_sensitive(new_action_list != actions.get_root());
 	}
 	if (action_list != new_action_list) {
 		action_list = new_action_list;
 		update_action_list();
+		on_selection_changed();
 	}
 }
 
@@ -661,6 +661,18 @@ void Actions::on_selection_changed() {
 	int n = tv->get_selection()->count_selected_rows();
 	button_record->set_sensitive(n == 1);
 	button_delete->set_sensitive(n >= 1);
+	bool resettable = false;
+	if (n) {
+		std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+		for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
+			Gtk::TreeRow row(*tm->get_iter(*i));
+			if (action_list->resettable(row[cols.id])) {
+				resettable = true;
+				break;
+			}
+		}
+	}
+	button_reset_actions->set_sensitive(resettable);
 }
 
 void Actions::on_button_new() {
