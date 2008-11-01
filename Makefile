@@ -36,7 +36,7 @@ OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES))
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
 
-VERSION  = $(shell test -e version && cat version || git describe)
+VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
 GIT      = $(shell test -e .git/index && echo .git/index)
 
 -include debug.mk
@@ -57,7 +57,7 @@ stroke.o: stroke.cc
 	$(CXX) $(CXXFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.cc
-	$(CXX) $(CXXFLAGS) $(OFLAGS) -DVERSION=\"$(VERSION)\" -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(OFLAGS) '-DVERSION="$(VERSION)"' -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 main.o: $(GIT)
 
