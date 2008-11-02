@@ -1130,7 +1130,7 @@ void Main::usage(char *me, bool good) {
 	printf("http://easystroke.wiki.sourceforge.net/Documentation#content\n");
 	printf("\n");
 	printf("Usage: %s [OPTION]...\n", me);
-	printf("       %s send <action name>\n", me);
+	printf("or:    %s send <action_name>\n", me);
 	printf("\n");
 	printf("Options:\n");
 	printf("  -c, --config-dir       Directory for config files\n");
