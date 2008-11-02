@@ -74,9 +74,6 @@ dbus-server.cc: dbus-server.h
 dbus-server.h: dbus.xml
 	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
 
-vartest: var.cc var.h
-	g++ -ggdb `pkg-config gtkmm-2.4 gthread-2.0 --cflags --libs` -DTEST_VAR var.cc -o vartest
-
 man:	$(MANPAGE)
 
 $(MANPAGE):	$(BINARY)
