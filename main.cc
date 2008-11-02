@@ -1147,8 +1147,9 @@ void Main::usage(char *me, bool good) {
 	exit(good ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
+extern const char *version_string;
 void Main::version() {
-	printf("easystroke %s\n", VERSION);
+	printf("easystroke %s\n", version_string);
 	printf("\n");
 	printf("Written by Thomas Jaeger <ThJaeger@gmail.com>.\n");
 	exit(EXIT_SUCCESS);

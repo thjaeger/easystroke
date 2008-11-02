@@ -31,13 +31,12 @@ MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
-CFILES   = gui.c
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) $(patsubst %.c,%.o,$(CFILES))
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o version.o
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
-GIT      = $(shell test -e .git/index && echo .git/index)
+GIT      = $(wildcard .git/index)
 
 -include debug.mk
 
@@ -57,9 +56,10 @@ stroke.o: stroke.cc
 	$(CXX) $(CXXFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.cc
-	$(CXX) $(CXXFLAGS) $(OFLAGS) '-DVERSION="$(VERSION)"' -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
-main.o: $(GIT)
+version.o: $(GIT)
+	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
 
 gui.gb: gui.glade
 	gtk-builder-convert gui.glade gui.gb
