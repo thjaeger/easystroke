@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Fri Aug 15 02:36:59 2008 -->
+<!--Generated with glade3 3.4.5 on Tue Sep 30 12:46:24 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -218,7 +218,7 @@
                               <widget class="GtkSpinButton" id="spin_radius">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">0 0 100 1 10 10</property>
+                                <property name="adjustment">0 0 100 1 10 0</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -334,7 +334,7 @@ Custom</property>
                               <widget class="GtkSpinButton" id="spin_min_speed">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">0 0 10000 5 20 20</property>
+                                <property name="adjustment">0 0 10000 5 20 0</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -357,7 +357,7 @@ Custom</property>
                               <widget class="GtkSpinButton" id="spin_timeout">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">0 0 1000 20 100 100</property>
+                                <property name="adjustment">0 0 1000 20 100 0</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -627,7 +627,7 @@ Fire (compiz)</property>
                                   <widget class="GtkSpinButton" id="spin_pressure_threshold">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
-                                    <property name="adjustment">0 0 255 1 10 10</property>
+                                    <property name="adjustment">0 0 255 1 10 0</property>
                                   </widget>
                                   <packing>
                                     <property name="expand">False</property>
