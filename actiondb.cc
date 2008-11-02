@@ -185,10 +185,12 @@ void ActionDBWatcher::init() {
 	std::string filename = config_dir+"actions";
 	try {
 		ifstream ifs(filename.c_str(), ios::binary);
-		boost::archive::text_iarchive ia(ifs);
-		ia >> actions;
-		if (verbosity >= 2)
-			printf("Loaded actions.\n");
+		if (!ifs.fail()) {
+			boost::archive::text_iarchive ia(ifs);
+			ia >> actions;
+			if (verbosity >= 2)
+				printf("Loaded actions.\n");
+		}
 	} catch (exception &e) {
 		printf("Error: Couldn't read action database: %s.\n", e.what());
 	}

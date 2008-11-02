@@ -163,10 +163,12 @@ void PrefDB::init() {
 	std::string filename = config_dir+"preferences";
 	try {
 		std::ifstream ifs(filename.c_str(), std::ios::binary);
-		boost::archive::text_iarchive ia(ifs);
-		ia >> *this;
-		if (verbosity >= 2)
-			std::cout << "Loaded preferences." << std::endl;
+		if (!ifs.fail()) {
+			boost::archive::text_iarchive ia(ifs);
+			ia >> *this;
+			if (verbosity >= 2)
+				std::cout << "Loaded preferences." << std::endl;
+		}
 	} catch (...) {
 		std::cout << "Error: Couldn't read preferences." << std::endl;
 	}
