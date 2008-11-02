@@ -1,9 +1,9 @@
 *.o
 *.Po
 easystroke
-easystroke.gz
 vartest
-gui.*
+gui.gb
+gui.c
 *.swp
 dbus-server.h
 debug.mk
