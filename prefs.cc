@@ -341,7 +341,10 @@ bool SelectButton::run() {
 	Gtk::Button *select_ok;
 	widgets->get_widget("select_ok", select_ok);
 	select_ok->grab_focus();
-	int response = dialog->run();
+	int response;
+	do {
+		response = dialog->run();
+	} while (!response);
 	dialog->hide();
 	grabber->resume();
 	switch (response) {
