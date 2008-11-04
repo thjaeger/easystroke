@@ -38,7 +38,6 @@
 #include <fcntl.h>
 #include <getopt.h>
 
-bool gui = true;
 bool show_gui = false;
 extern bool no_xi;
 bool experimental = false;
@@ -801,7 +800,7 @@ protected:
 		if (grabber->xinput)
 			discard(press_t);
 
-		if (gui && stroke_action) {
+		if (stroke_action) {
 			handle_stroke(s, e->x, e->y, button, b);
 			parent->replace_child(0);
 			return;
@@ -1122,7 +1121,6 @@ void Main::run() {
 		win->get_window().show();
 	Gtk::Main::run();
 	delete win;
-	gui = false;
 }
 
 void Main::usage(char *me, bool good) {
@@ -1138,7 +1136,6 @@ void Main::usage(char *me, bool good) {
 	printf("      --display          X Server to contact\n");
 	printf("  -x  --no-xi            Don't use the Xinput extension\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
-	printf("  -n, --no-gui           Don't start the gui\n");
 	printf("  -g, --show-gui         Show the configuration dialog on startup\n");
 	printf("      --offset-x         XInput workaround\n");
 	printf("      --offset-y         XInput workaround\n");
@@ -1161,7 +1158,6 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"display",1,0,'d'},
 		{"help",0,0,'h'},
 		{"version",0,0,'V'},
-		{"no-gui",1,0,'n'},
 		{"show-gui",0,0,'g'},
 		{"no-xi",1,0,'x'},
 		{0,0,0,0}
@@ -1170,7 +1166,6 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 		{"config-dir",1,0,'c'},
 		{"display",1,0,'d'},
 		{"experimental",0,0,'e'},
-		{"no-gui",0,0,'n'},
 		{"show-gui",0,0,'g'},
 		{"no-xi",0,0,'x'},
 		{"verbose",0,0,'v'},
@@ -1182,13 +1177,10 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	char opt;
 	// parse --display here, before Gtk::Main(...) takes it away from us
 	opterr = 0;
-	while ((opt = getopt_long(argc, argv, "nghx", long_opts1, 0)) != -1)
+	while ((opt = getopt_long(argc, argv, "ghx", long_opts1, 0)) != -1)
 		switch (opt) {
 			case 'd':
 				display = optarg;
-				break;
-			case 'n':
-				gui = false;
 				break;
 			case 'g':
 				show_gui = true;
@@ -1209,7 +1201,7 @@ std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
 	oldHandler = XSetErrorHandler(xErrorHandler);
 	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 
-	while ((opt = getopt_long(argc, argv, "c:engvx", long_opts2, 0)) != -1) {
+	while ((opt = getopt_long(argc, argv, "c:egvx", long_opts2, 0)) != -1) {
 		switch (opt) {
 			case 'c':
 				config_dir = optarg;
@@ -1264,29 +1256,21 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
 		s->print();
-	if (gui) {
-		if (stroke_action) {
-			(*stroke_action)(s);
-			stroke_action.reset();
-			success = true;
-		} else {
-			Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
-			success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
-			ranking->x = x;
-			ranking->y = y;
-			if (ranking->id == &stroke_is_click)
-				replay_button = trigger;
-			if ((ranking->id!=&stroke_is_click && ranking->id!=&stroke_is_timeout) || prefs.show_clicks.get())
-				Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
-			else
-				delete ranking;
-		}
+	if (stroke_action) {
+		(*stroke_action)(s);
+		stroke_action.reset();
+		success = true;
 	} else {
 		Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
 		success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
+		ranking->x = x;
+		ranking->y = y;
 		if (ranking->id == &stroke_is_click)
 			replay_button = trigger;
-		delete ranking;
+		if ((ranking->id!=&stroke_is_click && ranking->id!=&stroke_is_timeout) || prefs.show_clicks.get())
+			Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
+		else
+			delete ranking;
 	}
 	return success;
 }
