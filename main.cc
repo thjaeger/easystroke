@@ -839,9 +839,10 @@ protected:
 		}
 		if (scroll) {
 			scroll = false;
-			if (grabber->xinput)
+			if (grabber->xinput) {
 				parent->replace_child(new ScrollHandler);
-			return;
+				return;
+			}
 		}
 		if (press_button && !(!repeated && xinput_pressed.count(b) && press_button == button)) {
 			grabber->fake_button(press_button);

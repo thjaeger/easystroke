@@ -384,6 +384,8 @@ unsigned int Grabber::get_device_button_state() {
 }
 
 void Grabber::grab_xi(bool grab) {
+	if (!xinput)
+		return;
 	if (!xi_grabbed == !grab)
 		return;
 	xi_grabbed = grab;
