@@ -393,17 +393,20 @@ void Grabber::grab_xi(bool grab) {
 		if (!prefs.excluded_devices.get().count(xi_devs[i]->name)) {
 			if (grab) {
 				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT, False,
-							button_events_n, xi_devs[i]->events,
+					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL,
+							ROOT, False, button_events_n, xi_devs[i]->events,
 							GrabModeAsync, GrabModeAsync);
-					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask, NULL, ROOT,
-							False, button_events_n, xi_devs[i]->events,
-							GrabModeAsync, GrabModeAsync);
+					if (j->second != AnyModifier)
+						XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ Mod2Mask,
+								NULL, ROOT, False, button_events_n, xi_devs[i]->events,
+								GrabModeAsync, GrabModeAsync);
 				}
 
 			} else
 				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second^Mod2Mask, NULL, ROOT);
+					if (j->second != AnyModifier)
+						XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first,
+								j->second ^ Mod2Mask, NULL, ROOT);
 					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
 				}
 		}
@@ -453,7 +456,8 @@ void Grabber::set() {
 
 	if (old == BUTTON) {
 		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XUngrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT);
+			if (j->second != AnyModifier)
+				XUngrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT);
 			XUngrabButton(dpy, j->first, j->second, ROOT);
 		}
 		if (timing_workaround)
@@ -471,9 +475,10 @@ void Grabber::set() {
 			XGrabButton(dpy, j->first, j->second, ROOT, False,
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
-			XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False,
-					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeSync, GrabModeAsync, None, None);
+			if (j->second != AnyModifier)
+				XGrabButton(dpy, j->first, j->second ^ Mod2Mask, ROOT, False,
+						ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+						GrabModeSync, GrabModeAsync, None, None);
 		}
 		timing_workaround = !is_grabbed(1) && prefs.timing_workaround.get();
 		if (timing_workaround)

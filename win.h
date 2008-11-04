@@ -83,18 +83,19 @@ extern Win *win;
 
 class SelectButton {
 public:
-	SelectButton(ButtonInfo bi, bool def);
+	SelectButton(ButtonInfo bi, bool def, bool any);
 	~SelectButton();
 	bool run();
 	GdkEventButton event;
 private:
 	Gtk::Dialog *dialog;
 	bool on_button_press(GdkEventButton *ev);
+	void on_any_toggled();
 
 	Gtk::EventBox *eventbox;
-	Gtk::ToggleButton *toggle_shift, *toggle_control, *toggle_alt, *toggle_super;
+	Gtk::ToggleButton *toggle_shift, *toggle_control, *toggle_alt, *toggle_super, *toggle_any;
 	Gtk::ComboBox *select_button;
-	sigc::connection handler;
+	sigc::connection handler[2];
 };
 
 class FormatLabel {

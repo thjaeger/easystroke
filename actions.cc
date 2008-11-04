@@ -810,7 +810,7 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 	RButton bt = boost::static_pointer_cast<Button>(action_list->get_info(row[cols.id])->action);
 	if (bt)
 		bi = bt->get_button_info();
-	SelectButton sb(bi, false);
+	SelectButton sb(bi, false, false);
 	if (!sb.run())
 		return;
 	bt = boost::static_pointer_cast<Button>(Button::create(Gdk::ModifierType(sb.event.state), sb.event.button));
@@ -837,7 +837,9 @@ const Glib::ustring ModAction::get_label() const {
 }
 
 Glib::ustring ButtonInfo::get_button_text() const {
-	Glib::ustring str = Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
+	Glib::ustring str = state == AnyModifier ?
+		"(Any Modifier +) " : 
+		Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
 	char name[16];
 	snprintf(name, 15, "Button %d", button);
 	return str + name;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Sat Nov  1 16:37:16 2008 -->
+<!--Generated with glade3 3.4.5 on Tue Nov  4 12:17:36 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -1335,8 +1335,81 @@ Please place your mouse or pen in the box below and press the button that you wa
           </packing>
         </child>
         <child>
-          <widget class="GtkHButtonBox" id="hbuttonbox4">
+          <widget class="GtkTable" id="table2">
             <property name="visible">True</property>
+            <property name="n_rows">2</property>
+            <property name="n_columns">3</property>
+            <property name="column_spacing">6</property>
+            <property name="row_spacing">6</property>
+            <property name="homogeneous">True</property>
+            <child>
+              <widget class="GtkComboBox" id="select_button">
+                <property name="visible">True</property>
+                <property name="items" translatable="yes">Button 1
+Button 2
+Button 3
+Button 4
+Button 5
+Button 6
+Button 7
+Button 8
+Button 9
+Button 10
+Button 11
+Button 12</property>
+              </widget>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="right_attach">3</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+                <property name="x_options">GTK_EXPAND</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkToggleButton" id="toggle_any">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">An_y Modifier</property>
+                <property name="use_underline">True</property>
+                <property name="response_id">0</property>
+              </widget>
+              <packing>
+                <property name="left_attach">2</property>
+                <property name="right_attach">3</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkToggleButton" id="toggle_super">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">S_uper</property>
+                <property name="use_underline">True</property>
+                <property name="response_id">0</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkToggleButton" id="toggle_alt">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">_Alt</property>
+                <property name="use_underline">True</property>
+                <property name="response_id">0</property>
+              </widget>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+              </packing>
+            </child>
             <child>
               <widget class="GtkToggleButton" id="toggle_shift">
                 <property name="visible">True</property>
@@ -1357,57 +1430,14 @@ Please place your mouse or pen in the box below and press the button that you wa
                 <property name="response_id">0</property>
               </widget>
               <packing>
-                <property name="position">1</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkToggleButton" id="toggle_alt">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="label" translatable="yes">_Alt</property>
-                <property name="use_underline">True</property>
-                <property name="response_id">0</property>
-              </widget>
-              <packing>
-                <property name="position">2</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkToggleButton" id="toggle_super">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="label" translatable="yes">S_uper</property>
-                <property name="use_underline">True</property>
-                <property name="response_id">0</property>
-              </widget>
-              <packing>
-                <property name="position">3</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkComboBox" id="select_button">
-                <property name="visible">True</property>
-                <property name="items" translatable="yes">Button 1
-Button 2
-Button 3
-Button 4
-Button 5
-Button 6
-Button 7
-Button 8
-Button 9
-Button 10
-Button 11
-Button 12</property>
-              </widget>
-              <packing>
-                <property name="position">4</property>
+                <property name="top_attach">1</property>
+                <property name="bottom_attach">2</property>
               </packing>
             </child>
           </widget>
           <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
             <property name="position">4</property>
           </packing>
         </child>

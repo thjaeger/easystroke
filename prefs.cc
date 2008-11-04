@@ -305,19 +305,22 @@ struct Prefs::SelectRow {
 	}
 };
 
-SelectButton::SelectButton(ButtonInfo bi, bool def) {
+SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	widgets->get_widget("dialog_select", dialog);
 	widgets->get_widget("eventbox", eventbox);
 	widgets->get_widget("toggle_shift", toggle_shift);
 	widgets->get_widget("toggle_alt", toggle_alt);
 	widgets->get_widget("toggle_control", toggle_control);
 	widgets->get_widget("toggle_super", toggle_super);
+	widgets->get_widget("toggle_any", toggle_any);
 	widgets->get_widget("select_button", select_button);
 	select_button->set_active(bi.button-1);
 	toggle_shift->set_active(bi.button && (bi.state & GDK_SHIFT_MASK));
 	toggle_control->set_active(bi.button && (bi.state & GDK_CONTROL_MASK));
 	toggle_alt->set_active(bi.button && (bi.state & GDK_MOD1_MASK));
 	toggle_super->set_active(bi.button && (bi.state & GDK_SUPER_MASK));
+	toggle_any->set_active(any && bi.button && bi.state == AnyModifier);
+	toggle_any->set_sensitive(any);
 
 	Gtk::Button *select_default;
 	widgets->get_widget("select_default", select_default);
@@ -332,11 +335,14 @@ SelectButton::SelectButton(ButtonInfo bi, bool def) {
 		eventbox->add(box);
 		box.show();
 	}
-	handler = eventbox->signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
+	handler[0] = eventbox->signal_button_press_event().connect(sigc::mem_fun(*this, &SelectButton::on_button_press));
+	handler[1] = toggle_any->signal_toggled().connect(sigc::mem_fun(*this, &SelectButton::on_any_toggled));
+	on_any_toggled();
 }
 
 SelectButton::~SelectButton() {
-	handler.disconnect();
+	handler[0].disconnect();
+	handler[1].disconnect();
 }
 
 bool SelectButton::run() {
@@ -357,6 +363,10 @@ bool SelectButton::run() {
 			if (!event.button)
 				return false;
 			event.state = 0;
+			if (toggle_any->get_active()) {
+				event.state = AnyModifier;
+				return true;
+			}
 			if (toggle_shift->get_active())
 				event.state |= GDK_SHIFT_MASK;
 			if (toggle_control->get_active())
@@ -380,17 +390,29 @@ bool SelectButton::run() {
 
 bool SelectButton::on_button_press(GdkEventButton *ev) {
 	event = *ev;
-	if (event.state & Mod4Mask)
-		event.state |= GDK_SUPER_MASK;
-	event.state &= gtk_accelerator_get_default_mod_mask();
+	if (toggle_any->get_active()) {
+		event.state = AnyModifier;
+	} else {
+		if (event.state & Mod4Mask)
+			event.state |= GDK_SUPER_MASK;
+		event.state &= gtk_accelerator_get_default_mod_mask();
+	}
 	dialog->response(3);
 	return true;
+}
+
+void SelectButton::on_any_toggled() {
+	bool any = toggle_any->get_active(); 
+	toggle_shift->set_sensitive(!any);
+	toggle_control->set_sensitive(!any);
+	toggle_alt->set_sensitive(!any);
+	toggle_super->set_sensitive(!any);
 }
 
 void Prefs::on_select_button() {
 	Atomic a;
 	ButtonInfo &bi = prefs.button.write_ref(a);
-	SelectButton sb(bi, true);
+	SelectButton sb(bi, true, true);
 	if (!sb.run())
 		return;
 	bi.button = sb.event.button ? sb.event.button : prefs.button.get().button;
@@ -444,7 +466,7 @@ void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::u
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(app);
 	if (i != prefs.exceptions.ref().end() && i->second)
 		bi = *i->second;
-	SelectButton sb(bi, true);
+	SelectButton sb(bi, true, true);
 	if (!sb.run())
 		return;
 	RButtonInfo bi2;
