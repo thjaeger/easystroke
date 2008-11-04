@@ -231,7 +231,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 		char msg[16];
 		snprintf(msg, sizeof msg, "%d", e->request_code);
 		char def[32];
-		snprintf(def, sizeof def, "request_code=%d", e->request_code);
+		snprintf(def, sizeof def, "request_code=%d, minor_code=%d", e->request_code, e->minor_code);
 		char dbtext[128];
 		XGetErrorDatabaseText(dpy, "XRequest", msg,
 				def, dbtext, sizeof dbtext);
