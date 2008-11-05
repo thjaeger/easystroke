@@ -434,12 +434,12 @@ void Grabber::select_proximity() {
 	XEventClass evs[2*xi_devs_n+1];
 	int n = 0;
 	evs[n++] = presence_class;
-		for (int i = 0; i < xi_devs_n; i++) {
-			if (proximity_selected && xi_devs[i]->supports_proximity) {
-				evs[n++] = xi_devs[i]->events[PROX_IN];
-				evs[n++] = xi_devs[i]->events[PROX_OUT];
-			}
+	for (int i = 0; i < xi_devs_n; i++) {
+		if (proximity_selected && xi_devs[i]->supports_proximity) {
+			evs[n++] = xi_devs[i]->events[PROX_IN];
+			evs[n++] = xi_devs[i]->events[PROX_OUT];
 		}
+	}
 	// NB: Unselecting doesn't actually work!
 	XSelectExtensionEvent(dpy, ROOT, evs, n);
 }
