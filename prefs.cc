@@ -139,6 +139,7 @@ bool draw_line(TraceType t) { return t == TraceStandard || t == TraceShape; }
 #define TRACE_LEGACY 2
 #define TRACE_ANNOTATE 3
 #define TRACE_FIRE 4
+#define TRACE_WATER 5
 
 int trace_to_int(TraceType t) {
 	switch (t) {
@@ -150,6 +151,8 @@ int trace_to_int(TraceType t) {
 			return TRACE_ANNOTATE;
 		case TraceFire:
 			return TRACE_FIRE;
+		case TraceWater:
+			return TRACE_WATER;
 		default:
 			return TRACE_NONE;
 	}
@@ -165,6 +168,8 @@ TraceType int_to_trace(int i) {
 			return TraceAnnotate;
 		case TRACE_FIRE:
 			return TraceFire;
+		case TRACE_WATER:
+			return TraceWater;
 		default:
 			return TraceNone;
 	}

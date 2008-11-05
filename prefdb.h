@@ -23,7 +23,7 @@
 
 #include "var.h"
 
-enum TraceType { TraceStandard, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceN };
+enum TraceType { TraceStandard, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater, TraceN };
 
 #define TO_OFF 0
 #define TO_CONSERVATIVE 1

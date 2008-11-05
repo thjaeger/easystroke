@@ -22,6 +22,7 @@
 #include "trace.h"
 #include "annotate.h"
 #include "fire.h"
+#include "water.h"
 #include "copy.h"
 #include "grabber.h"
 
@@ -63,27 +64,24 @@ Time last_press_t = 0;
 std::set<guint> xinput_pressed;
 
 Trace *init_trace() {
-	switch(prefs.trace.get()) {
-		case TraceNone:
-			return new Trivial();
-		case TraceShape:
-			return new Shape();
-		case TraceAnnotate:
-			try {
+	try {
+		switch(prefs.trace.get()) {
+			case TraceNone:
+				return new Trivial();
+			case TraceShape:
+				return new Shape();
+			case TraceAnnotate:
 				return new Annotate();
-			} catch (DBusException e) {
-				printf("Error: %s\n", e.what());
-				return new Trivial();
-			}
-		case TraceFire:
-			try {
+			case TraceFire:
 				return new Fire();
-			} catch (DBusException e) {
-				printf("Error: %s\n", e.what());
-				return new Trivial();
-			}
-		default:
-			return new Copy();
+			case TraceWater:
+				return new Water();
+			default:
+				return new Copy();
+		}
+	} catch (DBusException e) {
+		printf("Error: %s\n", e.what());
+		return new Trivial();
 	}
 }
 
