@@ -31,18 +31,19 @@ MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o version.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o ver.o
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
-GIT      = $(wildcard .git/index)
+GIT      = $(wildcard .git/index version)
+
 
 -include debug.mk
 
 all: $(BINARY)
 
-.PHONY: all clean release
+.PHONY: all clean
 
 clean:
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE)
@@ -58,7 +59,8 @@ stroke.o: stroke.cc
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
-version.o: $(GIT)
+ver.o: $(GIT)
+	echo $(VERSION) | grep "^$(shell test -e version && cat version)" > /dev/null
 	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
 
 gui.gb: gui.glade
