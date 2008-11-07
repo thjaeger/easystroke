@@ -31,7 +31,7 @@ MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o ver.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o version.o
 DEPFILES = $(wildcard *.Po)
 GENFILES = gui.gb gui.c dbus-server.h
 
@@ -59,8 +59,7 @@ stroke.o: stroke.cc
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
-ver.o: $(GIT)
-	echo $(VERSION) | grep "^$(shell test -e version && cat version)" > /dev/null
+version.o: $(GIT)
 	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
 
 gui.gb: gui.glade
