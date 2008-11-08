@@ -6,7 +6,7 @@ TGZ=$DIST.tar.gz
 git archive --format=tar --prefix=$DIST/ HEAD | (cd /tmp && tar x)
 cd /tmp
 echo $VERSION > $DIST/version
-rm $DIST/.gitignore
+rm $DIST/.gitignore $DIST/release
 if whiptail --yesno "create and upload $TGZ?" 7 70; then
 	tar czf $TGZ $DIST
 	rsync -avP $TGZ thjaeger@frs.sourceforge.net:uploads/
