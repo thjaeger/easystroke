@@ -1,0 +1,55 @@
+2008-11-07  Released 0.3.0
+	* application-dependent gestures
+	* application-dependent gesture button
+	* Timeout gestures
+	* disable easystroke for specific devices
+	* easystroke send "foo" to excecute action foo from the command line
+	* disable easystroke using the tray menu or by a gesture
+	* 3 new actions:
+		+ "Unminimize" undoes the last minimize actinos
+		+ "Show/Hide" brings up or hides the configuration dialog
+		+ "Disable (Enable)" disables (or enables if invoked from the
+		  command line) the program.
+	* action list now reorderable
+	* hot-plugging support
+	* option to activate gestures with any modifier combination held down
+	* option to hide tray icon
+	* higher quality gesture previews
+	* Feedback in the tray icon whether the gesture succeeded or not
+	* Ring the bell on failed gestures
+	* Blue popup to notify user of scroll and ignore mode
+	* added support for compiz water plugin
+	* option to change the stroke color
+	* dropped support for some advanced features when xinput is unavailable
+	* -c option to start easystroke with config window open
+	* dropped -n (no gui) option
+
+2008-09-18  Released 0.2.2.1
+	* bug fix release, resolvs a few minor issues
+
+2008-08-17  Released 0.2.2
+	* improved visual feedback
+	* configurable gesture timeout
+	* better pointer tracking
+	* many minor improvements
+
+2008-08-06  Released 0.2.1.1.
+	* add license information to the source files
+
+2008-08-03  Released 0.2.1, correcting some silly Makefile mistakes.
+
+2008-08-03  Released 0.2.0.
+	* many tablet-related improvements
+	* advanced gestures
+
+2008-06-22  Released 0.1.2.
+	* Fixes a few minor UI glitches.
+
+2008-06-19  Released 0.1.1.
+	* "click during stroke"
+	  This feature allows you to emulate a mouse click by clicking a second
+	  button during a stroke (which can essentially turn a one-button tablet pen
+	  into three-button mouse).
+
+2008-06-14  Released 0.1
+	* First public release.
