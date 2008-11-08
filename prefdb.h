@@ -54,6 +54,7 @@ BOOST_CLASS_VERSION(ButtonInfo, 2)
 typedef boost::shared_ptr<ButtonInfo> RButtonInfo;
 
 extern const double default_p;
+extern const ButtonInfo default_button;
 extern const int default_radius;
 extern const int default_pressure_threshold;
 

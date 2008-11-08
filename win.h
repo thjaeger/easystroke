@@ -18,12 +18,12 @@
 #include "stroke.h"
 #include <gtkmm.h>
 #include "util.h"
+#include "prefdb.h"
 
 class Actions;
 class Prefs;
 class Stats;
 class Ranking;
-class ButtonInfo;
 
 // Convenience macro for on-the-fly creation of widgets
 #define WIDGET(TYPE, NAME, ARGS...) TYPE &NAME = *Gtk::manage(new TYPE(ARGS))
@@ -86,7 +86,7 @@ public:
 	SelectButton(ButtonInfo bi, bool def, bool any);
 	~SelectButton();
 	bool run();
-	GdkEventButton event;
+	ButtonInfo event;
 private:
 	Gtk::Dialog *dialog;
 	bool on_button_press(GdkEventButton *ev);

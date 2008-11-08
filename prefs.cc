@@ -394,7 +394,8 @@ bool SelectButton::run() {
 }
 
 bool SelectButton::on_button_press(GdkEventButton *ev) {
-	event = *ev;
+	event.button = ev->button;
+	event.state  = ev->state;
 	if (toggle_any->get_active()) {
 		event.state = AnyModifier;
 	} else {
@@ -420,8 +421,7 @@ void Prefs::on_select_button() {
 	SelectButton sb(bi, true, true);
 	if (!sb.run())
 		return;
-	bi.button = sb.event.button ? sb.event.button : prefs.button.get().button;
-	bi.state = sb.event.state;
+	bi = sb.event.button ? sb.event : default_button;
 	grabber->update_button(bi);
 	set_button_label();
 }
@@ -475,11 +475,8 @@ void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::u
 	if (!sb.run())
 		return;
 	RButtonInfo bi2;
-	if (sb.event.button) {
-		bi2.reset(new ButtonInfo);
-		bi2->button = sb.event.button;
-		bi2->state = sb.event.state;
-	}
+	if (sb.event.button)
+		bi2.reset(new ButtonInfo(sb.event));
 	row[cols.button] = bi2 ? bi2->get_button_text() : "<App disabled>";
 	Atomic a;
 	prefs.exceptions.write_ref(a)[app] = bi2; 
