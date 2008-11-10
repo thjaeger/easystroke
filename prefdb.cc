@@ -109,15 +109,18 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 
 void PrefDB::timeout() {
 	std::string filename = config_dir+"preferences";
+	std::string tmp = filename + ".tmp";
 	try {
-		std::ofstream ofs(filename.c_str());
+		std::ofstream ofs(tmp.c_str());
 		boost::archive::text_oarchive oa(ofs);
 		const PrefDB *me = this;
 		oa << *me;
+		if (rename(tmp.c_str(), filename.c_str()))
+			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)
 			std::cout << "Saved preferences." << std::endl;
-	} catch (...) {
-		std::cout << "Error: Couldn't save preferences." << std::endl;
+	} catch (std::exception &e) {
+		printf("Error: Couldn't save preferences: %s.\n", e.what());
 		if (!good_state)
 			return;
 		good_state = false;

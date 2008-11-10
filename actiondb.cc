@@ -199,10 +199,13 @@ void ActionDBWatcher::init() {
 
 void ActionDBWatcher::timeout() {
 	std::string filename = config_dir+"actions";
+	std::string tmp = filename + ".tmp";
 	try {
-		ofstream ofs(filename.c_str());
+		ofstream ofs(tmp.c_str());
 		boost::archive::text_oarchive oa(ofs);
 		oa << (const ActionDB &)actions;
+		if (rename(tmp.c_str(), filename.c_str()))
+			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)
 			printf("Saved actions.\n");
 	} catch (exception &e) {
