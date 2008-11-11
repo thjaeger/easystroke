@@ -215,7 +215,7 @@ Actions::Actions() :
 	col_type->set_cell_data_func(*type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_type));
 
 	CellRendererTextish *arg_renderer = Gtk::manage(new CellRendererTextish);
-	n = tv->append_column("Argument", *arg_renderer);
+	n = tv->append_column("Details", *arg_renderer);
 	Gtk::TreeView::Column *col_arg = tv->get_column(n-1);
 	col_arg->add_attribute(arg_renderer->property_text(), cols.arg);
 	col_arg->set_cell_data_func(*arg_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_arg));
