@@ -420,7 +420,7 @@ void Actions::on_button_delete() {
 
 	Gtk::Dialog *dialog;
 	widgets->get_widget("dialog_delete", dialog);
-	FormatLabel foo(widgets, "label_delete", msg.str().c_str());
+	FormatLabel foo(widgets, "label_delete", "an Action", msg.str().c_str());
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_delete", del);
 
@@ -454,6 +454,29 @@ void Actions::on_add_app() {
 }
 
 void Actions::on_remove_app() {
+	if (action_list == actions.get_root())
+		return;
+	int size = action_list->size_rec();
+	if (size) {
+		Gtk::Dialog *dialog;
+		widgets->get_widget("dialog_delete", dialog);
+		std::stringstream msg;
+		if (action_list->app)
+			msg << "The application \"" << action_list->name;
+		else
+			msg << "The group \"" << action_list->name;
+		msg << "\" (containing " << size << " action" << (size == 1 ? "" : "s") << ") is";
+		FormatLabel foo(widgets, "label_delete", action_list->app ? "an Application" : "an Application Group",
+				msg.str().c_str());
+		Gtk::Button *del;
+		widgets->get_widget("button_delete_delete", del);
+		dialog->show();
+		del->grab_focus();
+		bool ok = dialog->run() == 1;
+		dialog->hide();
+		if (!ok)
+			return;
+	}
 	if (!action_list->remove())
 		return;
 	apps_model->erase(*apps_view->get_selection()->get_selected());

@@ -230,6 +230,12 @@ public:
 
 	RStrokeInfo get_info(Unique *id, bool *deleted = 0, bool *stroke = 0, bool *name = 0, bool *action = 0) const;
 	int order_size() { return order.size(); }
+	int size_rec() {
+		int size = added.size();
+		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++)
+			size += i->size_rec();
+		return size;
+	}
 	bool resettable(Unique *id) {
 		return parent && (added.count(id) || deleted.count(id)) && parent->contains(id);
 	}
