@@ -235,6 +235,8 @@ void Win::timeout() {
 }
 
 void Win::show_success(bool good) {
+	if (!icon)
+		return;
 	icon->set(icon_pb[good ? 1 : 2]);
 	set_timeout(2000);
 }
