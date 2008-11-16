@@ -1308,11 +1308,8 @@ void Main::handle_enter_leave(XEvent &ev) {
 		if (ev.xcrossing.detail == NotifyInferior)
 			continue;
 		if (ev.type == EnterNotify) {
-			Window app = get_app_window(ev.xcrossing.window);
-			if (!app)
-				continue;
 			current = ev.xcrossing.window;
-			current_app = app;
+			current_app = get_app_window(current);
 			if (verbosity >= 3)
 				printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current_app);
 		} else if (ev.type == LeaveNotify) {
