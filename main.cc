@@ -215,7 +215,8 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 		}
 	}
 	if (e->request_code == X_GrabButton || 
-			(grabber->xinput && e->request_code == grabber->nMajor && e->minor_code == X_GrabDeviceButton)) {
+			(grabber && grabber->xinput && e->request_code == grabber->nMajor &&
+			 e->minor_code == X_GrabDeviceButton)) {
 		if (!handler || handler->idle()) {
 			printf("Error: A%s grab failed.  Is easystroke already running?\n",
 					e->request_code == X_GrabButton ? "" : "n XInput");
