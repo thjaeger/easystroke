@@ -452,6 +452,7 @@ void Prefs::on_selected(std::string str) {
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = str;
+		row[cols.button] = "<App disabled>";
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);
 	} else {
