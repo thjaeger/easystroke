@@ -1355,6 +1355,11 @@ void Main::handle_event(XEvent &ev) {
 	case LeaveNotify:
 		handle_enter_leave(ev);
 		break;
+	case PropertyNotify:
+		static XAtom WM_CLASS("WM_CLASS");
+		if (current && ev.xproperty.window == current && ev.xproperty.atom == *WM_CLASS)
+			grabber->update(current);
+		break;
 
 	default:
 		if (randr && ev.type == event_basep) {

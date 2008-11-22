@@ -123,6 +123,7 @@ bool Children::handle(XEvent &ev) {
 					frame_win.erase1(ev.xproperty.window);
 				if (ev.xproperty.state == PropertyNewValue)
 					get_frame(ev.xproperty.window);
+				return true;
 			}
 			if (ev.xproperty.atom == *_NET_WM_STATE) {
 				if (ev.xproperty.state == PropertyDelete) {
@@ -133,8 +134,9 @@ bool Children::handle(XEvent &ev) {
 					minimized.add(minimized_n++, ev.xproperty.window);
 				else
 					minimized.erase2(ev.xproperty.window);
+				return true;
 			}
-			return true;
+			return false;
 		default:
 			return false;
 	}
@@ -617,7 +619,5 @@ Window get_app_window(Window &w) {
 	}
 	if (verbosity >= 1)
 		printf("Window 0x%lx does not have an associated top-level window\n", w);
-	w2 = w;
-	w = 0;
-	return w2;
+	return w;
 }
