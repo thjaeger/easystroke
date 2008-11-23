@@ -1139,7 +1139,7 @@ void Main::usage(char *me, bool good) {
 	printf("      --offset-x         XInput workaround\n");
 	printf("      --offset-y         XInput workaround\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
-	printf("      --help             Display this help and exit\n");
+	printf("  -h, --help             Display this help and exit\n");
 	printf("      --version          Output version information and exit\n");
 	exit(good ? EXIT_SUCCESS : EXIT_FAILURE);
 }
