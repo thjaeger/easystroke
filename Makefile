@@ -86,6 +86,6 @@ install: all
 	install -D -m 644 $(MENU) $(DESTDIR)$(MENUDIR)/$(MENU)
 
 uninstall:
-	rm $(DESTDIR)$(BINDIR)/$(BINARY) || true
-	rm $(DESTDIR)$(ICONDIR)/$(ICON) || true
-	rm $(DESTDIR)$(MENUDIR)/$(DESKTOP) || true
+	$(RM) $(DESTDIR)$(BINDIR)/$(BINARY)
+	$(RM) $(DESTDIR)$(ICONDIR)/$(ICON)
+	$(RM) $(DESTDIR)$(MENUDIR)/$(DESKTOP)
