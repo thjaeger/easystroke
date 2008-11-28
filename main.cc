@@ -911,6 +911,8 @@ protected:
 		}
 	}
 	virtual void press(guint b, RTriple e) {
+		if (xinput_pressed.size() > 1)
+			return;
 		if (current_app)
 			activate_window(current_app, e->t);
 		replace_child(new StrokeHandler(b, e));
