@@ -589,6 +589,12 @@ Window find_wm_state(Window w) {
 	for (unsigned int i = 0; i != n; i++)
 		if (has_wm_state(ch[i]))
 			found = ch[i];
+	if (!found)
+		for (unsigned int i = 0; i != n; i++) {
+			found = find_wm_state(ch[i]);
+			if (found)
+				break;
+		}
 	XFree(ch);
 	return found;
 }
