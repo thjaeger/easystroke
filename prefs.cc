@@ -175,6 +175,50 @@ TraceType int_to_trace(int i) {
 	}
 }
 
+Source<bool> autostart_ok(true);
+
+#include <sys/stat.h>
+extern const char *desktop_file;
+
+class Autostart : public IO<bool>, private Base {
+	bool a;
+	std::string filename;
+public:
+	Autostart() {
+		std::string dir = getenv("HOME");
+		dir += "/.config/autostart";
+		filename = dir + "/easystroke.desktop";
+
+		struct stat sb;
+		if (stat(dir.c_str(), &sb) == -1 || (sb.st_mode & S_IFMT) != S_IFDIR) {
+			autostart_ok.set(false);
+			return;
+		}
+		a = stat(filename.c_str(), &sb) != -1 &&
+			((sb.st_mode & S_IFMT) == S_IFREG || (sb.st_mode & S_IFMT) == S_IFLNK);
+	}
+	virtual void set(const bool a_) {
+		a = a_;
+		notify();
+	}
+	virtual bool get() const { return a; }
+	virtual void notify() {
+		if (a) {
+			FILE *file = fopen(filename.c_str(), "w");
+			if (!file || fprintf(file, desktop_file, "easystroke") == -1)
+				autostart_ok.set(false);
+			if (file)
+				fclose(file);
+		} else {
+			if (remove(filename.c_str()) == -1)
+				autostart_ok.set(false);
+		}
+		update();
+	}
+};
+
+Autostart autostart;
+
 void remove_last_entry(const Glib::ustring & name) {
 	Gtk::ComboBox *combo;
 	widgets->get_widget(name, combo);
@@ -203,6 +247,9 @@ Prefs::Prefs() {
 	new Sensitive(prefs.feedback, "check_left_handed");
 
 	new Check(prefs.tray_icon, "check_tray_icon");
+
+	new Check(autostart, "check_autostart");
+	new Sensitive(autostart_ok, "check_autostart");
 
 	new Spin(prefs.init_timeout, "spin_timeout");
 	new Spin(prefs.min_speed, "spin_min_speed");

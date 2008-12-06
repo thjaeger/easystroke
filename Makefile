@@ -31,9 +31,9 @@ MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o version.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.gb gui.c dbus-server.h
+GENFILES = gui.gb gui.c desktop.c dbus-server.h
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
 GIT      = $(wildcard .git/index version)
@@ -66,9 +66,14 @@ gui.gb: gui.glade
 	gtk-builder-convert gui.glade gui.gb
 
 gui.c: gui.gb
-	echo "const char *gui_buffer = \"\\" > gui.c
-	sed 's/"/\\"/g' gui.gb | sed 's/.*/&\\n\\/' >> gui.c
-	echo "\";" >> gui.c
+	echo "const char *gui_buffer = \"\\" > $@
+	sed 's/"/\\"/g' $< | sed 's/.*/&\\n\\/' >> $@
+	echo "\";" >> $@
+
+desktop.c: easystroke.desktop
+	echo "const char *desktop_file = \"\\" > $@
+	sed 's/Exec=easystroke/Exec=%s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
+	echo "\";" >> $@
 
 dbus-server.cc: dbus-server.h
 
