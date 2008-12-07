@@ -33,20 +33,21 @@ MANPAGE  = easystroke.1
 CCFILES  = $(wildcard *.cc)
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.gb gui.c desktop.c dbus-server.h
+GENFILES = gui.c desktop.c dbus-server.h
+GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
 GIT      = $(wildcard .git/index version)
-
+DIST     = easystroke-$(VERSION)
 
 -include debug.mk
 
 all: $(BINARY)
 
-.PHONY: all clean
+.PHONY: all clean snapshot release
 
 clean:
-	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE)
+	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES)
 
 include $(DEPFILES)
 
@@ -62,12 +63,9 @@ stroke.o: stroke.cc
 version.o: $(GIT)
 	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
 
-gui.gb: gui.glade
-	gtk-builder-convert gui.glade gui.gb
-
-gui.c: gui.gb
+gui.c: gui.glade
 	echo "const char *gui_buffer = \"\\" > $@
-	sed 's/"/\\"/g' $< | sed 's/.*/&\\n\\/' >> $@
+	gtk-builder-convert $< - | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
 	echo "\";" >> $@
 
 desktop.c: easystroke.desktop
@@ -83,7 +81,7 @@ dbus-server.h: dbus.xml
 man:	$(MANPAGE)
 
 $(MANPAGE):	$(BINARY)
-	help2man -N -n "X11 gesture recognition application" ./$(BINARY) > $(MANPAGE)
+	help2man -N -n "X11 gesture recognition application" ./$(BINARY) > $@
 
 install: all
 	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
@@ -94,3 +92,25 @@ uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/$(BINARY)
 	$(RM) $(DESTDIR)$(ICONDIR)/$(ICON)
 	$(RM) $(DESTDIR)$(MENUDIR)/$(DESKTOP)
+
+snapshot: $(DIST)_i386.tar.gz
+
+release: $(DIST).tar.gz
+	rsync -avP $(DIST).tar.gz thjaeger@frs.sourceforge.net:uploads/
+
+tmp/$(DIST): $(GIT)
+	$(RM) -r tmp
+	mkdir tmp
+	git archive --format=tar --prefix=$(DIST)/ HEAD | (cd tmp && tar x)
+	echo $(VERSION) > $@/version
+	$(RM) $@/.gitignore $@/release
+
+$(DIST)_i386.tar.gz: tmp/$(DIST)
+	$(MAKE) -j2 -C $<
+	strip -s $</easystroke
+	tar -czf $@ -C $< easystroke
+	$(RM) -r tmp
+
+$(DIST).tar.gz: tmp/$(DIST)
+	tar -czf $@ -C tmp/ $(DIST)
+	$(RM) -r tmp

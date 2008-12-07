@@ -2,9 +2,9 @@
 *.Po
 easystroke
 easystroke.1
-gui.gb
 gui.c
 desktop.c
 *.swp
 dbus-server.h
 debug.mk
+*.gz
