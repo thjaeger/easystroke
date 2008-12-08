@@ -39,6 +39,7 @@ GZFILES  = $(wildcard *.gz)
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
 GIT      = $(wildcard .git/index version)
 DIST     = easystroke-$(VERSION)
+ARCH     = $(shell uname -m)
 
 -include debug.mk
 
@@ -93,7 +94,7 @@ uninstall:
 	$(RM) $(DESTDIR)$(ICONDIR)/$(ICON)
 	$(RM) $(DESTDIR)$(MENUDIR)/$(DESKTOP)
 
-snapshot: $(DIST)_i386.tar.gz
+snapshot: $(DIST)_$(ARCH).tar.gz
 
 release: $(DIST).tar.gz
 	rsync -avP $(DIST).tar.gz thjaeger@frs.sourceforge.net:uploads/
@@ -105,7 +106,7 @@ tmp/$(DIST): $(GIT)
 	echo $(VERSION) > $@/version
 	$(RM) $@/.gitignore $@/release
 
-$(DIST)_i386.tar.gz: tmp/$(DIST)
+$(DIST)_$(ARCH).tar.gz: tmp/$(DIST)
 	$(MAKE) -j2 -C $<
 	strip -s $</easystroke
 	tar -czf $@ -C $< easystroke
