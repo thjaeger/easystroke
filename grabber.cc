@@ -19,6 +19,7 @@
 #include <X11/Xutil.h>
 
 bool no_xi = false;
+bool xi_15 = false;
 Grabber *grabber = 0;
 
 unsigned int ignore_mods[4] = { LockMask, Mod2Mask, LockMask | Mod2Mask, 0 };
@@ -235,6 +236,12 @@ bool Grabber::init_xi() {
 	int nFEV, nFER;
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
+	XExtensionVersion *v = XGetExtensionVersion(dpy, INAME);
+	if (!v->present)
+		return false;
+	xi_15 = v->major_version > XI_Add_DeviceProperties_Major ||
+		(v->major_version == XI_Add_DeviceProperties_Major && v->minor_version >= XI_Add_DeviceProperties_Minor);
+	XFree(v);
 
 	// Macro not c++-safe
 	// DevicePresence(dpy, event_presence, presence_class);
@@ -304,6 +311,7 @@ bool Grabber::update_device_list() {
 					xi_dev->pressure_min = info->axes[2].min_value;
 					xi_dev->pressure_max = info->axes[2].max_value;
 				}
+				xi_dev->absolute = info->mode == Absolute;
 			}
 			any = (XAnyClassPtr) ((char *) any + any->length);
 		}
@@ -334,7 +342,8 @@ bool Grabber::update_device_list() {
 		xi_devs[xi_devs_n++] = xi_dev;
 
 		if (verbosity >= 1)
-			printf("Opened Device \"%s\" (%s proximity).\n", dev->name,
+			printf("Opened Device \"%s\" (%s, %s proximity).\n", dev->name,
+					xi_dev->absolute ? "absolute" : "relative",
 					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 	XFreeDeviceList(devs);

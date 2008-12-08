@@ -40,6 +40,7 @@
 
 bool show_gui = false;
 extern bool no_xi;
+extern bool xi_15;
 bool experimental = false;
 int verbosity = 0;
 int offset_x = 0;

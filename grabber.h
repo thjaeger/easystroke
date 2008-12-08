@@ -70,6 +70,7 @@ public:
 		bool supports_proximity, supports_pressure;
 		int pressure_min, pressure_max;
 		int min_x, max_x, min_y, max_y;
+		bool absolute;
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
