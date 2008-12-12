@@ -87,4 +87,4 @@ install: all
 uninstall:
 	rm $(DESTDIR)$(BINDIR)/$(BINARY) || true
 	rm $(DESTDIR)$(ICONDIR)/$(ICON) || true
-	rm $(DESTDIR)$(MENUDIR)/$(DESKTOP) || true
+	rm $(DESTDIR)$(MENUDIR)/$(MENU) || true
