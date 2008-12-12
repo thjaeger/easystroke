@@ -92,7 +92,7 @@ install: all
 uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/$(BINARY)
 	$(RM) $(DESTDIR)$(ICONDIR)/$(ICON)
-	$(RM) $(DESTDIR)$(MENUDIR)/$(DESKTOP)
+	$(RM) $(DESTDIR)$(MENUDIR)/$(MENU)
 
 snapshot: $(DIST)_$(ARCH).tar.gz
 
