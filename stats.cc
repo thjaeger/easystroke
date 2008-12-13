@@ -79,10 +79,14 @@ public:
 			text->get_size(w,h);
 			text->move(x - w/2, y + h/2);
 		}
-		if (text)
+		if (text) {
 			text->show();
-		if (icon)
+			text->get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
+		}
+		if (icon) {
 			icon->show();
+			icon->get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
+		}
 	}
 	bool destroy() {
 		if (icon) {

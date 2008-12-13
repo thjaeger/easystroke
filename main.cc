@@ -168,6 +168,7 @@ public:
 		int screen = DefaultScreen(dpy);
 		move(DisplayWidth(dpy, screen) - w - 50, 50);
 		show();
+		get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
 	}
 };
 
