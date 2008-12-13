@@ -38,7 +38,7 @@ PrefDB::PrefDB() :
 	good_state(true),
 	p(default_p),
 	button(default_button),
-	trace(TraceShape),
+	trace(TraceDefault),
 	advanced_ignore(false),
 	radius(default_radius),
 	ignore_grab(false),
@@ -71,6 +71,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 		ar & help;
 	}
 	ar & trace.unsafe_ref();
+	if (trace.get() == TraceUnused1)
+		trace.unsafe_ref() = TraceDefault;
 	if (version < 3) {
 		int delay;
 		ar & delay;

@@ -23,7 +23,7 @@
 #include "annotate.h"
 #include "fire.h"
 #include "water.h"
-#include "copy.h"
+#include "composite.h"
 #include "grabber.h"
 
 #include <X11/Xutil.h>
@@ -63,13 +63,21 @@ Time last_press_t = 0;
 
 std::set<guint> xinput_pressed;
 
+Trace *trace_composite() {
+	try {
+		return new Composite();
+	} catch (std::exception &e) {
+		if (verbosity >= 1)
+			printf("Falling back to Shape method: %s\n", e.what());
+		return new Shape();
+	}
+}
+
 Trace *init_trace() {
 	try {
 		switch(prefs.trace.get()) {
 			case TraceNone:
 				return new Trivial();
-			case TraceShape:
-				return new Shape();
 			case TraceAnnotate:
 				return new Annotate();
 			case TraceFire:
@@ -77,12 +85,13 @@ Trace *init_trace() {
 			case TraceWater:
 				return new Water();
 			default:
-				return new Copy();
+				return trace_composite();
 		}
-	} catch (DBusException e) {
+	} catch (DBusException &e) {
 		printf("Error: %s\n", e.what());
-		return new Trivial();
+		return trace_composite();
 	}
+
 }
 
 bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up = 0);
@@ -244,7 +253,8 @@ int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
 	printf("Fatal Error: Connection to X server lost\n");
-	exit(EXIT_FAILURE);
+	raise(SIGKILL);
+	return 0;
 }
 
 class WaitForButtonHandler : public Handler, protected Timeout {
