@@ -25,7 +25,7 @@
 
 #include "var.h"
 
-enum TraceType { TraceDefault, TraceUnused1, TraceNone, TraceAnnotate, TraceFire, TraceWater, TraceN };
+enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater, TraceN };
 
 
 #define TO_OFF 0

@@ -78,6 +78,8 @@ Trace *init_trace() {
 		switch(prefs.trace.get()) {
 			case TraceNone:
 				return new Trivial();
+			case TraceShape:
+				return new Shape();
 			case TraceAnnotate:
 				return new Annotate();
 			case TraceFire:

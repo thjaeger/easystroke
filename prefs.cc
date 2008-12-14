@@ -132,18 +132,21 @@ public:
 
 bool and_(bool x, bool y) { return x && y; }
 bool is_custom(int profile) { return profile == TO_CUSTOM; }
-bool draw_line(TraceType t) { return t == TraceDefault; }
+bool draw_line(TraceType t) { return t == TraceDefault || t == TraceShape; }
 
 #define TRACE_NONE 0
 #define TRACE_DEFAULT 1
-#define TRACE_ANNOTATE 2
-#define TRACE_FIRE 3
-#define TRACE_WATER 4
+#define TRACE_SHAPE 2
+#define TRACE_ANNOTATE 3
+#define TRACE_FIRE 4
+#define TRACE_WATER 5
 
 int trace_to_int(TraceType t) {
 	switch (t) {
 		case TraceNone:
 			return TRACE_NONE;
+		case TraceShape:
+			return TRACE_SHAPE;
 		case TraceAnnotate:
 			return TRACE_ANNOTATE;
 		case TraceFire:
@@ -159,6 +162,8 @@ TraceType int_to_trace(int i) {
 	switch (i) {
 		case TRACE_NONE:
 			return TraceNone;
+		case TRACE_SHAPE:
+			return TraceShape;
 		case TRACE_ANNOTATE:
 			return TraceAnnotate;
 		case TRACE_FIRE:
