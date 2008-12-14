@@ -20,7 +20,12 @@
 #include "main.h"
 #include <list>
 
+#define BRAVE 1
+
 class Composite : public Gtk::Window, public Trace {
+#if BRAVE
+	int minx, miny, maxx, maxy;
+#endif
 	std::list<Point> points;
 	virtual void draw(Point p, Point q);
 	virtual void start_();
@@ -29,7 +34,7 @@ class Composite : public Gtk::Window, public Trace {
 	void draw_line(Cairo::RefPtr<Cairo::Context> ctx);
 public:
 	Composite();
-	virtual ~Composite();
+	virtual ~Composite() {}
 };
 
 #endif

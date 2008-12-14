@@ -17,8 +17,6 @@
 #include "composite.h"
 #include <gdkmm.h>
 
-#define BRAVE 1
-
 Composite::Composite() : Gtk::Window(Gtk::WINDOW_POPUP) {
 	if (!is_composited())
 		throw std::runtime_error("composite not available");
@@ -41,9 +39,24 @@ Composite::Composite() : Gtk::Window(Gtk::WINDOW_POPUP) {
 }
 
 void Composite::draw(Point p, Point q) {
-	if (!points.size())
+	if (!points.size()) {
 		points.push_back(p);
+#if BRAVE
+		minx = maxx = p.x;
+		miny = maxy = p.y;
+#endif
+	}
 	points.push_back(q);
+#if BRAVE
+	if (q.x < minx)
+		minx = q.x;
+	if (q.x > maxx)
+		maxx = q.x;
+	if (q.y < miny)
+		miny = q.y;
+	if (q.y > maxy)
+		maxy = q.y;
+#endif
 	int x = p.x < q.x ? p.x : q.x;
 	int w = abs(q.x - p.x);
 	int y = p.y < q.y ? p.y : q.y;
@@ -63,12 +76,12 @@ void Composite::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
 	ctx->set_source_rgba(0.6, 0.2, 0.2, 0.5);
-	ctx->set_line_width(7);
+	ctx->set_line_width(6);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke_preserve();
 
 	ctx->set_source_rgba(1.0, 0.2, 0.2, 0.8);
-	ctx->set_line_width(5);
+	ctx->set_line_width(4);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke();
 
@@ -94,10 +107,8 @@ bool Composite::on_expose(GdkEventExpose* event) {
 void Composite::end_() {
 	points.clear();
 #if BRAVE
-	gdk_window_invalidate_rect(GDK_WINDOW(get_window()->gobj()), 0, false);
+	get_window()->invalidate_rect(Gdk::Rectangle(minx-10, miny-10, maxx-minx+20, maxy-miny+20), false);
 #else
 	hide();
 #endif
 }
-
-Composite::~Composite() {}
