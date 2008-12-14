@@ -20,23 +20,24 @@
 #include "main.h"
 #include <list>
 
-#define BRAVE 1
+class Popup : public Gtk::Window {
+	bool on_expose(GdkEventExpose* event);
+	void draw_line(Cairo::RefPtr<Cairo::Context> ctx);
+	Gdk::Rectangle rect;
+public:
+	Popup(int x1, int y1, int x2, int y2);
+	void invalidate(int x1, int y1, int x2, int y2);
+};
 
-class Composite : public Gtk::Window, public Trace {
-#if BRAVE
-	int minx, miny, maxx, maxy;
-#endif
-	double red, green, blue, alpha, width;
-	std::list<Point> points;
+class Composite : public Trace {
+	int num_x, num_y;
+	Popup ***pieces;
 	virtual void draw(Point p, Point q);
 	virtual void start_();
 	virtual void end_();
-	bool on_expose(GdkEventExpose* event);
-	void draw_line(Cairo::RefPtr<Cairo::Context> ctx);
-	void invalidate(int x1, int y1, int x2, int y2);
 public:
 	Composite();
-	virtual ~Composite() {}
+	virtual ~Composite();
 };
 
 #endif

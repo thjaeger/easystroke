@@ -17,58 +17,64 @@
 #include "composite.h"
 #include <gdkmm.h>
 
-Composite::Composite() : Gtk::Window(Gtk::WINDOW_POPUP) {
+double red, green, blue, alpha, width;
+std::list<Trace::Point> points;
+
+Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), rect(x1, y1, x2-x1, y2-y1) {
 	if (!is_composited())
 		throw std::runtime_error("composite not available");
-	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-
-	set_position(Gtk::WIN_POS_CENTER_ALWAYS);
-	set_default_size(screen->get_width(), screen->get_height());
-	set_decorated(false);
-	set_app_paintable(true);
 
 	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_rgba_colormap();
 	if (colormap)
 		set_colormap(colormap);
-	signal_expose_event().connect(sigc::mem_fun(*this, &Composite::on_expose));
+	signal_expose_event().connect(sigc::mem_fun(*this, &Popup::on_expose));
 	realize();
+	move(x1, y1);
+	resize(x2-x1, y2-y1);
 	get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
-#if BRAVE
-	show();
-#endif
+	// tell compiz to leave this window the hell alone
+	get_window()->set_type_hint(Gdk::WINDOW_TYPE_HINT_DESKTOP);
 }
 
-void Composite::invalidate(int x1, int y1, int x2, int y2) {
-	int bw = (width/2.0) + 2;
-	x1 -= bw; y1 -= bw;
-	x2 += bw; y2 += bw;
-	get_window()->invalidate_rect(Gdk::Rectangle(x1, y1, x2-x1, y2-y1), false);
+void Popup::invalidate(int x1, int y1, int x2, int y2) {
+	if (is_mapped()) {
+		Gdk::Rectangle inv(x1 - rect.get_x(), y1 - rect.get_y(), x2-x1, y2-y1);
+		get_window()->invalidate_rect(inv, false);
+	} else
+		show();
+}
+
+Composite::Composite() {
+#define N 64
+	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
+	int w = screen->get_width();
+	int h = screen->get_height();
+	num_x = (screen->get_width()  - 1)/N + 1;
+	num_y = (screen->get_height() - 1)/N + 1;
+	pieces = new Popup**[num_x];
+	for (int i = 0; i < num_x; i++) {
+		pieces[i] = new Popup*[num_y];
+		for (int j = 0; j < num_y; j++)
+			pieces[i][j] = new Popup(i*N,j*N,MIN((i+1)*N,w),MIN((j+1)*N,h));
+
+	}
 }
 
 void Composite::draw(Point p, Point q) {
 	if (!points.size()) {
 		points.push_back(p);
-#if BRAVE
-		minx = maxx = p.x;
-		miny = maxy = p.y;
-#endif
 	}
 	points.push_back(q);
-#if BRAVE
-	if (q.x < minx)
-		minx = q.x;
-	if (q.x > maxx)
-		maxx = q.x;
-	if (q.y < miny)
-		miny = q.y;
-	if (q.y > maxy)
-		maxy = q.y;
-#endif
 	int x1 = p.x < q.x ? p.x : q.x;
 	int x2 = p.x < q.x ? q.x : p.x;
 	int y1 = p.y < q.y ? p.y : q.y;
 	int y2 = p.y < q.y ? q.y : p.y;
-	invalidate(x1, y1, x2, y2);
+	int bw = (width/2.0) + 2;
+	x1 -= bw; y1 -= bw;
+	x2 += bw; y2 += bw;
+	for (int i = x1/N; i<num_x && i<=x2/N; i++)
+		for (int j = y1/N; j<num_y && j<=y2/N; j++)
+			pieces[i][j]->invalidate(x1, y1, x2, y2);
 }
 
 void Composite::start_() {
@@ -78,13 +84,12 @@ void Composite::start_() {
 	blue = rgba.color.get_blue_p();
 	alpha = ((double)rgba.alpha)/65535.0;
 	width = prefs.trace_width.get();
-	show();
 }
 
-void Composite::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
+void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	if (!points.size())
 		return;
-	std::list<Point>::iterator i = points.begin();
+	std::list<Trace::Point>::iterator i = points.begin();
 	ctx->move_to (i->x, i->y);
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
@@ -100,7 +105,7 @@ void Composite::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 
 }
 
-bool Composite::on_expose(GdkEventExpose* event) {
+bool Popup::on_expose(GdkEventExpose* event) {
 	Cairo::RefPtr<Cairo::Context> ctx = get_window()->create_cairo_context();
 	ctx->set_operator(Cairo::OPERATOR_SOURCE);
 
@@ -112,6 +117,7 @@ bool Composite::on_expose(GdkEventExpose* event) {
 	ctx->set_source_rgba(0.0, 0.0, 0.0, 0.0);
 	ctx->fill();
 
+	ctx->translate(-rect.get_x(), -rect.get_y());
 	draw_line(ctx);
 
 	return false;
@@ -119,9 +125,17 @@ bool Composite::on_expose(GdkEventExpose* event) {
 
 void Composite::end_() {
 	points.clear();
-#if BRAVE
-	invalidate(minx, miny, maxx, maxy);
-#else
-	hide();
-#endif
+	// TODO
+	for (int i = 0; i < num_x; i++)
+		for (int j = 0; j < num_y; j++)
+			pieces[i][j]->hide();
+}
+
+Composite::~Composite() {
+	for (int i = 0; i < num_x; i++) {
+		for (int j = 0; j < num_y; j++)
+			delete pieces[i][j];
+		delete[] pieces[i];
+	}
+	delete[] pieces;
 }
