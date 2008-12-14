@@ -38,6 +38,13 @@ Composite::Composite() : Gtk::Window(Gtk::WINDOW_POPUP) {
 #endif
 }
 
+void Composite::invalidate(int x1, int y1, int x2, int y2) {
+	int bw = (width/2.0) + 2;
+	x1 -= bw; y1 -= bw;
+	x2 += bw; y2 += bw;
+	get_window()->invalidate_rect(Gdk::Rectangle(x1, y1, x2-x1, y2-y1), false);
+}
+
 void Composite::draw(Point p, Point q) {
 	if (!points.size()) {
 		points.push_back(p);
@@ -57,11 +64,11 @@ void Composite::draw(Point p, Point q) {
 	if (q.y > maxy)
 		maxy = q.y;
 #endif
-	int x = p.x < q.x ? p.x : q.x;
-	int w = abs(q.x - p.x);
-	int y = p.y < q.y ? p.y : q.y;
-	int h = abs(q.y - p.y);
-	get_window()->invalidate_rect(Gdk::Rectangle(x-10, y-10, w+20, h+20), false);
+	int x1 = p.x < q.x ? p.x : q.x;
+	int x2 = p.x < q.x ? q.x : p.x;
+	int y1 = p.y < q.y ? p.y : q.y;
+	int y2 = p.y < q.y ? q.y : p.y;
+	invalidate(x1, y1, x2, y2);
 }
 
 void Composite::start_() {
@@ -70,6 +77,7 @@ void Composite::start_() {
 	green = rgba.color.get_green_p();
 	blue = rgba.color.get_blue_p();
 	alpha = ((double)rgba.alpha)/65535.0;
+	width = prefs.trace_width.get();
 	show();
 }
 
@@ -81,12 +89,12 @@ void Composite::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
 	ctx->set_source_rgba((red+0.5)/2.0, (green+0.5)/2.0, (blue+0.5)/2.0, alpha/2.0);
-	ctx->set_line_width(prefs.trace_width.get());
+	ctx->set_line_width(width+1.0);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke_preserve();
 
 	ctx->set_source_rgba(red, green, blue, alpha);
-	ctx->set_line_width(((double)prefs.trace_width.get())*0.67);
+	ctx->set_line_width(width*0.7);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke();
 
@@ -112,7 +120,7 @@ bool Composite::on_expose(GdkEventExpose* event) {
 void Composite::end_() {
 	points.clear();
 #if BRAVE
-	get_window()->invalidate_rect(Gdk::Rectangle(minx-10, miny-10, maxx-minx+20, maxy-miny+20), false);
+	invalidate(minx, miny, maxx, maxy);
 #else
 	hide();
 #endif
