@@ -1085,6 +1085,8 @@ Main::Main(int argc, char **argv) : kit(0) {
 		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
 
 	trace = init_trace();
+	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
+	g_signal_connect(screen->gobj(), "composited-changed", &reload_trace, NULL);
 	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&reload_trace));
 	prefs.trace.connect(trace_notify);
 	prefs.color.connect(trace_notify);
