@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.5 on Sat Dec 13 18:47:55 2008 -->
+<!--Generated with glade3 3.4.5 on Sat Dec 13 22:25:31 2008 -->
 <glade-interface>
   <widget class="GtkWindow" id="main">
     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
@@ -446,7 +446,7 @@ Custom</property>
                             <child>
                               <widget class="GtkLabel" id="label13">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Method to show strokes on the screen</property>
+                                <property name="label" translatable="yes">Method to show gestures</property>
                               </widget>
                             </child>
                             <child>
@@ -466,7 +466,7 @@ Water (compiz)</property>
                             <child>
                               <widget class="GtkLabel" id="label10">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Color:</property>
+                                <property name="label" translatable="yes">Color</property>
                               </widget>
                               <packing>
                                 <property name="position">2</property>
@@ -482,6 +482,25 @@ Water (compiz)</property>
                               </widget>
                               <packing>
                                 <property name="position">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkLabel" id="label23">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Width</property>
+                              </widget>
+                              <packing>
+                                <property name="position">4</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkSpinButton" id="spin_trace_width">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="adjustment">0 0 20 1 10 0</property>
+                              </widget>
+                              <packing>
+                                <property name="position">5</property>
                               </packing>
                             </child>
                           </widget>

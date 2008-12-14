@@ -87,12 +87,13 @@ public:
 	Source<bool> tray_icon;
 	Source<std::set<std::string> > excluded_devices;
 	Source<unsigned long> color;
+	Source<int> trace_width;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 11)
+BOOST_CLASS_VERSION(PrefDB, 12)
 
 extern PrefDB prefs;
 #endif

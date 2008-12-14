@@ -76,12 +76,12 @@ void Composite::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
 	ctx->set_source_rgba(0.6, 0.2, 0.2, 0.5);
-	ctx->set_line_width(6);
+	ctx->set_line_width(prefs.trace_width.get());
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke_preserve();
 
 	ctx->set_source_rgba(1.0, 0.2, 0.2, 0.8);
-	ctx->set_line_width(4);
+	ctx->set_line_width(((double)prefs.trace_width.get())*0.67);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke();
 

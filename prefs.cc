@@ -254,6 +254,7 @@ Prefs::Prefs() {
 
 	new Combo(*new Bijection<TraceType, int>(&trace_to_int, &int_to_trace, prefs.trace), "combo_trace");
 	new Color(prefs.color, "button_color");
+	new Spin(prefs.trace_width, "spin_trace_width");
 	new Combo(prefs.timeout_profile, "combo_timeout");
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
@@ -277,6 +278,7 @@ Prefs::Prefs() {
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
 	new Sensitive(*fun(&draw_line, prefs.trace), "button_color");
+	new Sensitive(*fun(&draw_line, prefs.trace), "spin_trace_width");
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);

@@ -38,15 +38,16 @@ Shape::Shape() {
 #define abs(x) ((x) > 0 ? (x) : -(x))
 
 void Shape::draw(Point p, Point q) {
-	int x = min(p.x, q.x) - WIDTH;
-	int y = min(p.y, q.y) - WIDTH;
-	int w = abs(p.x - q.x) + 2*WIDTH;
-	int h = abs(p.y - q.y) + 2*WIDTH;
+	int width = prefs.trace_width.get();
+	int x = min(p.x, q.x) - width;
+	int y = min(p.y, q.y) - width;
+	int w = abs(p.x - q.x) + 2*width;
+	int h = abs(p.y - q.y) + 2*width;
 	Pixmap pm = XCreatePixmap(dpy, DefaultRootWindow(dpy), w, h, 1);
 
 	XGCValues gcv;
 	gcv.foreground = 0;
-	gcv.line_width = WIDTH;
+	gcv.line_width = width;
 	gcv.cap_style = CapRound;
 	GC gc = XCreateGC(dpy, pm, GCCapStyle | GCForeground | GCLineWidth, &gcv);
 	XFillRectangle(dpy, pm, gc, 0, 0, w, h);
