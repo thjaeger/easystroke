@@ -41,6 +41,7 @@
 bool show_gui = false;
 extern bool no_xi;
 extern bool xi_15;
+bool rotated = false;
 bool experimental = false;
 int verbosity = 0;
 int offset_x = 0;
@@ -1299,10 +1300,39 @@ bool handle_stroke(RStroke s, float x, float y, int trigger, int button, int but
 
 extern Window get_app_window(Window &w);
 
-bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
+int current_x, current_y;
+
+void translate_coords(XID xid, int *axis_data, float &x, float &y) {
+	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
+	if (!xi_dev->absolute) {
+		current_x += axis_data[0];
+		current_y += axis_data[1];
+		x = current_x;
+		y = current_y;
+		return;
+	}
+	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
+	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
+	if (!rotated) {
+		x = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
+		y = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
+	} else {
+		x = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
+		y = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
+	}
+}
+
+bool translate_known_coords(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
 	sx += offset_x;
 	sy += offset_y;
 	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
+	if (!xi_dev->absolute) {
+		current_x = sx;
+		current_y = sy;
+		x = current_x;
+		y = current_y;
+		return true;
+	}
 	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
 	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
 	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
@@ -1313,12 +1343,16 @@ bool translate_coordinates(XID xid, int sx, int sy, int *axis_data, float &x, fl
 	float y2 = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
 	float d  = hypot(x - sx, y - sy);
 	float d2 = hypot(x2 - sx, y2 - sy);
-	if (d > 4 && d2 > 4) {
+	if (d > 2 && d2 > 2) {
 		x = sx;
 		y = sy;
 		return false;
 	}
-	if (d2 < d) {
+	if (d > 2)
+		rotated = true;
+	if (d2 > 2)
+		rotated = false;
+	if (rotated) {
 		x = x2;
 		y = y2;
 	}
@@ -1486,7 +1520,7 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
 			me->z_xi = 0;
 			return me;
 		}
@@ -1501,7 +1535,10 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			translate_coordinates(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			if (xi_15)
+				translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
+			else
+				translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
 			me->z_xi = 0;
 			return me;
 		}
@@ -1515,7 +1552,10 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = 0;
 			me->xi = true;
 			me->t = mev->time;
-			translate_coordinates(mev->deviceid, mev->x, mev->y, mev->axis_data, me->x_xi, me->y_xi);
+			if (xi_15)
+				translate_coords(mev->deviceid, mev->axis_data, me->x_xi, me->y_xi);
+			else
+				translate_known_coords(mev->deviceid, mev->x, mev->y, mev->axis_data, me->x_xi, me->y_xi);
 			me->z_xi = 0;
 			Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
 			if (xi_dev && xi_dev->supports_pressure)
