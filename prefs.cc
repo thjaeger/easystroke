@@ -65,24 +65,24 @@ public:
 };
 
 class Color : private Base {
-	IO<unsigned long> &io;
+	IO<RGBA> &io;
 	Gtk::ColorButton *color;
 	virtual void notify() {
-		unsigned long c = io.get();
-		Gdk::Color col = color->get_color();
-		col.set_rgb(257*(c >> 16), 257*((c >> 8) % 256), 257*(c % 256));
-		color->set_color(col);
+		color->set_color(io.get().color);
+		color->set_alpha(io.get().alpha);
 	}
 	void on_changed() {
-		Gdk::Color col = color->get_color();
-		unsigned long c = ((col.get_red()/257)<<16) + ((col.get_green()/257)<<8) + col.get_blue()/257;
-		if (c == io.get()) return;
-		io.set(c);
+		RGBA rgba;
+		rgba.color = color->get_color();
+		rgba.alpha = color->get_alpha();
+		if (rgba == io.get()) return;
+		io.set(rgba);
 	}
 public:
-	Color(IO<unsigned long> &io_, const Glib::ustring &name) : io(io_) {
+	Color(IO<RGBA> &io_, const Glib::ustring &name) : io(io_) {
 		io.connect(this);
 		widgets->get_widget(name, color);
+		color->set_use_alpha();
 		notify();
 		color->signal_color_set().connect(sigc::mem_fun(*this, &Color::on_changed));
 	}

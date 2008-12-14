@@ -25,7 +25,8 @@ Shape::Shape() {
 	Window root = RootWindow(dpy, screen);
 	int w = DisplayWidth(dpy, screen);
 	int h = DisplayHeight(dpy, screen);
-	unsigned long bg = prefs.color.get();
+	Gdk::Color col = prefs.color.get().color;
+	unsigned long bg = ((col.get_red()/257)<<16) + ((col.get_green()/257)<<8) + col.get_blue()/257;
 	win = XCreateSimpleWindow(dpy, root, 0, 0, w, h, 0, CopyFromParent, bg);
 	XSetWindowAttributes attr;
 	attr.override_redirect = True;

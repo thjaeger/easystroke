@@ -54,7 +54,7 @@ PrefDB::PrefDB() :
 	timeout_profile(TO_CONSERVATIVE),
 	timeout_gestures(false),
 	tray_icon(true),
-	color(0x980101),
+	color(Gdk::Color("980101")),
 	trace_width(5)
 {}
 
@@ -107,8 +107,14 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & tray_icon.unsafe_ref();
 	if (version < 10) return;
 	ar & excluded_devices.unsafe_ref();
-	ar & color.unsafe_ref();
-	if (version < 12) return;
+	if (version < 12) {
+		unsigned long c;
+		ar & c;
+		color.unsafe_ref().color.set_rgb(257*(c >> 16), 257*((c >> 8) % 256), 257*(c % 256));
+		return;
+	} else {
+		ar & color.unsafe_ref();
+	}
 	ar & trace_width.unsafe_ref();
 }
 

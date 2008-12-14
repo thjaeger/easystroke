@@ -65,6 +65,11 @@ void Composite::draw(Point p, Point q) {
 }
 
 void Composite::start_() {
+	RGBA rgba = prefs.color.get();
+	red = rgba.color.get_red_p();
+	green = rgba.color.get_green_p();
+	blue = rgba.color.get_blue_p();
+	alpha = ((double)rgba.alpha)/65535.0;
 	show();
 }
 
@@ -75,12 +80,12 @@ void Composite::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	ctx->move_to (i->x, i->y);
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
-	ctx->set_source_rgba(0.6, 0.2, 0.2, 0.5);
+	ctx->set_source_rgba((red+0.5)/2.0, (green+0.5)/2.0, (blue+0.5)/2.0, alpha/2.0);
 	ctx->set_line_width(prefs.trace_width.get());
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke_preserve();
 
-	ctx->set_source_rgba(1.0, 0.2, 0.2, 0.8);
+	ctx->set_source_rgba(red, green, blue, alpha);
 	ctx->set_line_width(((double)prefs.trace_width.get())*0.67);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke();

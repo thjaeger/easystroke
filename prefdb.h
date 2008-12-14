@@ -20,6 +20,8 @@
 #include <map>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/version.hpp>
+#include <boost/serialization/split_member.hpp>
+#include <gdkmm/color.h>
 
 #include "var.h"
 
@@ -54,6 +56,37 @@ BOOST_CLASS_VERSION(ButtonInfo, 2)
 
 typedef boost::shared_ptr<ButtonInfo> RButtonInfo;
 
+struct RGBA {
+	Gdk::Color color;
+	guint16 alpha;
+	RGBA() : alpha(65535) {}
+	RGBA(Gdk::Color c) : color(c), alpha(65535) {}
+	template<class Archive> void save(Archive &ar, unsigned int version) const {
+		gushort r, g, b;
+		r = color.get_red();
+		g = color.get_green();
+		b = color.get_blue();
+		ar & r;
+		ar & g;
+		ar & b;
+		ar & alpha;
+	}
+	template<class Archive> void load(Archive &ar, unsigned int version) {
+		gushort r, g, b;
+		ar & r;
+		ar & g;
+		ar & b;
+		ar & alpha;
+		color.set_red(r);
+		color.set_green(g);
+		color.set_blue(b);
+	}
+	bool operator==(const RGBA rgba) {
+		return color == rgba.color && alpha == rgba.alpha;
+	}
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
+};
+
 extern const double default_p;
 extern const ButtonInfo default_button;
 extern const int default_radius;
@@ -86,7 +119,7 @@ public:
 	Source<bool> timeout_gestures;
 	Source<bool> tray_icon;
 	Source<std::set<std::string> > excluded_devices;
-	Source<unsigned long> color;
+	Source<RGBA> color;
 	Source<int> trace_width;
 
 	void init();

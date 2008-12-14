@@ -26,6 +26,7 @@ class Composite : public Gtk::Window, public Trace {
 #if BRAVE
 	int minx, miny, maxx, maxy;
 #endif
+	double red, green, blue, alpha;
 	std::list<Point> points;
 	virtual void draw(Point p, Point q);
 	virtual void start_();
