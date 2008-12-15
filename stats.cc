@@ -108,6 +108,10 @@ bool Ranking::show() {
 	return false;
 }
 
+Glib::ustring format_float(float x) {
+	return Glib::ustring::format(std::fixed, std::setprecision(2), x);
+}
+
 void Stats::on_stroke(Ranking *r) {
 	if (prefs.feedback.get() && r->best_stroke) {
 		Feedback *popup = new Feedback(r->best_stroke, r->name, r->x, r->y);
@@ -117,8 +121,7 @@ void Stats::on_stroke(Ranking *r) {
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
 	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
 	row[cols.name] = r->name;
-	row[cols.score] = Glib::ustring::format(std::fixed, std::setprecision(2), r->score*100) + "%";
-
+	row[cols.score] = format_float(r->score*100) + "%";
 	Glib::RefPtr<Gtk::ListStore> ranking_store = Gtk::ListStore::create(cols);
 	row[cols.child] = ranking_store;
 
@@ -137,7 +140,7 @@ void Stats::on_stroke(Ranking *r) {
 		Gtk::TreeModel::Row row2 = *(ranking_store->prepend());
 		row2[cols.stroke] = i->second.second->draw(STROKE_SIZE);
 		row2[cols.name] = i->second.first;
-		row2[cols.score] = Glib::ustring::format(std::fixed, std::setprecision(2), i->first * 100) + "%";
+		row2[cols.score] = format_float(i->first * 100) + "%";
 	}
 }
 
@@ -227,7 +230,7 @@ void Stats::on_pdf() {
 			}
 			if (score < -1.5)
 				continue;
-			Glib::ustring str = Glib::ustring::format(std::fixed, std::setprecision(2), score);
+			Glib::ustring str = format_float(score);
 			Cairo::TextExtents te;
 			ctx->get_text_extents(str, te);
 			ctx->move_to(l*S+S/2 - te.x_bearing - te.width/2, k*S+S/2 - te.y_bearing - te.height/2);
