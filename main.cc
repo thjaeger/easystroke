@@ -28,7 +28,6 @@
 
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
-#include <X11/extensions/Xrandr.h>
 #include <X11/Xproto.h>
 // From #include <X11/extensions/XIproto.h>
 // which is not C++-safe
@@ -1002,8 +1001,6 @@ class Main {
 
 	std::string display;
 	Gtk::Main *kit;
-	int event_basep;
-	bool randr;
 public:
 	Main(int argc, char **argv);
 	void run();
@@ -1017,11 +1014,17 @@ public:
 
 ActionDBWatcher *action_watcher = 0;
 
-void reload_trace() {
-	Trace *new_trace = init_trace();
-	delete trace;
-	trace = new_trace;
-}
+class ReloadTrace : public Timeout {
+	void timeout() {
+		if (verbosity >= 2)
+			printf("Reloading gesture display\n");
+		Trace *new_trace = init_trace();
+		delete trace;
+		trace = new_trace;
+	}
+} reload_trace;
+
+void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
 void open_uri(Gtk::LinkButton *button, const Glib::ustring& uri) {
 	if (!fork()) {
@@ -1081,15 +1084,11 @@ Main::Main(int argc, char **argv) : kit(0) {
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
 
-	int error_basep;
-	randr = XRRQueryExtension(dpy, &event_basep, &error_basep);
-	if (randr)
-		XRRSelectInput(dpy, ROOT, RRScreenChangeNotifyMask);
-
 	trace = init_trace();
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-	g_signal_connect(screen->gobj(), "composited-changed", &reload_trace, NULL);
-	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&reload_trace));
+	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, NULL);
+	screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
+	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&schedule_reload_trace));
 	prefs.trace.connect(trace_notify);
 	prefs.color.connect(trace_notify);
 
@@ -1379,12 +1378,6 @@ void Main::handle_event(XEvent &ev) {
 		break;
 
 	default:
-		if (randr && ev.type == event_basep) {
-			XRRUpdateConfiguration(&ev);
-			Trace *new_trace = init_trace();
-			delete trace;
-			trace = new_trace;
-		}
 		if (grabber->proximity_selected) {
 			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
 				in_proximity = true;
