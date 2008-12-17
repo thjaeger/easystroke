@@ -254,7 +254,7 @@ int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
 	printf("Fatal Error: Connection to X server lost\n");
-	raise(SIGKILL);
+	raise(SIGSEGV);
 	return 0;
 }
 
