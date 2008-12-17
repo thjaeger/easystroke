@@ -95,7 +95,7 @@ Trace *init_trace() {
 
 }
 
-bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up = 0);
+bool handle_stroke(RStroke s, float x, float y, int trigger, int button, int button_up = 0);
 
 void replay(Time t) {
 	XAllowEvents(dpy, ReplayPointer, t);
@@ -289,7 +289,7 @@ inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
 	OSD osd;
-	int last_x, last_y;
+	float last_x, last_y;
 	Time last_t;
 	float offset_x, offset_y;
 
@@ -320,14 +320,14 @@ public:
 		}
 		if (e->t == last_t)
 			return;
-		offset_x += curve(float(e->x-last_x)/float(e->t-last_t))*float(e->t-last_t)/10.0;
-		offset_y += curve(float(e->y-last_y)/float(e->t-last_t))*float(e->t-last_t)/5.0;
+		offset_x += curve((e->x-last_x)/(e->t-last_t))*(e->t-last_t)/10.0;
+		offset_y += curve((e->y-last_y)/(e->t-last_t))*(e->t-last_t)/5.0;
 		last_x = e->x;
 		last_y = e->y;
 		last_t = e->t;
 		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
 		if (abs(offset_x) > 1.0) {
-			n1 = floor(abs(offset_x));
+			n1 = (int)floor(abs(offset_x));
 			if (offset_x > 0) {
 				b1 = 7;
 				offset_x -= n1;
@@ -339,7 +339,7 @@ public:
 		if (abs(offset_y) > 1.0) {
 			if (abs(offset_y) < 1.0)
 				return;
-			n2 = floor(abs(offset_y));
+			n2 = (int)floor(abs(offset_y));
 			if (offset_y > 0) {
 				b2 = 5;
 				offset_y -= n2;
@@ -755,7 +755,7 @@ class StrokeHandler : public Handler, public Timeout {
 			timeout();
 			return true;
 		}
-		long ms = log(min_speed/speed) / k;
+		long ms = (long)(log(min_speed/speed) / k);
 		set_timeout(ms);
 		return false;
 	}
@@ -1265,7 +1265,7 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_up) {
+bool handle_stroke(RStroke s, float x, float y, int trigger, int button, int button_up) {
 	bool success = false;
 	s->trigger = trigger;
 	s->button = (button == trigger) ? 0 : button;
@@ -1278,8 +1278,8 @@ bool handle_stroke(RStroke s, int x, int y, int trigger, int button, int button_
 	} else {
 		Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
 		success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
-		ranking->x = x;
-		ranking->y = y;
+		ranking->x = (int)x;
+		ranking->y = (int)y;
 		if (ranking->id == &stroke_is_click)
 			replay_button = trigger;
 		if ((ranking->id!=&stroke_is_click && ranking->id!=&stroke_is_timeout) || prefs.show_clicks.get())

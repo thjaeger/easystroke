@@ -65,11 +65,11 @@ void Composite::draw(Point p, Point q) {
 		points.push_back(p);
 	}
 	points.push_back(q);
-	int x1 = p.x < q.x ? p.x : q.x;
-	int x2 = p.x < q.x ? q.x : p.x;
-	int y1 = p.y < q.y ? p.y : q.y;
-	int y2 = p.y < q.y ? q.y : p.y;
-	int bw = (width/2.0) + 2;
+	int x1 = (int)(p.x < q.x ? p.x : q.x);
+	int x2 = (int)(p.x < q.x ? q.x : p.x);
+	int y1 = (int)(p.y < q.y ? p.y : q.y);
+	int y2 = (int)(p.y < q.y ? q.y : p.y);
+	int bw = (int)(width/2.0) + 2;
 	x1 -= bw; y1 -= bw;
 	x2 += bw; y2 += bw;
 	for (int i = x1/N; i<num_x && i<=x2/N; i++)

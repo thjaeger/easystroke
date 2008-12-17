@@ -35,15 +35,13 @@ Shape::Shape() {
 	clear();
 }
 
-#define min(x,y) ((x) > (y) ? (y) : (x))
-#define abs(x) ((x) > 0 ? (x) : -(x))
-
 void Shape::draw(Point p, Point q) {
+	int px = (int)p.x, py = (int)p.y, qx = (int)q.x, qy = (int)q.y;
 	int width = prefs.trace_width.get();
-	int x = min(p.x, q.x) - width;
-	int y = min(p.y, q.y) - width;
-	int w = abs(p.x - q.x) + 2*width;
-	int h = abs(p.y - q.y) + 2*width;
+	int x = (MIN(px, qx) - width);
+	int y = (MIN(py, qy) - width);
+	int w = (ABS(px - qx) + 2*width);
+	int h = (ABS(py - qy) + 2*width);
 	Pixmap pm = XCreatePixmap(dpy, DefaultRootWindow(dpy), w, h, 1);
 
 	XGCValues gcv;
@@ -53,7 +51,7 @@ void Shape::draw(Point p, Point q) {
 	GC gc = XCreateGC(dpy, pm, GCCapStyle | GCForeground | GCLineWidth, &gcv);
 	XFillRectangle(dpy, pm, gc, 0, 0, w, h);
 	XSetForeground(dpy, gc, 1);
-	XDrawLine(dpy, pm, gc, p.x-x, p.y-y, q.x-x, q.y-y);
+	XDrawLine(dpy, pm, gc, px-x, py-y, qx-x, qy-y);
 	XFreeGC(dpy, gc);
 
 	XShapeCombineMask(dpy, win, ShapeBounding, x, y, pm, ShapeUnion);

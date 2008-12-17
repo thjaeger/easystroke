@@ -51,7 +51,7 @@ class Spin : private Base {
 	Gtk::Button *button;
 	virtual void notify() { spin->set_value(io.get()); }
 	void on_changed() {
-		int i = spin->get_value();
+		int i = (int)spin->get_value();
 		if (i == io.get()) return;
 		io.set(i);
 	}

@@ -211,9 +211,9 @@ void Win::show_hide() {
 
 void composite_stock(Gtk::Widget *widget, Glib::RefPtr<Gdk::Pixbuf> dest, Glib::ustring name, double scale) {
 		Glib::RefPtr<Gdk::Pixbuf> pb = widget->render_icon(Gtk::StockID(name), Gtk::ICON_SIZE_MENU);
-		int w = dest->get_width() * scale;
-		int h = dest->get_height() * scale;
-		int x = dest->get_width() - w;
+		int w = (int)(dest->get_width() * scale);
+		int h = (int)(dest->get_height() * scale);
+		int x = (int)(dest->get_width() - w);
 		int y = 0;
 		double scale_x = (double)w/(double)(pb->get_width());
 		double scale_y = (double)h/(double)(pb->get_height());
