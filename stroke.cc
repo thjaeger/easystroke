@@ -53,9 +53,12 @@ struct f : public std::unary_function<RTriple, Stroke::Point> {
 	}
 };
 
-Stroke::Stroke(PreStroke &s, int trigger_, int button_, bool timeout_) :
-	trigger(trigger_), button(button_), timeout(timeout_)
-{
+void Stroke::set_trigger(int t) {
+	trigger = (t == get_default_button()) ? 0 : t;
+}
+
+Stroke::Stroke(PreStroke &s, int trigger_, int button_, bool timeout_) : button(button_), timeout(timeout_) {
+	set_trigger(trigger_);
 	if (s.valid()) {
 		std::transform(s.begin(), s.end(), std::back_inserter(points), f());
 		normalize();
@@ -327,9 +330,10 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 		return false;
 	if (!a_->timeout != !b_->timeout)
 		return false;
+	if (a_->trigger != b_->trigger)
+		return false;
 	if (a_->button != b_->button)
-		if (!(a_->button == b_->trigger && b_->button == a_->trigger))
-			return false;
+		return false;
 	if (a_->size() == 0 || b_->size() == 0) {
 		if (a_->size() == 0 && b_->size() == 0) {
 			score = 1;

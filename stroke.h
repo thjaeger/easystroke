@@ -101,17 +101,19 @@ private:
 		ar & button;
 		if (version >= 2)
 			ar & trigger;
-		if (!trigger)
-			trigger = get_default_button();
+		if (version < 4 && trigger == get_default_button())
+			trigger = 0;
 		if (version < 3)
 			return;
 		ar & timeout;
 	}
 
-public:
 	int trigger;
+public:
 	int button;
 	bool timeout;
+
+	void set_trigger(int);
 
 	Stroke() : trigger(0), button(0), timeout(false) {}
 	static RStroke create(PreStroke &s, int trigger_, int button_, bool timeout_) {

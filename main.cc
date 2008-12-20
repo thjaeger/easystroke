@@ -55,16 +55,22 @@ std::string config_dir;
 Win *win;
 
 Window current = 0, current_app = 0;
-bool ignore = false;
-bool scroll = false;
-guint press_button = 0;
-guint replay_button = 0;
 Trace *trace = 0;
+Trace::Point orig;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Time last_press_t = 0;
-
+Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed;
+bool dead = false;
+Glib::Dispatcher *allower = 0;
+bool needs_allowing = false;
+
+class Handler;
+Handler *handler = 0;
+ActionDBWatcher *action_watcher = 0;
+boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
+
 
 Trace *trace_composite() {
 	try {
@@ -99,7 +105,7 @@ Trace *init_trace() {
 
 }
 
-bool handle_stroke(RStroke s, float x, float y, int trigger, int button, int button_up = 0);
+RAction handle_stroke(RStroke s, float x, float y, int trigger, int button);
 
 void replay(Time t) {
 	XAllowEvents(dpy, ReplayPointer, t);
@@ -206,12 +212,83 @@ public:
 	virtual std::string name() { return "Ignore"; }
 };
 
-Handler *handler = 0;
+
+class Remapper {
+protected:
+	virtual guint map(guint b) = 0;
+public:
+	// This can potentially mess up the user's mouse, make sure that it doesn't fail
+	void remap(Grabber::XiDevice *xi_dev) {
+		int ret;
+		do {
+			int n = XGetPointerMapping(dpy, 0, 0);
+			unsigned char m[n];
+			for (int i = 1; i<=n; i++)
+				m[i-1] = map(i);
+			while (MappingBusy == (ret = XSetPointerMapping(dpy, m, n)))
+				for (int i = 1; i<=n; i++)
+					XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+		} while (ret == BadValue);
+		if (!xi_dev)
+			return;
+		XDevice *dev = xi_dev->dev;
+		do {
+			int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
+			unsigned char m[n];
+			for (int i = 0; i<n; i++)
+				m[i] = i+1;
+			while (MappingBusy == (ret = XSetDeviceButtonMapping(dpy, dev, m, n)))
+				for (int i = 1; i<=n; i++)
+					xi_dev->fake_release(i);
+		} while (ret == BadValue);
+	}
+};
+
+void reset_buttons() {
+	struct Reset : public Remapper {
+		guint map(guint b) { return b; }
+	} reset;
+	reset.remap(0);
+}
+
+void swap_buttons(Grabber::XiDevice *xi_dev, guint x, guint y) {
+	struct Swap : public Remapper {
+		guint x, y;
+		guint map(guint b) {
+			if (b == x)
+				return y;
+			if (b == y)
+				return x;
+			return b;
+		}
+	} swap;
+	swap.x = x;
+	swap.y = y;
+	swap.remap(xi_dev);
+}
+
+void set_scroll_buttons(Grabber::XiDevice *xi_dev) {
+	struct Scroll : public Remapper {
+		guint map(guint b) { return (b < 4 || b > 7) ? 0 : b; }
+	} scroll;
+	scroll.remap(xi_dev);
+}
+
+void disable_buttons(Grabber::XiDevice *xi_dev, std::set<int> *buttons) {
+	struct Disable : public Remapper {
+		std::set<int> *buttons;
+		guint map(guint b) { return buttons->count(b) ? 0 : b; }
+	} disable;
+	disable.buttons = buttons;
+	disable.remap(xi_dev);
+}
+
 void bail_out() {
 	handler->replace_child(0);
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 	discard(CurrentTime);
+	reset_buttons();
 	XFlush(dpy);
 }
 
@@ -363,23 +440,17 @@ public:
 
 class ScrollHandler : public AbstractScrollHandler {
 protected:
-	void grab() {
-		grabber->grab(Grabber::ALL_ASYNC);
-	}
 public:
 	virtual void init() {
 		grabber->grab_xi_devs(true);
-		grab();
+		set_scroll_buttons(current_dev);
 	}
 	virtual void motion(RTriple e) {
 		if (xinput_pressed.size())
 			AbstractScrollHandler::motion(e);
 	}
-	virtual void press(guint b, RTriple e) {
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-	}
 	virtual void release(guint b, RTriple e) {
-		if (!in_proximity)
+		if (!in_proximity && !xinput_pressed.size())
 			parent->replace_child(0);
 	}
 	virtual void proximity_out() {
@@ -388,22 +459,31 @@ public:
 	virtual std::string name() { return "Scroll"; }
 	virtual ~ScrollHandler() {
 		clear_mods();
+		reset_buttons();
 		grabber->grab_xi_devs(false);
 	}
 };
 
 class ScrollXiHandler : public AbstractScrollHandler {
+	guint button;
 protected:
-	void grab() {
+	void init() {
 		grabber->grab(Grabber::NONE);
+		grabber->grab_xi_devs(true);
+		swap_buttons(current_dev, button, 0);
+		current_dev->fake_press(button);
+		replace_child(new WaitForButtonHandler(button, false));
 	}
 public:
+	ScrollXiHandler(guint button_) : button(button_) {}
 	virtual void release(guint b, RTriple e) {
-		Handler *p = parent;
-		p->replace_child(0);
-		p->release(b, e);
+		if (b != button)
+			return;
+		reset_buttons();
+		clear_mods();
+		grabber->grab_xi_devs(false);
+		parent->replace_child(NULL);
 	}
-	~ScrollXiHandler() { clear_mods(); }
 	virtual std::string name() { return "ScrollXi"; }
 };
 
@@ -413,14 +493,12 @@ class AdvancedLegacyHandler : public Handler {
 	guint button, button2;
 
 	void do_press(float x, float y) {
-		handle_stroke(stroke, x, y, button2, button);
-		ignore = false;
-		scroll = false;
-		replay_button = 0;
-		press_button = 0;
+		RAction act = handle_stroke(stroke, x, y, button2, button);
+		if (act)
+			act->run();
 	}
 public:
-	AdvancedLegacyHandler(RStroke s, RTriple e_, guint b, guint b2) : stroke(s), e(e_), button(b), button2(b2) {}
+	AdvancedLegacyHandler(RStroke s, RTriple e_, guint b2, guint b) : stroke(s), e(e_), button(b), button2(b2) {}
 
 	virtual void init() {
 		do_press(e->x, e->y);
@@ -455,116 +533,103 @@ public:
 	ButtonXiHandler(guint emulate_, guint pressed_) : emulate(emulate_), pressed(pressed_) {}
 	virtual void init() {
 		grabber->grab(Grabber::NONE);
-		XTestFakeButtonEvent(dpy, emulate, True, CurrentTime);
+		grabber->grab_xi_devs(true);
+		swap_buttons(current_dev, pressed, emulate);
+		current_dev->fake_press(pressed);
+		replace_child(new WaitForButtonHandler(pressed, false));
 	}
 	virtual void release(guint b, RTriple e) {
 		if (b != pressed)
 			return;
-		XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
+		reset_buttons();
 		parent->replace_child(0);
 		clear_mods();
+		grabber->grab_xi_devs(false);
 	}
 	virtual std::string name() { return "ButtonXi"; }
 };
 
-class AdvancedHandler : public Handler {
-	RStroke stroke;
+class ScrollAdvancedHandler : public AbstractScrollHandler {
+public:
+	virtual void release(guint b, RTriple e) {
+		Handler *p = parent;
+		p->replace_child(0);
+		p->release(b, e);
+	}
+	virtual std::string name() { return "ScrollAdvanced"; }
+};
+
+class AdvancedHandler : public Handler, Remapper {
 	RTriple e;
-	int emulated_button;
+	guint remap_from, remap_to;
+	std::map<int, RAction> as;
 
 	guint button, button2;
 public:
 	AdvancedHandler(RStroke s, RTriple e_, guint b, guint b2) :
-			stroke(s), e(e_), emulated_button(0), button(b), button2(b2) {
-		XTestFakeButtonEvent(dpy, button, False, CurrentTime);
-		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
+			e(e_), remap_from(0), button(b), button2(b2) {
+		std::map<int, Ranking *> rs;
+		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs);
+		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
+			Glib::signal_idle().connect(sigc::mem_fun(i->second, &Ranking::show));
+	}
+	guint map(guint b) {
+		if (b == button)
+			return 0;
+		if (b == remap_from)
+			return remap_to;
+		return as.count(b) ? 0 : b;
 	}
 	virtual void init() {
 		grabber->grab_xi_devs(true);
-		handle_stroke(stroke, e->x, e->y, button2, button);
-		ignore = false;
-		if (scroll) {
-			scroll = false;
-			Handler *h = new ScrollXiHandler;
-			replace_child(h);
-			h->replace_child(new WaitForButtonHandler(button2, false));
-			return;
-		}
-		if (replay_button) {
-			press_button = replay_button;
-			replay_button = 0;
-		}
-		if (!press_button) {
-			grabber->grab(Grabber::ALL_ASYNC);
-			return;
-		}
-		grabber->suspend();
-		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-		grabber->grab(Grabber::ALL_ASYNC);
-		grabber->resume();
-		emulated_button = press_button;
-		press_button = 0;
+		grabber->grab(Grabber::NONE);
+		current_dev->fake_release(button2);
+		current_dev->fake_release(button);
+		remap(current_dev);
+		current_dev->fake_press(button);
+		current_dev->fake_press(button2);
+		replace_child(new WaitForButtonHandler(button, true));
 	}
 	virtual void press(guint b, RTriple e) {
-		if (button2)
+		int bb = (b == button) ? button2 : b;
+		if (!as.count(bb))
 			return;
-		button2 = b;
-		XTestFakeButtonEvent(dpy, button2, False, CurrentTime);
-		handle_stroke(stroke, e->x, e->y, button, button2);
-		ignore = false;
-		if (scroll) {
-			scroll = false;
-			Handler *h = new ScrollXiHandler;
-			replace_child(h);
-			// Why do we not need this?
-//			h->replace_child(new WaitForButtonHandler(button2, false));
+		RAction act = as[bb];
+		if (IS_SCROLL(act)) {
+			act->prepare();
+			replace_child(new ScrollAdvancedHandler);
 			return;
 		}
-		if (replay_button) {
-			press_button = replay_button;
-			replay_button = 0;
-		}
-		if (!press_button)
+		IF_BUTTON(act, b2) {
+			if (remap_from)
+				return;
+			remap_from = b;
+			remap_to = b2;
+			current_dev->fake_release(b);
+			act->prepare();
+			remap(current_dev);
+			current_dev->fake_press(b);
+			replace_child(new WaitForButtonHandler(b, true));
 			return;
-		if (emulated_button) {
-			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
-			emulated_button = 0;
 		}
-		grabber->suspend();
-		XTestFakeButtonEvent(dpy, press_button, True, CurrentTime);
-		grabber->resume();
-		emulated_button = press_button;
-		press_button = 0;
-	}
-	virtual void resume() {
-		grabber->grab(Grabber::ALL_ASYNC);
+		act->prepare();
+		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
-		if (b != button && b != button2)
-			return;
-		if (b == button)
-			button = button2;
-		button2 = 0;
-		if (emulated_button) {
-			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
-			emulated_button = 0;
-		}
-		if (!button && !button2)
+		if (xinput_pressed.size() == 0) {
 			parent->replace_child(0);
+		} else if (b == remap_from) {
+			remap_from = 0;
+			remap(current_dev);
+		}
 	}
 	virtual ~AdvancedHandler() {
-		if (emulated_button) {
-			XTestFakeButtonEvent(dpy, emulated_button, False, CurrentTime);
-			emulated_button = 0;
-		}
 		clear_mods();
+		reset_buttons();
 		grabber->grab_xi_devs(false);
 	}
 	virtual std::string name() { return "Advanced"; }
 };
-
-
-Trace::Point orig;
 
 struct ButtonTime {
 	guint b;
@@ -710,38 +775,33 @@ class StrokeHandler : public Handler, public Timeout {
 		trace->end();
 		if (!prefs.timeout_gestures.get()) {
 			replay(press_t);
-			parent->replace_child(0);
+			parent->replace_child(NULL);
 			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
 			return;
 		}
 		if (!is_gesture)
 			cur->clear();
 		RStroke s = Stroke::create(*cur, button, 0, true);
-		if (!handle_stroke(s, last->x, last->y, button, 0, button)) {
+		RAction act = handle_stroke(s, last->x, last->y, button, 0);
+		if (!act || IS_CLICK(act)) {
 			replay(press_t);
-			parent->replace_child(0);
-			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+			parent->replace_child(NULL);
+			if (!IS_CLICK(act))
+				XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
 			return;
 		}
 		discard(last->t);
-		if (replay_button) {
-			replay_button = false;
-			printf("Error: This can't happen\n");
-		};
-		if (ignore) {
-			ignore = false;
-		}
-		if (scroll) {
-			scroll = false;
-			parent->replace_child(new ScrollXiHandler);
+		current_dev->fake_release(button);
+		act->run();
+		if (IS_SCROLL(act)) {
+			parent->replace_child(new ScrollXiHandler(button));
 			return;
 		}
-		if (press_button && !(!repeated && xinput_pressed.count(button) && press_button == button)) {
-			parent->replace_child(new ButtonXiHandler(press_button, button));
-			press_button = false;
-			return;
-		}
-		press_button = 0;
+		IF_BUTTON(act, b)
+			if (!(!repeated && xinput_pressed.count(button) && b == button)) {
+				parent->replace_child(new ButtonXiHandler(b, button));
+				return;
+			}
 		clear_mods();
 		parent->replace_child(0);
 	}
@@ -821,14 +881,14 @@ protected:
 
 		if (stroke_action) {
 			handle_stroke(s, e->x, e->y, button, b);
-			parent->replace_child(0);
+			parent->replace_child(NULL);
 			return;
 		}
 
 		if (grabber->xinput)
-			parent->replace_child(new AdvancedHandler(s, e, b, button));
+			parent->replace_child(new AdvancedHandler(s, e, button, b));
 		else
-			parent->replace_child(new AdvancedLegacyHandler(s, e, b, button));
+			parent->replace_child(new AdvancedLegacyHandler(s, e, button, b));
 	}
 
 	virtual void release(guint b, RTriple e) {
@@ -836,36 +896,36 @@ protected:
 			return;
 		RStroke s = finish(0);
 
-		// TODO
-		bool good = handle_stroke(s, e->x, e->y, button, 0);
-		win->show_success(good);
-		if (!good)
+		RAction act = handle_stroke(s, e->x, e->y, button, 0);
+		if (stroke_action) {
+			parent->replace_child(0);
+			return;
+		}
+		win->show_success(act);
+		if (act)
+			act->run();
+		else
 			XBell(dpy, 0);
-		if (replay_button) {
+		if (IS_CLICK(act)) {
 			if (grabber->xinput)
 				replay(press_t);
 			else
-				press_button = replay_button;
-			replay_button = 0;
-		} else
+				act = Button::create((Gdk::ModifierType)0, b);
+		} else {
 			if (grabber->xinput)
 				discard(press_t);
-		if (ignore) {
-			ignore = false;
+		}
+		if (IS_IGNORE(act)) {
 			parent->replace_child(new IgnoreHandler);
 			return;
 		}
-		if (scroll) {
-			scroll = false;
-			if (grabber->xinput) {
-				parent->replace_child(new ScrollHandler);
-				return;
-			}
+		if (IS_SCROLL(act) && grabber->xinput) {
+			parent->replace_child(new ScrollHandler);
+			return;
 		}
-		if (press_button && !(!repeated && xinput_pressed.count(b) && press_button == button)) {
-			grabber->fake_button(press_button);
-		}
-		press_button = 0;
+		IF_BUTTON(act, press)
+			if (press && !(!repeated && xinput_pressed.count(b) && press == button))
+				grabber->fake_button(press);
 		clear_mods();
 		parent->replace_child(0);
 	}
@@ -889,28 +949,6 @@ public:
 
 float StrokeHandler::k = -0.01;
 
-class WorkaroundHandler : public Handler, public Timeout {
-public:
-	WorkaroundHandler() {
-		set_timeout(100);
-	}
-	virtual void timeout() {
-		printf("Warning: WorkaroundHandler timed out\n");
-		bail_out();
-	}
-	virtual void press(guint b, RTriple e) {
-		if (b == 1)
-			return;
-		grabber->fake_device_release(1);
-		grabber->fake_device_release(b);
-		RPreStroke p = PreStroke::create();
-		RStroke s = Stroke::create(*p, b, 1, false);
-		parent->replace_child(new AdvancedHandler(s, e, 1, b));
-	}
-	virtual bool need_xi() { return false; }
-	virtual std::string name() { return "Workaround"; }
-};
-
 class IdleHandler : public Handler {
 protected:
 	virtual void init() {
@@ -922,10 +960,20 @@ protected:
 			replay(t);
 			return;
 		}
-		unsigned int state = grabber->get_device_button_state();
+		unsigned int state = current_dev->get_button_state();
 		if (state & (state-1)) {
 			discard(t);
-			replace_child(new WorkaroundHandler);
+			int other = 0;
+			for (int i = 0; i < 32; i++) {
+				if (state & (1 << i))
+					current_dev->fake_release(i);
+				other = i;
+			}
+			current_dev->fake_press(other);
+			for (int i = 0; i < 32; i++)
+				if ((state & (1 << i)) && other != i)
+					current_dev->fake_press(i);
+			parent->replace_child(new WaitForButtonHandler(other, false));
 		} else {
 			replay(t);
 		}
@@ -951,8 +999,6 @@ public:
 	}
 };
 
-boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
-
 class SelectHandler : public Handler, public Timeout {
 	bool active;
 	sigc::slot<void, std::string> callback;
@@ -969,7 +1015,7 @@ class SelectHandler : public Handler, public Timeout {
 		parent->replace_child(0);
 	}
 	virtual bool need_xi() { return false; }
-	public:
+public:
 	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
 		win->get_window().get_window()->lower();
 		set_timeout(100);
@@ -988,8 +1034,6 @@ void run_by_name(const char *str) {
 	}
 	printf("Warning: No action \"%s\" defined\n", str);
 }
-
-bool dead = false;
 
 void quit(int) {
 	if (handler->top()->idle() || dead)
@@ -1019,8 +1063,6 @@ public:
 	void handle_event(XEvent &ev);
 	~Main();
 };
-
-ActionDBWatcher *action_watcher = 0;
 
 class ReloadTrace : public Timeout {
 	void timeout() {
@@ -1106,9 +1148,6 @@ Main::Main() : kit(0) {
 
 	start_dbus();
 }
-
-Glib::Dispatcher *allower = 0;
-bool needs_allowing = false;
 
 void allow_events() {
 	printf("Warning: press without corresponding release, resetting...\n");
@@ -1273,29 +1312,28 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-bool handle_stroke(RStroke s, float x, float y, int trigger, int button, int button_up) {
-	bool success = false;
-	s->trigger = trigger;
+RAction handle_stroke(RStroke s, float x, float y, int trigger, int button) {
+	s->set_trigger(trigger);
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
 		s->print();
 	if (stroke_action) {
 		(*stroke_action)(s);
 		stroke_action.reset();
-		success = true;
+		return RAction();
 	} else {
-		Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);
-		success = ranking->id != &stroke_not_found && ranking->id != &stroke_is_timeout;
+		Ranking *ranking = new Ranking;
+		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
+		if (act)
+			act->prepare();
 		ranking->x = (int)x;
 		ranking->y = (int)y;
-		if (ranking->id == &stroke_is_click)
-			replay_button = trigger;
-		if ((ranking->id!=&stroke_is_click && ranking->id!=&stroke_is_timeout) || prefs.show_clicks.get())
+		if (!IS_CLICK(act) || prefs.show_clicks.get())
 			Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
 		else
 			delete ranking;
+		return act;
 	}
-	return success;
 }
 
 extern Window get_app_window(Window &w);
@@ -1514,6 +1552,10 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			if (verbosity >= 3)
 				printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
 						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
+			if (xinput_pressed.size())
+				if (!current_dev || current_dev->dev->device_id != bev->deviceid)
+					return 0;
+			current_dev = grabber->get_xi_dev(bev->deviceid);
 			xinput_pressed.insert(bev->button);
 			me = new MouseEvent;
 			me->type = MouseEvent::PRESS;
@@ -1529,6 +1571,8 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			if (verbosity >= 3)
 				printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
 						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+			if (!current_dev || current_dev->dev->device_id != bev->deviceid)
+				return 0;
 			xinput_pressed.erase(bev->button);
 			me = new MouseEvent;
 			me->type = MouseEvent::RELEASE;
@@ -1547,6 +1591,8 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			if (verbosity >= 3)
 				printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
 						mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
+			if (!current_dev || current_dev->dev->device_id != mev->deviceid)
+				return 0;
 			me = new MouseEvent;
 			me->type = MouseEvent::MOTION;
 			me->button = 0;
@@ -1665,23 +1711,9 @@ int main(int argc_, char **argv_) {
 	return EXIT_SUCCESS;
 }
 
-bool SendKey::run() {
-	press();
+void SendKey::run() {
 	XTestFakeKeyEvent(dpy, code, true, 0);
 	XTestFakeKeyEvent(dpy, code, false, 0);
-	return true;
-}
-
-bool Button::run() {
-		press();
-		press_button = button;
-		return true;
-}
-
-bool Scroll::run() {
-	press();
-	scroll = true;
-	return true;
 }
 
 struct does_that_really_make_you_happy_stupid_compiler {
@@ -1701,9 +1733,8 @@ struct does_that_really_make_you_happy_stupid_compiler {
 };
 int n_modkeys = 10;
 
-guint mod_state = 0;
-
 void set_mod_state(int new_state) {
+	static guint mod_state = 0;
 	for (int i = 0; i < n_modkeys; i++) {
 		guint mask = modkeys[i].mask;
 		if ((mod_state & mask) ^ (new_state & mask))
@@ -1712,11 +1743,7 @@ void set_mod_state(int new_state) {
 	mod_state = new_state;
 }
 
-void ButtonInfo::press() {
-	set_mod_state(state);
-}
-
-void ModAction::press() {
+void ModAction::prepare() {
 	set_mod_state(mods);
 }
 
@@ -1724,23 +1751,18 @@ void clear_mods() {
 	set_mod_state(0);
 }
 
-bool Ignore::run() {
-	press();
-	ignore = true;
-	return true;
-}
-
-bool Misc::run() {
+void Misc::run() {
 	switch (type) {
 		case SHOWHIDE:
 			win->show_hide();
-			return true;
+			return;
 		case UNMINIMIZE:
 			grabber->unminimize();
-			return true;
+			return;
 		case DISABLE:
 			win->toggle_disabled();
+			return;
 		default:
-			return true;
+			return;
 	}
 }

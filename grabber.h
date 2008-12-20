@@ -58,7 +58,6 @@ public:
 	bool xinput;
 	bool proximity_selected;
 	bool is_event(int, EventType);
-	unsigned int get_device_button_state();
 	void select_proximity();
 
 	struct XiDevice {
@@ -74,6 +73,9 @@ public:
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
+		unsigned int get_button_state();
+		void fake_press(int b);
+		void fake_release(int b);
 	};
 	XiDevice *get_xi_dev(XID id);
 	int event_presence;
@@ -117,7 +119,6 @@ public:
 	void grab_xi_devs(bool);
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
 	void toggle_disabled() { disabled = !disabled; set(); }
-	void fake_device_release(guint b);
 	bool update_device_list();
 
 	void unminimize();

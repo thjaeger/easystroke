@@ -108,9 +108,7 @@ void SendKey::compute_code() {
 		code = XKeysymToKeycode(dpy, key);
 }
 
-bool Command::run() {
-	if (cmd == "")
-		return false;
+void Command::run() {
 	pid_t pid = fork();
 	switch (pid) {
 		case 0:
@@ -119,7 +117,6 @@ bool Command::run() {
 		case -1:
 			printf("Error: can't execute command %s: fork failed\n", cmd.c_str());
 	}
-	return true;
 }
 
 ButtonInfo Button::get_button_info() const {
@@ -284,16 +281,12 @@ void ActionListDiff::all_strokes(std::list<RStroke> &strokes) const {
 		i->all_strokes(strokes);
 }
 
-Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
-
-Ranking *ActionListDiff::handle(RStroke s, int button_up) const {
-	Ranking *r = new Ranking;
-	r->stroke = s;
-	r->score = -1;
-	r->id = &stroke_not_found;
-	bool success = false;
+RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 	if (!s)
-		return r;
+		return RAction();
+	r.stroke = s;
+	r.score = -1;
+	r.id = NULL;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
 	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
 		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
@@ -301,6 +294,58 @@ Ranking *ActionListDiff::handle(RStroke s, int button_up) const {
 			bool match = Stroke::compare(s, *j, score);
 			if (score < 0.25)
 				continue;
+			RStrokeInfo si = get_info(i->first);
+			r.r.insert(pair<double, pair<std::string, RStroke> >
+					(score, pair<std::string, RStroke>(si->name, *j)));
+			if (score >= r.score) {
+				r.score = score;
+				if (match) {
+					r.id = i->first;
+					r.name = si->name;
+					r.action = si->action;
+					r.best_stroke = *j;
+				}
+			}
+		}
+	}
+	if (!r.action && s->trivial()) {
+		r.action = RAction(new Click);
+		r.name = "click (default)";
+	}
+	if (r.action) {
+		if (verbosity >= 1)
+			cout << "Excecuting Action " << r.name << "..." << endl;
+	} else {
+		if (verbosity >= 1)
+			cout << "Couldn't find matching stroke." << endl;
+	}
+	return r.action;
+}
+
+void ActionListDiff::handle_advanced(RStroke s, std::map<int, RAction> &as, std::map<int, Ranking *> &rs) const {
+	if (!s)
+		return;
+	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
+	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
+		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+			int b = (*j)->button;
+			if (!b)
+				continue;
+			s->button = b;
+			double score;
+			bool match = Stroke::compare(s, *j, score);
+			if (score < 0.25)
+				continue;
+			Ranking *r;
+			if (rs.count(b)) {
+				r = rs[b];
+			} else {
+				r = new Ranking;
+				rs[b] = r;
+				r->stroke = RStroke(new Stroke(*s));
+				r->score = -1;
+				r->id = NULL;
+			}
 			RStrokeInfo si = get_info(i->first);
 			r->r.insert(pair<double, pair<std::string, RStroke> >
 					(score, pair<std::string, RStroke>(si->name, *j)));
@@ -311,29 +356,11 @@ Ranking *ActionListDiff::handle(RStroke s, int button_up) const {
 					r->name = si->name;
 					r->action = si->action;
 					r->best_stroke = *j;
-					success = true;
+					as[b] = si->action;
 				}
 			}
 		}
 	}
-	if (!success && s->trivial()) {
-		r->id = s->is_timeout() ? &stroke_is_timeout : &stroke_is_click;
-		r->name = "click (default)";
-		if (!s->is_timeout())
-			success = true;
-	}
-	if (success) {
-		if (verbosity >= 1)
-			cout << "Excecuting Action " << r->name << "..." << endl;
-		if (button_up)
-			XTestFakeButtonEvent(dpy, button_up, False, CurrentTime);
-		if (r->action)
-			r->action->run();
-	} else {
-		if (verbosity >= 1)
-			cout << "Couldn't find matching stroke." << endl;
-	}
-	return r;
 }
 
 ActionListDiff::~ActionListDiff() {

@@ -49,9 +49,9 @@ class Action {
 	friend std::ostream& operator<<(std::ostream& output, const Action& c);
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
-	virtual bool run() = 0;
+	virtual void run() {};
+	virtual void prepare() {};
 	virtual const Glib::ustring get_label() const = 0;
-	virtual ~Action() {};
 };
 
 class Command : public Action {
@@ -62,7 +62,7 @@ public:
 	std::string cmd;
 	Command() {}
 	static RCommand create(const std::string &c) { return RCommand(new Command(c)); }
-	virtual bool run();
+	virtual void run();
 	virtual const Glib::ustring get_label() const { return cmd; }
 };
 
@@ -73,7 +73,7 @@ protected:
 	ModAction() {}
 	Gdk::ModifierType mods;
 	ModAction(Gdk::ModifierType mods_) : mods(mods_) {}
-	void press();
+	virtual void prepare();
 public:
 	virtual const Glib::ustring get_label() const;
 };
@@ -95,7 +95,7 @@ public:
 		return RSendKey(new SendKey(key, mods, code));
 	}
 
-	virtual bool run();
+	virtual void run();
 	virtual const Glib::ustring get_label() const;
 };
 BOOST_CLASS_VERSION(SendKey, 1)
@@ -108,8 +108,8 @@ class Scroll : public ModAction {
 public:
 	Scroll() {}
 	static RScroll create(Gdk::ModifierType mods) { return RScroll(new Scroll(mods)); }
-	virtual bool run();
 };
+#define IS_SCROLL(act) (act && dynamic_cast<Scroll *>(act.get()))
 
 class Ignore : public ModAction {
 	friend class boost::serialization::access;
@@ -118,8 +118,8 @@ class Ignore : public ModAction {
 public:
 	Ignore() {}
 	static RIgnore create(Gdk::ModifierType mods) { return RIgnore(new Ignore(mods)); }
-	virtual bool run();
 };
+#define IS_IGNORE(act) (act && dynamic_cast<Ignore *>(act.get()))
 
 class Button : public ModAction {
 	friend class boost::serialization::access;
@@ -129,10 +129,18 @@ class Button : public ModAction {
 public:
 	Button() {}
 	ButtonInfo get_button_info() const;
+	static unsigned int get_button(RAction act) {
+		if (!act)
+			return 0;
+		Button *b = dynamic_cast<Button *>(act.get());
+		if (!b)
+			return 0;
+		return b->get_button_info().button;
+	}
 	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
-	virtual bool run();
 	virtual const Glib::ustring get_label() const;
 };
+#define IF_BUTTON(act, b) for (unsigned int b = Button::get_button(act); b; b = 0)
 
 class Misc : public Action {
 	friend class boost::serialization::access;
@@ -147,13 +155,19 @@ public:
 	Misc() {}
 	virtual const Glib::ustring get_label() const { return types[type]; }
 	static RMisc create(Type t) { return RMisc(new Misc(t)); }
-	virtual bool run();
+	virtual void run();
 };
 
 class StrokeSet : public std::set<RStroke> {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 };
+
+// Internal use only
+class Click : public Action {
+	virtual const Glib::ustring get_label() const { return "Click"; }
+};
+#define IS_CLICK(act) (act && dynamic_cast<Click *>(act.get()))
 
 class StrokeInfo {
 	friend class boost::serialization::access;
@@ -329,13 +343,12 @@ public:
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
 	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
 	void all_strokes(std::list<RStroke> &strokes) const;
-	Ranking *handle(RStroke, int) const;
+	RAction handle(RStroke s, Ranking &r) const;
+	void handle_advanced(RStroke s, std::map<int, RAction> &a, std::map<int, Ranking *> &r) const;
 
 	~ActionListDiff();
 };
 BOOST_CLASS_VERSION(ActionListDiff, 1)
-
-extern Unique stroke_not_found, stroke_is_click, stroke_is_timeout;
 
 class ActionDB {
 	friend class boost::serialization::access;
