@@ -1,3 +1,8 @@
+2008-12-22  Released 0.3.1
+	* Better method for drawing strokes on a composited desktop
+	* Several bug-fixes
+	* Autostart option
+
 2008-11-07  Released 0.3.0
 	* application-dependent gestures
 	* application-dependent gesture button
