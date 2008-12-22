@@ -46,6 +46,8 @@ int offset_x = 0;
 int offset_y = 0;
 
 Display *dpy;
+int argc;
+char **argv;
 
 std::string config_dir;
 Win *win;
@@ -253,8 +255,12 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
-	printf("Fatal Error: Connection to X server lost\n");
-	raise(SIGSEGV);
+	printf("Fatal Error: Connection to X server lost, restarting...\n");
+	char *args[argc+1];
+	for (int i = 0; i<argc; i++)
+		args[i] = argv[i];
+	args[argc] = NULL;
+	execv(argv[0], args);
 	return 0;
 }
 
@@ -993,7 +999,7 @@ void quit(int) {
 struct MouseEvent;
 
 class Main {
-	std::string parse_args_and_init_gtk(int argc, char **argv);
+	std::string parse_args_and_init_gtk();
 	void create_config_dir();
 	char* next_event();
 	void usage(char *me, bool good);
@@ -1002,7 +1008,7 @@ class Main {
 	std::string display;
 	Gtk::Main *kit;
 public:
-	Main(int argc, char **argv);
+	Main();
 	void run();
 	MouseEvent *get_mouse_event(XEvent &ev);
 	bool handle(Glib::IOCondition);
@@ -1047,7 +1053,7 @@ void send_dbus(char *str) {
 
 bool start_dbus();
 
-Main::Main(int argc, char **argv) : kit(0) {
+Main::Main() : kit(0) {
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("easystroke.svg");
@@ -1062,7 +1068,7 @@ Main::Main(int argc, char **argv) : kit(0) {
 	}
 
 	Glib::thread_init();
-	display = parse_args_and_init_gtk(argc, argv);
+	display = parse_args_and_init_gtk();
 	create_config_dir();
 	unsetenv("DESKTOP_AUTOSTART_ID");
 
@@ -1168,7 +1174,7 @@ void Main::version() {
 	exit(EXIT_SUCCESS);
 }
 
-std::string Main::parse_args_and_init_gtk(int argc, char **argv) {
+std::string Main::parse_args_and_init_gtk() {
 	static struct option long_opts1[] = {
 		{"display",1,0,'d'},
 		{"help",0,0,'h'},
@@ -1608,8 +1614,10 @@ Main::~Main() {
 	action_watcher->execute_now();
 }
 
-int main(int argc, char **argv) {
-	Main mn(argc, argv);
+int main(int argc_, char **argv_) {
+	argc = argc_;
+	argv = argv_;
+	Main mn;
 	mn.run();
 	if (verbosity >= 2)
 		printf("Exiting...\n");
