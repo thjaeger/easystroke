@@ -108,7 +108,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	if (version < 10) return;
 	ar & excluded_devices.unsafe_ref();
 	if (version < 12) {
-		unsigned long c;
+		unsigned long c = 0;
 		ar & c;
 		color.unsafe_ref().color.set_rgb(257*(c >> 16), 257*((c >> 8) % 256), 257*(c % 256));
 		return;
