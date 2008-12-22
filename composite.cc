@@ -45,7 +45,7 @@ void Popup::invalidate(int x1, int y1, int x2, int y2) {
 }
 
 Composite::Composite() {
-#define N 64
+#define N 128
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
 	int w = screen->get_width();
 	int h = screen->get_height();
