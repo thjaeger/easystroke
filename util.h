@@ -17,9 +17,11 @@
 #define __UTIL_H__
 
 #include <glibmm.h>
+#include <boost/serialization/shared_ptr.hpp>
 
 class Timeout {
 	sigc::connection *c;
+	boost::shared_ptr<sigc::connection> copy;
 	bool to() { timeout(); c = 0; return false; }
 public:
 	Timeout() : c(0) {}
@@ -29,7 +31,6 @@ public:
 	bool remove_timeout() {
 		if (c) {
 			c->disconnect();
-			delete c;
 			c = 0;
 			return true;
 		}
@@ -38,6 +39,7 @@ public:
 	void set_timeout(int ms) {
 		remove_timeout();
 		c = new sigc::connection(Glib::signal_timeout().connect(sigc::mem_fun(*this, &Timeout::to), ms));
+		copy.reset(c);
 	}
 	virtual ~Timeout() {
 		remove_timeout();
