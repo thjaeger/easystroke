@@ -1485,7 +1485,7 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 
 	case ButtonPress:
 		if (verbosity >= 3)
-			printf("Press: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
+			printf("Press: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
 		last_press_t = ev.xbutton.time;
 		me = new MouseEvent;
 		me->type = MouseEvent::PRESS;
@@ -1512,8 +1512,8 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 		if (grabber->is_event(ev.type, Grabber::DOWN)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			if (verbosity >= 3)
-				printf("Press (Xi): %d (%d, %d, %d, %d, %d)\n",bev->button, bev->x, bev->y,
-						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+				printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
+						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
 			xinput_pressed.insert(bev->button);
 			me = new MouseEvent;
 			me->type = MouseEvent::PRESS;
