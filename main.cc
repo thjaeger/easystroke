@@ -214,13 +214,37 @@ public:
 
 
 class Remapper {
+	void handle_grabs() {
+		guint n = XGetPointerMapping(dpy, 0, 0);
+		for (guint i = 1; i<=n; i++) {
+			bool is_grabbed = !!core_grabs.count(i);
+			if (is_grabbed == (map(i) != i))
+				continue;
+			if (!is_grabbed) {
+				if (verbosity >= 2)
+					printf("Grabbing button %d\n", i);
+				XGrabButton(dpy, i, AnyModifier, ROOT, False, ButtonPressMask,
+						GrabModeAsync, GrabModeAsync, None, None);
+				core_grabs.insert(i);
+			} else {
+				if (verbosity >= 2)
+					printf("Ungrabbing button %d\n", i);
+				XUngrabButton(dpy, i, AnyModifier, ROOT);
+				core_grabs.erase(i);
+			}
+
+		}
+	}
 protected:
 	virtual guint map(guint b) = 0;
 public:
+	static std::set<guint> core_grabs;
 	// This can potentially mess up the user's mouse, make sure that it doesn't fail
 	void remap(Grabber::XiDevice *xi_dev) {
-		if (!xi_15)
+		if (!xi_15) {
+			handle_grabs();
 			return;
+		}
 		int ret;
 		do {
 			int n = XGetPointerMapping(dpy, 0, 0);
@@ -245,6 +269,8 @@ public:
 		} while (ret == BadValue);
 	}
 };
+
+std::set<guint> Remapper::core_grabs;
 
 void reset_buttons() {
 	struct Reset : public Remapper {
@@ -360,7 +386,6 @@ class AbstractScrollHandler : public Handler {
 protected:
 	AbstractScrollHandler() : osd("Scroll"), last_t(0), offset_x(0.0), offset_y(0.0) {}
 	virtual void fake_button(int b1, int n1, int b2, int n2) {
-		grabber->suspend();
 		for (int i = 0; i<n1; i++) {
 			XTestFakeButtonEvent(dpy, b1, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, b1, False, CurrentTime);
@@ -369,7 +394,6 @@ protected:
 			XTestFakeButtonEvent(dpy, b2, True, CurrentTime);
 			XTestFakeButtonEvent(dpy, b2, False, CurrentTime);
 		}
-		grabber->resume();
 	}
 	static float curve(float v) {
 		return v * exp(log(abs(v))/3);
@@ -422,11 +446,16 @@ class ScrollHandler : public AbstractScrollHandler, Remapper {
 public:
 	virtual void init() {
 		grabber->grab_xi_devs(true);
+		grabber->grab(Grabber::NONE);
 		remap(current_dev);
 	}
 	virtual void motion(RTriple e) {
 		if (xinput_pressed.size())
 			AbstractScrollHandler::motion(e);
+	}
+	virtual void press(guint b, RTriple e) {
+		if (!xi_15 && map(b) == 0)
+			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
 	virtual void release(guint b, RTriple e) {
 		if (!in_proximity && !xinput_pressed.size())
@@ -514,6 +543,8 @@ public:
 class ButtonXiHandler : public Handler, Remapper {
 	guint emulate, pressed;
 	guint map(guint b) {
+		if (!xi_15)
+			return b;
 		if (b == emulate)
 			return pressed;
 		if (b == pressed)
@@ -526,12 +557,14 @@ public:
 		grabber->grab(Grabber::NONE);
 		grabber->grab_xi_devs(true);
 		remap(current_dev);
-		current_dev->fake_press(pressed, map(pressed));
+		current_dev->fake_press(pressed, emulate);
 		replace_child(new WaitForButtonHandler(pressed, false));
 	}
 	virtual void release(guint b, RTriple e) {
 		if (b != pressed)
 			return;
+		if (!xi_15)
+			XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
 		reset_buttons();
 		parent->replace_child(0);
 		clear_mods();
@@ -587,15 +620,15 @@ public:
 				remap_to = b2;
 				act->prepare();
 				remap(current_dev);
-				current_dev->fake_press(button, map(button));
-				current_dev->fake_press(button2, map(button2));
+				current_dev->fake_press(button, 0);
+				current_dev->fake_press(button2, 0);
 				replace_child(new WaitForButtonHandler(button2, true));
 				return;
 			}
 		}
 		remap(current_dev);
-		current_dev->fake_press(button, map(button));
-		current_dev->fake_press(button2, map(button2));
+		current_dev->fake_press(button, 0);
+		current_dev->fake_press(button2, 0);
 		replace_child(new WaitForButtonHandler(button, true));
 	}
 	virtual void press(guint b, RTriple e) {
@@ -611,12 +644,12 @@ public:
 		IF_BUTTON(act, b2) {
 			if (remap_from)
 				return;
-			current_dev->fake_release(b, map(b));
+			current_dev->fake_release(b, 0);
 			remap_from = b;
 			remap_to = b2;
 			act->prepare();
 			remap(current_dev);
-			current_dev->fake_press(b, map(b));
+			current_dev->fake_press(b, 0);
 			replace_child(new WaitForButtonHandler(b, true));
 			return;
 		}
