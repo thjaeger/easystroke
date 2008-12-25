@@ -471,7 +471,7 @@ protected:
 		grabber->grab(Grabber::NONE);
 		grabber->grab_xi_devs(true);
 		swap_buttons(current_dev, button, 0);
-		current_dev->fake_press(button);
+		current_dev->fake_press(button, false);
 		replace_child(new WaitForButtonHandler(button, false));
 	}
 public:
@@ -535,7 +535,7 @@ public:
 		grabber->grab(Grabber::NONE);
 		grabber->grab_xi_devs(true);
 		swap_buttons(current_dev, pressed, emulate);
-		current_dev->fake_press(pressed);
+		current_dev->fake_press(pressed, true);
 		replace_child(new WaitForButtonHandler(pressed, false));
 	}
 	virtual void release(guint b, RTriple e) {
@@ -586,8 +586,8 @@ public:
 		current_dev->fake_release(button2);
 		current_dev->fake_release(button);
 		remap(current_dev);
-		current_dev->fake_press(button);
-		current_dev->fake_press(button2);
+		current_dev->fake_press(button, false);
+		current_dev->fake_press(button2, false);
 		replace_child(new WaitForButtonHandler(button, true));
 	}
 	virtual void press(guint b, RTriple e) {
@@ -608,7 +608,7 @@ public:
 			current_dev->fake_release(b);
 			act->prepare();
 			remap(current_dev);
-			current_dev->fake_press(b);
+			current_dev->fake_press(b, true);
 			replace_child(new WaitForButtonHandler(b, true));
 			return;
 		}
@@ -969,10 +969,10 @@ protected:
 					current_dev->fake_release(i);
 				other = i;
 			}
-			current_dev->fake_press(other);
+			current_dev->fake_press(other, true);
 			for (int i = 0; i < 32; i++)
 				if ((state & (1 << i)) && other != i)
-					current_dev->fake_press(i);
+					current_dev->fake_press(i, true);
 			parent->replace_child(new WaitForButtonHandler(other, false));
 		} else {
 			replay(t);
