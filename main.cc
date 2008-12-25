@@ -624,9 +624,9 @@ public:
 		}
 	}
 	virtual ~AdvancedHandler() {
-		clear_mods();
 		reset_buttons();
 		grabber->grab_xi_devs(false);
+		clear_mods();
 	}
 	virtual std::string name() { return "Advanced"; }
 };
@@ -953,6 +953,7 @@ class IdleHandler : public Handler {
 protected:
 	virtual void init() {
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
+		reset_buttons();
 		grab();
 	}
 	virtual void press_no_xi(guint b, Time t) {
@@ -1036,6 +1037,8 @@ void run_by_name(const char *str) {
 }
 
 void quit(int) {
+	if (dead)
+		bail_out();
 	if (handler->top()->idle() || dead)
 		Gtk::Main::quit();
 	else
