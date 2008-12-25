@@ -557,15 +557,15 @@ void Grabber::fake_button(int b) {
 	resume();
 }
 
-void Grabber::XiDevice::fake_press(int b, bool core) {
+void Grabber::XiDevice::fake_press(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, True,  0, 0, 0);
 	if (!xi_15 && core)
-		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+		XTestFakeButtonEvent(dpy, core, True, CurrentTime);
 }
-void Grabber::XiDevice::fake_release(int b) {
+void Grabber::XiDevice::fake_release(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, False, 0, 0, 0);
-	if (!xi_15)
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+	if (!xi_15 && core)
+		XTestFakeButtonEvent(dpy, core, False, CurrentTime);
 }
 
 std::string Grabber::get_wm_class(Window w) {

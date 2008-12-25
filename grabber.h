@@ -74,8 +74,8 @@ public:
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
 		unsigned int get_button_state();
-		void fake_press(int b, bool core);
-		void fake_release(int b);
+		void fake_press(int b, int core);
+		void fake_release(int b, int core);
 	};
 	XiDevice *get_xi_dev(XID id);
 	int event_presence;

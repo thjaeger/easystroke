@@ -219,6 +219,8 @@ protected:
 public:
 	// This can potentially mess up the user's mouse, make sure that it doesn't fail
 	void remap(Grabber::XiDevice *xi_dev) {
+		if (!xi_15)
+			return;
 		int ret;
 		do {
 			int n = XGetPointerMapping(dpy, 0, 0);
@@ -239,7 +241,7 @@ public:
 				m[i] = i+1;
 			while (MappingBusy == (ret = XSetDeviceButtonMapping(dpy, dev, m, n)))
 				for (int i = 1; i<=n; i++)
-					xi_dev->fake_release(i);
+					xi_dev->fake_release(i, 0);
 		} while (ret == BadValue);
 	}
 };
@@ -249,29 +251,6 @@ void reset_buttons() {
 		guint map(guint b) { return b; }
 	} reset;
 	reset.remap(0);
-}
-
-void swap_buttons(Grabber::XiDevice *xi_dev, guint x, guint y) {
-	struct Swap : public Remapper {
-		guint x, y;
-		guint map(guint b) {
-			if (b == x)
-				return y;
-			if (b == y)
-				return x;
-			return b;
-		}
-	} swap;
-	swap.x = x;
-	swap.y = y;
-	swap.remap(xi_dev);
-}
-
-void set_scroll_buttons(Grabber::XiDevice *xi_dev) {
-	struct Scroll : public Remapper {
-		guint map(guint b) { return (b < 4 || b > 7) ? 0 : b; }
-	} scroll;
-	scroll.remap(xi_dev);
 }
 
 void disable_buttons(Grabber::XiDevice *xi_dev, std::set<int> *buttons) {
@@ -438,12 +417,12 @@ public:
 	}
 };
 
-class ScrollHandler : public AbstractScrollHandler {
-protected:
+class ScrollHandler : public AbstractScrollHandler, Remapper {
+	guint map(guint b) { return (b < 4 || b > 7) ? 0 : b; }
 public:
 	virtual void init() {
 		grabber->grab_xi_devs(true);
-		set_scroll_buttons(current_dev);
+		remap(current_dev);
 	}
 	virtual void motion(RTriple e) {
 		if (xinput_pressed.size())
@@ -464,14 +443,19 @@ public:
 	}
 };
 
-class ScrollXiHandler : public AbstractScrollHandler {
+class ScrollXiHandler : public AbstractScrollHandler, Remapper {
 	guint button;
+	guint map(guint b) {
+		if (b == button)
+			return 0;
+		return b;
+	}
 protected:
 	void init() {
 		grabber->grab(Grabber::NONE);
 		grabber->grab_xi_devs(true);
-		swap_buttons(current_dev, button, 0);
-		current_dev->fake_press(button, false);
+		remap(current_dev);
+		current_dev->fake_press(button, map(button));
 		replace_child(new WaitForButtonHandler(button, false));
 	}
 public:
@@ -527,15 +511,22 @@ public:
 	virtual std::string name() { return "AdvancedLegacy"; }
 };
 
-class ButtonXiHandler : public Handler {
+class ButtonXiHandler : public Handler, Remapper {
 	guint emulate, pressed;
+	guint map(guint b) {
+		if (b == emulate)
+			return pressed;
+		if (b == pressed)
+			return emulate;
+		return b;
+	}
 public:
 	ButtonXiHandler(guint emulate_, guint pressed_) : emulate(emulate_), pressed(pressed_) {}
 	virtual void init() {
 		grabber->grab(Grabber::NONE);
 		grabber->grab_xi_devs(true);
-		swap_buttons(current_dev, pressed, emulate);
-		current_dev->fake_press(pressed, true);
+		remap(current_dev);
+		current_dev->fake_press(pressed, map(pressed));
 		replace_child(new WaitForButtonHandler(pressed, false));
 	}
 	virtual void release(guint b, RTriple e) {
@@ -574,20 +565,37 @@ public:
 			Glib::signal_idle().connect(sigc::mem_fun(i->second, &Ranking::show));
 	}
 	guint map(guint b) {
-		if (b == button)
-			return 0;
 		if (b == remap_from)
 			return remap_to;
-		return as.count(b) ? 0 : b;
+		if (b == button)
+			return 0;
+		if (remap_from && b == remap_to)
+			return 0;
+		if (as.count(b))
+			return 0;
+		return b;
 	}
 	virtual void init() {
 		grabber->grab_xi_devs(true);
 		grabber->grab(Grabber::NONE);
-		current_dev->fake_release(button2);
-		current_dev->fake_release(button);
+		current_dev->fake_release(button2, button2);
+		current_dev->fake_release(button, button);
+		if (as.count(button2)) {
+			RAction act = as[button2];
+			IF_BUTTON(act, b2) {
+				remap_from = button2;
+				remap_to = b2;
+				act->prepare();
+				remap(current_dev);
+				current_dev->fake_press(button, map(button));
+				current_dev->fake_press(button2, map(button2));
+				replace_child(new WaitForButtonHandler(button2, true));
+				return;
+			}
+		}
 		remap(current_dev);
-		current_dev->fake_press(button, false);
-		current_dev->fake_press(button2, false);
+		current_dev->fake_press(button, map(button));
+		current_dev->fake_press(button2, map(button2));
 		replace_child(new WaitForButtonHandler(button, true));
 	}
 	virtual void press(guint b, RTriple e) {
@@ -603,12 +611,12 @@ public:
 		IF_BUTTON(act, b2) {
 			if (remap_from)
 				return;
+			current_dev->fake_release(b, map(b));
 			remap_from = b;
 			remap_to = b2;
-			current_dev->fake_release(b);
 			act->prepare();
 			remap(current_dev);
-			current_dev->fake_press(b, true);
+			current_dev->fake_press(b, map(b));
 			replace_child(new WaitForButtonHandler(b, true));
 			return;
 		}
@@ -791,7 +799,7 @@ class StrokeHandler : public Handler, public Timeout {
 			return;
 		}
 		discard(last->t);
-		current_dev->fake_release(button);
+		current_dev->fake_release(button, button);
 		act->run();
 		if (IS_SCROLL(act)) {
 			parent->replace_child(new ScrollXiHandler(button));
@@ -967,13 +975,13 @@ protected:
 			int other = 0;
 			for (int i = 0; i < 32; i++) {
 				if (state & (1 << i))
-					current_dev->fake_release(i);
+					current_dev->fake_release(i, i);
 				other = i;
 			}
-			current_dev->fake_press(other, true);
+			current_dev->fake_press(other, other);
 			for (int i = 0; i < 32; i++)
 				if ((state & (1 << i)) && other != i)
-					current_dev->fake_press(i, true);
+					current_dev->fake_press(i, i);
 			parent->replace_child(new WaitForButtonHandler(other, false));
 		} else {
 			replay(t);
