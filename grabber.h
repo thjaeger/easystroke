@@ -52,7 +52,7 @@ bool has_atom(Window w, Atom prop, Atom value);
 class Grabber {
 public:
 	Children children;
-	enum State { NONE, BUTTON, ALL_SYNC, ALL_ASYNC, SELECT };
+	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
 	static const char *state_name[6];
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	bool xinput;

@@ -480,8 +480,6 @@ void Grabber::set() {
 	}
 	if (old == ALL_SYNC)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
-	if (old == ALL_ASYNC)
-		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (old == SELECT)
 		XUngrabPointer(dpy, CurrentTime);
 
@@ -505,9 +503,6 @@ void Grabber::set() {
 	if (grabbed == ALL_SYNC)
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask,
 				GrabModeSync, GrabModeAsync, None, None);
-	if (grabbed == ALL_ASYNC)
-		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, True, ButtonPressMask,
-				GrabModeAsync, GrabModeAsync, None, None);
 	if (grabbed == SELECT) {
 		int i = 0;
 		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask,
