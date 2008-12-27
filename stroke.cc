@@ -53,12 +53,9 @@ struct f : public std::unary_function<RTriple, Stroke::Point> {
 	}
 };
 
-void Stroke::set_trigger(int t) {
-	trigger = (t == get_default_button()) ? 0 : t;
-}
-
 Stroke::Stroke(PreStroke &s, int trigger_, int button_, bool timeout_) : button(button_), timeout(timeout_) {
-	set_trigger(trigger_);
+	trigger = (trigger_ == get_default_button()) ? 0 : trigger_;
+
 	if (s.valid()) {
 		std::transform(s.begin(), s.end(), std::back_inserter(points), f());
 		normalize();

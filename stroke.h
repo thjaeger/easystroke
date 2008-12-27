@@ -108,12 +108,10 @@ private:
 		ar & timeout;
 	}
 
-	int trigger;
 public:
+	int trigger;
 	int button;
 	bool timeout;
-
-	void set_trigger(int);
 
 	Stroke() : trigger(0), button(0), timeout(false) {}
 	static RStroke create(PreStroke &s, int trigger_, int button_, bool timeout_) {

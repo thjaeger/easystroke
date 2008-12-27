@@ -121,6 +121,8 @@ public:
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
 
+	int get_default_button() { return grabbed_button.button; }
+
 	void unminimize();
 };
 

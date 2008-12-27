@@ -1324,7 +1324,7 @@ void Main::create_config_dir() {
 }
 
 RAction handle_stroke(RStroke s, float x, float y, int trigger, int button) {
-	s->set_trigger(trigger);
+	s->trigger = (trigger == grabber->get_default_button()) ? 0 : trigger;
 	s->button = (button == trigger) ? 0 : button;
 	if (verbosity >= 4)
 		s->print();
