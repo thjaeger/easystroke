@@ -73,10 +73,11 @@ public:
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
-		unsigned int get_button_state();
 		void fake_press(int b, int core);
 		void fake_release(int b, int core);
 	};
+
+	unsigned int get_device_button_state(XiDevice *&dev);
 	XiDevice *get_xi_dev(XID id);
 	int event_presence;
 	XEventClass presence_class;

@@ -371,25 +371,32 @@ bool Grabber::is_event(int type, EventType et) {
 	return false;
 }
 
-unsigned int Grabber::XiDevice::get_button_state() {
+unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
 	unsigned int mask = 0;
-	XDeviceState *state = XQueryDeviceState(dpy, dev);
-	if (!state)
-		return 0;
-	XInputClass *c = state->data;
-	for (int j = 0; j < state->num_classes; j++) {
-		if (c->c_class == ButtonClass) {
-			XButtonState *b = (XButtonState *)c;
-			mask |= b->buttons[0];
-			mask |= ((unsigned int)b->buttons[1]) << 8;
-			mask |= ((unsigned int)b->buttons[2]) << 16;
-			mask |= ((unsigned int)b->buttons[3]) << 24;
+	for (int i = 0; i < xi_devs_n; i++) {
+		if (prefs.excluded_devices.get().count(xi_devs[i]->name))
+			continue;
+		XDeviceState *state = XQueryDeviceState(dpy, xi_devs[i]->dev);
+		if (!state)
+			continue;
+		XInputClass *c = state->data;
+		for (int j = 0; j < state->num_classes; j++) {
+			if (c->c_class == ButtonClass) {
+				XButtonState *b = (XButtonState *)c;
+				mask |= b->buttons[0];
+				mask |= ((unsigned int)b->buttons[1]) << 8;
+				mask |= ((unsigned int)b->buttons[2]) << 16;
+				mask |= ((unsigned int)b->buttons[3]) << 24;
+			}
+			c = (XInputClass *)((char *)c + c->length);
 		}
-		c = (XInputClass *)((char *)c + c->length);
+		XFreeDeviceState(state);
+		if (mask) {
+			dev = xi_devs[i];
+			return mask;
+		}
 	}
-	XFreeDeviceState(state);
-
-	return mask;
+	return 0;
 }
 
 void Grabber::grab_xi(bool grab) {

@@ -969,27 +969,23 @@ protected:
 			replay(t);
 			return;
 		}
-		unsigned int state = current_dev->get_button_state();
+		Grabber::XiDevice *dev;
+		unsigned int state = grabber->get_device_button_state(dev);
 		if (state & (state-1)) {
 			discard(t);
-			int other = 0;
-			for (int i = 0; i < 32; i++) {
+			if (verbosity >= 2)
+				printf("Using wacom workaround\n");
+			for (int i = 1; i < 32; i++)
 				if (state & (1 << i))
-					current_dev->fake_release(i, i);
-				other = i;
-			}
-			current_dev->fake_press(other, other);
-			for (int i = 0; i < 32; i++)
-				if ((state & (1 << i)) && other != i)
-					current_dev->fake_press(i, i);
-			parent->replace_child(new WaitForButtonHandler(other, false));
+					dev->fake_release(i, i);
+			for (int i = 31; i; i--)
+				if (state & (1 << i))
+					dev->fake_press(i, i);
 		} else {
 			replay(t);
 		}
 	}
 	virtual void press(guint b, RTriple e) {
-		if (xinput_pressed.size() > 1)
-			return;
 		if (current_app)
 			activate_window(current_app, e->t);
 		replace_child(new StrokeHandler(b, e));
