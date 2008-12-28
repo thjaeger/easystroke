@@ -91,6 +91,7 @@ private:
 
 	State current, grabbed;
 	bool xi_grabbed;
+	bool xi_devs_grabbed;
 	bool suspended, xi_suspended;
 	bool disabled;
 	bool active;

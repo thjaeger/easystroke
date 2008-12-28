@@ -123,9 +123,6 @@ class Handler {
 protected:
 	Handler *child;
 protected:
-	virtual void grab() {}
-	virtual void resume() { grab(); }
-	virtual std::string name() = 0;
 public:
 	Handler *parent;
 	Handler() : child(0), parent(0) {}
@@ -144,7 +141,6 @@ public:
 	virtual bool need_xi() { return true; }
 	virtual void proximity_out() {}
 	void replace_child(Handler *c) {
-		bool had_child = child;
 		if (child)
 			delete child;
 		child = c;
@@ -157,17 +153,21 @@ public:
 			}
 			std::cout << "New event handling stack: " << stack << std::endl;
 		}
+		Handler *new_handler = child ? child : this;
+		grabber->grab_xi_devs(new_handler->grab_xi());
+		grabber->grab(new_handler->grab_mode());
 		if (child)
 			child->init();
-		if (!child && had_child)
-			resume();
 	}
-	virtual void init() { grab(); }
+	virtual void init() {}
 	virtual bool idle() { return false; }
 	virtual ~Handler() {
 		if (child)
 			delete child;
 	}
+	virtual std::string name() = 0;
+	virtual Grabber::State grab_mode() = 0;
+	virtual bool grab_xi() = 0;
 };
 
 
@@ -196,9 +196,6 @@ class IgnoreHandler : public Handler {
 	OSD osd;
 public:
 	IgnoreHandler() : osd("Ignore") {}
-	void grab() {
-		grabber->grab(Grabber::ALL_SYNC);
-	}
 	virtual void press(guint b, RTriple e) {
 		replay(e->t);
 		if (!in_proximity)
@@ -210,6 +207,8 @@ public:
 	}
 	virtual bool need_xi() { return false; }
 	virtual std::string name() { return "Ignore"; }
+	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
+	virtual bool grab_xi() { return false; }
 };
 
 
@@ -364,6 +363,8 @@ public:
 			parent->replace_child(0);
 	}
 	virtual std::string name() { return "WaitForButton"; }
+	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
+	virtual bool grab_xi() { return parent->grab_xi(); }
 };
 
 inline float abs(float x) { return x > 0 ? x : -x; }
@@ -436,8 +437,6 @@ class ScrollHandler : public AbstractScrollHandler, Remapper {
 	guint map(guint b) { return (b < 4 || b > 7) ? 0 : b; }
 public:
 	virtual void init() {
-		grabber->grab_xi_devs(true);
-		grabber->grab(Grabber::NONE);
 		remap(current_dev);
 	}
 	virtual void motion(RTriple e) {
@@ -455,12 +454,13 @@ public:
 	virtual void proximity_out() {
 		parent->replace_child(0);
 	}
-	virtual std::string name() { return "Scroll"; }
 	virtual ~ScrollHandler() {
 		clear_mods();
 		reset_buttons();
-		grabber->grab_xi_devs(false);
 	}
+	virtual std::string name() { return "Scroll"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual bool grab_xi() { return true; }
 };
 
 class ScrollXiHandler : public AbstractScrollHandler, Remapper {
@@ -472,8 +472,6 @@ class ScrollXiHandler : public AbstractScrollHandler, Remapper {
 	}
 protected:
 	void init() {
-		grabber->grab(Grabber::NONE);
-		grabber->grab_xi_devs(true);
 		remap(current_dev);
 		current_dev->fake_press(button, map(button));
 		replace_child(new WaitForButtonHandler(button, false));
@@ -485,50 +483,11 @@ public:
 			return;
 		reset_buttons();
 		clear_mods();
-		grabber->grab_xi_devs(false);
 		parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "ScrollXi"; }
-};
-
-class AdvancedLegacyHandler : public Handler {
-	RStroke stroke;
-	RTriple e;
-	guint button, button2;
-
-	void do_press(float x, float y) {
-		RAction act = handle_stroke(stroke, x, y, button2, button);
-		if (act)
-			act->run();
-	}
-public:
-	AdvancedLegacyHandler(RStroke s, RTriple e_, guint b2, guint b) : stroke(s), e(e_), button(b), button2(b2) {}
-
-	virtual void init() {
-		do_press(e->x, e->y);
-	}
-
-	virtual void press(guint b, RTriple e) {
-		if (button2)
-			return;
-		button2 = b;
-		do_press(e->x, e->y);
-	}
-
-	virtual void release(guint b, RTriple e) {
-		if (b != button && b != button2)
-			return;
-		if (b == button)
-			button = button2;
-		button2 = 0;
-		if (!button && !button2)
-			parent->replace_child(0);
-	}
-	virtual ~AdvancedLegacyHandler() {
-		clear_mods();
-	}
-
-	virtual std::string name() { return "AdvancedLegacy"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual bool grab_xi() { return true; }
 };
 
 class ButtonXiHandler : public Handler, Remapper {
@@ -545,8 +504,6 @@ class ButtonXiHandler : public Handler, Remapper {
 public:
 	ButtonXiHandler(guint emulate_, guint pressed_) : emulate(emulate_), pressed(pressed_) {}
 	virtual void init() {
-		grabber->grab(Grabber::NONE);
-		grabber->grab_xi_devs(true);
 		remap(current_dev);
 		current_dev->fake_press(pressed, emulate);
 		replace_child(new WaitForButtonHandler(pressed, false));
@@ -559,9 +516,10 @@ public:
 		reset_buttons();
 		parent->replace_child(0);
 		clear_mods();
-		grabber->grab_xi_devs(false);
 	}
 	virtual std::string name() { return "ButtonXi"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual bool grab_xi() { return true; }
 };
 
 class ScrollAdvancedHandler : public AbstractScrollHandler {
@@ -572,6 +530,8 @@ public:
 		p->release(b, e);
 	}
 	virtual std::string name() { return "ScrollAdvanced"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual bool grab_xi() { return true; }
 };
 
 class AdvancedHandler : public Handler, Remapper {
@@ -600,8 +560,6 @@ public:
 		return b;
 	}
 	virtual void init() {
-		grabber->grab_xi_devs(true);
-		grabber->grab(Grabber::NONE);
 		current_dev->fake_release(button2, button2);
 		current_dev->fake_release(button, button);
 		if (as.count(button2)) {
@@ -657,10 +615,11 @@ public:
 	}
 	virtual ~AdvancedHandler() {
 		reset_buttons();
-		grabber->grab_xi_devs(false);
 		clear_mods();
 	}
 	virtual std::string name() { return "Advanced"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual bool grab_xi() { return true; }
 };
 
 XAtom ATOM("ATOM");
@@ -902,8 +861,10 @@ protected:
 
 		if (grabber->xinput)
 			parent->replace_child(new AdvancedHandler(s, e, button, b));
-		else
-			parent->replace_child(new AdvancedLegacyHandler(s, e, button, b));
+		else {
+			printf("Error: You need XInput to use advanced gestures\n");
+			parent->replace_child(NULL);
+		}
 	}
 
 	virtual void release(guint b, RTriple e) {
@@ -960,6 +921,8 @@ public:
 			discard(press_t);
 	}
 	virtual std::string name() { return "Stroke"; }
+	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
+	virtual bool grab_xi() { return false; }
 };
 
 float StrokeHandler::k = -0.01;
@@ -969,7 +932,6 @@ protected:
 	virtual void init() {
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		reset_buttons();
-		grab();
 	}
 	virtual void press_no_xi(guint b, Time t) {
 		if (b != 1 || grabber->is_grabbed(b)) {
@@ -997,18 +959,14 @@ protected:
 			activate_window(current_app, e->t);
 		replace_child(new StrokeHandler(b, e));
 	}
-	virtual void grab() {
-		grabber->grab(Grabber::BUTTON);
-	}
-	virtual void resume() {
-		grab();
-	}
 public:
-	virtual bool idle() { return true; }
-	virtual std::string name() { return "Idle"; }
 	virtual ~IdleHandler() {
 		XUngrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT);
 	}
+	virtual bool idle() { return true; }
+	virtual std::string name() { return "Idle"; }
+	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
+	virtual bool grab_xi() { return false; }
 };
 
 class SelectHandler : public Handler, public Timeout {
@@ -1033,6 +991,8 @@ public:
 		set_timeout(100);
 	}
 	virtual std::string name() { return "Select"; }
+	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
+	virtual bool grab_xi() { return false; }
 };
 
 

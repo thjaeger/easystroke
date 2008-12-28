@@ -206,6 +206,7 @@ Grabber::Grabber() : children(ROOT) {
 	active = true;
 	grabbed = NONE;
 	xi_grabbed = false;
+	xi_devs_grabbed = false;
 	proximity_selected = false;
 	grabbed_button.button = 0;
 	grabbed_button.state = 0;
@@ -433,6 +434,9 @@ void Grabber::grab_xi(bool grab) {
 }
 
 void Grabber::grab_xi_devs(bool grab) {
+	if (!xi_devs_grabbed == !grab)
+		return;
+	xi_devs_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
 		if (grab) {
 			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False,
