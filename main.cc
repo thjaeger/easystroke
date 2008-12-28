@@ -279,15 +279,6 @@ void reset_buttons() {
 	reset.remap(0);
 }
 
-void disable_buttons(Grabber::XiDevice *xi_dev, std::set<int> *buttons) {
-	struct Disable : public Remapper {
-		std::set<int> *buttons;
-		guint map(guint b) { return buttons->count(b) ? 0 : b; }
-	} disable;
-	disable.buttons = buttons;
-	disable.remap(xi_dev);
-}
-
 void bail_out() {
 	handler->replace_child(0);
 	for (int i = 1; i <= 9; i++)
@@ -671,23 +662,6 @@ public:
 	}
 	virtual std::string name() { return "Advanced"; }
 };
-
-struct ButtonTime {
-	guint b;
-	Time t;
-};
-
-Bool is_xi_press(Display *dpy, XEvent *ev, XPointer arg) {
-	ButtonTime *bt = (ButtonTime *)arg;
-	if (!grabber->xinput)
-		return false;
-	if (!grabber->is_event(ev->type, Grabber::DOWN))
-		return false;
-	XDeviceButtonEvent* bev = (XDeviceButtonEvent *)ev;
-	if (bev->button != bt->b)
-		return false;
-	return bev->time == bt->t;
-}
 
 XAtom ATOM("ATOM");
 
