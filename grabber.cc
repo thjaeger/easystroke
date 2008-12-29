@@ -470,7 +470,7 @@ void Grabber::select_proximity() {
 
 void Grabber::set() {
 	bool act = (current == NONE || current == BUTTON) ? active && !disabled : true;
-	grab_xi(!xi_suspended && act);
+	grab_xi(!xi_suspended && current != ALL_SYNC && act);
 	State old = grabbed;
 	grabbed = (!suspended && act) ? current : NONE;
 	if (old == grabbed)

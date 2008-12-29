@@ -135,10 +135,8 @@ public:
 	virtual void motion(RTriple e) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
-	virtual void press_repeated() {}
-	virtual void press_no_xi(guint b, Time t) { replay(t); }
+	virtual void press_core(guint b, Time t, bool xi) { replay(t); }
 	virtual void pressure() {}
-	virtual bool need_xi() { return true; }
 	virtual void proximity_out() {}
 	void replace_child(Handler *c) {
 		if (child)
@@ -196,8 +194,8 @@ class IgnoreHandler : public Handler {
 	OSD osd;
 public:
 	IgnoreHandler() : osd("Ignore") {}
-	virtual void press(guint b, RTriple e) {
-		replay(e->t);
+	virtual void press_core(guint b, Time t, bool xi) {
+		replay(t);
 		if (!in_proximity)
 			proximity_out();
 	}
@@ -205,7 +203,6 @@ public:
 		clear_mods();
 		parent->replace_child(0);
 	}
-	virtual bool need_xi() { return false; }
 	virtual std::string name() { return "Ignore"; }
 	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
 	virtual bool grab_xi() { return false; }
@@ -802,7 +799,7 @@ class StrokeHandler : public Handler, public Timeout {
 		return false;
 	}
 protected:
-	virtual void press_repeated() {
+	virtual void press_core(guint b, Time t, bool xi) {
 		repeated = true;
 	}
 	virtual void pressure() {
@@ -933,7 +930,9 @@ protected:
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		reset_buttons();
 	}
-	virtual void press_no_xi(guint b, Time t) {
+	virtual void press_core(guint b, Time t, bool xi) {
+		if (xi)
+			return;
 		if (b != 1 || grabber->is_grabbed(b)) {
 			replay(t);
 			return;
@@ -977,14 +976,13 @@ class SelectHandler : public Handler, public Timeout {
 		grabber->grab(Grabber::SELECT);
 		XFlush(dpy);
 	}
-	virtual void press(guint b, RTriple e) {
-		discard(e->t);
+	virtual void press_core(guint b, Time t, bool xi) {
+		discard(t);
 		if (!active)
 			return;
 		window_selected.reset(new sigc::slot<void, std::string>(callback));
 		parent->replace_child(0);
 	}
-	virtual bool need_xi() { return false; }
 public:
 	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
 		win->get_window().get_window()->lower();
@@ -1589,45 +1587,37 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 // Preconditions: me1 != 0
 void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	MouseEvent me;
-	bool xi_1 = me1 && me1->xi, xi_2 = me2 && me2->xi;
-	if (!xi_1 && !xi_2) {
-		if (grabber->xinput && handler->top()->need_xi()) {
-			if (me1->type == MouseEvent::PRESS)
-				handler->top()->press_no_xi(me1->button, me1->t);
-			delete me1;
-			delete me2;
-			return;
-		} else {
-			me = *me1;
-			delete me1;
-			delete me2;
-			me.x_xi = me.x;
-			me.y_xi = me.y;
-		}
-	} else {
-		if (xi_1)
+	bool xi = me1->xi || (me2 && me2->xi);
+	bool core = !me1->xi || (me2 && !me2->xi);
+	if (xi) {
+		if (me1->xi)
 			me = *me1;
 		else
 			me = *me2;
-		delete me1;
-		delete me2;
+	} else {
+		me = *me1;
+		me.x_xi = me.x;
+		me.y_xi = me.y;
 	}
+	delete me1;
+	delete me2;
 
-	switch (me.type) {
-	case MouseEvent::MOTION:
-		if (prefs.pressure_abort.get() && me.z_xi >= prefs.pressure_threshold.get())
-			handler->top()->pressure();
-		handler->top()->motion(create_triple(me.x_xi, me.y_xi, me.t));
-		break;
-	case MouseEvent::PRESS:
-		handler->top()->press(me.button, create_triple(me.x_xi, me.y_xi, me.t));
-		if (me1 && me2)
-			handler->top()->press_repeated();
-		break;
-	case MouseEvent::RELEASE:
-		handler->top()->release(me.button, create_triple(me.x_xi, me.y_xi, me.t));
-		break;
-	}
+	if (!grabber->xinput || xi)
+		switch (me.type) {
+			case MouseEvent::MOTION:
+				if (prefs.pressure_abort.get() && me.z_xi >= prefs.pressure_threshold.get())
+					handler->top()->pressure();
+				handler->top()->motion(create_triple(me.x_xi, me.y_xi, me.t));
+				break;
+			case MouseEvent::PRESS:
+				handler->top()->press(me.button, create_triple(me.x_xi, me.y_xi, me.t));
+				break;
+			case MouseEvent::RELEASE:
+				handler->top()->release(me.button, create_triple(me.x_xi, me.y_xi, me.t));
+				break;
+		}
+	if (core && me.type == MouseEvent::PRESS)
+		handler->top()->press_core(me.button, me.t, xi);
 }
 
 bool Main::handle(Glib::IOCondition) {
