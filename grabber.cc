@@ -563,14 +563,6 @@ void Grabber::update(Window w) {
 	set();
 }
 
-void Grabber::fake_button(int b) {
-	suspend();
-	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
-	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-	clear_mods();
-	resume();
-}
-
 void Grabber::XiDevice::fake_press(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, True,  0, 0, 0);
 	if (!xi_15 && core)

@@ -181,15 +181,15 @@ public:
 
 class IgnoreHandler : public Handler {
 	OSD osd;
+	RModifiers mods;
 public:
-	IgnoreHandler() : osd("Ignore") {}
+	IgnoreHandler(RModifiers mods_) : osd("Ignore"), mods(mods_) {}
 	virtual void press_core(guint b, Time t, bool xi) {
 		replay(t);
 		if (!in_proximity)
 			proximity_out();
 	}
 	virtual void proximity_out() {
-		clear_mods();
 		parent->replace_child(0);
 	}
 	virtual std::string name() { return "Ignore"; }
@@ -418,8 +418,10 @@ public:
 };
 
 class ScrollHandler : public AbstractScrollHandler, Remapper {
+	RModifiers mods;
 	guint map(guint b) { return (b < 4 || b > 7) ? 0 : b; }
 public:
+	ScrollHandler(RModifiers mods_) : mods(mods_) {}
 	virtual void init() {
 		remap(current_dev);
 	}
@@ -439,7 +441,6 @@ public:
 		parent->replace_child(0);
 	}
 	virtual ~ScrollHandler() {
-		clear_mods();
 		reset_buttons();
 	}
 	virtual std::string name() { return "Scroll"; }
@@ -448,6 +449,8 @@ public:
 
 class ScrollXiHandler : public AbstractScrollHandler, Remapper {
 	guint button;
+	RModifiers mods;
+
 	guint map(guint b) {
 		if (b == button)
 			return 0;
@@ -460,12 +463,11 @@ protected:
 		replace_child(new WaitForButtonHandler(button, false));
 	}
 public:
-	ScrollXiHandler(guint button_) : button(button_) {}
+	ScrollXiHandler(guint button_, RModifiers mods_) : button(button_), mods(mods_) {}
 	virtual void release(guint b, RTriple e) {
 		if (b != button)
 			return;
 		reset_buttons();
-		clear_mods();
 		parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "ScrollXi"; }
@@ -474,6 +476,8 @@ public:
 
 class ButtonXiHandler : public Handler, Remapper {
 	guint emulate, pressed;
+	RModifiers mods;
+
 	guint map(guint b) {
 		if (!xi_15)
 			return b;
@@ -484,7 +488,7 @@ class ButtonXiHandler : public Handler, Remapper {
 		return b;
 	}
 public:
-	ButtonXiHandler(guint emulate_, guint pressed_) : emulate(emulate_), pressed(pressed_) {}
+	ButtonXiHandler(guint emulate_, guint pressed_, RModifiers ms) : emulate(emulate_), pressed(pressed_), mods(ms) {}
 	virtual void init() {
 		remap(current_dev);
 		current_dev->fake_press(pressed, emulate);
@@ -497,7 +501,6 @@ public:
 			XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
 		reset_buttons();
 		parent->replace_child(0);
-		clear_mods();
 	}
 	virtual std::string name() { return "ButtonXi"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -519,6 +522,8 @@ class AdvancedHandler : public Handler, Remapper {
 	guint remap_from, remap_to;
 	std::map<int, RAction> as;
 	std::map<int, Ranking *> rs;
+	std::map<int, RModifiers> mods;
+	RModifiers last_mods;
 
 	guint button, button2;
 
@@ -558,7 +563,8 @@ public:
 				show_ranking(button2, e);
 				remap_from = button2;
 				remap_to = b2;
-				act->prepare();
+				mods[b2] = act->prepare();
+				last_mods.reset();
 				remap(current_dev);
 				current_dev->fake_press(button, 0);
 				current_dev->fake_press(button2, 0);
@@ -574,11 +580,14 @@ public:
 	virtual void press(guint b, RTriple e) {
 		int bb = (b == button) ? button2 : b;
 		show_ranking(bb, e);
-		if (!as.count(bb))
+		if (!as.count(bb)) {
+			last_mods.reset();
 			return;
+		}
 		RAction act = as[bb];
 		if (IS_SCROLL(act)) {
-			act->prepare();
+			mods[b] = act->prepare();
+			last_mods.reset();
 			replace_child(new ScrollAdvancedHandler);
 			return;
 		}
@@ -588,26 +597,30 @@ public:
 			current_dev->fake_release(b, 0);
 			remap_from = b;
 			remap_to = b2;
-			act->prepare();
+			mods[b] = act->prepare();
+			last_mods.reset();
 			remap(current_dev);
 			current_dev->fake_press(b, 0);
 			replace_child(new WaitForButtonHandler(b, true));
 			return;
 		}
-		act->prepare();
+		mods[b] = act->prepare();
+		last_mods.reset();
 		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
 		if (xinput_pressed.size() == 0) {
 			parent->replace_child(0);
+			return;
 		} else if (b == remap_from) {
 			remap_from = 0;
 			remap(current_dev);
 		}
+		last_mods = mods[b];
+		mods.erase(b);
 	}
 	virtual ~AdvancedHandler() {
 		reset_buttons();
-		clear_mods();
 		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
 			delete i->second;
 	}
@@ -759,17 +772,17 @@ class StrokeHandler : public Handler, public Timeout {
 		}
 		discard(last->t);
 		current_dev->fake_release(button, button);
+		RModifiers mods = act->prepare();
 		act->run();
 		if (IS_SCROLL(act)) {
-			parent->replace_child(new ScrollXiHandler(button));
+			parent->replace_child(new ScrollXiHandler(button, mods));
 			return;
 		}
 		IF_BUTTON(act, b)
 			if (!(!repeated && xinput_pressed.count(button) && b == button)) {
-				parent->replace_child(new ButtonXiHandler(b, button));
+				parent->replace_child(new ButtonXiHandler(b, button, mods));
 				return;
 			}
-		clear_mods();
 		parent->replace_child(0);
 	}
 
@@ -875,8 +888,11 @@ protected:
 			return;
 		}
 		win->show_success(act);
-		if (act)
+		RModifiers mods;
+		if (act) {
+			mods = act->prepare();
 			act->run();
+		}
 		else
 			XBell(dpy, 0);
 		if (IS_CLICK(act)) {
@@ -889,17 +905,20 @@ protected:
 				discard(press_t);
 		}
 		if (IS_IGNORE(act)) {
-			parent->replace_child(new IgnoreHandler);
+			parent->replace_child(new IgnoreHandler(mods));
 			return;
 		}
 		if (IS_SCROLL(act) && grabber->xinput) {
-			parent->replace_child(new ScrollHandler);
+			parent->replace_child(new ScrollHandler(mods));
 			return;
 		}
 		IF_BUTTON(act, press)
-			if (press && !(!repeated && xinput_pressed.count(b) && press == button))
-				grabber->fake_button(press);
-		clear_mods();
+			if (press && !(!repeated && xinput_pressed.count(b) && press == button)) {
+				grabber->suspend();
+				XTestFakeButtonEvent(dpy, press, True, CurrentTime);
+				XTestFakeButtonEvent(dpy, press, False, CurrentTime);
+				grabber->resume();
+			}
 		parent->replace_child(0);
 	}
 public:
@@ -999,8 +1018,8 @@ public:
 void run_by_name(const char *str) {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
+			RModifiers mods = i->second.action->prepare();
 			i->second.action->run();
-			clear_mods();
 			return;
 		}
 	}
@@ -1673,22 +1692,36 @@ struct does_that_really_make_you_happy_stupid_compiler {
 };
 int n_modkeys = 10;
 
-void set_mod_state(int new_state) {
-	static guint mod_state = 0;
-	for (int i = 0; i < n_modkeys; i++) {
-		guint mask = modkeys[i].mask;
-		if ((mod_state & mask) ^ (new_state & mask))
-			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), new_state & mask, 0);
+class Modifiers {
+	static std::set<Modifiers *> all;
+	static void update_mods() {
+		static guint mod_state = 0;
+		guint new_state = 0;
+		for (std::set<Modifiers *>::iterator i = all.begin(); i != all.end(); i++)
+			new_state |= (*i)->mods;
+		for (int i = 0; i < n_modkeys; i++) {
+			guint mask = modkeys[i].mask;
+			if ((mod_state & mask) ^ (new_state & mask))
+				XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), new_state & mask, 0);
+		}
+		mod_state = new_state;
 	}
-	mod_state = new_state;
-}
 
-void ModAction::prepare() {
-	set_mod_state(mods);
-}
+	guint mods;
+public:
+	Modifiers(guint mods_) : mods(mods_) {
+		all.insert(this);
+		update_mods();
+	}
+	~Modifiers() {
+		all.erase(this);
+		update_mods();
+	}
+};
+std::set<Modifiers *> Modifiers::all;
 
-void clear_mods() {
-	set_mod_state(0);
+RModifiers ModAction::prepare() {
+	return RModifiers(new Modifiers(mods));
 }
 
 void Misc::run() {

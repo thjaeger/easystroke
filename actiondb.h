@@ -44,13 +44,16 @@ typedef boost::shared_ptr<Misc> RMisc;
 
 class Unique;
 
+class Modifiers;
+typedef boost::shared_ptr<Modifiers> RModifiers;
+
 class Action {
 	friend class boost::serialization::access;
 	friend std::ostream& operator<<(std::ostream& output, const Action& c);
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
 	virtual void run() {};
-	virtual void prepare() {};
+	virtual RModifiers prepare() { return RModifiers(); };
 	virtual const Glib::ustring get_label() const = 0;
 };
 
@@ -73,7 +76,7 @@ protected:
 	ModAction() {}
 	Gdk::ModifierType mods;
 	ModAction(Gdk::ModifierType mods_) : mods(mods_) {}
-	virtual void prepare();
+	virtual RModifiers prepare();
 public:
 	virtual const Glib::ustring get_label() const;
 };
