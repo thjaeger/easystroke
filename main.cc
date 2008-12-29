@@ -518,15 +518,25 @@ class AdvancedHandler : public Handler, Remapper {
 	RTriple e;
 	guint remap_from, remap_to;
 	std::map<int, RAction> as;
+	std::map<int, Ranking *> rs;
 
 	guint button, button2;
+
+	void show_ranking(guint b, RTriple e) {
+		if (!rs.count(b))
+			return;
+		Ranking *r = rs[b];
+		if (r) {
+			r->x = (int)e->x;
+			r->y = (int)e->y;
+			Glib::signal_idle().connect(sigc::mem_fun(r, &Ranking::show));
+		}
+		rs.erase(b);
+	}
 public:
 	AdvancedHandler(RStroke s, RTriple e_, guint b, guint b2) :
 			e(e_), remap_from(0), button(b), button2(b2) {
-		std::map<int, Ranking *> rs;
 		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs);
-		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
-			Glib::signal_idle().connect(sigc::mem_fun(i->second, &Ranking::show));
 	}
 	guint map(guint b) {
 		if (b == remap_from)
@@ -545,6 +555,7 @@ public:
 		if (as.count(button2)) {
 			RAction act = as[button2];
 			IF_BUTTON(act, b2) {
+				show_ranking(button2, e);
 				remap_from = button2;
 				remap_to = b2;
 				act->prepare();
@@ -562,6 +573,7 @@ public:
 	}
 	virtual void press(guint b, RTriple e) {
 		int bb = (b == button) ? button2 : b;
+		show_ranking(bb, e);
 		if (!as.count(bb))
 			return;
 		RAction act = as[bb];
@@ -596,6 +608,8 @@ public:
 	virtual ~AdvancedHandler() {
 		reset_buttons();
 		clear_mods();
+		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
+			delete i->second;
 	}
 	virtual std::string name() { return "Advanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -1495,7 +1509,10 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			if (xi_15 && xinput_pressed.size() > 1)
+				translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
+			else
+				translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
 			me->z_xi = 0;
 			return me;
 		}
