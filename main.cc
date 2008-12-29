@@ -102,7 +102,7 @@ Trace *init_trace() {
 
 }
 
-RAction handle_stroke(RStroke s, float x, float y, int trigger, int button);
+RAction handle_stroke(RStroke s, float x, float y);
 
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 
@@ -536,7 +536,7 @@ class AdvancedHandler : public Handler, Remapper {
 public:
 	AdvancedHandler(RStroke s, RTriple e_, guint b, guint b2) :
 			e(e_), remap_from(0), button(b), button2(b2) {
-		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs);
+		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, button, button2);
 	}
 	guint map(guint b) {
 		if (b == remap_from)
@@ -749,7 +749,7 @@ class StrokeHandler : public Handler, public Timeout {
 		if (!is_gesture)
 			cur->clear();
 		RStroke s = Stroke::create(*cur, button, 0, true);
-		RAction act = handle_stroke(s, last->x, last->y, button, 0);
+		RAction act = handle_stroke(s, last->x, last->y);
 		if (!act || IS_CLICK(act)) {
 			replay(press_t);
 			parent->replace_child(NULL);
@@ -851,7 +851,7 @@ protected:
 			discard(press_t);
 
 		if (stroke_action) {
-			handle_stroke(s, e->x, e->y, button, b);
+			handle_stroke(s, e->x, e->y);
 			parent->replace_child(NULL);
 			return;
 		}
@@ -869,7 +869,7 @@ protected:
 			return;
 		RStroke s = finish(0);
 
-		RAction act = handle_stroke(s, e->x, e->y, button, 0);
+		RAction act = handle_stroke(s, e->x, e->y);
 		if (stroke_action) {
 			parent->replace_child(0);
 			return;
@@ -1260,9 +1260,7 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-RAction handle_stroke(RStroke s, float x, float y, int trigger, int button) {
-	s->trigger = (trigger == grabber->get_default_button()) ? 0 : trigger;
-	s->button = (button == trigger) ? 0 : button;
+RAction handle_stroke(RStroke s, float x, float y) {
 	if (verbosity >= 4)
 		s->print();
 	if (stroke_action) {

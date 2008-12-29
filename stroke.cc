@@ -30,8 +30,6 @@ inline bool close(double x, double y) {
 	return diff < eps;
 }
 
-int get_default_button() { return prefs.button.get().button; }
-
 inline double sqr(double x) { return x*x; };
 
 void update_triple(RTriple e, float x, float y, Time t) {

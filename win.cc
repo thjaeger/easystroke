@@ -70,11 +70,17 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 		ctx->stroke();
 	}
 	ctx->restore();
-	if (!button && !timeout)
+	Glib::ustring str;
+	if (trigger)
+		str = Glib::ustring::format(trigger) + "\xE2\x86\x92";
+	if (timeout)
+		str += "x";
+	if (button)
+		str += Glib::ustring::format(button);
+	if (str == "")
 		return;
 	ctx->set_source_rgba(1, 0, 0, 0.8);
-	Glib::ustring str = timeout ? "x" : Glib::ustring::format(button);
-	ctx->set_font_size(h*0.6);
+	ctx->set_font_size(h*0.5);
 	Cairo::TextExtents te;
 	ctx->get_text_extents(str, te);
 	ctx->move_to(x+w/2 - te.x_bearing - te.width/2, y+h/2 - te.y_bearing - te.height/2);

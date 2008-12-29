@@ -540,6 +540,13 @@ void Grabber::update_button(ButtonInfo bi) {
 	set();
 }
 
+int get_default_button() {
+	if (grabber)
+		return grabber->get_default_button();
+	else
+		return prefs.button.get().button;
+}
+
 void Grabber::update(Window w) {
 	wm_class = get_wm_class(w);
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
