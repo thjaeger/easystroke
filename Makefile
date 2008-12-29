@@ -20,10 +20,10 @@ MENUDIR  = $(PREFIX)/share/applications
 DFLAGS   =
 OFLAGS   = -Os
 AOFLAGS  = -O3
-CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --cflags`
+CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
 
-LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 gthread-2.0 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
 
 BINARY   = easystroke
 ICON     = easystroke.svg

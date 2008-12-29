@@ -59,12 +59,9 @@ Trace *trace = 0;
 Trace::Point orig;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
-Time last_press_t = 0;
 Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed;
 bool dead = false;
-Glib::Dispatcher *allower = 0;
-bool needs_allowing = false;
 
 class Handler;
 Handler *handler = 0;
@@ -107,17 +104,9 @@ Trace *init_trace() {
 
 RAction handle_stroke(RStroke s, float x, float y, int trigger, int button);
 
-void replay(Time t) {
-	XAllowEvents(dpy, ReplayPointer, t);
-	if (!t || t >= last_press_t)
-		last_press_t = 0;
-}
+void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 
-void discard(Time t) {
-	XAllowEvents(dpy, AsyncPointer, t);
-	if (!t || t >= last_press_t)
-		last_press_t = 0;
-}
+void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
 class Handler {
 protected:
@@ -135,6 +124,8 @@ public:
 	virtual void motion(RTriple e) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
+	// Note: We need to make sure that this calls replay/discard otherwise
+	// we could leave X in an unpleasant state.
 	virtual void press_core(guint b, Time t, bool xi) { replay(t); }
 	virtual void pressure() {}
 	virtual void proximity_out() {}
@@ -791,6 +782,10 @@ class StrokeHandler : public Handler, public Timeout {
 	}
 protected:
 	virtual void press_core(guint b, Time t, bool xi) {
+		if (!xi)
+			discard(t);
+		// At this point we already have an xi press, so we are
+		// guarenteed to either get another press or a release.
 		repeated = true;
 	}
 	virtual void pressure() {
@@ -914,7 +909,7 @@ public:
 
 float StrokeHandler::k = -0.01;
 
-class IdleHandler : public Handler {
+class IdleHandler : public Handler, Timeout {
 protected:
 	virtual void init() {
 		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
@@ -939,13 +934,18 @@ protected:
 			for (int i = 31; i; i--)
 				if (state & (1 << i))
 					dev->fake_press(i, i);
+			// This is probably not necessary, but we need to be on the safe
+			// side.  If anything goes wrong, the timeout fires and we discard everything
+			set_timeout(250);
 		} else {
 			replay(t);
 		}
 	}
+	virtual void timeout() { discard(CurrentTime); }
 	virtual void press(guint b, RTriple e) {
 		if (current_app)
 			activate_window(current_app, e->t);
+		remove_timeout();
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
@@ -1071,7 +1071,6 @@ Main::Main() : kit(0) {
 		exit(EXIT_SUCCESS);
 	}
 
-	Glib::thread_init();
 	display = parse_args_and_init_gtk();
 	create_config_dir();
 	unsetenv("DESKTOP_AUTOSTART_ID");
@@ -1109,35 +1108,10 @@ Main::Main() : kit(0) {
 	start_dbus();
 }
 
-void allow_events() {
-	printf("Warning: press without corresponding release, resetting...\n");
-	bail_out();
-	needs_allowing = false;
-}
-
-void check_endless() {
-	Time last_t;
-	for (;;) {
-		last_t = last_press_t;
-		sleep(5);
-		if (needs_allowing) {
-			printf("Error: Endless loop detected\n");
-			raise(SIGKILL);
-		}
-		if (last_t && last_t == last_press_t) {
-			needs_allowing = true;
-			(*allower)();
-		}
-	}
-}
-
 void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::mem_fun(*this, &Main::handle));
 	io->attach();
-	allower = new Glib::Dispatcher;
-	allower->connect(sigc::ptr_fun(&allow_events));
-	Glib::Thread::create(sigc::ptr_fun(&check_endless), false);
 	win = new Win;
 	if (show_gui)
 		win->get_window().show();
@@ -1484,7 +1458,6 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 	case ButtonPress:
 		if (verbosity >= 3)
 			printf("Press: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-		last_press_t = ev.xbutton.time;
 		me = new MouseEvent;
 		me->type = MouseEvent::PRESS;
 		me->button = ev.xbutton.button;
