@@ -19,6 +19,7 @@
 #include "win.h"
 #include "main.h"
 #include "grabber.h"
+#include <glibmm/i18n.h>
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
@@ -152,7 +153,7 @@ Win::Win() {
 	show_hide_icon();
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
 
-	WIDGET(Gtk::CheckMenuItem, menu_disabled, "D_isabled", true);
+	WIDGET(Gtk::CheckMenuItem, menu_disabled, _("D_isabled"), true);
 	this->menu_disabled = &menu_disabled;
 	menu.append(menu_disabled);
 	menu_disabled.signal_toggled().connect(sigc::mem_fun(*grabber, &Grabber::toggle_disabled));

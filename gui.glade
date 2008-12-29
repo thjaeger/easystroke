@@ -180,8 +180,8 @@
                 <property name="spacing">12</property>
                 <property name="layout_style">start</property>
                 <child>
-                  <widget class="GtkButton" id="button_add_action">
-                    <property name="label" translatable="yes">_Add Action</property>
+                  <widget class="GtkButton" id="button_record">
+                    <property name="label" translatable="yes">_Record Stroke</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -193,8 +193,8 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkButton" id="button_delete_action">
-                    <property name="label" translatable="yes">_Delete Action(s)</property>
+                  <widget class="GtkButton" id="button_add_action">
+                    <property name="label" translatable="yes">_Add Action</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -206,8 +206,8 @@
                   </packing>
                 </child>
                 <child>
-                  <widget class="GtkButton" id="button_record">
-                    <property name="label" translatable="yes">_Record Stroke</property>
+                  <widget class="GtkButton" id="button_delete_action">
+                    <property name="label" translatable="yes">_Delete Action(s)</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
@@ -300,7 +300,6 @@
                               <widget class="GtkLabel" id="label_button">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="label" translatable="yes">Button 2</property>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -895,7 +894,6 @@ Water (compiz)</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="tooltip" translatable="yes">Set delay to default value</property>
                                 <property name="relief">none</property>
                                 <child>
                                   <widget class="GtkImage" id="image5">
@@ -966,7 +964,6 @@ than this many pixels away from the original position</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="tooltip" translatable="yes">Set algorithm to default value</property>
                                 <property name="relief">none</property>
                                 <child>
                                   <widget class="GtkImage" id="image1">
@@ -1113,7 +1110,6 @@ than this many pixels away from the original position</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="tooltip" translatable="yes">Set delay to default value</property>
                                 <property name="relief">none</property>
                                 <child>
                                   <widget class="GtkImage" id="image3">
@@ -1612,7 +1608,7 @@ Button 12</property>
             </child>
             <child>
               <widget class="GtkButton" id="select_cancel">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="response_id">-1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1626,7 +1622,7 @@ Button 12</property>
             </child>
             <child>
               <widget class="GtkButton" id="select_ok">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="response_id">1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -1706,7 +1702,7 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
             <property name="layout_style">end</property>
             <child>
               <widget class="GtkButton" id="button_record_cancel">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -1826,7 +1822,7 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
             <property name="layout_style">end</property>
             <child>
               <widget class="GtkButton" id="button7">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -1839,7 +1835,7 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
             </child>
             <child>
               <widget class="GtkButton" id="button_delete_delete">
-                <property name="label" translatable="yes">gtk-delete</property>
+                <property name="label">gtk-delete</property>
                 <property name="response_id">1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>

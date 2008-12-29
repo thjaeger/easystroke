@@ -8,3 +8,5 @@ desktop.c
 dbus-server.h
 debug.mk
 *.gz
+po/de
+po/POTFILES.in

@@ -17,6 +17,7 @@
 #include "win.h"
 #include "main.h"
 #include "grabber.h"
+#include <glibmm/i18n.h>
 
 #include <X11/Xutil.h>
 
@@ -287,12 +288,12 @@ Prefs::Prefs() {
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
-	tv->append_column("Application (WM__CLASS)", cols.app);
+	tv->append_column(_("Application (WM__CLASS)"), cols.app);
 	tm->set_sort_column(cols.app, Gtk::SORT_ASCENDING);
 
 	CellRendererTextish *button_renderer = Gtk::manage(new CellRendererTextish);
 	button_renderer->mode = CellRendererTextish::POPUP;
-	tv->append_column("Button", *button_renderer);
+	tv->append_column(_("Button"), *button_renderer);
 	Gtk::TreeView::Column *col_button = tv->get_column(1);
 	col_button->add_attribute(button_renderer->property_text(), cols.button);
 	button_renderer->property_editable() = true;
@@ -305,8 +306,8 @@ Prefs::Prefs() {
 
 	dtm = Gtk::ListStore::create(dcs);
 	dtv->set_model(dtm);
-	dtv->append_column_editable("Enabled", dcs.enabled);
-	dtv->append_column("Device", dcs.name);
+	dtv->append_column_editable(_("Enabled"), dcs.enabled);
+	dtv->append_column(_("Device"), dcs.name);
 	dtm->signal_row_changed().connect(sigc::mem_fun(*this, &Prefs::on_device_toggled));
 	update_device_list();
 
@@ -329,7 +330,7 @@ Prefs::Prefs() {
 	for (std::map<std::string, RButtonInfo>::const_iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = i->first;
-		row[cols.button] = i->second ? i->second->get_button_text() : "<App disabled>";
+		row[cols.button] = i->second ? i->second->get_button_text() : _("<App disabled>");
 	}
 }
 
@@ -501,7 +502,7 @@ void Prefs::on_selected(std::string str) {
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = str;
-		row[cols.button] = "<App disabled>";
+		row[cols.button] = _("<App disabled>");
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);
 	} else {
@@ -527,7 +528,7 @@ void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::u
 	RButtonInfo bi2;
 	if (sb.event.button)
 		bi2.reset(new ButtonInfo(sb.event));
-	row[cols.button] = bi2 ? bi2->get_button_text() : "<App disabled>";
+	row[cols.button] = bi2 ? bi2->get_button_text() : _("<App disabled>");
 	Atomic a;
 	prefs.exceptions.write_ref(a)[app] = bi2; 
 }

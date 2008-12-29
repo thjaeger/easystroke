@@ -16,6 +16,7 @@
 #include "prefdb.h"
 #include "main.h"
 #include "win.h"
+#include <glibmm/i18n.h>
 
 #include <fstream>
 #include <iostream>
@@ -129,13 +130,15 @@ void PrefDB::timeout() {
 		if (rename(tmp.c_str(), filename.c_str()))
 			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)
-			std::cout << "Saved preferences." << std::endl;
+			printf("Saved preferences.\n");
 	} catch (std::exception &e) {
-		printf("Error: Couldn't save preferences: %s.\n", e.what());
+		printf(_("Error: Couldn't save preferences: %s.\n"), e.what());
 		if (!good_state)
 			return;
 		good_state = false;
-		new ErrorDialog("Couldn't save preferences.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.");
+		new ErrorDialog(
+				_("Couldn't save preferences.  Your changes will be lost.  \nMake sure that ")+config_dir+
+				_(" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options."));
 	}
 }
 
@@ -184,7 +187,7 @@ void PrefDB::init() {
 				std::cout << "Loaded preferences." << std::endl;
 		}
 	} catch (...) {
-		std::cout << "Error: Couldn't read preferences." << std::endl;
+		printf(_("Error: Couldn't read preferences.\n"));
 	}
 	new TimeoutProfile(prefs.timeout_profile);
 	watch(exceptions);

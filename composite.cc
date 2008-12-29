@@ -16,13 +16,14 @@
 #include "prefdb.h"
 #include "composite.h"
 #include <gdkmm.h>
+#include <glibmm/i18n.h>
 
 double red, green, blue, alpha, width;
 std::list<Trace::Point> points;
 
 Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), rect(x1, y1, x2-x1, y2-y1) {
 	if (!is_composited())
-		throw std::runtime_error("composite not available");
+		throw std::runtime_error(_("'composite' not available"));
 
 	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_rgba_colormap();
 	if (colormap)

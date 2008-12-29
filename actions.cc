@@ -18,9 +18,8 @@
 #include "win.h"
 #include "main.h"
 #include "prefdb.h"
+#include <glibmm/i18n.h>
 
-#include <iostream>
-#include <sstream>
 #include <typeinfo>
 
 class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
@@ -31,7 +30,7 @@ public:
 		Glib::ObjectBase(typeid(CellEditableAccel)),
 		parent(parent_), path(path_)
 	{
-		WIDGET(Gtk::Label, label, "Key combination...");
+		WIDGET(Gtk::Label, label, _("Key combination..."));
 		label.set_alignment(0.0, 0.5);
 		add(label);
 		modify_bg(Gtk::STATE_NORMAL, widget.get_style()->get_bg(Gtk::STATE_SELECTED));
@@ -105,31 +104,31 @@ Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk
 	return 0;
 }
 
-const char *KEY = "Key";
-const char *COMMAND = "Command";
-const char *SCROLL = "Scroll";
-const char *IGNORE = "Ignore";
-const char *BUTTON = "Button";
-const char *MISC = "Misc";
+char *KEY     = 0;
+char *COMMAND = 0;
+char *SCROLL  = 0;
+char *IGNORE  = 0;
+char *BUTTON  = 0;
+char *MISC    = 0;
 
 struct NameType {
-	const char *name;
+	char **name;
 	const std::type_info *type;
 };
 
 NameType name_type[7] = {
-	{ COMMAND, &typeid(Command) },
-	{ KEY,     &typeid(SendKey) },
-	{ SCROLL,  &typeid(Scroll)  },
-	{ IGNORE,  &typeid(Ignore)  },
-	{ BUTTON,  &typeid(Button)  },
-	{ MISC,    &typeid(Misc)    },
-	{ 0,       0                }
+	{ &COMMAND, &typeid(Command) },
+	{ &KEY,     &typeid(SendKey) },
+	{ &SCROLL,  &typeid(Scroll)  },
+	{ &IGNORE,  &typeid(Ignore)  },
+	{ &BUTTON,  &typeid(Button)  },
+	{ &MISC,    &typeid(Misc)    },
+	{ 0,        0                }
 };
 
 const std::type_info *name_to_type(Glib::ustring name) {
 	for (NameType *i = name_type; i->name; i++)
-		if (i->name == name)
+		if (*i->name == name)
 			return i->type;
 	return 0;
 }
@@ -137,7 +136,7 @@ const std::type_info *name_to_type(Glib::ustring name) {
 const char *type_to_name(const std::type_info *type) {
 	for (NameType *i = name_type; i->name; i++)
 		if (i->type == type)
-			return i->name;
+			return *i->name;
 	return "";
 }
 
@@ -148,6 +147,13 @@ Actions::Actions() :
 	editing(false),
 	action_list(actions.get_root())
 {
+	KEY     = _("Key");
+	COMMAND = _("Command");
+	SCROLL  = _("Scroll");
+	IGNORE  = _("Ignore");
+	BUTTON  = _("Button");
+	MISC    = _("Misc");
+
 	widgets->get_widget("treeview_actions", tv);
 	widgets->get_widget("treeview_apps", apps_view);
 
@@ -179,13 +185,13 @@ Actions::Actions() :
 	tv->set_row_separator_func(sigc::mem_fun(*this, &Actions::on_row_separator));
 
 	int n;
-	n = tv->append_column("Stroke", cols.stroke);
+	n = tv->append_column(_("Stroke"), cols.stroke);
 	tv->get_column(n-1)->set_sort_column(cols.id);
 	tm->set_sort_func(cols.id, sigc::mem_fun(*this, &Actions::compare_ids));
 	tm->set_default_sort_func(sigc::mem_fun(*this, &Actions::compare_ids));
 	tm->set_sort_column(Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID, Gtk::SORT_ASCENDING);
 
-	n = tv->append_column("Name", cols.name);
+	n = tv->append_column(_("Name"), cols.name);
 	Gtk::CellRendererText *name_renderer = dynamic_cast<Gtk::CellRendererText *>(tv->get_column_cell_renderer(n-1));
 	name_renderer->property_editable() = true;
 	name_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_name_edited));
@@ -198,7 +204,7 @@ Actions::Actions() :
 
 	type_store = Gtk::ListStore::create(type);
 	for (NameType *i = name_type; i->name; i++)
-		(*(type_store->append()))[type.type] = i->name;
+		(*(type_store->append()))[type.type] = *i->name;
 
 	Gtk::CellRendererCombo *type_renderer = Gtk::manage(new Gtk::CellRendererCombo);
 	type_renderer->property_model() = type_store;
@@ -209,13 +215,13 @@ Actions::Actions() :
 	type_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
 	type_renderer->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 
-	n = tv->append_column("Type", *type_renderer);
+	n = tv->append_column(_("Type"), *type_renderer);
 	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
 	col_type->add_attribute(type_renderer->property_text(), cols.type);
 	col_type->set_cell_data_func(*type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_type));
 
 	CellRendererTextish *arg_renderer = Gtk::manage(new CellRendererTextish);
-	n = tv->append_column("Details", *arg_renderer);
+	n = tv->append_column(_("Details"), *arg_renderer);
 	Gtk::TreeView::Column *col_arg = tv->get_column(n-1);
 	col_arg->add_attribute(arg_renderer->property_text(), cols.arg);
 	col_arg->set_cell_data_func(*arg_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_arg));
@@ -237,7 +243,7 @@ Actions::Actions() :
 
 	load_app_list(apps_model->children(), actions.get_root());
 
-	apps_view->append_column_editable("Application", ca.app);
+	apps_view->append_column_editable(_("Application"), ca.app);
 	apps_view->get_column(0)->set_cell_data_func(
 			*apps_view->get_column_cell_renderer(0), sigc::mem_fun(*this, &Actions::on_cell_data_apps));
 	Gtk::CellRendererText *app_name_renderer =
@@ -412,15 +418,15 @@ void Actions::on_type_edited(const Glib::ustring &path, const Glib::ustring &new
 void Actions::on_button_delete() {
 	int n = tv->get_selection()->count_selected_rows();
 
-	std::stringstream msg;
+	Glib::ustring str;
 	if (n == 1)
-		msg << "Action \"" << get_selected_row()[cols.name] << "\" is";
+		str = Glib::ustring::compose(_("Action \"%1\" is"), get_selected_row()[cols.name]);
 	else
-		msg << n << " actions are";
+		str = Glib::ustring::compose(_("%1 actions are"), n);
 
 	Gtk::Dialog *dialog;
 	widgets->get_widget("dialog_delete", dialog);
-	FormatLabel foo(widgets, "label_delete", "an Action", msg.str().c_str());
+	FormatLabel foo(widgets, "label_delete", _("an Action"), str.c_str());
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_delete", del);
 
@@ -460,14 +466,13 @@ void Actions::on_remove_app() {
 	if (size) {
 		Gtk::Dialog *dialog;
 		widgets->get_widget("dialog_delete", dialog);
-		std::stringstream msg;
-		if (action_list->app)
-			msg << "The application \"" << action_list->name;
-		else
-			msg << "The group \"" << action_list->name;
-		msg << "\" (containing " << size << " action" << (size == 1 ? "" : "s") << ") is";
-		FormatLabel foo(widgets, "label_delete", action_list->app ? "an Application" : "an Application Group",
-				msg.str().c_str());
+		Glib::ustring str = Glib::ustring::compose(_("%1 \"%2\" (containing %3 %4) is"),
+				action_list->app ? _("The application") : _("The group"),
+				action_list->name,
+				size,
+				(size == 1 ? "action" : "actions"));
+		FormatLabel foo(widgets, "label_delete", action_list->app ? _("an Application") : _("an Application Group"),
+				str.c_str());
 		Gtk::Button *del;
 		widgets->get_widget("button_delete_delete", del);
 		dialog->show();
@@ -531,7 +536,7 @@ void Actions::on_app_selected(std::string name) {
 
 void Actions::on_add_group() {
 	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
-	Glib::ustring name = "Group";
+	Glib::ustring name = _("Group");
 	ActionListDiff *child = parent->add_child(name, false);
 	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
 	       	apps_model->children().begin()->children() :
@@ -724,7 +729,7 @@ void Actions::on_button_new() {
 	if (action_list != actions.get_root())
 		name = action_list->name + " ";
 	char buf[16];
-	snprintf(buf, 15, "Gesture %d", action_list->order_size());
+	snprintf(buf, 15, _("Gesture %d"), action_list->order_size());
 	action_list->set_name(id, name + buf);
 
 	update_row(row);
@@ -854,16 +859,16 @@ const Glib::ustring SendKey::get_label() const {
 
 const Glib::ustring ModAction::get_label() const {
 	if (!mods)
-		return "No Modifiers";
+		return _("No Modifiers");
 	Glib::ustring label = Gtk::AccelGroup::get_label(0, mods);
 	return label.substr(0,label.size()-1);
 }
 
 Glib::ustring ButtonInfo::get_button_text() const {
 	Glib::ustring str = state == AnyModifier ?
-		"(Any Modifier +) " : 
+		Glib::ustring() + "(" + _("Any Modifier") + " +) " : 
 		Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
 	char name[16];
-	snprintf(name, 15, "Button %d", button);
+	snprintf(name, sizeof(name), _("Button %d"), button);
 	return str + name;
 }

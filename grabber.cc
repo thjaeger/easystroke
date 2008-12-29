@@ -17,12 +17,16 @@
 #include "main.h"
 #include <X11/extensions/XTest.h>
 #include <X11/Xutil.h>
+#include <glibmm/i18n.h>
 
 bool no_xi = false;
 bool xi_15 = false;
 Grabber *grabber = 0;
 
 unsigned int ignore_mods[4] = { LockMask, Mod2Mask, LockMask | Mod2Mask, 0 };
+
+
+const char* GrabFailedException::what() const throw() { return "Grab Failed"; }
 
 template <class X1, class X2> class BiMap {
 	std::map<X1, X2> map1;
@@ -324,7 +328,7 @@ bool Grabber::update_device_list() {
 
 		xi_dev->dev = XOpenDevice(dpy, dev->id);
 		if (!xi_dev->dev) {
-			printf("Opening Device %s failed.\n", dev->name);
+			printf(_("Opening Device %s failed.\n"), dev->name);
 			delete xi_dev;
 			continue;
 		}
@@ -343,9 +347,9 @@ bool Grabber::update_device_list() {
 		xi_devs[xi_devs_n++] = xi_dev;
 
 		if (verbosity >= 1)
-			printf("Opened Device \"%s\" (%s, %s proximity).\n", dev->name,
-					xi_dev->absolute ? "absolute" : "relative",
-					xi_dev->supports_proximity ? "supports" : "does not support");
+			printf(_("Opened Device \"%s\" (%s, %s proximity).\n"), dev->name,
+					xi_dev->absolute ? _("absolute") : _("relative"),
+					xi_dev->supports_proximity ? _("supports") : _("does not support"));
 	}
 	XFreeDeviceList(devs);
 	proximity_selected = false;
@@ -576,7 +580,7 @@ void Grabber::XiDevice::fake_release(int b, int core) {
 
 std::string Grabber::get_wm_class(Window w) {
 	if (!w)
-		return "(window manager frame)";
+		return _("(window manager frame)");
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		return "";
@@ -651,6 +655,6 @@ Window get_app_window(Window &w) {
 		return w2;
 	}
 	if (verbosity >= 1)
-		printf("Window 0x%lx does not have an associated top-level window\n", w);
+		printf(_("Window 0x%lx does not have an associated top-level window\n"), w);
 	return w;
 }

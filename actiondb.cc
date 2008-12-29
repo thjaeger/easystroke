@@ -16,6 +16,7 @@
 #include "actiondb.h"
 #include "main.h"
 #include "win.h"
+#include <glibmm/i18n.h>
 
 #include <iostream>
 #include <fstream>
@@ -115,7 +116,7 @@ void Command::run() {
 			execlp("/bin/sh", "sh", "-c", cmd.c_str(), NULL);
 			exit(1);
 		case -1:
-			printf("Error: can't execute command %s: fork failed\n", cmd.c_str());
+			printf(_("Error: can't execute command \"%s\": fork() failed\n"), cmd.c_str());
 	}
 }
 
@@ -165,7 +166,7 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 
 	root.fix_tree(version == 2);
 	root.add_apps(apps);
-	root.name = "Default";
+	root.name = _("Default");
 }
 
 template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
@@ -189,7 +190,7 @@ void ActionDBWatcher::init() {
 				printf("Loaded actions.\n");
 		}
 	} catch (exception &e) {
-		printf("Error: Couldn't read action database: %s.\n", e.what());
+		printf(_("Error: Couldn't read action database: %s.\n"), e.what());
 	}
 	watch(action_dummy);
 }
@@ -202,15 +203,17 @@ void ActionDBWatcher::timeout() {
 		boost::archive::text_oarchive oa(ofs);
 		oa << (const ActionDB &)actions;
 		if (rename(tmp.c_str(), filename.c_str()))
-			throw std::runtime_error("rename() failed");
+			throw std::runtime_error(_("rename() failed"));
 		if (verbosity >= 2)
 			printf("Saved actions.\n");
 	} catch (exception &e) {
-		printf("Error: Couldn't save action database: %s.\n", e.what());
+		printf(_("Error: Couldn't save action database: %s.\n"), e.what());
 		if (!good_state)
 			return;
 		good_state = false;
-		new ErrorDialog("Couldn't save actions.  Your changes will be lost.  \nMake sure that "+config_dir+" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options.");
+		new ErrorDialog(
+				_("Couldn't save actions.  Your changes will be lost.  \nMake sure that ")+config_dir+
+				_(" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options."));
 	}
 }
 
@@ -310,14 +313,14 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 	}
 	if (!r.action && s->trivial()) {
 		r.action = RAction(new Click);
-		r.name = "click (default)";
+		r.name = _("click (default)");
 	}
 	if (r.action) {
 		if (verbosity >= 1)
-			cout << "Excecuting Action " << r.name << "..." << endl;
+			printf("Executing Action %s\n", r.name.c_str());
 	} else {
 		if (verbosity >= 1)
-			cout << "Couldn't find matching stroke." << endl;
+			printf(_("Couldn't find matching stroke.\n"));
 	}
 	return r.action;
 }

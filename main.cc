@@ -26,6 +26,8 @@
 #include "composite.h"
 #include "grabber.h"
 
+#include <glibmm/i18n.h>
+
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
 #include <X11/Xproto.h>
@@ -37,6 +39,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <getopt.h>
+
 
 bool show_gui = false;
 extern bool no_xi;
@@ -74,7 +77,7 @@ Trace *trace_composite() {
 		return new Composite();
 	} catch (std::exception &e) {
 		if (verbosity >= 1)
-			printf("Falling back to Shape method: %s\n", e.what());
+			printf(_("Falling back to Shape method: %s\n"), e.what());
 		return new Shape();
 	}
 }
@@ -96,7 +99,7 @@ Trace *init_trace() {
 				return trace_composite();
 		}
 	} catch (DBusException &e) {
-		printf("Error: %s\n", e.what());
+		printf(_("Error: %s\n"), e.what());
 		return trace_composite();
 	}
 
@@ -140,7 +143,7 @@ public:
 			for (Handler *h = child ? child : this; h; h=h->parent) {
 				stack = h->name() + " " + stack;
 			}
-			std::cout << "New event handling stack: " << stack << std::endl;
+			printf("New event handling stack: %s\n", stack.c_str());
 		}
 		Handler *new_handler = child ? child : this;
 		grabber->grab(new_handler->grab_mode());
@@ -290,10 +293,10 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 			(grabber && grabber->xinput && e->request_code == grabber->nMajor &&
 			 e->minor_code == X_GrabDeviceButton)) {
 		if (!handler || handler->idle()) {
-			printf("Error: A%s grab failed.  Is easystroke already running?\n",
-					e->request_code == X_GrabButton ? "" : "n XInput");
+			printf(_("Error: %s failed.  Is easystroke already running?\n"),
+					e->request_code == X_GrabButton ? _("A grab") : _("An XInput grab"));
 		} else {
-			printf("Error: A grab failed.  Resetting...\n");
+			printf(_("Error: A grab failed.  Resetting...\n"));
 			bail_out();
 		}
 	} else {
@@ -314,7 +317,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
-	printf("Fatal Error: Connection to X server lost, restarting...\n");
+	printf(_("Fatal Error: Connection to X server lost, restarting...\n"));
 	char *args[argc+1];
 	for (int i = 0; i<argc; i++)
 		args[i] = argv[i];
@@ -331,7 +334,7 @@ public:
 		set_timeout(100);
 	}
 	virtual void timeout() {
-		printf("Warning: WaitForButtonHandler timed out\n");
+		printf(_("Warning: WaitForButtonHandler timed out\n"));
 		bail_out();
 	}
 	virtual void press(guint b, RTriple e) {
@@ -872,7 +875,7 @@ protected:
 		if (grabber->xinput)
 			parent->replace_child(new AdvancedHandler(s, e, button, b));
 		else {
-			printf("Error: You need XInput to use advanced gestures\n");
+			printf(_("Error: You need XInput to use advanced gestures\n"));
 			parent->replace_child(NULL);
 		}
 	}
@@ -1023,7 +1026,7 @@ void run_by_name(const char *str) {
 			return;
 		}
 	}
-	printf("Warning: No action \"%s\" defined\n", str);
+	printf(_("Warning: No action \"%s\" defined\n"), str);
 }
 
 void quit(int) {
@@ -1081,7 +1084,7 @@ void send_dbus(char *str) {
 	GError *error = 0;
 	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
 	if (!bus) {
-		printf("Error initializing D-BUS\n");
+		printf(_("Error initializing D-BUS\n"));
 		exit(EXIT_FAILURE);
 	}
 	DBusGProxy *proxy = dbus_g_proxy_new_for_name(bus, "org.easystroke", "/org/easystroke", "org.easystroke");
@@ -1091,6 +1094,11 @@ void send_dbus(char *str) {
 bool start_dbus();
 
 Main::Main() : kit(0) {
+	struct stat st;
+	bool have_po = lstat("po", &st) != -1 && S_ISDIR(st.st_mode);
+	bindtextdomain("easystroke", have_po ? "po" : LOCALEDIR);
+	bind_textdomain_codeset("easystroke", "UTF-8");
+	textdomain("easystroke");
 	if (0) {
 		RStroke trefoil = Stroke::trefoil();
 		trefoil->draw_svg("easystroke.svg");
@@ -1115,7 +1123,7 @@ Main::Main() : kit(0) {
 
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {
-		printf("Couldn't open display\n");
+		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
 	}
 
@@ -1267,12 +1275,12 @@ void Main::create_config_dir() {
 	}
 	if (lstat(config_dir.c_str(), &st) == -1) {
 		if (mkdir(config_dir.c_str(), 0777) == -1) {
-			printf("Error: Couldn't create configuration directory \"%s\"\n", config_dir.c_str());
+			printf(_("Error: Couldn't create configuration directory \"%s\"\n"), config_dir.c_str());
 			exit(EXIT_FAILURE);
 		}
 	} else {
 		if (!S_ISDIR(st.st_mode)) {
-			printf("Error: \"%s\" is not a directory\n", config_dir.c_str());
+			printf(_("Error: \"%s\" is not a directory\n"), config_dir.c_str());
 			exit(EXIT_FAILURE);
 		}
 	}
@@ -1404,7 +1412,7 @@ void Main::handle_event(XEvent &ev) {
 		XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
 		if (handler->top()->idle())
 			break;
-		printf("Escape pressed: Resetting...\n");
+		printf(_("Escape pressed: Resetting...\n"));
 		bail_out();
 		break;
 
@@ -1640,7 +1648,7 @@ bool Main::handle(Glib::IOCondition) {
 					handle_event(ev);
 			}
 		} catch (GrabFailedException) {
-			printf("Error: A grab failed.  Resetting...\n");
+			printf(_("Error: A grab failed.  Resetting...\n"));
 			me = 0;
 			bail_out();
 		}

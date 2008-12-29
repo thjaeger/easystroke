@@ -17,10 +17,11 @@ PREFIX   = /usr/local
 BINDIR   = $(PREFIX)/bin
 ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
 MENUDIR  = $(PREFIX)/share/applications
+LOCALEDIR= $(PREFIX)/share/locale
 DFLAGS   =
 OFLAGS   = -Os
 AOFLAGS  = -O3
-CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
+CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
 
 LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
@@ -31,9 +32,13 @@ MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
+HFILES   = $(wildcard *.h)
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
+POFILES  = $(wildcard po/*.po)
+MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
+MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.c desktop.c dbus-server.h
+GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in
 GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
@@ -43,12 +48,13 @@ ARCH     = $(shell uname -m)
 
 -include debug.mk
 
-all: $(BINARY)
+all: $(BINARY) $(MOFILES)
 
-.PHONY: all clean snapshot release
+.PHONY: all clean snapshot release translate
 
 clean:
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES)
+	$(RM) -r $(MODIRS)
 
 include $(DEPFILES)
 
@@ -79,6 +85,24 @@ dbus-server.cc: dbus-server.h
 dbus-server.h: dbus.xml
 	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
 
+po/POTFILES.in: $(CCFILES) $(HFILES)
+	$(RM) $@
+	for f in `grep -El "\<_\(" $(CCFILES) $(HFILES)`; do echo $$f >> $@; done
+	echo gui.glade >> $@
+#	echo easystroke.desktop >> $@
+
+translate: po/POTFILES.in
+	cd po && intltool-update --pot --gettext-package=easystroke
+
+update-translations: po/POTFILES.in
+	cd po && for f in $(POFILES); do \
+		intltool-update `echo $$f | sed "s|po/\(.*\)\.po$$|\1|"`; \
+	done
+
+po/%/LC_MESSAGES/easystroke.mo: po/%.po
+	mkdir -p po/$*/LC_MESSAGES
+	msgfmt -c $< -o $@
+
 man:	$(MANPAGE)
 
 $(MANPAGE):	$(BINARY)
@@ -88,11 +112,17 @@ install: all
 	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
 	install -D -m 644 $(ICON) $(DESTDIR)$(ICONDIR)/$(ICON)
 	install -D -m 644 $(MENU) $(DESTDIR)$(MENUDIR)/$(MENU)
+	for f in $(MOFILES); do \
+		install -D -m 644 $$f `echo $$f | sed "s|^po/|$(DESTDIR)$(LOCALEDIR)/|"`; \
+	done
 
 uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/$(BINARY)
 	$(RM) $(DESTDIR)$(ICONDIR)/$(ICON)
 	$(RM) $(DESTDIR)$(MENUDIR)/$(MENU)
+	for f in $(MOFILES); do \
+		$(RM) `echo $$f | sed "s|^po/|$(DESTDIR)$(LOCALEDIR)/|"`; \
+	done
 
 snapshot: $(DIST)_$(ARCH).tar.gz
 
