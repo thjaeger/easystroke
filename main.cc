@@ -152,7 +152,6 @@ public:
 			std::cout << "New event handling stack: " << stack << std::endl;
 		}
 		Handler *new_handler = child ? child : this;
-		grabber->grab_xi_devs(new_handler->grab_xi());
 		grabber->grab(new_handler->grab_mode());
 		if (child)
 			child->init();
@@ -165,7 +164,6 @@ public:
 	}
 	virtual std::string name() = 0;
 	virtual Grabber::State grab_mode() = 0;
-	virtual bool grab_xi() = 0;
 };
 
 
@@ -205,7 +203,6 @@ public:
 	}
 	virtual std::string name() { return "Ignore"; }
 	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
-	virtual bool grab_xi() { return false; }
 };
 
 
@@ -361,7 +358,6 @@ public:
 	}
 	virtual std::string name() { return "WaitForButton"; }
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
-	virtual bool grab_xi() { return parent->grab_xi(); }
 };
 
 inline float abs(float x) { return x > 0 ? x : -x; }
@@ -457,7 +453,6 @@ public:
 	}
 	virtual std::string name() { return "Scroll"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-	virtual bool grab_xi() { return true; }
 };
 
 class ScrollXiHandler : public AbstractScrollHandler, Remapper {
@@ -484,7 +479,6 @@ public:
 	}
 	virtual std::string name() { return "ScrollXi"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-	virtual bool grab_xi() { return true; }
 };
 
 class ButtonXiHandler : public Handler, Remapper {
@@ -516,7 +510,6 @@ public:
 	}
 	virtual std::string name() { return "ButtonXi"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-	virtual bool grab_xi() { return true; }
 };
 
 class ScrollAdvancedHandler : public AbstractScrollHandler {
@@ -528,7 +521,6 @@ public:
 	}
 	virtual std::string name() { return "ScrollAdvanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-	virtual bool grab_xi() { return true; }
 };
 
 class AdvancedHandler : public Handler, Remapper {
@@ -616,7 +608,6 @@ public:
 	}
 	virtual std::string name() { return "Advanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-	virtual bool grab_xi() { return true; }
 };
 
 XAtom ATOM("ATOM");
@@ -919,7 +910,6 @@ public:
 	}
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
-	virtual bool grab_xi() { return false; }
 };
 
 float StrokeHandler::k = -0.01;
@@ -965,7 +955,6 @@ public:
 	virtual bool idle() { return true; }
 	virtual std::string name() { return "Idle"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
-	virtual bool grab_xi() { return false; }
 };
 
 class SelectHandler : public Handler, public Timeout {
@@ -989,8 +978,7 @@ public:
 		set_timeout(100);
 	}
 	virtual std::string name() { return "Select"; }
-	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
-	virtual bool grab_xi() { return false; }
+	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
 };
 
 

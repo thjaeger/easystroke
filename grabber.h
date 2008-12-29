@@ -102,6 +102,7 @@ private:
 
 	void set();
 	void grab_xi(bool);
+	void grab_xi_devs(bool);
 	std::string get_wm_class(Window w);
 	std::string wm_class;
 public:
@@ -118,7 +119,6 @@ public:
 	void xi_suspend() { xi_suspended = true; set(); }
 	void xi_resume() { xi_suspended = false; set(); }
 	void update_button(ButtonInfo bi);
-	void grab_xi_devs(bool);
 	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
