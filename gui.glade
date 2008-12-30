@@ -1703,6 +1703,7 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
             <child>
               <widget class="GtkButton" id="button_record_cancel">
                 <property name="label">gtk-cancel</property>
+                <property name="response_id">-1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -1823,6 +1824,7 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
             <child>
               <widget class="GtkButton" id="button7">
                 <property name="label">gtk-cancel</property>
+                <property name="response_id">-1</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
