@@ -912,7 +912,7 @@ public:
 class IdleHandler : public Handler {
 protected:
 	virtual void init() {
-		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
+//		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		grab();
 	}
 	virtual void press_no_xi(guint b, Time t) {
