@@ -265,14 +265,17 @@ Prefs::Prefs() {
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
 
-	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p;
+	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *add_extra, *remove_extra;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);
 	widgets->get_widget("button_default_p", button_default_p);
 	widgets->get_widget("button_remove_exception", remove_exception);
 	widgets->get_widget("label_button", blabel);
+	widgets->get_widget("button_add_extra", add_extra);
+	widgets->get_widget("button_remove_extra", remove_extra);
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("treeview_devices", dtv);
+	widgets->get_widget("treeview_extra", etv);
 	widgets->get_widget("scale_p", scale_p);
 
 	new Sensitive(xinput_v, "check_timing_workaround");
@@ -311,6 +314,14 @@ Prefs::Prefs() {
 	dtm->signal_row_changed().connect(sigc::mem_fun(*this, &Prefs::on_device_toggled));
 	update_device_list();
 
+	add_extra->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add_extra));
+	remove_extra->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove_extra));
+
+	etm = Gtk::ListStore::create(ecs);
+	etv->set_model(etm);
+	etv->append_column(_("Button"), ecs.str);
+	update_extra_buttons();
+
 	double p = prefs.p.get();
 	scale_p->set_value(p);
 	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
@@ -346,6 +357,48 @@ void Prefs::update_device_list() {
 		row[dcs.name] = name;
 	}
 	ignore_device_toggled = false;
+}
+
+void Prefs::update_extra_buttons() {
+	etm->clear();
+	std::vector<ButtonInfo> &extra = prefs.extra_buttons.unsafe_ref();
+	for (std::vector<ButtonInfo>::iterator i = extra.begin(); i != extra.end(); i++) {
+		Gtk::TreeModel::Row row = *(etm->append());
+		row[ecs.str] = i->get_button_text();
+		row[ecs.i] = i;
+	}
+}
+
+void Prefs::on_add_extra() {
+	ButtonInfo bi;
+	SelectButton sb(bi, true, true);
+	if (!sb.run())
+		return;
+	if (prefs.button.ref().overlap(sb.event))
+		return;
+	Atomic a;
+	std::vector<ButtonInfo> &extra = prefs.extra_buttons.write_ref(a);
+	for (std::vector<ButtonInfo>::iterator i = extra.begin(); i != extra.end();)
+		if (i->overlap(sb.event))
+			i = extra.erase(i);
+		else
+			i++;
+	extra.push_back(sb.event);
+	stable_sort(extra.begin(), extra.end());
+	update_extra_buttons();
+}
+
+void Prefs::on_remove_extra() {
+	Gtk::TreePath path;
+	Gtk::TreeViewColumn *col;
+	etv->get_cursor(path, col);
+	if (!path.gobj())
+		return;
+	Gtk::TreeIter iter = *etm->get_iter(path);
+	Atomic a;
+	std::vector<ButtonInfo>::iterator i = (*iter)[ecs.i];
+	prefs.extra_buttons.write_ref(a).erase(i);
+	update_extra_buttons();
 }
 
 struct Prefs::SelectRow {

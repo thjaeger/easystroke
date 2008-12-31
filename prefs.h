@@ -25,11 +25,14 @@ public:
 	virtual ~Prefs() {}
 	void on_selected(std::string);
 	void update_device_list();
+	void update_extra_buttons();
 private:
 	void set_button_label();
 
 	void on_add();
 	void on_remove();
+	void on_add_extra();
+	void on_remove_extra();
 	void on_p_changed();
 	void on_p_default();
 	void on_select_button();
@@ -56,6 +59,16 @@ private:
 	DeviceColumns dcs;
 	Gtk::TreeView* dtv;
 	Glib::RefPtr<Gtk::ListStore> dtm;
+
+	class ExtraColumns : public Gtk::TreeModel::ColumnRecord {
+	public:
+		ExtraColumns() { add(str); add(i); }
+		Gtk::TreeModelColumn<Glib::ustring> str;
+		Gtk::TreeModelColumn<std::vector<ButtonInfo>::iterator> i;
+	};
+	ExtraColumns ecs;
+	Gtk::TreeView *etv;
+	Glib::RefPtr<Gtk::ListStore> etm;
 
 	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;

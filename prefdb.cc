@@ -23,7 +23,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/set.hpp>
-#include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/export.hpp>
@@ -146,7 +146,7 @@ void PrefDB::timeout() {
 }
 
 
-bool ButtonInfo::overlap(ButtonInfo &bi) const {
+bool ButtonInfo::overlap(const ButtonInfo &bi) const {
 	if (button != bi.button)
 		return false;
 	if (state == AnyModifier || bi.state == AnyModifier)

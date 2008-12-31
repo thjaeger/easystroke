@@ -53,9 +53,10 @@ public:
 	guint button;
 	guint state;
 	bool instant;
+	bool operator<(const ButtonInfo &bi) const { return button < bi.button; }
 	void press();
 	Glib::ustring get_button_text() const;
-	bool overlap(ButtonInfo &bi) const;
+	bool overlap(const ButtonInfo &bi) const;
 	ButtonInfo(guint button_) : button(button_), state(0), instant(false) {}
 	ButtonInfo() : button(0), state(0), instant(false) {}
 };
@@ -128,7 +129,7 @@ public:
 	Source<std::set<std::string> > excluded_devices;
 	Source<RGBA> color;
 	Source<int> trace_width;
-	Source<std::list<ButtonInfo> > extra_buttons;
+	Source<std::vector<ButtonInfo> > extra_buttons;
 
 	void init();
 	virtual void timeout();
