@@ -948,7 +948,6 @@ float StrokeHandler::k = -0.01;
 class IdleHandler : public Handler, Timeout {
 protected:
 	virtual void init() {
-		XGrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT, True, GrabModeAsync, GrabModeSync);
 		reset_buttons();
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
@@ -1406,19 +1405,6 @@ class PresenceWatcher : public Timeout {
 
 void Main::handle_event(XEvent &ev) {
 	switch(ev.type) {
-	case KeyPress:
-		if (ev.xkey.keycode != XKeysymToKeycode(dpy, XK_Escape))
-			break;
-		XAllowEvents(dpy, ReplayKeyboard, CurrentTime);
-		if (handler->top()->idle())
-			break;
-		printf(_("Escape pressed: Resetting...\n"));
-		bail_out();
-		break;
-
-	case ClientMessage:
-		break;
-
 	case EnterNotify:
 	case LeaveNotify:
 		handle_enter_leave(ev);
