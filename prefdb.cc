@@ -23,6 +23,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/set.hpp>
+#include <boost/serialization/list.hpp>
 #include <boost/serialization/map.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/export.hpp>
@@ -117,6 +118,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 		ar & color.unsafe_ref();
 	}
 	ar & trace_width.unsafe_ref();
+	if (version < 13) return;
+	ar & extra_buttons.unsafe_ref();
 }
 
 void PrefDB::timeout() {
@@ -220,6 +223,7 @@ void PrefDB::init() {
 	watch(excluded_devices);
 	watch(color);
 	watch(trace_width);
+	watch(extra_buttons);
 }
 
 PrefDB prefs;

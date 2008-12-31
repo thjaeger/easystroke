@@ -128,12 +128,13 @@ public:
 	Source<std::set<std::string> > excluded_devices;
 	Source<RGBA> color;
 	Source<int> trace_width;
+	Source<std::list<ButtonInfo> > extra_buttons;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 12)
+BOOST_CLASS_VERSION(PrefDB, 13)
 
 extern PrefDB prefs;
 #endif
