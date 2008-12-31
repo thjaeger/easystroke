@@ -54,6 +54,9 @@ public:
 	guint state;
 	bool instant;
 	bool operator<(const ButtonInfo &bi) const { return button < bi.button; }
+	bool operator==(const ButtonInfo &bi) const {
+		return button == bi.button && state == bi.state && !instant == !bi.instant;
+	}
 	void press();
 	Glib::ustring get_button_text() const;
 	bool overlap(const ButtonInfo &bi) const;

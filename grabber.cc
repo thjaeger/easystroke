@@ -413,26 +413,26 @@ void Grabber::grab_xi(bool grab) {
 	for (int i = 0; i < xi_devs_n; i++)
 		if (!prefs.excluded_devices.get().count(xi_devs[i]->name)) {
 			if (grab) {
-				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL,
+				for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state, NULL,
 							ROOT, False, button_events_n, xi_devs[i]->events,
 							GrabModeAsync, GrabModeAsync);
-					if (j->second == AnyModifier)
+					if (j->state == AnyModifier)
 						continue;
 					for (unsigned int *mask = ignore_mods; *mask; mask++)
-						XGrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second ^ *mask,
+						XGrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state ^ *mask,
 								NULL, ROOT, False, button_events_n, xi_devs[i]->events,
 								GrabModeAsync, GrabModeAsync);
 				}
 
 			} else
-				for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first, j->second, NULL, ROOT);
-					if (j->second == AnyModifier)
+				for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state, NULL, ROOT);
+					if (j->state == AnyModifier)
 						continue;
 					for (unsigned int *mask = ignore_mods; *mask; mask++)
-						XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->first,
-								j->second ^ *mask, NULL, ROOT);
+						XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->button,
+								j->state ^ *mask, NULL, ROOT);
 				}
 		}
 }
@@ -484,12 +484,12 @@ void Grabber::set() {
 		printf("grabbing: %s\n", state_name[grabbed]);
 
 	if (old == BUTTON) {
-		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XUngrabButton(dpy, j->first, j->second, ROOT);
-			if (j->second == AnyModifier)
+		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+			XUngrabButton(dpy, j->button, j->state, ROOT);
+			if (j->state == AnyModifier)
 				continue;
 			for (unsigned int *mask = ignore_mods; *mask; mask++)
-				XUngrabButton(dpy, j->first, j->second ^ *mask, ROOT);
+				XUngrabButton(dpy, j->button, j->state ^ *mask, ROOT);
 		}
 		if (timing_workaround)
 			XUngrabButton(dpy, 1, AnyModifier, ROOT);
@@ -500,14 +500,14 @@ void Grabber::set() {
 		XUngrabPointer(dpy, CurrentTime);
 
 	if (grabbed == BUTTON) {
-		for (std::map<guint, guint>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XGrabButton(dpy, j->first, j->second, ROOT, False,
+		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+			XGrabButton(dpy, j->button, j->state, ROOT, False,
 					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 					GrabModeSync, GrabModeAsync, None, None);
-			if (j->second == AnyModifier)
+			if (j->state == AnyModifier)
 				continue;
 			for (unsigned int *mask = ignore_mods; *mask; mask++)
-				XGrabButton(dpy, j->first, j->second ^ *mask, ROOT, False,
+				XGrabButton(dpy, j->button, j->state ^ *mask, ROOT, False,
 						ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 						GrabModeSync, GrabModeAsync, None, None);
 		}
@@ -530,15 +530,27 @@ void Grabber::set() {
 	}
 }
 
+// TODO: Modifiers?
+bool Grabber::is_grabbed(guint b) {
+	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
+		if (i->button == b)
+			return true;
+	return false;
+}
+
 void Grabber::update_button(ButtonInfo bi) {
-	if (grabbed_button.button == bi.button && grabbed_button.state == bi.state)
+	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
+	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
+			std::equal(extra.begin(), extra.end(), ++buttons.begin()))
 		return;
 	suspended = true;
 	xi_suspended = true;
 	set();
+	grabbed_button = prefs.button.get();
 	buttons.clear();
-	buttons[bi.button] = bi.state;
-	grabbed_button = bi;
+	buttons.resize(extra.size() + 1);
+	buttons.push_back(grabbed_button);
+	std::copy(extra.begin(), extra.end(), ++buttons.begin());
 	suspended = false;
 	xi_suspended = false;
 	set();

@@ -97,7 +97,7 @@ private:
 	bool active;
 	Cursor cursor_select;
 	ButtonInfo grabbed_button;
-	std::map<guint, guint> buttons;
+	std::vector<ButtonInfo> buttons;
 	bool timing_workaround;
 
 	void set();
@@ -119,7 +119,7 @@ public:
 	void xi_suspend() { xi_suspended = true; set(); }
 	void xi_resume() { xi_suspended = false; set(); }
 	void update_button(ButtonInfo bi);
-	bool is_grabbed(guint b) { return buttons.find(b) != buttons.end(); }
+	bool is_grabbed(guint b);
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
 
