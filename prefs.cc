@@ -369,17 +369,28 @@ SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	widgets->get_widget("toggle_super", toggle_super);
 	widgets->get_widget("toggle_any", toggle_any);
 	widgets->get_widget("select_button", select_button);
+	widgets->get_widget("check_instant", check_instant);
 	select_button->set_active(bi.button-1);
 	toggle_shift->set_active(bi.button && (bi.state & GDK_SHIFT_MASK));
 	toggle_control->set_active(bi.button && (bi.state & GDK_CONTROL_MASK));
 	toggle_alt->set_active(bi.button && (bi.state & GDK_MOD1_MASK));
 	toggle_super->set_active(bi.button && (bi.state & GDK_SUPER_MASK));
 	toggle_any->set_active(any && bi.button && bi.state == AnyModifier);
-	toggle_any->set_sensitive(any);
+	if (any) {
+		check_instant->show();
+		toggle_any->show();
+	} else {
+		check_instant->hide();
+		toggle_any->hide();
+	}
+	check_instant->set_active(bi.instant);
 
 	Gtk::Button *select_default;
 	widgets->get_widget("select_default", select_default);
-	select_default->set_sensitive(def);
+	if (def)
+		select_default->show();
+	else
+		select_default->hide();
 
 	if (!eventbox->get_children().size()) {
 		eventbox->set_events(Gdk::BUTTON_PRESS_MASK);
@@ -430,10 +441,12 @@ bool SelectButton::run() {
 				event.state |= GDK_MOD1_MASK;
 			if (toggle_super->get_active())
 				event.state |= GDK_SUPER_MASK;
+			event.instant = check_instant->get_active();
 			return true;
 		case 2: // Default
 			event.button = 0;
 			event.state = 0;
+			event.instant = false;
 			return true;
 		case 3: // Click - all the work has already been done
 			return true;
@@ -446,6 +459,7 @@ bool SelectButton::run() {
 bool SelectButton::on_button_press(GdkEventButton *ev) {
 	event.button = ev->button;
 	event.state  = ev->state;
+	event.instant = check_instant->get_active();
 	if (toggle_any->get_active()) {
 		event.state = AnyModifier;
 	} else {

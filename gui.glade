@@ -1560,6 +1560,18 @@ Button 12</property>
             <property name="position">4</property>
           </packing>
         </child>
+        <child>
+          <widget class="GtkCheckButton" id="check_instant">
+            <property name="label" translatable="yes">Instant Gestures</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">False</property>
+            <property name="draw_indicator">True</property>
+          </widget>
+          <packing>
+            <property name="position">5</property>
+          </packing>
+        </child>
         <child internal-child="action_area">
           <widget class="GtkHButtonBox" id="dialog-action_area1">
             <property name="visible">True</property>

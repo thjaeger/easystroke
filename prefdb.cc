@@ -30,7 +30,7 @@
 #include <X11/Xlib.h>
 
 const double default_p = 0.5;
-const ButtonInfo default_button = { Button2, 0 };
+const ButtonInfo default_button(Button2);
 const int default_radius = 16;
 const int default_pressure_threshold = 192;
 
@@ -142,6 +142,14 @@ void PrefDB::timeout() {
 	}
 }
 
+
+bool ButtonInfo::overlap(ButtonInfo &bi) const {
+	if (button != bi.button)
+		return false;
+	if (state == AnyModifier || bi.state == AnyModifier)
+		return true;
+	return !((state ^ bi.state) & ~LockMask & ~Mod2Mask);
+}
 
 class TimeoutProfile : private Base {
 	Out<int> &in;

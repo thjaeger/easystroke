@@ -45,14 +45,21 @@ class ButtonInfo {
 			ar & special;
 			return;
 		}
+		if (version < 3)
+			return;
+		ar & instant;
 	}
 public:
 	guint button;
 	guint state;
+	bool instant;
 	void press();
 	Glib::ustring get_button_text() const;
+	bool overlap(ButtonInfo &bi) const;
+	ButtonInfo(guint button_) : button(button_), state(0), instant(false) {}
+	ButtonInfo() : button(0), state(0), instant(false) {}
 };
-BOOST_CLASS_VERSION(ButtonInfo, 2)
+BOOST_CLASS_VERSION(ButtonInfo, 3)
 
 typedef boost::shared_ptr<ButtonInfo> RButtonInfo;
 

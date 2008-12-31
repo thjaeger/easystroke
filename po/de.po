@@ -8,13 +8,13 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2008-12-30 14:09+0100\n"
-"PO-Revision-Date: 2008-12-30 03:11+0100\n"
+"POT-Creation-Date: 2008-12-31 01:32+0100\n"
+"PO-Revision-Date: 2008-12-31 01:32+0100\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
-"Content-Transfer-Encoding: 8bit\n"
+"Content-Transfer-Encoding: 8bit"
 
 #: ../actiondb.cc:119
 #, c-format
@@ -157,11 +157,15 @@ msgstr "Geste %d"
 msgid "No Modifiers"
 msgstr "Keine Modifier"
 
-#: ../actions.cc:869
+#: ../actions.cc:870
+msgid "(Instantly) "
+msgstr "(Sofort) "
+
+#: ../actions.cc:872
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:872
+#: ../actions.cc:876
 #, c-format
 msgid "Button %d"
 msgstr "Maustaste %d"
@@ -291,7 +295,7 @@ msgstr ""
 "Konnte Einstellungen nicht speichern.\n"
 " Stellen Sie sicher, dass "
 
-#: ../prefdb.cc:190
+#: ../prefdb.cc:198
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Fehler: Konnte Einstellungen nicht laden.\n"
@@ -308,7 +312,7 @@ msgstr "Aktiv"
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:333 ../prefs.cc:505 ../prefs.cc:531
+#: ../prefs.cc:333 ../prefs.cc:519 ../prefs.cc:545
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
@@ -479,14 +483,18 @@ msgid "Ignore strokes leading up to advanced gestures"
 msgstr "Ignoriere die Mausbewegung bei Advanced Gestures"
 
 #: ../gui.glade.h:47
+msgid "Instant Gestures"
+msgstr "Sofortige Gesten"
+
+#: ../gui.glade.h:48
 msgid "Method to show gestures"
 msgstr "Methode zum Anzeigen der Gesten"
 
-#: ../gui.glade.h:48
+#: ../gui.glade.h:49
 msgid "Minimum speed (px/s)"
 msgstr "Minimalgeschwindigkeit (px/s)"
 
-#: ../gui.glade.h:49
+#: ../gui.glade.h:50
 msgid ""
 "None\n"
 "Default\n"
@@ -502,57 +510,57 @@ msgstr ""
 "Fire (compiz)\n"
 "Water (compiz)"
 
-#: ../gui.glade.h:55
+#: ../gui.glade.h:56
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: ../gui.glade.h:56
+#: ../gui.glade.h:57
 msgid "Remove"
 msgstr "Entfernen"
 
-#: ../gui.glade.h:57
+#: ../gui.glade.h:58
 msgid "Remove Application/Group"
 msgstr "Entferne Anwendung/Gruppe"
 
-#: ../gui.glade.h:58
+#: ../gui.glade.h:59
 msgid "Reset Action(s)"
 msgstr "Aktion(en) zurücksetzen"
 
-#: ../gui.glade.h:59
+#: ../gui.glade.h:60
 msgid "S_uper"
 msgstr "Super"
 
-#: ../gui.glade.h:60
+#: ../gui.glade.h:61
 msgid "Shape"
 msgstr "Form"
 
-#: ../gui.glade.h:61
+#: ../gui.glade.h:62
 msgid "Show clicks"
 msgstr "Klicks anzeigen"
 
-#: ../gui.glade.h:62
+#: ../gui.glade.h:63
 msgid "Show deleted rows"
 msgstr "Zeige gelöschte Zeilen"
 
-#: ../gui.glade.h:63
+#: ../gui.glade.h:64
 msgid "Show popups ("
 msgstr "Popus zeigen ("
 
-#: ../gui.glade.h:64
+#: ../gui.glade.h:65
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
 
-#: ../gui.glade.h:65
+#: ../gui.glade.h:66
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Bleibe im 'Scrollen' oder 'Ignorieren' Modus solange der Stift in Reichweite "
 "ist"
 
-#: ../gui.glade.h:66
+#: ../gui.glade.h:67
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
 
-#: ../gui.glade.h:67
+#: ../gui.glade.h:68
 msgid ""
 "Timeout Off\n"
 "Conservative\n"
@@ -568,11 +576,11 @@ msgstr ""
 "Flick\n"
 "Benutzerdefiniert"
 
-#: ../gui.glade.h:73
+#: ../gui.glade.h:74
 msgid "Timeout profile"
 msgstr "Timeout-Profil"
 
-#: ../gui.glade.h:74
+#: ../gui.glade.h:75
 msgid ""
 "Treat it as a click if the cursor isn't moved more \n"
 "than this many pixels away from the original position"
@@ -580,70 +588,71 @@ msgstr ""
 "Behandle Gesten, die kleiner als die angegebene \n"
 "Größe sind (in Pixeln), als Klicks"
 
-#: ../gui.glade.h:76
+#: ../gui.glade.h:77
 msgid "Width"
 msgstr "Breite"
 
-#: ../gui.glade.h:77
+#: ../gui.glade.h:78
 msgid "Work around timing issues on Wacom tablets and Tablet PCs"
 msgstr "Workaround für Timing-Problem auf Wacom Tablets und Tablet PCs"
 
-#: ../gui.glade.h:78
+#: ../gui.glade.h:79
 msgid "_Add Action"
 msgstr "Aktion hinzufügen"
 
-#: ../gui.glade.h:79
+#: ../gui.glade.h:80
 msgid "_Add Exception"
 msgstr "Ausnahme hinzufügen"
 
-#: ../gui.glade.h:80
+#: ../gui.glade.h:81
 msgid "_Alt"
 msgstr "Alt"
 
-#: ../gui.glade.h:81
+#: ../gui.glade.h:82
 msgid "_Control"
 msgstr "Strg"
 
-#: ../gui.glade.h:82
+#: ../gui.glade.h:83
 msgid "_Default"
 msgstr "Standard"
 
-#: ../gui.glade.h:83
+#: ../gui.glade.h:84
 msgid "_Delete Action(s)"
 msgstr "Aktion(en) löschen"
 
-#: ../gui.glade.h:84
+#: ../gui.glade.h:85
 msgid "_Delete Current"
 msgstr "Geste löschen"
 
-#: ../gui.glade.h:85
+#: ../gui.glade.h:86
 msgid "_Gesture Button"
 msgstr "Gesten-Maustaste"
 
-#: ../gui.glade.h:86
+#: ../gui.glade.h:87
 msgid "_Hide"
 msgstr "Verstecken"
 
-#: ../gui.glade.h:87
+#: ../gui.glade.h:88
 msgid "_History"
 msgstr "Verlauf"
 
-#: ../gui.glade.h:88
+#: ../gui.glade.h:89
 msgid "_Matrix"
 msgstr "Matrix"
 
-#: ../gui.glade.h:89
+#: ../gui.glade.h:90
 msgid "_Record Stroke"
 msgstr "Geste aufnehmen"
 
-#: ../gui.glade.h:90
+#: ../gui.glade.h:91
 msgid "_Remove Exception"
 msgstr "Ausnahme Entfernen"
 
-#: ../gui.glade.h:91
+#: ../gui.glade.h:92
 msgid "_Shift"
 msgstr "Umschalt"
 
-#: ../gui.glade.h:92
+#: ../gui.glade.h:93
 msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
+

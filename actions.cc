@@ -865,9 +865,13 @@ const Glib::ustring ModAction::get_label() const {
 }
 
 Glib::ustring ButtonInfo::get_button_text() const {
-	Glib::ustring str = state == AnyModifier ?
-		Glib::ustring() + "(" + _("Any Modifier") + " +) " : 
-		Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
+	Glib::ustring str;
+	if (instant)
+		str += _("(Instantly) ");
+        if (state == AnyModifier)
+		str += Glib::ustring() + "(" + _("Any Modifier") + " +) ";
+	else
+		str += Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
 	char name[16];
 	snprintf(name, sizeof(name), _("Button %d"), button);
 	return str + name;
