@@ -88,12 +88,7 @@ private:
 
 	Stroke(PreStroke &s, int trigger_, int button_, bool timeout_);
 
-        Glib::RefPtr<Gdk::Pixbuf> draw_(int, bool) const;
-	mutable Glib::RefPtr<Gdk::Pixbuf> pb[2];
 	std::vector<Point> points;
-
-	static Glib::RefPtr<Gdk::Pixbuf> drawEmpty_(int);
-	static Glib::RefPtr<Gdk::Pixbuf> pbEmpty;
 
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		ar & points;
@@ -117,14 +112,10 @@ public:
 	static RStroke create(PreStroke &s, int trigger_, int button_, bool timeout_) {
 		return RStroke(new Stroke(s, trigger_, button_, timeout_));
 	}
-        Glib::RefPtr<Gdk::Pixbuf> draw(int size, bool big = false) const;
-	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big) const;
-	void draw_svg(std::string filename) const;
 	bool show_icon();
 
 	static RStroke trefoil();
 	static bool compare(RStroke, RStroke, double &);
-	static Glib::RefPtr<Gdk::Pixbuf> drawEmpty(int);
 
 	void print() const;
 	void normalize();

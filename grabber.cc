@@ -256,19 +256,6 @@ bool Grabber::init_xi() {
 	if (!update_device_list())
 		return false;
 
-	xinput_v.set(xi_devs_n);
-
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_pressure) {
-			supports_pressure.set(true);
-			break;
-		}
-
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity) {
-			supports_proximity.set(true);
-			break;
-		}
 	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
 
 	return xi_devs_n;

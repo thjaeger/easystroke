@@ -54,7 +54,6 @@ class Action {
 public:
 	virtual void run() {};
 	virtual RModifiers prepare() { return RModifiers(); };
-	virtual const Glib::ustring get_label() const = 0;
 };
 
 class Command : public Action {
@@ -66,7 +65,6 @@ public:
 	Command() {}
 	static RCommand create(const std::string &c) { return RCommand(new Command(c)); }
 	virtual void run();
-	virtual const Glib::ustring get_label() const { return cmd; }
 };
 
 class ModAction : public Action {
@@ -78,7 +76,6 @@ protected:
 	ModAction(Gdk::ModifierType mods_) : mods(mods_) {}
 	virtual RModifiers prepare();
 public:
-	virtual const Glib::ustring get_label() const;
 };
 
 class SendKey : public ModAction {
@@ -99,7 +96,6 @@ public:
 	}
 
 	virtual void run();
-	virtual const Glib::ustring get_label() const;
 };
 BOOST_CLASS_VERSION(SendKey, 1)
 
@@ -141,7 +137,6 @@ public:
 		return b->get_button_info().button;
 	}
 	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
-	virtual const Glib::ustring get_label() const;
 };
 #define IF_BUTTON(act, b) for (unsigned int b = Button::get_button(act); b; b = 0)
 
@@ -156,7 +151,6 @@ private:
 public:
 	static const char *types[5];
 	Misc() {}
-	virtual const Glib::ustring get_label() const { return types[type]; }
 	static RMisc create(Type t) { return RMisc(new Misc(t)); }
 	virtual void run();
 };
@@ -168,7 +162,6 @@ class StrokeSet : public std::set<RStroke> {
 
 // Internal use only
 class Click : public Action {
-	virtual const Glib::ustring get_label() const { return "Click"; }
 };
 #define IS_CLICK(act) (act && dynamic_cast<Click *>(act.get()))
 
@@ -193,7 +186,6 @@ struct Ranking {
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
 	int x, y;
-	bool show();
 };
 
 class Unique {

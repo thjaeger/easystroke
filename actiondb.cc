@@ -15,7 +15,6 @@
  */
 #include "actiondb.h"
 #include "main.h"
-#include "win.h"
 #include <glibmm/i18n.h>
 
 #include <iostream>
@@ -127,11 +126,6 @@ ButtonInfo Button::get_button_info() const {
 	return bi;
 }
 
-
-const Glib::ustring Button::get_label() const {
-	return get_button_info().get_button_text();
-}
-
 const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", NULL };
 
 template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
@@ -211,9 +205,6 @@ void ActionDBWatcher::timeout() {
 		if (!good_state)
 			return;
 		good_state = false;
-		new ErrorDialog(
-				_("Couldn't save actions.  Your changes will be lost.  \nMake sure that ")+config_dir+
-				_(" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options."));
 	}
 }
 

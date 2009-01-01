@@ -15,7 +15,6 @@
  */
 #include "prefdb.h"
 #include "main.h"
-#include "win.h"
 #include <glibmm/i18n.h>
 
 #include <fstream>
@@ -130,8 +129,6 @@ void PrefDB::timeout() {
 		boost::archive::text_oarchive oa(ofs);
 		const PrefDB *me = this;
 		oa << *me;
-		if (rename(tmp.c_str(), filename.c_str()))
-			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)
 			printf("Saved preferences.\n");
 	} catch (std::exception &e) {
@@ -139,9 +136,6 @@ void PrefDB::timeout() {
 		if (!good_state)
 			return;
 		good_state = false;
-		new ErrorDialog(
-				_("Couldn't save preferences.  Your changes will be lost.  \nMake sure that ")+config_dir+
-				_(" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options."));
 	}
 }
 

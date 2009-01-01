@@ -13,10 +13,9 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "win.h"
+#include <gtkmm.h>
 #include "main.h"
 #include "shape.h"
-#include "prefs.h"
 #include "actiondb.h"
 #include "prefdb.h"
 #include "trace.h"
@@ -55,7 +54,6 @@ int argc;
 char **argv;
 
 std::string config_dir;
-Win *win;
 
 Window current = 0, current_app = 0;
 Trace *trace = 0;
@@ -157,33 +155,10 @@ public:
 	virtual Grabber::State grab_mode() = 0;
 };
 
-
-class OSD : public Gtk::Window {
-public:
-	OSD(Glib::ustring txt) : Gtk::Window(Gtk::WINDOW_POPUP) {
-		int w,h;
-		set_accept_focus(false);
-		set_border_width(20);
-		WIDGET(Gtk::Label, label, "<big><b>" + txt + "</b></big>");
-		label.set_use_markup();
-		label.modify_fg(Gtk::STATE_NORMAL, Gdk::Color("White"));
-		modify_bg(Gtk::STATE_NORMAL, Gdk::Color("RoyalBlue3"));
-		set_opacity(0.75);
-		add(label);
-		label.show();
-		get_size(w,h);
-		int screen = DefaultScreen(dpy);
-		move(DisplayWidth(dpy, screen) - w - 50, 50);
-		show();
-		get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
-	}
-};
-
 class IgnoreHandler : public Handler {
-	OSD osd;
 	RModifiers mods;
 public:
-	IgnoreHandler(RModifiers mods_) : osd("Ignore"), mods(mods_) {}
+	IgnoreHandler(RModifiers mods_) : mods(mods_) {}
 	virtual void press_core(guint b, Time t, bool xi) {
 		replay(t);
 		if (!in_proximity)
@@ -272,10 +247,7 @@ RAction handle_stroke(RStroke s, RTriple e) {
 		act->prepare();
 	ranking->x = (int)e->x;
 	ranking->y = (int)e->y;
-	if (!IS_CLICK(act) || prefs.show_clicks.get())
-		Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
-	else
-		delete ranking;
+	delete ranking;
 	return act;
 }
 
@@ -330,6 +302,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
+	abort();
 	printf(_("Fatal Error: Connection to X server lost, restarting...\n"));
 	char *args[argc+1];
 	for (int i = 0; i<argc; i++)
@@ -370,13 +343,12 @@ public:
 inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
-	OSD osd;
 	float last_x, last_y;
 	Time last_t;
 	float offset_x, offset_y;
 
 protected:
-	AbstractScrollHandler() : osd("Scroll"), last_t(0), offset_x(0.0), offset_y(0.0) {}
+	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {}
 	virtual void fake_button(int b1, int n1, int b2, int n2) {
 		for (int i = 0; i<n1; i++) {
 			XTestFakeButtonEvent(dpy, b1, True, CurrentTime);
@@ -493,11 +465,7 @@ class AdvancedHandler : public Handler, Remapper {
 		if (!rs.count(b))
 			return;
 		Ranking *r = rs[b];
-		if (r) {
-			r->x = (int)e->x;
-			r->y = (int)e->y;
-			Glib::signal_idle().connect(sigc::mem_fun(r, &Ranking::show));
-		}
+		delete r;
 		rs.erase(b);
 	}
 public:
@@ -520,7 +488,6 @@ public:
 		if (as.count(button2))
 			act = as[button2];
 		if (IS_CLICK(act)) {
-			printf("click: %d\n", e->t);
 			replay(CurrentTime); // TODO
 			if (1)
 				XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
@@ -868,7 +835,6 @@ protected:
 			return;
 		}
 		RAction act = handle_stroke(s, e);
-		win->show_success(act);
 		RModifiers mods;
 		if (act) {
 			mods = act->prepare();
@@ -906,7 +872,6 @@ public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
 	repeated(false), min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
 	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(e->t) {
-		printf("press_t: %d\n", press_t);
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
@@ -996,7 +961,6 @@ class SelectHandler : public Handler, public Timeout {
 	}
 public:
 	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
-		win->get_window().get_window()->lower();
 		set_timeout(100);
 	}
 	virtual std::string name() { return "Select"; }
@@ -1058,13 +1022,6 @@ class ReloadTrace : public Timeout {
 
 void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
-void open_uri(Gtk::LinkButton *button, const Glib::ustring& uri) {
-	if (!fork()) {
-		execlp("xdg-open", "xdg-open", uri.c_str(), NULL);
-		exit(EXIT_FAILURE);
-	}
-}
-
 // dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
 void send_dbus(char *str) {
 	GError *error = 0;
@@ -1085,11 +1042,6 @@ Main::Main() : kit(0) {
 	bindtextdomain("easystroke", have_po ? "po" : LOCALEDIR);
 	bind_textdomain_codeset("easystroke", "UTF-8");
 	textdomain("easystroke");
-	if (0) {
-		RStroke trefoil = Stroke::trefoil();
-		trefoil->draw_svg("easystroke.svg");
-		exit(EXIT_SUCCESS);
-	}
 	if (argc > 1 && !strcmp(argv[1], "send")) {
 		if (argc == 2)
 			usage(argv[0], false);
@@ -1104,8 +1056,6 @@ Main::Main() : kit(0) {
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
-
-	Gtk::LinkButton::set_uri_hook(sigc::ptr_fun(&open_uri));
 
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {
@@ -1139,11 +1089,8 @@ void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::mem_fun(*this, &Main::handle));
 	io->attach();
-	win = new Win;
-	if (show_gui)
-		win->get_window().show();
+	// TODO
 	Gtk::Main::run();
-	delete win;
 }
 
 void Main::usage(char *me, bool good) {
@@ -1357,14 +1304,12 @@ void Main::handle_enter_leave(XEvent &ev) {
 	if (window_selected) {
 		(*window_selected)(grabber->get_wm_class());
 		window_selected.reset();
-		win->get_window().raise();
 	}
 }
 
 class PresenceWatcher : public Timeout {
 	virtual void timeout() {
 		grabber->update_device_list();
-		win->prefs_tab->update_device_list();
 	}
 } presence_watcher;
 
@@ -1686,13 +1631,11 @@ RModifiers ModAction::prepare() {
 void Misc::run() {
 	switch (type) {
 		case SHOWHIDE:
-			win->show_hide();
 			return;
 		case UNMINIMIZE:
 			grabber->unminimize();
 			return;
 		case DISABLE:
-			win->toggle_disabled();
 			return;
 		default:
 			return;

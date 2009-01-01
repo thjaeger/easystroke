@@ -33,12 +33,9 @@ MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 HFILES   = $(wildcard *.h)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
-POFILES  = $(wildcard po/*.po)
-MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
-MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) desktop.o version.o
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in
+GENFILES = desktop.c dbus-server.h po/POTFILES.in
 GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
@@ -70,11 +67,6 @@ stroke.o: stroke.cc
 version.o: $(GIT)
 	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
 
-gui.c: gui.glade
-	echo "const char *gui_buffer = \"\\" > $@
-	gtk-builder-convert $< - | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
-	echo "\";" >> $@
-
 desktop.c: easystroke.desktop
 	echo "const char *desktop_file = \"\\" > $@
 	sed 's/Exec=easystroke/Exec=%s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
@@ -85,63 +77,7 @@ dbus-server.cc: dbus-server.h
 dbus-server.h: dbus.xml
 	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
 
-po/POTFILES.in: $(CCFILES) $(HFILES)
-	$(RM) $@
-	for f in `grep -El "\<_\(" $(CCFILES) $(HFILES)`; do echo $$f >> $@; done
-	echo gui.glade >> $@
-#	echo easystroke.desktop >> $@
-
-translate: po/POTFILES.in
-	cd po && intltool-update --pot --gettext-package=easystroke
-
-update-translations: po/POTFILES.in
-	cd po && for f in $(POFILES); do \
-		intltool-update `echo $$f | sed "s|po/\(.*\)\.po$$|\1|"`; \
-	done
-
-po/%/LC_MESSAGES/easystroke.mo: po/%.po
-	mkdir -p po/$*/LC_MESSAGES
-	msgfmt -c $< -o $@
-
 man:	$(MANPAGE)
 
 $(MANPAGE):	$(BINARY)
 	help2man -N -n "X11 gesture recognition application" ./$(BINARY) > $@
-
-install: all
-	install -Ds $(BINARY) $(DESTDIR)$(BINDIR)/$(BINARY)
-	install -D -m 644 $(ICON) $(DESTDIR)$(ICONDIR)/$(ICON)
-	install -D -m 644 $(MENU) $(DESTDIR)$(MENUDIR)/$(MENU)
-	for f in $(MOFILES); do \
-		install -D -m 644 $$f `echo $$f | sed "s|^po/|$(DESTDIR)$(LOCALEDIR)/|"`; \
-	done
-
-uninstall:
-	$(RM) $(DESTDIR)$(BINDIR)/$(BINARY)
-	$(RM) $(DESTDIR)$(ICONDIR)/$(ICON)
-	$(RM) $(DESTDIR)$(MENUDIR)/$(MENU)
-	for f in $(MOFILES); do \
-		$(RM) `echo $$f | sed "s|^po/|$(DESTDIR)$(LOCALEDIR)/|"`; \
-	done
-
-snapshot: $(DIST)_$(ARCH).tar.gz
-
-release: $(DIST).tar.gz
-	rsync -avP $(DIST).tar.gz thjaeger@frs.sourceforge.net:uploads/
-
-tmp/$(DIST): $(GIT)
-	$(RM) -r tmp
-	mkdir tmp
-	git archive --format=tar --prefix=$(DIST)/ HEAD | (cd tmp && tar x)
-	echo $(VERSION) > $@/version
-	$(RM) $@/.gitignore $@/release
-
-$(DIST)_$(ARCH).tar.gz: tmp/$(DIST)
-	$(MAKE) -j2 -C $<
-	strip -s $</easystroke
-	tar -czf $@ -C $< easystroke
-	$(RM) -r tmp
-
-$(DIST).tar.gz: tmp/$(DIST)
-	tar -czf $@ -C tmp/ $(DIST)
-	$(RM) -r tmp

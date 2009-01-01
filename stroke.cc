@@ -357,28 +357,6 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 		return score > 0.7;
 }
 
-Glib::RefPtr<Gdk::Pixbuf> Stroke::draw(int size, bool big) const {
-	if (size != STROKE_SIZE)
-		return draw_(size, big);
-	int i = big ? 1 : 0;
-	if (pb[i])
-		return pb[i];
-	pb[i] = draw_(size, big);
-	return pb[i];
-}
-
-Glib::RefPtr<Gdk::Pixbuf> Stroke::pbEmpty;
-
-Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty(int size) {
-	if (size != STROKE_SIZE)
-		return drawEmpty_(size);
-	if (pbEmpty)
-		return pbEmpty;
-	pbEmpty = drawEmpty_(size);
-	return pbEmpty;
-}
-
-
 RStroke Stroke::trefoil() {
 	PreStroke s;
 	const int n = 40;
