@@ -120,10 +120,12 @@ public:
 	void xi_resume() { xi_suspended = false; set(); }
 	void update_button(ButtonInfo bi);
 	bool is_grabbed(guint b);
+	bool is_instant(guint b);
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
 
 	int get_default_button() { return grabbed_button.button; }
+	bool get_timing_workaround() { return timing_workaround; }
 
 	void unminimize();
 };

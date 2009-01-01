@@ -366,6 +366,8 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<int, RAction> &as, std:
 			}
 		}
 	}
+	if (s->timeout && !as[b1])
+		as[b1] = RAction(new Click);
 }
 
 ActionListDiff::~ActionListDiff() {
