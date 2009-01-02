@@ -565,11 +565,7 @@ void quit(int) {
 struct MouseEvent;
 
 class Main {
-	std::string parse_args_and_init_gtk();
-	void create_config_dir();
 	char* next_event();
-	void usage(char *me, bool good);
-	void version();
 
 	std::string display;
 	Gtk::Main *kit;
@@ -585,26 +581,15 @@ public:
 };
 
 Main::Main() : kit(0) {
-	struct stat st;
-	bool have_po = lstat("po", &st) != -1 && S_ISDIR(st.st_mode);
-	bindtextdomain("easystroke", have_po ? "po" : LOCALEDIR);
-	bind_textdomain_codeset("easystroke", "UTF-8");
-	textdomain("easystroke");
-	if (argc > 1 && !strcmp(argv[1], "send")) {
-		if (argc == 2)
-			usage(argv[0], false);
-		gtk_init(&argc, &argv);
-		exit(EXIT_SUCCESS);
-	}
-
-	display = parse_args_and_init_gtk();
-	create_config_dir();
+	kit = new Gtk::Main(argc, argv);
+	oldHandler = XSetErrorHandler(xErrorHandler);
+	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 	unsetenv("DESKTOP_AUTOSTART_ID");
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
 
-	dpy = XOpenDisplay(display.c_str());
+	dpy = XOpenDisplay(NULL);
 	if (!dpy) {
 		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
@@ -627,133 +612,6 @@ void Main::run() {
 	io->attach();
 	// TODO
 	Gtk::Main::run();
-}
-
-void Main::usage(char *me, bool good) {
-	printf("The full easystroke documentation is available at the following address:\n");
-	printf("\n");
-	printf("http://easystroke.wiki.sourceforge.net/Documentation#content\n");
-	printf("\n");
-	printf("Usage: %s [OPTION]...\n", me);
-	printf("or:    %s send <action_name>\n", me);
-	printf("\n");
-	printf("Options:\n");
-	printf("  -c, --config-dir       Directory for config files\n");
-	printf("      --display          X Server to contact\n");
-	printf("  -x  --no-xi            Don't use the Xinput extension\n");
-	printf("  -e  --experimental     Start in experimental mode\n");
-	printf("  -g, --show-gui         Show the configuration dialog on startup\n");
-	printf("      --offset-x         XInput workaround\n");
-	printf("      --offset-y         XInput workaround\n");
-	printf("  -v, --verbose          Increase verbosity level\n");
-	printf("  -h, --help             Display this help and exit\n");
-	printf("      --version          Output version information and exit\n");
-	exit(good ? EXIT_SUCCESS : EXIT_FAILURE);
-}
-
-extern const char *version_string;
-void Main::version() {
-	printf("easystroke %s\n", version_string);
-	printf("\n");
-	printf("Written by Thomas Jaeger <ThJaeger@gmail.com>.\n");
-	exit(EXIT_SUCCESS);
-}
-
-std::string Main::parse_args_and_init_gtk() {
-	static struct option long_opts1[] = {
-		{"display",1,0,'d'},
-		{"help",0,0,'h'},
-		{"version",0,0,'V'},
-		{"show-gui",0,0,'g'},
-		{"no-xi",1,0,'x'},
-		{0,0,0,0}
-	};
-	static struct option long_opts2[] = {
-		{"config-dir",1,0,'c'},
-		{"display",1,0,'d'},
-		{"experimental",0,0,'e'},
-		{"show-gui",0,0,'g'},
-		{"no-xi",0,0,'x'},
-		{"verbose",0,0,'v'},
-		{"offset-x",1,0,'X'},
-		{"offset-y",1,0,'Y'},
-		{0,0,0,0}
-	};
-	std::string display;
-	char opt;
-	// parse --display here, before Gtk::Main(...) takes it away from us
-	opterr = 0;
-	while ((opt = getopt_long(argc, argv, "ghx", long_opts1, 0)) != -1)
-		switch (opt) {
-			case 'd':
-				display = optarg;
-				break;
-			case 'g':
-				show_gui = true;
-				break;
-			case 'h':
-				usage(argv[0], true);
-				break;
-			case 'V':
-				version();
-				break;
-			case 'x':
-				no_xi = true;
-				break;
-		}
-	optind = 1;
-	opterr = 1;
-	kit = new Gtk::Main(argc, argv);
-	oldHandler = XSetErrorHandler(xErrorHandler);
-	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
-
-	while ((opt = getopt_long(argc, argv, "c:egvx", long_opts2, 0)) != -1) {
-		switch (opt) {
-			case 'c':
-				config_dir = optarg;
-				break;
-			case 'e':
-				experimental = true;
-				break;
-			case 'v':
-				verbosity++;
-				break;
-			case 'd':
-			case 'n':
-			case 'g':
-			case 'x':
-				break;
-			case 'X':
-				offset_x = atoi(optarg);
-				break;
-			case 'Y':
-				offset_y = atoi(optarg);
-				break;
-			default:
-				usage(argv[0], false);
-		}
-	}
-	return display;
-}
-
-void Main::create_config_dir() {
-	struct stat st;
-	if (config_dir == "") {
-		config_dir = getenv("HOME");
-		config_dir += "/.easystroke";
-	}
-	if (lstat(config_dir.c_str(), &st) == -1) {
-		if (mkdir(config_dir.c_str(), 0777) == -1) {
-			printf(_("Error: Couldn't create configuration directory \"%s\"\n"), config_dir.c_str());
-			exit(EXIT_FAILURE);
-		}
-	} else {
-		if (!S_ISDIR(st.st_mode)) {
-			printf(_("Error: \"%s\" is not a directory\n"), config_dir.c_str());
-			exit(EXIT_FAILURE);
-		}
-	}
-	config_dir += "/";
 }
 
 extern Window get_app_window(Window &w);
