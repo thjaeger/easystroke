@@ -51,7 +51,6 @@ RTriple create_triple(float x, float y, Time t) {
 
 bool show_gui = false;
 extern bool no_xi;
-extern bool xi_15;
 bool rotated = false;
 bool experimental = false;
 int verbosity = 0;
@@ -186,10 +185,6 @@ public:
 	static std::set<guint> core_grabs;
 	// This can potentially mess up the user's mouse, make sure that it doesn't fail
 	void remap(Grabber::XiDevice *xi_dev) {
-		if (!xi_15) {
-			handle_grabs();
-			return;
-		}
 		int ret;
 		do {
 			int n = XGetPointerMapping(dpy, 0, 0);
@@ -233,55 +228,13 @@ void bail_out() {
 	XFlush(dpy);
 }
 
-int (*oldHandler)(Display *, XErrorEvent *) = 0;
 int (*oldIOHandler)(Display *) = 0;
-
-int xErrorHandler(Display *dpy2, XErrorEvent *e) {
-	if (dpy != dpy2)
-		return oldHandler(dpy2, e);
-	if (verbosity == 0 && e->error_code == BadWindow) {
-		switch (e->request_code) {
-			case X_ChangeWindowAttributes:
-			case X_GetProperty:
-			case X_QueryTree:
-				return 0;
-		}
-	}
-	if (e->request_code == X_GrabButton || 
-			(grabber && grabber->xinput && e->request_code == grabber->nMajor &&
-			 e->minor_code == X_GrabDeviceButton)) {
-		if (!handler || handler->idle()) {
-			printf(_("Error: %s failed.  Is easystroke already running?\n"),
-					e->request_code == X_GrabButton ? _("A grab") : _("An XInput grab"));
-		} else {
-			printf(_("Error: A grab failed.  Resetting...\n"));
-			bail_out();
-		}
-	} else {
-		char text[64];
-		XGetErrorText(dpy, e->error_code, text, sizeof text);
-		char msg[16];
-		snprintf(msg, sizeof msg, "%d", e->request_code);
-		char def[32];
-		snprintf(def, sizeof def, "request_code=%d, minor_code=%d", e->request_code, e->minor_code);
-		char dbtext[128];
-		XGetErrorDatabaseText(dpy, "XRequest", msg,
-				def, dbtext, sizeof dbtext);
-		printf("XError: %s: %s\n", text, dbtext);
-	}
-	return 0;
-}
 
 int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
-	abort();
 	printf(_("Fatal Error: Connection to X server lost, restarting...\n"));
-	char *args[argc+1];
-	for (int i = 0; i<argc; i++)
-		args[i] = argv[i];
-	args[argc] = NULL;
-	execv(argv[0], args);
+	abort();
 	return 0;
 }
 
@@ -582,9 +535,7 @@ public:
 
 Main::Main() : kit(0) {
 	kit = new Gtk::Main(argc, argv);
-	oldHandler = XSetErrorHandler(xErrorHandler);
 	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
-	unsetenv("DESKTOP_AUTOSTART_ID");
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
@@ -760,7 +711,7 @@ void select_window(sigc::slot<void, std::string> f) {
 }
 
 struct MouseEvent {
-	enum Type { PRESS, RELEASE, MOTION };
+	enum Type { PRESS, RELEASE };
 	Type type;
 	guint button;
 	bool xi;
@@ -772,18 +723,6 @@ struct MouseEvent {
 MouseEvent *Main::get_mouse_event(XEvent &ev) {
 	MouseEvent *me = 0;
 	switch(ev.type) {
-	case MotionNotify:
-		if (verbosity >= 3)
-			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
-		me = new MouseEvent;
-		me->type = MouseEvent::MOTION;
-		me->button = 0;
-		me->xi = false;
-		me->t = ev.xmotion.time;
-		me->x = ev.xmotion.x;
-		me->y = ev.xmotion.y;
-		return me;
-
 	case ButtonPress:
 		if (verbosity >= 3)
 			printf("Press: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
@@ -824,10 +763,7 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			if (xi_15 && xinput_pressed.size() > 1)
-				translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
-			else
-				translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
 			me->z_xi = 0;
 			return me;
 		}
@@ -844,33 +780,8 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			if (xi_15)
-				translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
-			else
-				translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
+			translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
 			me->z_xi = 0;
-			return me;
-		}
-		if (grabber->is_event(ev.type, Grabber::MOTION)) {
-			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
-						mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
-			if (!current_dev || current_dev->dev->device_id != mev->deviceid)
-				return 0;
-			me = new MouseEvent;
-			me->type = MouseEvent::MOTION;
-			me->button = 0;
-			me->xi = true;
-			me->t = mev->time;
-			if (xi_15)
-				translate_coords(mev->deviceid, mev->axis_data, me->x_xi, me->y_xi);
-			else
-				translate_known_coords(mev->deviceid, mev->x, mev->y, mev->axis_data, me->x_xi, me->y_xi);
-			me->z_xi = 0;
-			Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
-			if (xi_dev && xi_dev->supports_pressure)
-				me->z_xi = xi_dev->normalize_pressure(mev->axis_data[2]);
 			return me;
 		}
 		return 0;

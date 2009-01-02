@@ -20,7 +20,6 @@
 #include <glibmm/i18n.h>
 
 bool no_xi = false;
-bool xi_15 = false;
 Grabber *grabber = 0;
 
 unsigned int ignore_mods[4] = { LockMask, Mod2Mask, LockMask | Mod2Mask, 0 };
@@ -236,12 +235,6 @@ bool Grabber::init_xi() {
 	int nFEV, nFER;
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
-	XExtensionVersion *v = XGetExtensionVersion(dpy, INAME);
-	if (!v->present)
-		return false;
-	xi_15 = v->major_version > XI_Add_DeviceProperties_Major ||
-		(v->major_version == XI_Add_DeviceProperties_Major && v->minor_version >= XI_Add_DeviceProperties_Minor);
-	XFree(v);
 
 	// Macro not c++-safe
 	// DevicePresence(dpy, event_presence, presence_class);
@@ -474,13 +467,9 @@ void Grabber::update(Window w) {
 
 void Grabber::XiDevice::fake_press(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, True,  0, 0, 0);
-	if (!xi_15 && core)
-		XTestFakeButtonEvent(dpy, core, True, CurrentTime);
 }
 void Grabber::XiDevice::fake_release(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, False, 0, 0, 0);
-	if (!xi_15 && core)
-		XTestFakeButtonEvent(dpy, core, False, CurrentTime);
 }
 
 std::string Grabber::get_wm_class(Window w) {
