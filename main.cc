@@ -80,33 +80,6 @@ struct Point {
 	int x, y;
 };
 
-class Timeout {
-	sigc::connection *c;
-	boost::shared_ptr<sigc::connection> copy;
-	bool to() { timeout(); c = 0; return false; }
-public:
-	Timeout() : c(0) {}
-protected:
-	virtual void timeout() = 0;
-public:
-	bool remove_timeout() {
-		if (c) {
-			c->disconnect();
-			c = 0;
-			return true;
-		}
-		return false;
-	}
-	void set_timeout(int ms) {
-		remove_timeout();
-		c = new sigc::connection(Glib::signal_timeout().connect(sigc::mem_fun(*this, &Timeout::to), ms));
-		copy.reset(c);
-	}
-	virtual ~Timeout() {
-		remove_timeout();
-	}
-};
-
 Point orig;
 
 class Handler {
@@ -321,7 +294,7 @@ Window get_window(Window w, Atom prop) {
 }
 
 // TODO: Check discard/replay
-class StrokeHandler : public Handler, public Timeout {
+class StrokeHandler : public Handler {
 	guint button;
 	bool is_gesture;
 	bool drawing;
@@ -361,8 +334,6 @@ class StrokeHandler : public Handler, public Timeout {
 			timeout();
 			return true;
 		}
-		long ms = (long)(log(min_speed/speed) / k);
-		set_timeout(ms);
 		return false;
 	}
 protected:
@@ -412,7 +383,7 @@ public:
 
 float StrokeHandler::k = -0.01;
 
-class IdleHandler : public Handler, Timeout {
+class IdleHandler : public Handler {
 protected:
 	virtual void init() {
 		reset_buttons();
@@ -425,13 +396,9 @@ protected:
 	virtual void timeout() { discard(CurrentTime); }
 	virtual void press(guint b, RTriple e) {
 		if (grabber->is_instant(b)) {
-			remove_timeout();
 			replace_child(new AdvancedHandler(e, b, b));
 			return;
 		}
-		if (current_app)
-			activate_window(current_app, e->t);
-		remove_timeout();
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
@@ -441,29 +408,6 @@ public:
 	virtual bool idle() { return true; }
 	virtual std::string name() { return "Idle"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
-};
-
-class SelectHandler : public Handler, public Timeout {
-	bool active;
-	sigc::slot<void, std::string> callback;
-	virtual void timeout() {
-		active = true;
-		grabber->grab(Grabber::SELECT);
-		XFlush(dpy);
-	}
-	virtual void press_core(guint b, Time t, bool xi) {
-		discard(t);
-		if (!active)
-			return;
-		window_selected.reset(new sigc::slot<void, std::string>(callback));
-		parent->replace_child(0);
-	}
-public:
-	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
-		set_timeout(100);
-	}
-	virtual std::string name() { return "Select"; }
-	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
 };
 
 void quit(int) {
@@ -612,12 +556,6 @@ void Main::handle_enter_leave(XEvent &ev) {
 	}
 }
 
-class PresenceWatcher : public Timeout {
-	virtual void timeout() {
-		grabber->update_device_list();
-	}
-} presence_watcher;
-
 void Main::handle_event(XEvent &ev) {
 	switch(ev.type) {
 	case EnterNotify:
@@ -644,30 +582,11 @@ void Main::handle_event(XEvent &ev) {
 				handler->top()->proximity_out();
 			}
 		}
-		if (ev.type == grabber->event_presence) {
-			if (verbosity >= 2)
-				printf("Device Presence\n");
-			presence_watcher.set_timeout(2000);
-		}
 	}
 }
 
 void update_current() {
 	grabber->update(current);
-}
-
-void suspend_flush() {
-	grabber->suspend();
-	XFlush(dpy);
-}
-
-void resume_flush() {
-	grabber->resume();
-	XFlush(dpy);
-}
-
-void select_window(sigc::slot<void, std::string> f) {
-	handler->top()->replace_child(new SelectHandler(f));
 }
 
 struct MouseEvent {
