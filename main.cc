@@ -35,16 +35,12 @@
 #include <set>
 
 struct Triple {
-       float x;
-       float y;
        Time t;
 };
 typedef boost::shared_ptr<Triple> RTriple;
 
-RTriple create_triple(float x, float y, Time t) {
+RTriple create_triple(Time t) {
        RTriple e(new Triple);
-       e->x = x;
-       e->y = y;
        e->t = t;
        return e;
 }
@@ -76,12 +72,6 @@ boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
-struct Point {
-	int x, y;
-};
-
-Point orig;
-
 class Handler {
 protected:
 	Handler *child;
@@ -99,7 +89,6 @@ public:
 	virtual void release(guint b, RTriple e) {}
 	// Note: We need to make sure that this calls replay/discard otherwise
 	// we could leave X in an unpleasant state.
-	virtual void press_core(guint b, Time t, bool xi) { replay(t); }
 	virtual void pressure() {}
 	virtual void proximity_out() {}
 	void replace_child(Handler *c) {
@@ -299,9 +288,6 @@ class StrokeHandler : public Handler {
 	RTriple last;
 	Time press_t;
 protected:
-	virtual void press_core(guint b, Time t, bool xi) {
-		// Don't discard
-	}
 	virtual void release(guint b, RTriple e) {
 		parent->replace_child(new AdvancedHandler(last, button, button));
 		XFlush(dpy);
@@ -316,11 +302,6 @@ class IdleHandler : public Handler {
 protected:
 	virtual void init() {
 		reset_buttons();
-	}
-	virtual void press_core(guint b, Time t, bool xi) {
-		if (xi)
-			return;
-		replay(t);
 	}
 	virtual void press(guint b, RTriple e) {
 		if (grabber->is_instant(b)) {
@@ -616,14 +597,12 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	if (!grabber->xinput || xi)
 		switch (me.type) {
 			case MouseEvent::PRESS:
-				handler->top()->press(me.button, create_triple(me.x_xi, me.y_xi, me.t));
+				handler->top()->press(me.button, create_triple(me.t));
 				break;
 			case MouseEvent::RELEASE:
-				handler->top()->release(me.button, create_triple(me.x_xi, me.y_xi, me.t));
+				handler->top()->release(me.button, create_triple(me.t));
 				break;
 		}
-	if (core && me.type == MouseEvent::PRESS)
-		handler->top()->press_core(me.button, me.t, xi);
 }
 
 bool Main::handle(Glib::IOCondition) {
