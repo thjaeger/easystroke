@@ -216,7 +216,7 @@ Grabber::Grabber() : children(ROOT) {
 	grabbed_button.state = 0;
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 	xinput = init_xi();
-	update_button(prefs.button.get());
+	update_button(1);
 }
 
 Grabber::~Grabber() {
@@ -255,8 +255,6 @@ bool Grabber::init_xi() {
 
 	if (!update_device_list())
 		return false;
-
-	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
 
 	return xi_devs_n;
 }
@@ -366,8 +364,6 @@ bool Grabber::is_event(int type, EventType et) {
 unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
 	unsigned int mask = 0;
 	for (int i = 0; i < xi_devs_n; i++) {
-		if (prefs.excluded_devices.get().count(xi_devs[i]->name))
-			continue;
 		XDeviceState *state = XQueryDeviceState(dpy, xi_devs[i]->dev);
 		if (!state)
 			continue;
@@ -398,7 +394,7 @@ void Grabber::grab_xi(bool grab) {
 		return;
 	xi_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (!prefs.excluded_devices.get().count(xi_devs[i]->name)) {
+		if (true) {
 			if (grab) {
 				for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
 					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state, NULL,
@@ -440,7 +436,7 @@ void Grabber::grab_xi_devs(bool grab) {
 
 extern bool in_proximity;
 void Grabber::select_proximity() {
-	bool select = prefs.proximity.get();
+	bool select = true;
 	if (!select != !proximity_selected) {
 		proximity_selected = !proximity_selected;
 		if (!proximity_selected)
@@ -498,10 +494,7 @@ void Grabber::set() {
 						ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
 						GrabModeSync, GrabModeAsync, None, None);
 		}
-		timing_workaround = !is_grabbed(1) && prefs.timing_workaround.get();
-		if (timing_workaround)
-			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeSync, GrabModeAsync, None, None);
+		timing_workaround = false;
 	}
 	if (grabbed == ALL_SYNC)
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask,
@@ -533,14 +526,14 @@ bool Grabber::is_instant(guint b) {
 }
 
 void Grabber::update_button(ButtonInfo bi) {
-	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
+	const std::vector<ButtonInfo> extra;
 	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
 			std::equal(extra.begin(), extra.end(), ++buttons.begin()))
 		return;
 	suspended = true;
 	xi_suspended = true;
 	set();
-	grabbed_button = prefs.button.get();
+	grabbed_button = 1;
 	buttons.clear();
 	buttons.resize(extra.size() + 1);
 	buttons.push_back(grabbed_button);
@@ -554,21 +547,16 @@ int get_default_button() {
 	if (grabber)
 		return grabber->get_default_button();
 	else
-		return prefs.button.get().button;
+		return 1;
 }
 
 void Grabber::update(Window w) {
 	wm_class = get_wm_class(w);
-	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
 	active = true;
-	ButtonInfo bi = prefs.button.ref();
-	if (i != prefs.exceptions.ref().end()) {
-		if (i->second) {
-			bi = *i->second;
-		} else {
-			active = false;
-		}
-	}
+	ButtonInfo bi;
+	bi.button = 1;
+	bi.state = 0;
+	bi.instant = false;
 	update_button(bi);
 	set();
 }

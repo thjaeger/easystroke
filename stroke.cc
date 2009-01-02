@@ -348,7 +348,7 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 	double Y = b.d.s.x + b.d.s.y;
 	double Z = dab_x + dab_y;
 
-	double p = prefs.p.get();
+	double p = 0.5;
 	double q = 1 - p;
 	score = (q*C/A+p*Z/X)/sqrt(q*B/A+p*Y/X);
 	if (a_->timeout)

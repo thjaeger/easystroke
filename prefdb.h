@@ -97,48 +97,4 @@ struct RGBA {
 	}
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
-
-extern const double default_p;
-extern const ButtonInfo default_button;
-extern const int default_radius;
-extern const int default_pressure_threshold;
-
-class PrefDB : public TimeoutWatcher {
-	friend class boost::serialization::access;
-	bool good_state;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version);
-public:
-	PrefDB();
-
-	Source<std::map<std::string, RButtonInfo> > exceptions;
-	Source<double> p;
-	Source<ButtonInfo> button;
-	Source<TraceType> trace;
-	Source<bool> advanced_ignore;
-	Source<int> radius;
-	Source<bool> ignore_grab;
-	Source<bool> timing_workaround;
-	Source<bool> show_clicks;
-	Source<bool> pressure_abort;
-	Source<int> pressure_threshold;
-	Source<bool> proximity;
-	Source<bool> feedback;
-	Source<bool> left_handed;
-	Source<int> init_timeout;
-	Source<int> min_speed;
-	Source<int> timeout_profile;
-	Source<bool> timeout_gestures;
-	Source<bool> tray_icon;
-	Source<std::set<std::string> > excluded_devices;
-	Source<RGBA> color;
-	Source<int> trace_width;
-	Source<std::vector<ButtonInfo> > extra_buttons;
-
-	void init();
-	virtual void timeout();
-};
-
-BOOST_CLASS_VERSION(PrefDB, 13)
-
-extern PrefDB prefs;
 #endif

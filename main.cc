@@ -666,8 +666,6 @@ class StrokeHandler : public Handler, public Timeout {
 		XFlush(dpy);
 		if (!is_gesture || grabber->is_instant(button))
 			cur->clear();
-		if (b && prefs.advanced_ignore.get())
-			cur->clear();
 		return Stroke::create(*cur, button, b, false);
 	}
 
@@ -679,12 +677,6 @@ class StrokeHandler : public Handler, public Timeout {
 	void do_timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
-		if (!prefs.timeout_gestures.get()) {
-			replay(press_t);
-			parent->replace_child(NULL);
-			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-			return;
-		}
 		if (!is_gesture)
 			cur->clear();
 		RStroke s = Stroke::create(*cur, button, 0, true);
@@ -728,15 +720,9 @@ protected:
 		parent->replace_child(0);
 	}
 	virtual void motion(RTriple e) {
-		if (!repeated && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
-			if (verbosity >= 2)
-				printf("Ignoring xi-only stroke\n");
-			parent->replace_child(0);
-			return;
-		}
 		cur->add(e);
 		float dist = hypot(e->x-orig.x, e->y-orig.y);
-		if (!is_gesture && dist > prefs.radius.get())
+		if (!is_gesture && dist > 16)
 			is_gesture = true;
 		if (!drawing && dist > 4) {
 			drawing = true;
@@ -826,8 +812,8 @@ protected:
 	}
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
-	repeated(false), min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
-	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(e->t) {
+	repeated(false), min_speed(0.001*500), speed(min_speed * exp(-k*20)),
+	use_timeout(true), press_t(e->t) {
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
@@ -993,7 +979,6 @@ Main::Main() : kit(0) {
 
 	action_watcher = new ActionDBWatcher;
 	action_watcher->init();
-	prefs.init();
 
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
@@ -1425,8 +1410,6 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	if (!grabber->xinput || xi)
 		switch (me.type) {
 			case MouseEvent::MOTION:
-				if (prefs.pressure_abort.get() && me.z_xi >= prefs.pressure_threshold.get())
-					handler->top()->pressure();
 				handler->top()->motion(create_triple(me.x_xi, me.y_xi, me.t));
 				break;
 			case MouseEvent::PRESS:
@@ -1479,7 +1462,6 @@ Main::~Main() {
 	delete grabber;
 	delete kit;
 	XCloseDisplay(dpy);
-	prefs.execute_now();
 	action_watcher->execute_now();
 }
 
