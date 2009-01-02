@@ -303,22 +303,10 @@ class StrokeHandler : public Handler {
 	float min_speed;
 	float speed;
 	static float k;
-	bool use_timeout;
 	Time press_t;
 
-	virtual void timeout() {
-		printf("timeout()\n");
-		do_timeout();
-		XFlush(dpy);
-	}
-
-	void do_timeout() {
-		printf("timeout\n");
-		parent->replace_child(new AdvancedHandler(last, button, button));
-	}
-
 	bool calc_speed(RTriple e) {
-		if (!grabber->xinput || !use_timeout)
+		if (!grabber->xinput)
 			return false;
 		int dt = e->t - last->t;
 		float c = exp(k * dt);
@@ -331,7 +319,9 @@ class StrokeHandler : public Handler {
 		last = e;
 
 		if (speed < min_speed) {
-			timeout();
+			printf("timeout\n");
+			parent->replace_child(new AdvancedHandler(last, button, button));
+			XFlush(dpy);
 			return true;
 		}
 		return false;
@@ -364,13 +354,12 @@ protected:
 			return;
 		if (grabber->xinput)
 			replay(press_t);
-		printf("no timeout!!\n");
 		parent->replace_child(0);
 	}
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
 	repeated(false), min_speed(0.001*500), speed(min_speed * exp(-k*20)),
-	use_timeout(true), press_t(e->t) {
+	press_t(e->t) {
 		orig.x = e->x; orig.y = e->y;
 		if (!grabber->xinput)
 			discard(press_t);
@@ -393,7 +382,6 @@ protected:
 			return;
 		replay(t);
 	}
-	virtual void timeout() { discard(CurrentTime); }
 	virtual void press(guint b, RTriple e) {
 		if (grabber->is_instant(b)) {
 			replace_child(new AdvancedHandler(e, b, b));
