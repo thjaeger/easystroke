@@ -465,19 +465,6 @@ public:
 		current_dev->fake_release(button2, button2);
 		if (button != button2)
 			current_dev->fake_release(button, button);
-		IF_BUTTON(act, b2) {
-			show_ranking(button2, e);
-			remap_from = button2;
-			remap_to = b2;
-			mods[b2] = act->prepare();
-			last_mods.reset();
-			remap(current_dev);
-			current_dev->fake_press(button, 0);
-			if (button2 != button)
-				current_dev->fake_press(button2, 0);
-			replace_child(new WaitForButtonHandler(button2, button != button2));
-			return;
-		}
 		remap(current_dev);
 		current_dev->fake_press(button, 0);
 		if (button2 != button)
@@ -492,26 +479,6 @@ public:
 			return;
 		}
 		RAction act = as[bb];
-		if (IS_SCROLL(act)) {
-			printf("foo\n");
-			mods[b] = act->prepare();
-			last_mods.reset();
-			replace_child(new ScrollAdvancedHandler);
-			return;
-		}
-		IF_BUTTON(act, b2) {
-			if (remap_from)
-				return;
-			current_dev->fake_release(b, 0);
-			remap_from = b;
-			remap_to = b2;
-			mods[b] = act->prepare();
-			last_mods.reset();
-			remap(current_dev);
-			current_dev->fake_press(b, 0);
-			replace_child(new WaitForButtonHandler(b, true));
-			return;
-		}
 		mods[b] = act->prepare();
 		last_mods.reset();
 		act->run();
@@ -787,27 +754,10 @@ protected:
 		if (IS_CLICK(act)) {
 			if (grabber->xinput)
 				replay(press_t);
-			else
-				act = Button::create((Gdk::ModifierType)0, b);
 		} else {
 			if (grabber->xinput)
 				discard(press_t);
 		}
-		if (IS_IGNORE(act)) {
-			parent->replace_child(new IgnoreHandler(mods));
-			return;
-		}
-		if (IS_SCROLL(act) && grabber->xinput) {
-			parent->replace_child(new ScrollHandler(mods));
-			return;
-		}
-		IF_BUTTON(act, press)
-			if (press && !(!repeated && xinput_pressed.count(b) && press == button)) {
-				grabber->suspend();
-				XTestFakeButtonEvent(dpy, press, True, CurrentTime);
-				XTestFakeButtonEvent(dpy, press, False, CurrentTime);
-				grabber->resume();
-			}
 		parent->replace_child(0);
 	}
 public:
@@ -1475,11 +1425,6 @@ int main(int argc_, char **argv_) {
 	return EXIT_SUCCESS;
 }
 
-void SendKey::run() {
-	XTestFakeKeyEvent(dpy, code, true, 0);
-	XTestFakeKeyEvent(dpy, code, false, 0);
-}
-
 struct does_that_really_make_you_happy_stupid_compiler {
 	guint mask;
 	guint sym;
@@ -1524,21 +1469,3 @@ public:
 	}
 };
 std::set<Modifiers *> Modifiers::all;
-
-RModifiers ModAction::prepare() {
-	return RModifiers(new Modifiers(mods));
-}
-
-void Misc::run() {
-	switch (type) {
-		case SHOWHIDE:
-			return;
-		case UNMINIMIZE:
-			grabber->unminimize();
-			return;
-		case DISABLE:
-			return;
-		default:
-			return;
-	}
-}
