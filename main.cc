@@ -320,44 +320,6 @@ Window get_window(Window w, Atom prop) {
 	return ret;
 }
 
-void icccm_client_message(Window w, Atom a, Time t) {
-	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
-	XClientMessageEvent ev;
-	ev.type = ClientMessage;
-	ev.window = w;
-	ev.message_type = *WM_PROTOCOLS;
-	ev.format = 32;
-	ev.data.l[0] = a;
-	ev.data.l[1] = t;
-	XSendEvent(dpy, w, False, 0, (XEvent *)&ev);
-}
-
-void activate_window(Window w, Time t) {
-	static XAtom _NET_WM_WINDOW_TYPE("_NET_WM_WINDOW_TYPE");
-	static XAtom _NET_WM_WINDOW_TYPE_DOCK("_NET_WM_WINDOW_TYPE_DOCK");
-	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
-	static XAtom WM_TAKE_FOCUS("WM_TAKE_FOCUS");
-
-	Atom window_type = get_atom(w, *_NET_WM_WINDOW_TYPE);
-	if (window_type == *_NET_WM_WINDOW_TYPE_DOCK)
-		return;
-	XWMHints *wm_hints = XGetWMHints(dpy, w);
-	if (wm_hints) {
-		bool input = wm_hints->input;
-		XFree(wm_hints);
-		if (!input)
-			return;
-	}
-	if (verbosity >= 3)
-		printf("Giving focus to window 0x%lx\n", w);
-
-	bool take_focus = has_atom(w, *WM_PROTOCOLS, *WM_TAKE_FOCUS);
-	if (take_focus)
-		icccm_client_message(w, *WM_TAKE_FOCUS, t);
-	else
-		XSetInputFocus(dpy, w, RevertToParent, t);
-}
-
 // TODO: Check discard/replay
 class StrokeHandler : public Handler, public Timeout {
 	guint button;

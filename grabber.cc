@@ -166,29 +166,6 @@ void Children::destroy(Window w) {
 	frame_win.erase2(w);
 }
 
-void activate(Window w, Time t) {
-	XClientMessageEvent ev;
-	ev.type = ClientMessage;
-	ev.window = w;
-	ev.message_type = *_NET_ACTIVE_WINDOW;
-	ev.format = 32;
-	ev.data.l[0] = 0; // 1 app, 2 pager
-	ev.data.l[1] = t;
-	ev.data.l[2] = 0;
-	ev.data.l[3] = 0;
-	ev.data.l[4] = 0;
-	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
-}
-
-void Grabber::unminimize() {
-	if (minimized.empty())
-		return;
-	Window w;
-	unsigned int n;
-	minimized.pop(n, w);
-	activate(w, CurrentTime);
-}
-
 const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
 
 extern Window get_window(Window w, Atom prop);
@@ -526,29 +503,5 @@ Window find_wm_state(Window w) {
 
 // sets w to 0 if the window is a frame
 Window get_app_window(Window &w) {
-	if (!w)
-		return w;
-	if (frame_win.contains1(w)) {
-		Window w2 = frame_win.find1(w);
-		w = 0;
-		return w2;
-	}
-	if (frame_child.contains1(w)) {
-		Window w2 = frame_child.find1(w);
-		if (w != w2)
-			w = 0;
-		return w2;
-	}
-	Window w2 = find_wm_state(w);
-	if (w2) {
-		frame_child.add(w, w2);
-		if (w2 != w) {
-			w = w2;
-			XSelectInput(dpy, w2, EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask);
-		}
-		return w2;
-	}
-	if (verbosity >= 1)
-		printf(_("Window 0x%lx does not have an associated top-level window\n"), w);
 	return w;
 }
