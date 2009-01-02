@@ -15,7 +15,6 @@
  */
 #include <gtkmm.h>
 #include "main.h"
-#include "prefdb.h"
 #include "grabber.h"
 #include "util.h"
 
@@ -32,6 +31,8 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <getopt.h>
+
+#include <set>
 
 struct Triple {
        float x;
@@ -506,28 +507,7 @@ protected:
 	virtual void press_core(guint b, Time t, bool xi) {
 		if (xi)
 			return;
-		if (b != 1 || !grabber->get_timing_workaround()) {
-			replay(t);
-			return;
-		}
-		Grabber::XiDevice *dev;
-		unsigned int state = grabber->get_device_button_state(dev);
-		if (state & (state-1)) {
-			discard(t);
-			if (verbosity >= 2)
-				printf("Using wacom workaround\n");
-			for (int i = 1; i < 32; i++)
-				if (state & (1 << i))
-					dev->fake_release(i, i);
-			for (int i = 31; i; i--)
-				if (state & (1 << i))
-					dev->fake_press(i, i);
-			// This is probably not necessary, but we need to be on the safe
-			// side.  If anything goes wrong, the timeout fires and we discard everything
-			set_timeout(250);
-		} else {
-			replay(t);
-		}
+		replay(t);
 	}
 	virtual void timeout() { discard(CurrentTime); }
 	virtual void press(guint b, RTriple e) {

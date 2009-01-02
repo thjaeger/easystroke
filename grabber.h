@@ -15,7 +15,7 @@
  */
 #ifndef __GRABBER_H__
 #define __GRABBER_H__
-#include "prefdb.h"
+#include <gtkmm.h>
 #include <string>
 #include <map>
 #include <X11/Xlib.h>
@@ -96,9 +96,6 @@ private:
 	bool disabled;
 	bool active;
 	Cursor cursor_select;
-	ButtonInfo grabbed_button;
-	std::vector<ButtonInfo> buttons;
-	bool timing_workaround;
 
 	void set();
 	void grab_xi(bool);
@@ -118,14 +115,10 @@ public:
 	void resume() { suspended = false; set(); }
 	void xi_suspend() { xi_suspended = true; set(); }
 	void xi_resume() { xi_suspended = false; set(); }
-	void update_button(ButtonInfo bi);
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
-
-	int get_default_button() { return grabbed_button.button; }
-	bool get_timing_workaround() { return timing_workaround; }
 
 	void unminimize();
 };
