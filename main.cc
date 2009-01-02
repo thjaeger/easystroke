@@ -34,6 +34,20 @@
 #include <fcntl.h>
 #include <getopt.h>
 
+struct Triple {
+       float x;
+       float y;
+       Time t;
+};
+typedef boost::shared_ptr<Triple> RTriple;
+
+RTriple create_triple(float x, float y, Time t) {
+       RTriple e(new Triple);
+       e->x = x;
+       e->y = y;
+       e->t = t;
+       return e;
+}
 
 bool show_gui = false;
 extern bool no_xi;
@@ -52,14 +66,12 @@ std::string config_dir;
 
 Window current = 0, current_app = 0;
 bool in_proximity = false;
-boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed;
 bool dead = false;
 
 class Handler;
 Handler *handler = 0;
-ActionDBWatcher *action_watcher = 0;
 boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
 
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
@@ -203,11 +215,9 @@ void reset_buttons() {
 	reset.remap(0);
 }
 
-RAction handle_stroke(RStroke s, RTriple e) {
-	if (verbosity >= 4)
-		s->print();
+RAction handle_stroke(RTriple e) {
 	Ranking *ranking = new Ranking;
-	RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
+	RAction act = actions.get_action_list(grabber->get_wm_class())->handle(*ranking);
 	if (act)
 		act->prepare();
 	ranking->x = (int)e->x;
@@ -434,8 +444,8 @@ class AdvancedHandler : public Handler, Remapper {
 		rs.erase(b);
 	}
 public:
-	AdvancedHandler(RStroke s, RTriple e_, guint b, guint b2) : e(e_), remap_from(0), button(b), button2(b2) {
-		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, button, button2);
+	AdvancedHandler( RTriple e_, guint b, guint b2) : e(e_), remap_from(0), button(b), button2(b2) {
+		actions.get_action_list(grabber->get_wm_class())->handle_advanced(as, button, button2);
 	}
 	guint map(guint b) {
 		if (b == remap_from)
@@ -500,25 +510,6 @@ public:
 			delete i->second;
 	}
 	virtual std::string name() { return "Advanced"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-};
-
-class InstantStrokeActionHandler : public Handler {
-	RStroke s;
-public:
-	InstantStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
-	virtual void press(guint b, RTriple e) {
-		s->button = b;
-		(*stroke_action)(s);
-		stroke_action.reset();
-		parent->replace_child(NULL);
-	}
-	virtual void release(guint b, RTriple e) {
-		(*stroke_action)(s);
-		stroke_action.reset();
-		parent->replace_child(NULL);
-	}
-	virtual std::string name() { return "InstantStrokeAction"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
@@ -618,7 +609,6 @@ void activate_window(Window w, Time t) {
 // TODO: Check discard/replay
 class StrokeHandler : public Handler, public Timeout {
 	guint button;
-	RPreStroke cur;
 	bool is_gesture;
 	bool drawing;
 	RTriple last;
@@ -629,13 +619,6 @@ class StrokeHandler : public Handler, public Timeout {
 	bool use_timeout;
 	Time press_t;
 
-	RStroke finish(guint b) {
-		XFlush(dpy);
-		if (!is_gesture || grabber->is_instant(button))
-			cur->clear();
-		return Stroke::create(*cur, button, b, false);
-	}
-
 	virtual void timeout() {
 		do_timeout();
 		XFlush(dpy);
@@ -644,13 +627,7 @@ class StrokeHandler : public Handler, public Timeout {
 	void do_timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
-		if (!is_gesture)
-			cur->clear();
-		RStroke s = Stroke::create(*cur, button, 0, true);
-		if (stroke_action)
-			parent->replace_child(new InstantStrokeActionHandler(s, last));
-		else
-			parent->replace_child(new AdvancedHandler(s, last, button, button));
+		parent->replace_child(new AdvancedHandler(last, button, button));
 	}
 
 	bool calc_speed(RTriple e) {
@@ -687,19 +664,11 @@ protected:
 		parent->replace_child(0);
 	}
 	virtual void motion(RTriple e) {
-		cur->add(e);
 		float dist = hypot(e->x-orig.x, e->y-orig.y);
 		if (!is_gesture && dist > 16)
 			is_gesture = true;
 		if (!drawing && dist > 4) {
 			drawing = true;
-			bool first = true;
-			for (PreStroke::iterator i = cur->begin(); i != cur->end(); i++) {
-				Point p;
-				p.x = (*i)->x;
-				p.y = (*i)->y;
-				first = false;
-			}
 		} else if (drawing) {
 			Point p;
 			p.x = e->x;
@@ -713,19 +682,9 @@ protected:
 			return;
 		if (calc_speed(e))
 			return;
-		RStroke s = finish(b);
-
-		if (stroke_action) {
-			if (grabber->xinput)
-				discard(press_t);
-			(*stroke_action)(s);
-			stroke_action.reset();
-			parent->replace_child(NULL);
-			return;
-		}
 
 		if (grabber->xinput) {
-			parent->replace_child(new AdvancedHandler(s, e, button, b));
+			parent->replace_child(new AdvancedHandler(e, button, b));
 		} else {
 			printf(_("Error: You need XInput to use advanced gestures\n"));
 			parent->replace_child(NULL);
@@ -735,15 +694,7 @@ protected:
 	virtual void release(guint b, RTriple e) {
 		if (calc_speed(e))
 			return;
-		RStroke s = finish(0);
-
-		if (stroke_action) {
-			(*stroke_action)(s);
-			stroke_action.reset();
-			parent->replace_child(0);
-			return;
-		}
-		RAction act = handle_stroke(s, e);
+		RAction act = handle_stroke(e);
 		RModifiers mods;
 		if (act) {
 			mods = act->prepare();
@@ -765,8 +716,6 @@ public:
 	repeated(false), min_speed(0.001*500), speed(min_speed * exp(-k*20)),
 	use_timeout(true), press_t(e->t) {
 		orig.x = e->x; orig.y = e->y;
-		cur = PreStroke::create();
-		cur->add(e);
 		if (!grabber->xinput)
 			discard(press_t);
 	}
@@ -813,12 +762,7 @@ protected:
 	virtual void press(guint b, RTriple e) {
 		if (grabber->is_instant(b)) {
 			remove_timeout();
-			PreStroke ps;
-			RStroke s = Stroke::create(ps, b, b, false);
-			if (stroke_action)
-				replace_child(new InstantStrokeActionHandler(s, e));
-			else
-				replace_child(new AdvancedHandler(s, e, b, b));
+			replace_child(new AdvancedHandler(e, b, b));
 			return;
 		}
 		if (current_app)
@@ -857,18 +801,6 @@ public:
 	virtual std::string name() { return "Select"; }
 	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
 };
-
-
-void run_by_name(const char *str) {
-	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
-		if (i->second.name == std::string(str)) {
-			RModifiers mods = i->second.action->prepare();
-			i->second.action->run();
-			return;
-		}
-	}
-	printf(_("Warning: No action \"%s\" defined\n"), str);
-}
 
 void quit(int) {
 	if (dead)
@@ -926,9 +858,6 @@ Main::Main() : kit(0) {
 		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
 	}
-
-	action_watcher = new ActionDBWatcher;
-	action_watcher->init();
 
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
@@ -1412,7 +1341,6 @@ Main::~Main() {
 	delete grabber;
 	delete kit;
 	XCloseDisplay(dpy);
-	action_watcher->execute_now();
 }
 
 int main(int argc_, char **argv_) {
