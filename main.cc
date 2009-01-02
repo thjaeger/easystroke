@@ -296,81 +296,21 @@ Window get_window(Window w, Atom prop) {
 // TODO: Check discard/replay
 class StrokeHandler : public Handler {
 	guint button;
-	bool is_gesture;
-	bool drawing;
 	RTriple last;
-	bool repeated;
-	float min_speed;
-	float speed;
-	static float k;
 	Time press_t;
-
-	bool calc_speed(RTriple e) {
-		if (!grabber->xinput)
-			return false;
-		int dt = e->t - last->t;
-		float c = exp(k * dt);
-		if (dt) {
-			float dist = hypot(e->x-last->x, e->y-last->y);
-			speed = c * speed + (1-c) * dist/dt;
-		} else {
-			speed = c * speed;
-		}
-		last = e;
-
-		if (speed < min_speed) {
-			printf("timeout\n");
-			parent->replace_child(new AdvancedHandler(last, button, button));
-			XFlush(dpy);
-			return true;
-		}
-		return false;
-	}
 protected:
 	virtual void press_core(guint b, Time t, bool xi) {
-		if (!xi)
-			discard(t);
-		// At this point we already have an xi press, so we are
-		// guarenteed to either get another press or a release.
-		repeated = true;
+		// Don't discard
 	}
-	virtual void pressure() {
-		replay(press_t);
-		printf("pressure!!\n");
-		parent->replace_child(0);
-	}
-	virtual void press(guint b, RTriple e) {
-		if (b == button)
-			return;
-		if (calc_speed(e))
-			return;
-
-		printf("advanced\n");
-		parent->replace_child(new AdvancedHandler(e, button, b));
-	}
-
 	virtual void release(guint b, RTriple e) {
-		if (calc_speed(e))
-			return;
-		if (grabber->xinput)
-			replay(press_t);
-		parent->replace_child(0);
+		parent->replace_child(new AdvancedHandler(last, button, button));
+		XFlush(dpy);
 	}
 public:
-	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
-	repeated(false), min_speed(0.001*500), speed(min_speed * exp(-k*20)),
-	press_t(e->t) {
-		orig.x = e->x; orig.y = e->y;
-		if (!grabber->xinput)
-			discard(press_t);
-	}
-	~StrokeHandler() {
-	}
+	StrokeHandler(guint b, RTriple e) : button(b), last(e), press_t(e->t) {}
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
-
-float StrokeHandler::k = -0.01;
 
 class IdleHandler : public Handler {
 protected:
