@@ -62,7 +62,6 @@ public:
 	RAction handle(Ranking &r) const;
 	void handle_advanced(std::map<int, RAction> &a, int b1, int b2) const;
 };
-BOOST_CLASS_VERSION(ActionListDiff, 1)
 
 class ActionDB {
 	friend class ActionDBWatcher;
@@ -78,7 +77,6 @@ public:
 		return &root;
 	}
 };
-BOOST_CLASS_VERSION(ActionDB, 3)
 
 extern ActionDB actions;
 void update_actions();

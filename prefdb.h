@@ -18,25 +18,11 @@
 #include <string>
 #include <set>
 #include <map>
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/version.hpp>
-#include <boost/serialization/split_member.hpp>
 #include <gdkmm/color.h>
 
 #include "var.h"
 
-enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater, TraceN };
-
-
-#define TO_OFF 0
-#define TO_CONSERVATIVE 1
-#define TO_MEDIUM 2
-#define TO_AGGRESSIVE 3
-#define TO_FLICK 4
-#define TO_CUSTOM 5
-
 class ButtonInfo {
-	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
 		ar & button;
 		ar & state;
@@ -63,38 +49,7 @@ public:
 	ButtonInfo(guint button_) : button(button_), state(0), instant(false) {}
 	ButtonInfo() : button(0), state(0), instant(false) {}
 };
-BOOST_CLASS_VERSION(ButtonInfo, 3)
 
 typedef boost::shared_ptr<ButtonInfo> RButtonInfo;
 
-struct RGBA {
-	Gdk::Color color;
-	guint16 alpha;
-	RGBA() : alpha(65535) {}
-	RGBA(Gdk::Color c) : color(c), alpha(65535) {}
-	template<class Archive> void save(Archive &ar, unsigned int version) const {
-		gushort r, g, b;
-		r = color.get_red();
-		g = color.get_green();
-		b = color.get_blue();
-		ar & r;
-		ar & g;
-		ar & b;
-		ar & alpha;
-	}
-	template<class Archive> void load(Archive &ar, unsigned int version) {
-		gushort r, g, b;
-		ar & r;
-		ar & g;
-		ar & b;
-		ar & alpha;
-		color.set_red(r);
-		color.set_green(g);
-		color.set_blue(b);
-	}
-	bool operator==(const RGBA rgba) {
-		return color == rgba.color && alpha == rgba.alpha;
-	}
-	BOOST_SERIALIZATION_SPLIT_MEMBER()
-};
 #endif
