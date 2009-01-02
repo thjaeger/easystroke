@@ -372,13 +372,13 @@ class StrokeHandler : public Handler, public Timeout {
 	Time press_t;
 
 	virtual void timeout() {
+		printf("timeout()\n");
 		do_timeout();
 		XFlush(dpy);
 	}
 
 	void do_timeout() {
-		if (verbosity >= 2)
-			printf("Aborting stroke...\n");
+		printf("timeout\n");
 		parent->replace_child(new AdvancedHandler(last, button, button));
 	}
 
@@ -413,6 +413,7 @@ protected:
 	}
 	virtual void pressure() {
 		replay(press_t);
+		printf("pressure!!\n");
 		parent->replace_child(0);
 	}
 	virtual void press(guint b, RTriple e) {
@@ -421,12 +422,8 @@ protected:
 		if (calc_speed(e))
 			return;
 
-		if (grabber->xinput) {
-			parent->replace_child(new AdvancedHandler(e, button, b));
-		} else {
-			printf(_("Error: You need XInput to use advanced gestures\n"));
-			parent->replace_child(NULL);
-		}
+		printf("advanced\n");
+		parent->replace_child(new AdvancedHandler(e, button, b));
 	}
 
 	virtual void release(guint b, RTriple e) {
@@ -434,6 +431,7 @@ protected:
 			return;
 		if (grabber->xinput)
 			replay(press_t);
+		printf("no timeout!!\n");
 		parent->replace_child(0);
 	}
 public:
