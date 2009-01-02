@@ -15,15 +15,10 @@
  */
 #include <gtkmm.h>
 #include "main.h"
-#include "shape.h"
 #include "actiondb.h"
 #include "prefdb.h"
-#include "trace.h"
-#include "annotate.h"
-#include "fire.h"
-#include "water.h"
-#include "composite.h"
 #include "grabber.h"
+#include "util.h"
 
 #include <glibmm/i18n.h>
 
@@ -56,8 +51,6 @@ char **argv;
 std::string config_dir;
 
 Window current = 0, current_app = 0;
-Trace *trace = 0;
-Trace::Point orig;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Grabber::XiDevice *current_dev = 0;
@@ -69,42 +62,14 @@ Handler *handler = 0;
 ActionDBWatcher *action_watcher = 0;
 boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
 
-
-Trace *trace_composite() {
-	try {
-		return new Composite();
-	} catch (std::exception &e) {
-		if (verbosity >= 1)
-			printf(_("Falling back to Shape method: %s\n"), e.what());
-		return new Shape();
-	}
-}
-
-Trace *init_trace() {
-	try {
-		switch(prefs.trace.get()) {
-			case TraceNone:
-				return new Trivial();
-			case TraceShape:
-				return new Shape();
-			case TraceAnnotate:
-				return new Annotate();
-			case TraceFire:
-				return new Fire();
-			case TraceWater:
-				return new Water();
-			default:
-				return trace_composite();
-		}
-	} catch (DBusException &e) {
-		printf(_("Error: %s\n"), e.what());
-		return trace_composite();
-	}
-
-}
-
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
+
+struct Point {
+	int x, y;
+};
+
+Point orig;
 
 class Handler {
 protected:
@@ -698,7 +663,6 @@ class StrokeHandler : public Handler, public Timeout {
 	Time press_t;
 
 	RStroke finish(guint b) {
-		trace->end();
 		XFlush(dpy);
 		if (!is_gesture || grabber->is_instant(button))
 			cur->clear();
@@ -715,7 +679,6 @@ class StrokeHandler : public Handler, public Timeout {
 	void do_timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
-		trace->end();
 		if (!prefs.timeout_gestures.get()) {
 			replay(press_t);
 			parent->replace_child(NULL);
@@ -761,7 +724,6 @@ protected:
 		repeated = true;
 	}
 	virtual void pressure() {
-		trace->end();
 		replay(press_t);
 		parent->replace_child(0);
 	}
@@ -780,21 +742,15 @@ protected:
 			drawing = true;
 			bool first = true;
 			for (PreStroke::iterator i = cur->begin(); i != cur->end(); i++) {
-				Trace::Point p;
+				Point p;
 				p.x = (*i)->x;
 				p.y = (*i)->y;
-				if (first) {
-					trace->start(p);
-					first = false;
-				} else {
-					trace->draw(p);
-				}
+				first = false;
 			}
 		} else if (drawing) {
-			Trace::Point p;
+			Point p;
 			p.x = e->x;
 			p.y = e->y;
-			trace->draw(p);
 		}
 		calc_speed(e);
 	}
@@ -879,7 +835,6 @@ public:
 			discard(press_t);
 	}
 	~StrokeHandler() {
-		trace->end();
 	}
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
@@ -1010,32 +965,6 @@ public:
 	~Main();
 };
 
-class ReloadTrace : public Timeout {
-	void timeout() {
-		if (verbosity >= 2)
-			printf("Reloading gesture display\n");
-		Trace *new_trace = init_trace();
-		delete trace;
-		trace = new_trace;
-	}
-} reload_trace;
-
-void schedule_reload_trace() { reload_trace.set_timeout(1000); }
-
-// dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
-void send_dbus(char *str) {
-	GError *error = 0;
-	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
-	if (!bus) {
-		printf(_("Error initializing D-BUS\n"));
-		exit(EXIT_FAILURE);
-	}
-	DBusGProxy *proxy = dbus_g_proxy_new_for_name(bus, "org.easystroke", "/org/easystroke", "org.easystroke");
-	dbus_g_proxy_call_no_reply(proxy, "send", G_TYPE_STRING, str, G_TYPE_INVALID);
-}
-
-bool start_dbus();
-
 Main::Main() : kit(0) {
 	struct stat st;
 	bool have_po = lstat("po", &st) != -1 && S_ISDIR(st.st_mode);
@@ -1046,7 +975,6 @@ Main::Main() : kit(0) {
 		if (argc == 2)
 			usage(argv[0], false);
 		gtk_init(&argc, &argv);
-		send_dbus(argv[2]);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -1070,19 +998,12 @@ Main::Main() : kit(0) {
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
 
-	trace = init_trace();
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, NULL);
-	screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
-	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&schedule_reload_trace));
-	prefs.trace.connect(trace_notify);
-	prefs.color.connect(trace_notify);
 
 	handler = new IdleHandler;
 	handler->init();
 	XTestGrabControl(dpy, True);
 
-	start_dbus();
 }
 
 void Main::run() {
@@ -1555,9 +1476,7 @@ bool Main::handle(Glib::IOCondition) {
 }
 
 Main::~Main() {
-	trace->end();
 	delete grabber;
-	delete trace;
 	delete kit;
 	XCloseDisplay(dpy);
 	prefs.execute_now();

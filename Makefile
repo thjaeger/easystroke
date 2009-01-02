@@ -27,15 +27,11 @@ LDFLAGS  = $(DFLAGS)
 LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
 
 BINARY   = easystroke
-ICON     = easystroke.svg
-MENU     = easystroke.desktop
-MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 HFILES   = $(wildcard *.h)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) desktop.o version.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) version.o
 DEPFILES = $(wildcard *.Po)
-GENFILES = desktop.c dbus-server.h po/POTFILES.in
 GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
@@ -66,18 +62,3 @@ stroke.o: stroke.cc
 
 version.o: $(GIT)
 	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
-
-desktop.c: easystroke.desktop
-	echo "const char *desktop_file = \"\\" > $@
-	sed 's/Exec=easystroke/Exec=%s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
-	echo "\";" >> $@
-
-dbus-server.cc: dbus-server.h
-
-dbus-server.h: dbus.xml
-	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
-
-man:	$(MANPAGE)
-
-$(MANPAGE):	$(BINARY)
-	help2man -N -n "X11 gesture recognition application" ./$(BINARY) > $@
