@@ -80,6 +80,33 @@ struct Point {
 	int x, y;
 };
 
+class Timeout {
+	sigc::connection *c;
+	boost::shared_ptr<sigc::connection> copy;
+	bool to() { timeout(); c = 0; return false; }
+public:
+	Timeout() : c(0) {}
+protected:
+	virtual void timeout() = 0;
+public:
+	bool remove_timeout() {
+		if (c) {
+			c->disconnect();
+			c = 0;
+			return true;
+		}
+		return false;
+	}
+	void set_timeout(int ms) {
+		remove_timeout();
+		c = new sigc::connection(Glib::signal_timeout().connect(sigc::mem_fun(*this, &Timeout::to), ms));
+		copy.reset(c);
+	}
+	virtual ~Timeout() {
+		remove_timeout();
+	}
+};
+
 Point orig;
 
 class Handler {
@@ -1093,48 +1120,3 @@ int main(int argc_, char **argv_) {
 		printf("Exiting...\n");
 	return EXIT_SUCCESS;
 }
-
-struct does_that_really_make_you_happy_stupid_compiler {
-	guint mask;
-	guint sym;
-} modkeys[] = {
-	{GDK_SHIFT_MASK, XK_Shift_L},
-	{GDK_CONTROL_MASK, XK_Control_L},
-	{GDK_MOD1_MASK, XK_Alt_L},
-	{GDK_MOD2_MASK, 0},
-	{GDK_MOD3_MASK, 0},
-	{GDK_MOD4_MASK, 0},
-	{GDK_MOD5_MASK, 0},
-	{GDK_SUPER_MASK, XK_Super_L},
-	{GDK_HYPER_MASK, XK_Hyper_L},
-	{GDK_META_MASK, XK_Meta_L},
-};
-int n_modkeys = 10;
-
-class Modifiers {
-	static std::set<Modifiers *> all;
-	static void update_mods() {
-		static guint mod_state = 0;
-		guint new_state = 0;
-		for (std::set<Modifiers *>::iterator i = all.begin(); i != all.end(); i++)
-			new_state |= (*i)->mods;
-		for (int i = 0; i < n_modkeys; i++) {
-			guint mask = modkeys[i].mask;
-			if ((mod_state & mask) ^ (new_state & mask))
-				XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), new_state & mask, 0);
-		}
-		mod_state = new_state;
-	}
-
-	guint mods;
-public:
-	Modifiers(guint mods_) : mods(mods_) {
-		all.insert(this);
-		update_mods();
-	}
-	~Modifiers() {
-		all.erase(this);
-		update_mods();
-	}
-};
-std::set<Modifiers *> Modifiers::all;
