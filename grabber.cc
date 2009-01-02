@@ -190,8 +190,6 @@ void Grabber::unminimize() {
 	activate(w, CurrentTime);
 }
 
-extern Source<bool> xinput_v, supports_pressure, supports_proximity;
-
 const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
 
 extern Window get_window(Window w, Atom prop);

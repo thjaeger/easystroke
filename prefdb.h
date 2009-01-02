@@ -19,8 +19,7 @@
 #include <set>
 #include <map>
 #include <gdkmm/color.h>
-
-#include "var.h"
+#include <boost/shared_ptr.hpp>
 
 class ButtonInfo {
 	template<class Archive> void serialize(Archive & ar, const unsigned int version) {
