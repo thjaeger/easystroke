@@ -96,7 +96,6 @@ public:
 		else
 			return this;
 	}
-	virtual void motion(RTriple e) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	// Note: We need to make sure that this calls replay/discard otherwise
@@ -338,46 +337,6 @@ protected:
 		return v * exp(log(abs(v))/3);
 	}
 public:
-	virtual void motion(RTriple e) {
-		if (!last_t || abs(e->x-last_x) > 100 || abs(e->y-last_y) > 100) {
-			last_x = e->x;
-			last_y = e->y;
-			last_t = e->t;
-			return;
-		}
-		if (e->t == last_t)
-			return;
-		offset_x += curve((e->x-last_x)/(e->t-last_t))*(e->t-last_t)/10.0;
-		offset_y += curve((e->y-last_y)/(e->t-last_t))*(e->t-last_t)/5.0;
-		last_x = e->x;
-		last_y = e->y;
-		last_t = e->t;
-		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
-		if (abs(offset_x) > 1.0) {
-			n1 = (int)floor(abs(offset_x));
-			if (offset_x > 0) {
-				b1 = 7;
-				offset_x -= n1;
-			} else {
-				b1 = 6;
-				offset_x += n1;
-			}
-		}
-		if (abs(offset_y) > 1.0) {
-			if (abs(offset_y) < 1.0)
-				return;
-			n2 = (int)floor(abs(offset_y));
-			if (offset_y > 0) {
-				b2 = 5;
-				offset_y -= n2;
-			} else {
-				b2 = 4;
-				offset_y += n2;
-			}
-		}
-		if (n1 || n2)
-			fake_button(b1,n1, b2,n2);
-	}
 };
 
 class ScrollHandler : public AbstractScrollHandler, Remapper {
@@ -387,10 +346,6 @@ public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {}
 	virtual void init() {
 		remap(current_dev);
-	}
-	virtual void motion(RTriple e) {
-		if (xinput_pressed.size())
-			AbstractScrollHandler::motion(e);
 	}
 	virtual void press(guint b, RTriple e) {
 		if (!xi_15 && map(b) == 0)
@@ -663,20 +618,6 @@ protected:
 		replay(press_t);
 		parent->replace_child(0);
 	}
-	virtual void motion(RTriple e) {
-		float dist = hypot(e->x-orig.x, e->y-orig.y);
-		if (!is_gesture && dist > 16)
-			is_gesture = true;
-		if (!drawing && dist > 4) {
-			drawing = true;
-		} else if (drawing) {
-			Point p;
-			p.x = e->x;
-			p.y = e->y;
-		}
-		calc_speed(e);
-	}
-
 	virtual void press(guint b, RTriple e) {
 		if (b == button)
 			return;
@@ -1288,9 +1229,6 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 
 	if (!grabber->xinput || xi)
 		switch (me.type) {
-			case MouseEvent::MOTION:
-				handler->top()->motion(create_triple(me.x_xi, me.y_xi, me.t));
-				break;
 			case MouseEvent::PRESS:
 				handler->top()->press(me.button, create_triple(me.x_xi, me.y_xi, me.t));
 				break;
