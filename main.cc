@@ -45,22 +45,10 @@ RTriple create_triple(Time t) {
        return e;
 }
 
-bool show_gui = false;
-extern bool no_xi;
-bool rotated = false;
-bool experimental = false;
 int verbosity = 3;
-int offset_x = 0;
-int offset_y = 0;
 
 Display *dpy;
-int argc;
-char **argv;
 
-std::string config_dir;
-
-Window current = 0, current_app = 0;
-bool in_proximity = false;
 Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed;
 bool dead = false;
@@ -267,55 +255,7 @@ void quit(int) {
 		dead = true;
 }
 
-class Main {
-	char* next_event();
-
-	std::string display;
-	Gtk::Main *kit;
-public:
-	Main();
-	void run();
-	bool handle(Glib::IOCondition);
-	~Main();
-};
-
-Main::Main() : kit(0) {
-	kit = new Gtk::Main(argc, argv);
-	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
-
-	signal(SIGINT, &quit);
-	signal(SIGCHLD, SIG_IGN);
-
-	dpy = XOpenDisplay(NULL);
-	if (!dpy) {
-		printf(_("Couldn't open display.\n"));
-		exit(EXIT_FAILURE);
-	}
-
-	grabber = new Grabber;
-	grabber->grab(Grabber::BUTTON);
-
-	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-
-	handler = new IdleHandler;
-	handler->init();
-	XTestGrabControl(dpy, True);
-
-}
-
-void Main::run() {
-	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
-	io->connect(sigc::mem_fun(*this, &Main::handle));
-	io->attach();
-	// TODO
-	Gtk::Main::run();
-}
-
-extern Window get_app_window(Window &w);
-
-int current_x, current_y;
-
-bool Main::handle(Glib::IOCondition) {
+bool handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
@@ -347,17 +287,33 @@ bool Main::handle(Glib::IOCondition) {
 	return true;
 }
 
-Main::~Main() {
-	delete grabber;
-	delete kit;
-	XCloseDisplay(dpy);
-}
+int main(int argc, char **argv) {
+	Gtk::Main kit(argc, argv);
+	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 
-int main(int argc_, char **argv_) {
-	argc = argc_;
-	argv = argv_;
-	Main mn;
-	mn.run();
+	signal(SIGINT, &quit);
+	signal(SIGCHLD, SIG_IGN);
+
+	dpy = XOpenDisplay(NULL);
+	if (!dpy) {
+		printf(_("Couldn't open display.\n"));
+		exit(EXIT_FAILURE);
+	}
+
+	grabber = new Grabber;
+	grabber->grab(Grabber::BUTTON);
+
+	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
+
+	handler = new IdleHandler;
+	handler->init();
+	XTestGrabControl(dpy, True);
+	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
+	io->connect(sigc::ptr_fun(&handle));
+	io->attach();
+	Gtk::Main::run();
+	delete grabber;
+	XCloseDisplay(dpy);
 	if (verbosity >= 2)
 		printf("Exiting...\n");
 	return EXIT_SUCCESS;
