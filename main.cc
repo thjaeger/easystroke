@@ -112,86 +112,21 @@ Display *dpy;
 class Handler;
 Handler *handler = 0;
 
-class Handler {
-protected:
-	Handler *child;
-protected:
-public:
-	Handler *parent;
-	Handler() : child(0), parent(0) {}
-	Handler *top() {
-		if (child)
-			return child->top();
-		else
-			return this;
-	}
-	virtual void press() {}
-	virtual void release() {}
-	// Note: We need to make sure that this calls replay/discard otherwise
-	// we could leave X in an unpleasant state.
-	void replace_child(Handler *c) {
-		if (child)
-			delete child;
-		child = c;
-		if (child)
-			child->parent = this;
-		std::string stack;
-		for (Handler *h = child ? child : this; h; h=h->parent) {
-			stack = h->name() + " " + stack;
-		}
-		printf("New event handling stack: %s\n", stack.c_str());
-		Handler *new_handler = child ? child : this;
-		grabber->grab(new_handler->grab_mode());
-		if (child)
-			child->init();
-	}
-	virtual void init() {}
-	virtual ~Handler() {
-		if (child)
-			delete child;
-	}
-	virtual std::string name() = 0;
-	virtual Grabber::State grab_mode() = 0;
-};
-
-class AdvancedHandler : public Handler {
-public:
+struct Handler {
 	virtual void init() {
-		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-		parent->replace_child(NULL);
-	}
-	virtual std::string name() { return "Advanced"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-};
-
-class StrokeHandler : public Handler {
-protected:
-	virtual void release() {
-		parent->replace_child(new AdvancedHandler);
+		grabber->grab(Grabber::BUTTON);
 		XFlush(dpy);
 	}
-public:
-	virtual std::string name() { return "Stroke"; }
-	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
-};
-
-class IdleHandler : public Handler {
-protected:
-	virtual void init() {
-		XFlush(dpy); // WTF?
-	}
 	virtual void press() {
-		replace_child(new StrokeHandler);
 	}
-public:
-	virtual std::string name() { return "Idle"; }
-	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
+	virtual void release() {
+		grabber->grab(Grabber::NONE);
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+		grabber->grab(Grabber::BUTTON);
+		XFlush(dpy);
+	}
 };
-
-void quit(int) {
-	Gtk::Main::quit();
-}
 
 bool handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
@@ -201,13 +136,13 @@ bool handle(Glib::IOCondition) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
 					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
-			handler->top()->press();
+			handler->press();
 		}
 		if (ev.type == release) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
 					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
-			handler->top()->release();
+			handler->release();
 		}
 	}
 	return true;
@@ -223,7 +158,7 @@ int main(int argc, char **argv) {
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
 
-	handler = new IdleHandler;
+	handler = new Handler;
 	handler->init();
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::ptr_fun(&handle));
