@@ -267,8 +267,6 @@ void quit(int) {
 		dead = true;
 }
 
-struct MouseEvent;
-
 class Main {
 	char* next_event();
 
@@ -277,9 +275,7 @@ class Main {
 public:
 	Main();
 	void run();
-	MouseEvent *get_mouse_event(XEvent &ev);
 	bool handle(Glib::IOCondition);
-	void handle_mouse_event(MouseEvent *me1, MouseEvent *me2);
 	~Main();
 };
 
@@ -319,38 +315,10 @@ extern Window get_app_window(Window &w);
 
 int current_x, current_y;
 
-struct MouseEvent {
-	enum Type { PRESS, RELEASE };
-	Type type;
-	guint button;
-	bool xi;
-	Time t;
-};
-
-MouseEvent *Main::get_mouse_event(XEvent &ev) {
-	MouseEvent *me = 0;
-	switch(ev.type) {
-	case ButtonPress:
-		if (verbosity >= 3)
-			printf("Press: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-		me = new MouseEvent;
-		me->type = MouseEvent::PRESS;
-		me->button = ev.xbutton.button;
-		me->xi = false;
-		me->t = ev.xbutton.time;
-		return me;
-
-	case ButtonRelease:
-		if (verbosity >= 3)
-			printf("Release: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
-		me = new MouseEvent;
-		me->type = MouseEvent::RELEASE;
-		me->button = ev.xbutton.button;
-		me->xi = false;
-		me->t = ev.xbutton.time;
-		return me;
-
-	default:
+bool Main::handle(Glib::IOCondition) {
+	while (XPending(dpy)) {
+		XEvent ev;
+		XNextEvent(dpy, &ev);
 		if (grabber->is_event(ev.type, Grabber::DOWN)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 			if (verbosity >= 3)
@@ -358,15 +326,10 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
 			if (xinput_pressed.size())
 				if (!current_dev || current_dev->dev->device_id != bev->deviceid)
-					return 0;
+					continue;
 			current_dev = grabber->get_xi_dev(bev->deviceid);
 			xinput_pressed.insert(bev->button);
-			me = new MouseEvent;
-			me->type = MouseEvent::PRESS;
-			me->button = bev->button;
-			me->xi = true;
-			me->t = bev->time;
-			return me;
+			handler->top()->press(bev->button, create_triple(bev->time));
 		}
 		if (grabber->is_event(ev.type, Grabber::UP)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
@@ -374,56 +337,9 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 				printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
 						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
 			if (!current_dev || current_dev->dev->device_id != bev->deviceid)
-				return 0;
+				continue;
 			xinput_pressed.erase(bev->button);
-			me = new MouseEvent;
-			me->type = MouseEvent::RELEASE;
-			me->button = bev->button;
-			me->xi = true;
-			me->t = bev->time;
-			return me;
-		}
-		return 0;
-	}
-}
-
-// Preconditions: me1 != 0
-void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
-	MouseEvent me;
-	bool xi = me1->xi || (me2 && me2->xi);
-	if (xi) {
-		if (me1->xi)
-			me = *me1;
-		else
-			me = *me2;
-	} else {
-		me = *me1;
-	}
-	delete me1;
-	delete me2;
-
-	if (!grabber->xinput || xi)
-		switch (me.type) {
-			case MouseEvent::PRESS:
-				handler->top()->press(me.button, create_triple(me.t));
-				break;
-			case MouseEvent::RELEASE:
-				handler->top()->release(me.button, create_triple(me.t));
-				break;
-		}
-}
-
-bool Main::handle(Glib::IOCondition) {
-	while (XPending(dpy)) {
-		try {
-			XEvent ev;
-			XNextEvent(dpy, &ev);
-			MouseEvent *me2 = get_mouse_event(ev);
-			if (me2 && me2->xi)
-				handle_mouse_event(me2, 0);
-		} catch (GrabFailedException) {
-			printf(_("Error: A grab failed.  Resetting...\n"));
-			bail_out();
+			handler->top()->release(bev->button, create_triple(bev->time));
 		}
 	}
 	if (handler->top()->idle() && dead)
