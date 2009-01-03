@@ -23,37 +23,53 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
-extern Display *dpy;
-#define ROOT (DefaultRootWindow(dpy))
+Display *dpy;
+Window root;
 
 int press, release;
 
-class Grabber {
-public:
-	enum State { NONE, BUTTON };
+XDevice *dev;
+XEventClass events[4];
+int all_events_n;
+int button_events_n;
 
-	XDevice *dev;
-	XEventClass events[4];
-	int event_type[4];
-	int all_events_n;
-	int button_events_n;
+void grab_xi_devs(bool grab) {
+	if (grab)
+		XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
+	else
+		XUngrabDevice(dpy, dev, CurrentTime);
+}
 
-	State current, grabbed;
-	bool xi_devs_grabbed;
+void grab_core(bool grab) {
+	if (grab)
+		XGrabButton(dpy, 1, 0, root, False,
+				ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+					GrabModeSync, GrabModeAsync, None, None);
+	else
+		XUngrabButton(dpy, 1, 0, root);
+}
 
-	void set();
-	void grab_xi_devs(bool);
-	Grabber();
+bool handle(Glib::IOCondition) {
+	while (XPending(dpy)) {
+		XEvent ev;
+		XNextEvent(dpy, &ev);
+		if (ev.type == press) {
+			printf("Press (Xi)\n");
+		}
+		if (ev.type == release) {
+			printf("Release (Xi)\n");
+			grab_xi_devs(true);
+			grab_core(false);
+			XAllowEvents(dpy, ReplayPointer, CurrentTime);
+			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+			grab_xi_devs(false);
+			grab_core(true);
+		}
+	}
+	return true;
+}
 
-	void grab(State s) { current = s; set(); }
-};
-
-Grabber *grabber = 0;
-
-Grabber::Grabber() {
-	current = BUTTON;
-	grabbed = NONE;
-	xi_devs_grabbed = false;
+void init_xi() {
 	int n;
 	XDeviceInfo *devs = XListInputDevices(dpy, &n);
 	if (!devs)
@@ -78,93 +94,24 @@ Grabber::Grabber() {
 	button_events_n = 3;
 	DeviceMotionNotify(dev, dummy, events[3]);
 	all_events_n = 4;
-	XGrabDeviceButton(dpy, dev, 1, 0, NULL, ROOT, False, button_events_n, events, GrabModeAsync, GrabModeAsync);
-	set();
-}
-
-void Grabber::grab_xi_devs(bool grab) {
-	if (!xi_devs_grabbed == !grab)
-		return;
-	xi_devs_grabbed = grab;
-	if (grab)
-		XGrabDevice(dpy, dev, ROOT, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
-	else
-		XUngrabDevice(dpy, dev, CurrentTime);
-}
-
-void Grabber::set() {
-	grab_xi_devs(current == NONE);
-	State old = grabbed;
-	grabbed = current;
-	if (old == grabbed)
-		return;
-	if (old == BUTTON)
-		XUngrabButton(dpy, 1, 0, ROOT);
-	if (grabbed == BUTTON) {
-		XGrabButton(dpy, 1, 0, ROOT, False,
-				ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeSync, GrabModeAsync, None, None);
-	}
-}
-
-Display *dpy;
-
-class Handler;
-Handler *handler = 0;
-
-struct Handler {
-	virtual void init() {
-		grabber->grab(Grabber::BUTTON);
-		XFlush(dpy);
-	}
-	virtual void press() {
-	}
-	virtual void release() {
-		grabber->grab(Grabber::NONE);
-		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-		grabber->grab(Grabber::BUTTON);
-		XFlush(dpy);
-	}
-};
-
-bool handle(Glib::IOCondition) {
-	while (XPending(dpy)) {
-		XEvent ev;
-		XNextEvent(dpy, &ev);
-		if (ev.type == press) {
-			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
-					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
-			handler->press();
-		}
-		if (ev.type == release) {
-			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
-					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
-			handler->release();
-		}
-	}
-	return true;
 }
 
 int main(int argc, char **argv) {
 	Gtk::Main kit(argc, argv);
-
 	dpy = XOpenDisplay(NULL);
 	if (!dpy)
 		exit(EXIT_FAILURE);
+	root = DefaultRootWindow(dpy);
 
-	grabber = new Grabber;
-	grabber->grab(Grabber::BUTTON);
+	init_xi();
+	XGrabDeviceButton(dpy, dev, 1, 0, NULL, root, False, button_events_n, events, GrabModeAsync, GrabModeAsync);
+	grab_core(true);
+	XFlush(dpy);
 
-	handler = new Handler;
-	handler->init();
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::ptr_fun(&handle));
 	io->attach();
 	Gtk::Main::run();
-	delete grabber;
 	XCloseDisplay(dpy);
 	return EXIT_SUCCESS;
 }
