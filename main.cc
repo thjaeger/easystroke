@@ -15,7 +15,6 @@
  */
 #include <gtkmm.h>
 #include <glibmm/i18n.h>
-#include <boost/shared_ptr.hpp>
 #include <set>
 #include <signal.h>
 #include <string>
@@ -47,8 +46,6 @@ public:
 		XEventClass events[6];
 		int event_type[6];
 		int all_events_n;
-		int min_x, max_x, min_y, max_y;
-		bool absolute;
 		void fake_press(int b, int core);
 		void fake_release(int b, int core);
 	};
@@ -220,17 +217,6 @@ void Grabber::XiDevice::fake_release(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, False, 0, 0, 0);
 }
 
-struct Triple {
-       Time t;
-};
-typedef boost::shared_ptr<Triple> RTriple;
-
-RTriple create_triple(Time t) {
-       RTriple e(new Triple);
-       e->t = t;
-       return e;
-}
-
 int verbosity = 3;
 
 Display *dpy;
@@ -258,12 +244,10 @@ public:
 		else
 			return this;
 	}
-	virtual void press(guint b, RTriple e) {}
-	virtual void release(guint b, RTriple e) {}
+	virtual void press() {}
+	virtual void release() {}
 	// Note: We need to make sure that this calls replay/discard otherwise
 	// we could leave X in an unpleasant state.
-	virtual void pressure() {}
-	virtual void proximity_out() {}
 	void replace_child(Handler *c) {
 		if (child)
 			delete child;
@@ -292,77 +276,6 @@ public:
 	virtual Grabber::State grab_mode() = 0;
 };
 
-class Remapper {
-	void handle_grabs() {
-		guint n = XGetPointerMapping(dpy, 0, 0);
-		for (guint i = 1; i<=n; i++) {
-			bool is_grabbed = !!core_grabs.count(i);
-			if (is_grabbed == (map(i) != i))
-				continue;
-			if (!is_grabbed) {
-				if (verbosity >= 2)
-					printf("Grabbing button %d\n", i);
-				XGrabButton(dpy, i, AnyModifier, ROOT, False, ButtonPressMask,
-						GrabModeAsync, GrabModeAsync, None, None);
-				core_grabs.insert(i);
-			} else {
-				if (verbosity >= 2)
-					printf("Ungrabbing button %d\n", i);
-				XUngrabButton(dpy, i, AnyModifier, ROOT);
-				core_grabs.erase(i);
-			}
-
-		}
-	}
-protected:
-	virtual guint map(guint b) = 0;
-public:
-	static std::set<guint> core_grabs;
-	// This can potentially mess up the user's mouse, make sure that it doesn't fail
-	void remap(Grabber::XiDevice *xi_dev) {
-		int ret;
-		do {
-			int n = XGetPointerMapping(dpy, 0, 0);
-			unsigned char m[n];
-			for (int i = 1; i<=n; i++)
-				m[i-1] = map(i);
-			while (MappingBusy == (ret = XSetPointerMapping(dpy, m, n)))
-				for (int i = 1; i<=n; i++)
-					XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-		} while (ret == BadValue);
-		if (!xi_dev)
-			return;
-		XDevice *dev = xi_dev->dev;
-		do {
-			int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
-			unsigned char m[n];
-			for (int i = 0; i<n; i++)
-				m[i] = i+1;
-			while (MappingBusy == (ret = XSetDeviceButtonMapping(dpy, dev, m, n)))
-				for (int i = 1; i<=n; i++)
-					xi_dev->fake_release(i, 0);
-		} while (ret == BadValue);
-	}
-};
-
-std::set<guint> Remapper::core_grabs;
-
-void reset_buttons() {
-	struct Reset : public Remapper {
-		guint map(guint b) { return b; }
-	} reset;
-	reset.remap(0);
-}
-
-void bail_out() {
-	handler->replace_child(0);
-	for (int i = 1; i <= 9; i++)
-		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-	discard(CurrentTime);
-	reset_buttons();
-	XFlush(dpy);
-}
-
 int (*oldIOHandler)(Display *) = 0;
 
 int xIOErrorHandler(Display *dpy2) {
@@ -373,44 +286,24 @@ int xIOErrorHandler(Display *dpy2) {
 	return 0;
 }
 
-inline float abs(float x) { return x > 0 ? x : -x; }
-
-class AdvancedHandler : public Handler, Remapper {
-	RTriple e;
-	guint remap_from, remap_to;
-
-	guint button, button2;
-
+class AdvancedHandler : public Handler {
 public:
-	AdvancedHandler( RTriple e_, guint b, guint b2) : e(e_), remap_from(0), button(b), button2(b2) {}
-	guint map(guint b) {
-		return b;
-	}
 	virtual void init() {
-			replay(CurrentTime); // TODO
-			if (1)
-				XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-			parent->replace_child(NULL);
-			return;
-	}
-	virtual ~AdvancedHandler() {
-//		reset_buttons();
+		replay(CurrentTime);
+		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
+		parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "Advanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
 class StrokeHandler : public Handler {
-	guint button;
-	RTriple last;
-	Time press_t;
 protected:
-	virtual void release(guint b, RTriple e) {
-		parent->replace_child(new AdvancedHandler(last, button, button));
+	virtual void release() {
+		parent->replace_child(new AdvancedHandler);
 		XFlush(dpy);
 	}
 public:
-	StrokeHandler(guint b, RTriple e) : button(b), last(e), press_t(e->t) {}
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
@@ -418,10 +311,10 @@ public:
 class IdleHandler : public Handler {
 protected:
 	virtual void init() {
-		reset_buttons();
+		XFlush(dpy); // WTF?
 	}
-	virtual void press(guint b, RTriple e) {
-		replace_child(new StrokeHandler(b, e));
+	virtual void press() {
+		replace_child(new StrokeHandler);
 	}
 public:
 	virtual ~IdleHandler() {
@@ -433,8 +326,6 @@ public:
 };
 
 void quit(int) {
-	if (dead)
-		bail_out();
 	if (handler->top()->idle() || dead)
 		Gtk::Main::quit();
 	else
@@ -455,7 +346,7 @@ bool handle(Glib::IOCondition) {
 					continue;
 			current_dev = grabber->get_xi_dev(bev->deviceid);
 			xinput_pressed.insert(bev->button);
-			handler->top()->press(bev->button, create_triple(bev->time));
+			handler->top()->press();
 		}
 		if (grabber->is_event(ev.type, Grabber::UP)) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
@@ -465,7 +356,7 @@ bool handle(Glib::IOCondition) {
 			if (!current_dev || current_dev->dev->device_id != bev->deviceid)
 				continue;
 			xinput_pressed.erase(bev->button);
-			handler->top()->release(bev->button, create_triple(bev->time));
+			handler->top()->release();
 		}
 	}
 	if (handler->top()->idle() && dead)
