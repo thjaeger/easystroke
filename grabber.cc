@@ -90,10 +90,6 @@ float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax) {
 	return ((float)(coord - fmin)) * (tmax + 1) / (fmax - fmin + 1);
 }
 
-extern "C" {
-	extern int _XiGetDevicePresenceNotifyEvent(Display *);
-}
-
 bool Grabber::init_xi() {
 	button_events_n = 3;
 	if (no_xi)
@@ -101,11 +97,6 @@ bool Grabber::init_xi() {
 	int nFEV, nFER;
 	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
 		return false;
-
-	// Macro not c++-safe
-	// DevicePresence(dpy, event_presence, presence_class);
-	event_presence = _XiGetDevicePresenceNotifyEvent(dpy);
-	presence_class =  (0x10000 | _devicePresence);
 
 	if (!update_device_list())
 		return false;
@@ -128,35 +119,6 @@ bool Grabber::update_device_list() {
 			continue;
 
 		xi_dev = new XiDevice;
-
-		bool has_button = false;
-		xi_dev->supports_pressure = false;
-		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
-		for (int j = 0; j < dev->num_classes; j++) {
-			if (any->c_class == ButtonClass)
-				has_button = true;
-			if (any->c_class == ValuatorClass) {
-				XValuatorInfo *info = (XValuatorInfo *)any;
-				if (info->num_axes >= 2) {
-					xi_dev->min_x = info->axes[0].min_value;
-					xi_dev->max_x = info->axes[0].max_value;
-					xi_dev->min_y = info->axes[1].min_value;
-					xi_dev->max_y = info->axes[1].max_value;
-				}
-				if (info->num_axes >= 3) {
-					xi_dev->supports_pressure = true;
-					xi_dev->pressure_min = info->axes[2].min_value;
-					xi_dev->pressure_max = info->axes[2].max_value;
-				}
-				xi_dev->absolute = info->mode == Absolute;
-			}
-			any = (XAnyClassPtr) ((char *) any + any->length);
-		}
-
-		if (!has_button) {
-			delete xi_dev;
-			continue;
-		}
 
 		xi_dev->dev = XOpenDevice(dpy, dev->id);
 		if (!xi_dev->dev) {
