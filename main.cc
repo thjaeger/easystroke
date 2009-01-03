@@ -16,7 +16,6 @@
 #include <gtkmm.h>
 #include "main.h"
 #include "grabber.h"
-#include "util.h"
 
 #include <glibmm/i18n.h>
 
@@ -31,6 +30,7 @@
 #include <signal.h>
 #include <fcntl.h>
 #include <getopt.h>
+#include <boost/shared_ptr.hpp>
 
 #include <set>
 
