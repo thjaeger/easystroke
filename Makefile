@@ -14,9 +14,9 @@
 
 DFLAGS   = -ggdb
 OFLAGS   = -Os
-CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
+CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 --cflags`
 
-LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lXtst `pkg-config gtkmm-2.4 --libs`
 
 BINARY   = easystroke
 

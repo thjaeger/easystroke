@@ -14,14 +14,9 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include <gtkmm.h>
-#include <glibmm/i18n.h>
-#include <string>
 #include <string.h>
 #include <X11/extensions/XInput.h>
 #include <X11/extensions/XTest.h>
-#include <X11/Xlib.h>
-#include <X11/Xproto.h>
-#include <X11/Xutil.h>
 
 Display *dpy;
 Window root;
@@ -40,15 +35,6 @@ void grab_xi_devs(bool grab) {
 		XUngrabDevice(dpy, dev, CurrentTime);
 }
 
-void grab_core(bool grab) {
-	if (grab)
-		XGrabButton(dpy, 1, 0, root, False,
-				ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
-					GrabModeSync, GrabModeAsync, None, None);
-	else
-		XUngrabButton(dpy, 1, 0, root);
-}
-
 bool handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
 		XEvent ev;
@@ -59,11 +45,9 @@ bool handle(Glib::IOCondition) {
 		if (ev.type == release) {
 			printf("Release (Xi)\n");
 			grab_xi_devs(true);
-			grab_core(false);
 			XAllowEvents(dpy, ReplayPointer, CurrentTime);
 			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
 			grab_xi_devs(false);
-			grab_core(true);
 		}
 	}
 	return true;
@@ -105,7 +89,7 @@ int main(int argc, char **argv) {
 
 	init_xi();
 	XGrabDeviceButton(dpy, dev, 1, 0, NULL, root, False, button_events_n, events, GrabModeAsync, GrabModeAsync);
-	grab_core(true);
+	XGrabButton(dpy, 1, 0, root, False, ButtonPressMask, GrabModeSync, GrabModeAsync, None, None);
 	XFlush(dpy);
 
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
