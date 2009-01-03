@@ -13,8 +13,10 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <gtkmm.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <X11/extensions/XInput.h>
 #include <X11/extensions/XTest.h>
 
@@ -24,24 +26,21 @@ Window root;
 int press, release;
 
 XDevice *dev;
-XEventClass events[4];
+XEventClass events[3];
 int all_events_n;
 int button_events_n;
 
-bool handle(Glib::IOCondition) {
-	while (XPending(dpy)) {
-		XEvent ev;
-		XNextEvent(dpy, &ev);
-		if (ev.type != release)
-			continue;
-		static int i = 1;
-		printf("Release %d\n", i++);
-		XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
-		XAllowEvents(dpy, ReplayPointer, CurrentTime);
-		XTestFakeRelativeMotionEvent(dpy, 0, 0, 20);
-		XUngrabDevice(dpy, dev, CurrentTime);
-	}
-	return true;
+void handle() {
+	XEvent ev;
+	XNextEvent(dpy, &ev);
+	if (ev.type != release)
+		return;
+	static int i = 1;
+	printf("Release %d\n", i++);
+	XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
+	XAllowEvents(dpy, ReplayPointer, CurrentTime);
+	XTestFakeRelativeMotionEvent(dpy, 0, 0, 20);
+	XUngrabDevice(dpy, dev, CurrentTime);
 }
 
 void init_xi() {
@@ -49,30 +48,26 @@ void init_xi() {
 	XDeviceInfo *devs = XListInputDevices(dpy, &n);
 	if (!devs)
 		exit(EXIT_FAILURE);
-
 	for (int i = 0; i < n; i++) {
-		XDeviceInfo *dev_info = devs + i;
-
-		if (strcmp(dev_info->name, "stylus"))
+//		if (strcmp(devs[i].name, "stylus"))
+		if (strcmp(devs[i].name, "TPPS/2 IBM TrackPoint"))
 			continue;
-
-		dev = XOpenDevice(dpy, dev_info->id);
+		dev = XOpenDevice(dpy, devs[i].id);
 		break;
 	}
-	XFreeDeviceList(devs);
 	if (!dev)
 		exit(EXIT_FAILURE);
+	XFreeDeviceList(devs);
+
 	int dummy;
 	DeviceButtonPress(dev, press, events[0]);
 	DeviceButtonRelease(dev, release, events[1]);
-	DeviceButtonMotion(dev, dummy, events[2]);
-	button_events_n = 3;
-	DeviceMotionNotify(dev, dummy, events[3]);
-	all_events_n = 4;
+	button_events_n = 2;
+	DeviceMotionNotify(dev, dummy, events[2]);
+	all_events_n = 3;
 }
 
 int main(int argc, char **argv) {
-	Gtk::Main kit(argc, argv);
 	dpy = XOpenDisplay(NULL);
 	if (!dpy)
 		exit(EXIT_FAILURE);
@@ -81,12 +76,6 @@ int main(int argc, char **argv) {
 	init_xi();
 	XGrabDeviceButton(dpy, dev, 1, 0, NULL, root, False, button_events_n, events, GrabModeAsync, GrabModeAsync);
 	XGrabButton(dpy, 1, 0, root, False, ButtonPressMask, GrabModeSync, GrabModeAsync, None, None);
-	XFlush(dpy);
-
-	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
-	io->connect(sigc::ptr_fun(&handle));
-	io->attach();
-	Gtk::Main::run();
-	XCloseDisplay(dpy);
-	return EXIT_SUCCESS;
+	while (true)
+		handle();
 }

@@ -12,11 +12,9 @@
 #  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 #  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-DFLAGS   = -ggdb
-OFLAGS   = -Os
-CXXFLAGS = -Wall $(DFLAGS) `pkg-config gtkmm-2.4 --cflags`
+CXXFLAGS = -Wall -Os -ggdb
 
-LIBS     = $(DFLAGS) -lXtst `pkg-config gtkmm-2.4 --libs`
+LIBS     = -lXtst -lXi
 
 BINARY   = easystroke
 
@@ -27,7 +25,5 @@ all: $(BINARY)
 clean:
 	$(RM) $(BINARY)
 
-include $(DEPFILES)
-
 $(BINARY): main.cc
-	$(CXX) $(CXXFLAGS) $(OFLAGS) -o $@ $< $(LIBS)
+	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBS)
