@@ -15,7 +15,6 @@
  */
 #include <gtkmm.h>
 #include <glibmm/i18n.h>
-#include <signal.h>
 #include <string>
 #include <string.h>
 #include <X11/extensions/XInput.h>
@@ -110,8 +109,6 @@ void Grabber::set() {
 
 Display *dpy;
 
-bool dead = false;
-
 class Handler;
 Handler *handler = 0;
 
@@ -149,7 +146,6 @@ public:
 			child->init();
 	}
 	virtual void init() {}
-	virtual bool idle() { return false; }
 	virtual ~Handler() {
 		if (child)
 			delete child;
@@ -189,19 +185,12 @@ protected:
 		replace_child(new StrokeHandler);
 	}
 public:
-	virtual ~IdleHandler() {
-		XUngrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT);
-	}
-	virtual bool idle() { return true; }
 	virtual std::string name() { return "Idle"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
 
 void quit(int) {
-	if (handler->top()->idle() || dead)
-		Gtk::Main::quit();
-	else
-		dead = true;
+	Gtk::Main::quit();
 }
 
 bool handle(Glib::IOCondition) {
@@ -221,16 +210,11 @@ bool handle(Glib::IOCondition) {
 			handler->top()->release();
 		}
 	}
-	if (handler->top()->idle() && dead)
-		Gtk::Main::quit();
 	return true;
 }
 
 int main(int argc, char **argv) {
 	Gtk::Main kit(argc, argv);
-
-	signal(SIGINT, &quit);
-	signal(SIGCHLD, SIG_IGN);
 
 	dpy = XOpenDisplay(NULL);
 	if (!dpy)
