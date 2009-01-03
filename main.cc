@@ -20,6 +20,8 @@
 #include <X11/extensions/XInput.h>
 #include <X11/extensions/XTest.h>
 
+#include <X11/Xutil.h>
+
 Display *dpy;
 Window root;
 
@@ -28,7 +30,6 @@ int press, release;
 XDevice *dev;
 XEventClass events[3];
 int all_events_n;
-int button_events_n;
 
 void handle() {
 	XEvent ev;
@@ -37,10 +38,8 @@ void handle() {
 		return;
 	static int i = 1;
 	printf("Release %d\n", i++);
-	XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
 	XAllowEvents(dpy, ReplayPointer, CurrentTime);
 	XTestFakeRelativeMotionEvent(dpy, 0, 0, 20);
-	XUngrabDevice(dpy, dev, CurrentTime);
 }
 
 void init_xi() {
@@ -62,7 +61,6 @@ void init_xi() {
 	int dummy;
 	DeviceButtonPress(dev, press, events[0]);
 	DeviceButtonRelease(dev, release, events[1]);
-	button_events_n = 2;
 	DeviceMotionNotify(dev, dummy, events[2]);
 	all_events_n = 3;
 }
@@ -74,7 +72,7 @@ int main(int argc, char **argv) {
 	root = DefaultRootWindow(dpy);
 
 	init_xi();
-	XGrabDeviceButton(dpy, dev, 1, 0, NULL, root, False, button_events_n, events, GrabModeAsync, GrabModeAsync);
+	XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
 	XGrabButton(dpy, 1, 0, root, False, ButtonPressMask, GrabModeSync, GrabModeAsync, None, None);
 	while (true)
 		handle();
