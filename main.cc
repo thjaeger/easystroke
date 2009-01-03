@@ -24,23 +24,18 @@
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 
-
-extern int verbosity;
-
 extern Display *dpy;
 #define ROOT (DefaultRootWindow(dpy))
 
+int press, release;
 
 class Grabber {
 public:
 	enum State { NONE, BUTTON };
-	static const char *state_name[6];
-	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
-	bool is_event(int, EventType);
 
 	XDevice *dev;
-	XEventClass events[6];
-	int event_type[6];
+	XEventClass events[4];
+	int event_type[4];
 	int all_events_n;
 	int button_events_n;
 
@@ -56,13 +51,10 @@ public:
 
 Grabber *grabber = 0;
 
-const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
-
 Grabber::Grabber() {
 	current = BUTTON;
 	grabbed = NONE;
 	xi_devs_grabbed = false;
-	button_events_n = 3;
 	int n;
 	XDeviceInfo *devs = XListInputDevices(dpy, &n);
 	if (!devs)
@@ -80,20 +72,15 @@ Grabber::Grabber() {
 	XFreeDeviceList(devs);
 	if (!dev)
 		exit(EXIT_FAILURE);
-	DeviceButtonPress(dev, event_type[DOWN], events[DOWN]);
-	DeviceButtonRelease(dev, event_type[UP], events[UP]);
-	DeviceButtonMotion(dev, event_type[BUTTON_MOTION], events[BUTTON_MOTION]);
-	DeviceMotionNotify(dev, event_type[MOTION], events[MOTION]);
-
+	int dummy;
+	DeviceButtonPress(dev, press, events[0]);
+	DeviceButtonRelease(dev, release, events[1]);
+	DeviceButtonMotion(dev, dummy, events[2]);
+	button_events_n = 3;
+	DeviceMotionNotify(dev, dummy, events[3]);
 	all_events_n = 4;
 	XGrabDeviceButton(dpy, dev, 1, 0, NULL, ROOT, False, button_events_n, events, GrabModeAsync, GrabModeAsync);
 	set();
-}
-
-bool Grabber::is_event(int type, EventType et) {
-	if (type == event_type[et])
-		return true;
-	return false;
 }
 
 void Grabber::grab_xi_devs(bool grab) {
@@ -112,12 +99,8 @@ void Grabber::set() {
 	grabbed = current;
 	if (old == grabbed)
 		return;
-	if (verbosity >= 2)
-		printf("grabbing: %s\n", state_name[grabbed]);
-
-	if (old == BUTTON) {
+	if (old == BUTTON)
 		XUngrabButton(dpy, 1, 0, ROOT);
-	}
 	if (grabbed == BUTTON) {
 		XGrabButton(dpy, 1, 0, ROOT, False,
 				ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
@@ -125,17 +108,12 @@ void Grabber::set() {
 	}
 }
 
-int verbosity = 3;
-
 Display *dpy;
 
 bool dead = false;
 
 class Handler;
 Handler *handler = 0;
-
-void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
-void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
 class Handler {
 protected:
@@ -160,13 +138,11 @@ public:
 		child = c;
 		if (child)
 			child->parent = this;
-		if (verbosity >= 2) {
-			std::string stack;
-			for (Handler *h = child ? child : this; h; h=h->parent) {
-				stack = h->name() + " " + stack;
-			}
-			printf("New event handling stack: %s\n", stack.c_str());
+		std::string stack;
+		for (Handler *h = child ? child : this; h; h=h->parent) {
+			stack = h->name() + " " + stack;
 		}
+		printf("New event handling stack: %s\n", stack.c_str());
 		Handler *new_handler = child ? child : this;
 		grabber->grab(new_handler->grab_mode());
 		if (child)
@@ -182,20 +158,10 @@ public:
 	virtual Grabber::State grab_mode() = 0;
 };
 
-int (*oldIOHandler)(Display *) = 0;
-
-int xIOErrorHandler(Display *dpy2) {
-	if (dpy != dpy2)
-		return oldIOHandler(dpy2);
-	printf(_("Fatal Error: Connection to X server lost, restarting...\n"));
-	abort();
-	return 0;
-}
-
 class AdvancedHandler : public Handler {
 public:
 	virtual void init() {
-		replay(CurrentTime);
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
 		XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
 		parent->replace_child(NULL);
 	}
@@ -242,18 +208,16 @@ bool handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
-		if (grabber->is_event(ev.type, Grabber::DOWN)) {
+		if (ev.type == press) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
-						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
+			printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
+					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
 			handler->top()->press();
 		}
-		if (grabber->is_event(ev.type, Grabber::UP)) {
+		if (ev.type == release) {
 			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
-						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+			printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
+					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
 			handler->top()->release();
 		}
 	}
@@ -264,16 +228,13 @@ bool handle(Glib::IOCondition) {
 
 int main(int argc, char **argv) {
 	Gtk::Main kit(argc, argv);
-	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
 
 	dpy = XOpenDisplay(NULL);
-	if (!dpy) {
-		printf(_("Couldn't open display.\n"));
+	if (!dpy)
 		exit(EXIT_FAILURE);
-	}
 
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);
@@ -286,7 +247,5 @@ int main(int argc, char **argv) {
 	Gtk::Main::run();
 	delete grabber;
 	XCloseDisplay(dpy);
-	if (verbosity >= 2)
-		printf("Exiting...\n");
 	return EXIT_SUCCESS;
 }
