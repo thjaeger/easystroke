@@ -280,8 +280,6 @@ public:
 	MouseEvent *get_mouse_event(XEvent &ev);
 	bool handle(Glib::IOCondition);
 	void handle_mouse_event(MouseEvent *me1, MouseEvent *me2);
-	void handle_enter_leave(XEvent &ev);
-	void handle_event(XEvent &ev);
 	~Main();
 };
 
@@ -321,83 +319,12 @@ extern Window get_app_window(Window &w);
 
 int current_x, current_y;
 
-void translate_coords(XID xid, int *axis_data, float &x, float &y) {
-	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
-	if (!xi_dev->absolute) {
-		current_x += axis_data[0];
-		current_y += axis_data[1];
-		x = current_x;
-		y = current_y;
-		return;
-	}
-	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
-	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
-	if (!rotated) {
-		x = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
-		y = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
-	} else {
-		x = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
-		y = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
-	}
-}
-
-bool translate_known_coords(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
-	sx += offset_x;
-	sy += offset_y;
-	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
-	if (!xi_dev->absolute) {
-		current_x = sx;
-		current_y = sy;
-		x = current_x;
-		y = current_y;
-		return true;
-	}
-	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
-	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
-	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
-	y        = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
-	if (axis_data[0] == sx && axis_data[1] == sy)
-		return true;
-	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
-	float y2 = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
-	float d  = hypot(x - sx, y - sy);
-	float d2 = hypot(x2 - sx, y2 - sy);
-	if (d > 2 && d2 > 2) {
-		x = sx;
-		y = sy;
-		return false;
-	}
-	if (d > 2)
-		rotated = true;
-	if (d2 > 2)
-		rotated = false;
-	if (rotated) {
-		x = x2;
-		y = y2;
-	}
-	return true;
-}
-
-void Main::handle_enter_leave(XEvent &ev) {
-}
-
-void Main::handle_event(XEvent &ev) {
-	switch(ev.type) {
-	case EnterNotify:
-	case LeaveNotify:
-		handle_enter_leave(ev);
-		break;
-	}
-}
-
 struct MouseEvent {
 	enum Type { PRESS, RELEASE };
 	Type type;
 	guint button;
 	bool xi;
-	int x, y;
 	Time t;
-	float x_xi, y_xi, z_xi;
 };
 
 MouseEvent *Main::get_mouse_event(XEvent &ev) {
@@ -411,8 +338,6 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 		me->button = ev.xbutton.button;
 		me->xi = false;
 		me->t = ev.xbutton.time;
-		me->x = ev.xbutton.x;
-		me->y = ev.xbutton.y;
 		return me;
 
 	case ButtonRelease:
@@ -423,8 +348,6 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 		me->button = ev.xbutton.button;
 		me->xi = false;
 		me->t = ev.xbutton.time;
-		me->x = ev.xbutton.x;
-		me->y = ev.xbutton.y;
 		return me;
 
 	default:
@@ -443,8 +366,6 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
-			me->z_xi = 0;
 			return me;
 		}
 		if (grabber->is_event(ev.type, Grabber::UP)) {
@@ -460,8 +381,6 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 			me->button = bev->button;
 			me->xi = true;
 			me->t = bev->time;
-			translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
-			me->z_xi = 0;
 			return me;
 		}
 		return 0;
@@ -479,8 +398,6 @@ void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 			me = *me2;
 	} else {
 		me = *me1;
-		me.x_xi = me.x;
-		me.y_xi = me.y;
 	}
 	delete me1;
 	delete me2;
