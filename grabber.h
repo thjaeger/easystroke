@@ -29,7 +29,7 @@ float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
 
 class Grabber {
 public:
-	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
+	enum State { NONE, BUTTON };
 	static const char *state_name[6];
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	bool xinput;
@@ -60,9 +60,6 @@ private:
 	State current, grabbed;
 	bool xi_grabbed;
 	bool xi_devs_grabbed;
-	bool suspended, xi_suspended;
-	bool disabled;
-	bool active;
 	Cursor cursor_select;
 
 	void set();
@@ -77,13 +74,7 @@ public:
 
 	void fake_button(int b);
 	void grab(State s) { current = s; set(); }
-	void suspend() { suspended = true; set(); }
-	void resume() { suspended = false; set(); }
-	void xi_suspend() { xi_suspended = true; set(); }
-	void xi_resume() { xi_suspended = false; set(); }
 	bool is_grabbed(guint b);
-	bool is_instant(guint b);
-	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
 
 	void unminimize();

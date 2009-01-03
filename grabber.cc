@@ -24,55 +24,12 @@ Grabber *grabber = 0;
 
 unsigned int ignore_mods[4] = { LockMask, Mod2Mask, LockMask | Mod2Mask, 0 };
 
-
 const char* GrabFailedException::what() const throw() { return "Grab Failed"; }
-
-template <class X1, class X2> class BiMap {
-	std::map<X1, X2> map1;
-	std::map<X2, X1> map2;
-public:
-	void erase1(X1 x1) {
-		typename std::map<X1, X2>::iterator i1 = map1.find(x1);
-		if (i1 == map1.end())
-			return;
-		map2.erase(i1->second);
-		map1.erase(i1->first);
-	}
-	void erase2(X2 x2) {
-		typename std::map<X2, X1>::iterator i2 = map2.find(x2);
-		if (i2 == map2.end())
-			return;
-		map1.erase(i2->second);
-		map2.erase(i2->first);
-	}
-	void pop(X1 &x1, X2 &x2) {
-		typename std::map<X1, X2>::reverse_iterator i1 = map1.rbegin();
-		x1 = i1->first;
-		x2 = i1->second;
-		map2.erase(i1->second);
-		map1.erase(i1->first);
-	}
-	void add(X1 x1, X2 x2) {
-		erase1(x1);
-		erase2(x2);
-		map1[x1] = x2;
-		map2[x2] = x1;
-	}
-	bool empty() { return map1.empty(); }
-	bool contains1(X1 x1) { return map1.find(x1) != map1.end(); }
-	bool contains2(X2 x2) { return map2.find(x2) != map2.end(); }
-	X2 find1(X1 x1) { return map1.find(x1)->second; }
-	X1 find2(X2 x2) { return map2.find(x2)->second; }
-};
 
 const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
 
 Grabber::Grabber() {
 	current = BUTTON;
-	suspended = false;
-	xi_suspended = false;
-	disabled = false;
-	active = true;
 	grabbed = NONE;
 	xi_grabbed = false;
 	xi_devs_grabbed = false;
@@ -185,11 +142,10 @@ void Grabber::grab_xi_devs(bool grab) {
 }
 
 void Grabber::set() {
-	bool act = (current == NONE || current == BUTTON) ? active && !disabled : true;
-	grab_xi(!xi_suspended && current != ALL_SYNC && act);
-	grab_xi_devs(!xi_suspended && current == NONE && act);
+	grab_xi(true);
+	grab_xi_devs(current == NONE);
 	State old = grabbed;
-	grabbed = (!suspended && act) ? current : NONE;
+	grabbed = current;
 	if (old == grabbed)
 		return;
 	if (verbosity >= 2)
@@ -207,10 +163,6 @@ void Grabber::set() {
 
 bool Grabber::is_grabbed(guint b) {
 	return b == 1;
-}
-
-bool Grabber::is_instant(guint b) {
-	return false;
 }
 
 int get_default_button() {

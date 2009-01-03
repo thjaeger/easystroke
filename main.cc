@@ -247,10 +247,6 @@ protected:
 		reset_buttons();
 	}
 	virtual void press(guint b, RTriple e) {
-		if (grabber->is_instant(b)) {
-			replace_child(new AdvancedHandler(e, b, b));
-			return;
-		}
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
