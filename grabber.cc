@@ -65,118 +65,9 @@ public:
 	X1 find2(X2 x2) { return map2.find(x2)->second; }
 };
 
-Atom XAtom::operator*() {
-	if (!atom)
-		atom = XInternAtom(dpy, name, False);
-	return atom;
-}
-
-BiMap<Window, Window> frame_win;
-BiMap<Window, Window> frame_child;
-XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
-XAtom _NET_WM_STATE("_NET_WM_STATE");
-XAtom _NET_WM_STATE_HIDDEN("_NET_WM_STATE_HIDDEN");
-XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
-
-BiMap<unsigned int, Window> minimized;
-unsigned int minimized_n = 0;
-
-extern Window get_window(Window w, Atom prop);
-
-void get_frame(Window w) {
-	Window frame = get_window(w, *_NET_FRAME_WINDOW);
-	if (!frame)
-		return;
-	frame_win.add(frame, w);
-}
-
-Children::Children(Window w) : parent(w) {
-	XSelectInput(dpy, parent, SubstructureNotifyMask);
-	unsigned int n;
-	Window dummyw1, dummyw2, *ch;
-	XQueryTree(dpy, parent, &dummyw1, &dummyw2, &ch, &n);
-	for (unsigned int i = 0; i < n; i++)
-		add(ch[i]);
-	XFree(ch);
-}
-
-bool Children::handle(XEvent &ev) {
-	switch (ev.type) {
-		case CreateNotify:
-			if (ev.xcreatewindow.parent != parent)
-				return false;
-			add(ev.xcreatewindow.window);
-			return true;
-		case DestroyNotify:
-			frame_child.erase1(ev.xdestroywindow.window);
-			frame_child.erase2(ev.xdestroywindow.window);
-			minimized.erase2(ev.xdestroywindow.window);
-			destroy(ev.xdestroywindow.window);
-			return true;
-		case ReparentNotify:
-			if (ev.xreparent.event != parent)
-				return false;
-			if (ev.xreparent.window == parent)
-				return false;
-			if (ev.xreparent.parent == parent)
-				add(ev.xreparent.window);
-			else
-				remove(ev.xreparent.window);
-			return true;
-		case PropertyNotify:
-			if (ev.xproperty.atom == *_NET_FRAME_WINDOW) {
-				if (ev.xproperty.state == PropertyDelete)
-					frame_win.erase1(ev.xproperty.window);
-				if (ev.xproperty.state == PropertyNewValue)
-					get_frame(ev.xproperty.window);
-				return true;
-			}
-			if (ev.xproperty.atom == *_NET_WM_STATE) {
-				if (ev.xproperty.state == PropertyDelete) {
-					minimized.erase2(ev.xproperty.window);
-					return true;
-				}
-				if (has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN))
-					minimized.add(minimized_n++, ev.xproperty.window);
-				else
-					minimized.erase2(ev.xproperty.window);
-				return true;
-			}
-			return false;
-		default:
-			return false;
-	}
-}
-
-void Children::add(Window w) {
-	if (!w)
-		return;
-
-	XSelectInput(dpy, w, EnterWindowMask | PropertyChangeMask);
-	get_frame(w);
-}
-
-void Children::remove(Window w) {
-	XSelectInput(dpy, w, 0);
-	destroy(w);
-}
-
-void Children::destroy(Window w) {
-	frame_win.erase1(w);
-	frame_win.erase2(w);
-}
-
 const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
 
-extern Window get_window(Window w, Atom prop);
-
-bool wm_running() {
-	static XAtom _NET_SUPPORTING_WM_CHECK("_NET_SUPPORTING_WM_CHECK");
-	Window w = get_window(ROOT, *_NET_SUPPORTING_WM_CHECK);
-	return w && get_window(w, *_NET_SUPPORTING_WM_CHECK) == w;
-}
-
-Grabber::Grabber() : children(ROOT) {
+Grabber::Grabber() {
 	current = BUTTON;
 	suspended = false;
 	xi_suspended = false;
@@ -364,72 +255,9 @@ int get_default_button() {
 	return 1;
 }
 
-void Grabber::update(Window w) {
-	wm_class = get_wm_class(w);
-	active = true;
-	set();
-}
-
 void Grabber::XiDevice::fake_press(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, True,  0, 0, 0);
 }
 void Grabber::XiDevice::fake_release(int b, int core) {
 	XTestFakeDeviceButtonEvent(dpy, dev, b, False, 0, 0, 0);
-}
-
-std::string Grabber::get_wm_class(Window w) {
-	if (!w)
-		return _("(window manager frame)");
-	XClassHint ch;
-	if (!XGetClassHint(dpy, w, &ch))
-		return "";
-	std::string ans = ch.res_name;
-	XFree(ch.res_name);
-	XFree(ch.res_class);
-	return ans;
-}
-
-// Fuck Xlib
-bool has_wm_state(Window w) {
-	static XAtom WM_STATE("WM_STATE");
-	Atom actual_type_return;
-	int actual_format_return;
-	unsigned long nitems_return;
-	unsigned long bytes_after_return;
-	unsigned char *prop_return;
-	if (Success != XGetWindowProperty(dpy, w, *WM_STATE, 0, 2, False,
-				AnyPropertyType, &actual_type_return,
-				&actual_format_return, &nitems_return,
-				&bytes_after_return, &prop_return))
-		return false;
-	XFree(prop_return);
-	return nitems_return;
-}
-
-Window find_wm_state(Window w) {
-	if (!w)
-		return w;
-	if (has_wm_state(w))
-		return w;
-	Window found = None;
-	unsigned int n;
-	Window dummyw1, dummyw2, *ch;
-	if (!XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n))
-		return None;
-	for (unsigned int i = 0; i != n; i++)
-		if (has_wm_state(ch[i]))
-			found = ch[i];
-	if (!found)
-		for (unsigned int i = 0; i != n; i++) {
-			found = find_wm_state(ch[i]);
-			if (found)
-				break;
-		}
-	XFree(ch);
-	return found;
-}
-
-// sets w to 0 if the window is a frame
-Window get_app_window(Window &w) {
-	return w;
 }

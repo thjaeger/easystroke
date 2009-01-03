@@ -67,7 +67,6 @@ bool dead = false;
 
 class Handler;
 Handler *handler = 0;
-boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
 
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
@@ -227,62 +226,6 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
-XAtom ATOM("ATOM");
-
-Atom get_atom(Window w, Atom prop) {
-	Atom actual_type;
-	int actual_format;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = NULL;
-
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *ATOM, &actual_type, &actual_format,
-				&nitems, &bytes_after, &prop_return) != Success)
-		return None;
-	if (!prop_return)
-		return None;
-	Atom atom = *(Atom *)prop_return;
-	XFree(prop_return);
-	return atom;
-}
-
-bool has_atom(Window w, Atom prop, Atom value) {
-	Atom actual_type;
-	int actual_format;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = NULL;
-
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *ATOM, &actual_type, &actual_format,
-				&nitems, &bytes_after, &prop_return) != Success)
-		return None;
-	if (!prop_return)
-		return None;
-	Atom *atoms = (Atom *)prop_return;
-	bool ans = false;
-	for (unsigned long i = 0; i < nitems; i++)
-		if (atoms[i] == value)
-			ans = true;
-	XFree(prop_return);
-	return ans;
-}
-
-Window get_window(Window w, Atom prop) {
-	Atom actual_type;
-	int actual_format;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = NULL;
-	static XAtom WINDOW("WINDOW");
-
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *WINDOW, &actual_type, &actual_format,
-				&nitems, &bytes_after, &prop_return) != Success)
-		return None;
-	if (!prop_return)
-		return None;
-	Window ret = *(Window *)prop_return;
-	XFree(prop_return);
-	return ret;
-}
-
-// TODO: Check discard/replay
 class StrokeHandler : public Handler {
 	guint button;
 	RTriple last;
@@ -440,29 +383,6 @@ bool translate_known_coords(XID xid, int sx, int sy, int *axis_data, float &x, f
 }
 
 void Main::handle_enter_leave(XEvent &ev) {
-	do {
-		if (ev.xcrossing.mode == NotifyGrab)
-			continue;
-		if (ev.xcrossing.detail == NotifyInferior)
-			continue;
-		if (ev.type == EnterNotify) {
-			current = ev.xcrossing.window;
-			current_app = get_app_window(current);
-			if (verbosity >= 3)
-				printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current_app);
-		} else if (ev.type == LeaveNotify) {
-			if (ev.xcrossing.window != current)
-				continue;
-			if (verbosity >= 3)
-				printf("Left window 0x%lx\n", ev.xcrossing.window);
-			current = 0;
-		} else printf("Error: Bogus Enter/Leave event\n");
-	} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
-	grabber->update(current);
-	if (window_selected) {
-		(*window_selected)(grabber->get_wm_class());
-		window_selected.reset();
-	}
 }
 
 void Main::handle_event(XEvent &ev) {
@@ -471,16 +391,7 @@ void Main::handle_event(XEvent &ev) {
 	case LeaveNotify:
 		handle_enter_leave(ev);
 		break;
-	case PropertyNotify:
-		static XAtom WM_CLASS("WM_CLASS");
-		if (current && ev.xproperty.window == current && ev.xproperty.atom == *WM_CLASS)
-			grabber->update(current);
-		break;
 	}
-}
-
-void update_current() {
-	grabber->update(current);
 }
 
 struct MouseEvent {
@@ -609,9 +520,6 @@ bool Main::handle(Glib::IOCondition) {
 					handle_mouse_event(me, 0);
 					me = 0;
 				}
-			} else {
-				if (!grabber->handle(ev))
-					handle_event(ev);
 			}
 		} catch (GrabFailedException) {
 			printf(_("Error: A grab failed.  Resetting...\n"));
