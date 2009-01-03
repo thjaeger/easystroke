@@ -49,7 +49,7 @@ bool show_gui = false;
 extern bool no_xi;
 bool rotated = false;
 bool experimental = false;
-int verbosity = 0;
+int verbosity = 3;
 int offset_x = 0;
 int offset_y = 0;
 
@@ -221,7 +221,7 @@ public:
 			return;
 	}
 	virtual ~AdvancedHandler() {
-		reset_buttons();
+//		reset_buttons();
 	}
 	virtual std::string name() { return "Advanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -476,21 +476,6 @@ void Main::handle_event(XEvent &ev) {
 		if (current && ev.xproperty.window == current && ev.xproperty.atom == *WM_CLASS)
 			grabber->update(current);
 		break;
-
-	default:
-		if (grabber->proximity_selected) {
-			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
-				in_proximity = true;
-				if (verbosity >= 3)
-					printf("Proximity: In\n");
-			}
-			if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
-				in_proximity = false;
-				if (verbosity >= 3)
-					printf("Proximity: Out\n");
-				handler->top()->proximity_out();
-			}
-		}
 	}
 }
 
@@ -580,7 +565,6 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
 	MouseEvent me;
 	bool xi = me1->xi || (me2 && me2->xi);
-	bool core = !me1->xi || (me2 && !me2->xi);
 	if (xi) {
 		if (me1->xi)
 			me = *me1;
