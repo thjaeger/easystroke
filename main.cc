@@ -28,27 +28,18 @@ XEventClass events[4];
 int all_events_n;
 int button_events_n;
 
-void grab_xi_devs(bool grab) {
-	if (grab)
-		XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
-	else
-		XUngrabDevice(dpy, dev, CurrentTime);
-}
-
 bool handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
 		XEvent ev;
 		XNextEvent(dpy, &ev);
-		if (ev.type == press) {
-			printf("Press (Xi)\n");
-		}
-		if (ev.type == release) {
-			printf("Release (Xi)\n");
-			grab_xi_devs(true);
-			XAllowEvents(dpy, ReplayPointer, CurrentTime);
-			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-			grab_xi_devs(false);
-		}
+		if (ev.type != release)
+			continue;
+		static int i = 1;
+		printf("Release %d\n", i++);
+		XGrabDevice(dpy, dev, root, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime);
+		XAllowEvents(dpy, ReplayPointer, CurrentTime);
+		XTestFakeRelativeMotionEvent(dpy, 0, 0, 20);
+		XUngrabDevice(dpy, dev, CurrentTime);
 	}
 	return true;
 }
