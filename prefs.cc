@@ -265,13 +265,14 @@ Prefs::Prefs() {
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
 
-	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *add_extra, *remove_extra;
+	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *add_extra, *edit_extra, *remove_extra;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);
 	widgets->get_widget("button_default_p", button_default_p);
 	widgets->get_widget("button_remove_exception", remove_exception);
 	widgets->get_widget("label_button", blabel);
 	widgets->get_widget("button_add_extra", add_extra);
+	widgets->get_widget("button_edit_extra", edit_extra);
 	widgets->get_widget("button_remove_extra", remove_extra);
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("treeview_devices", dtv);
@@ -315,6 +316,7 @@ Prefs::Prefs() {
 	update_device_list();
 
 	add_extra->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_add_extra));
+	edit_extra->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_edit_extra));
 	remove_extra->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_remove_extra));
 
 	etm = Gtk::ListStore::create(ecs);
@@ -385,6 +387,32 @@ void Prefs::on_add_extra() {
 			i++;
 	extra.push_back(sb.event);
 	stable_sort(extra.begin(), extra.end());
+	update_extra_buttons();
+}
+
+void Prefs::on_edit_extra() {
+	Gtk::TreePath path;
+	Gtk::TreeViewColumn *col;
+	etv->get_cursor(path, col);
+	if (!path.gobj())
+		return;
+	Gtk::TreeIter iter = *etm->get_iter(path);
+	std::vector<ButtonInfo>::iterator i = (*iter)[ecs.i];
+	SelectButton sb(*i, true, true);
+	if (!sb.run())
+		return;
+	Atomic a;
+	std::vector<ButtonInfo> &extra = prefs.extra_buttons.write_ref(a);
+	if (prefs.button.ref().overlap(sb.event)) {
+		extra.erase(i);
+	} else {
+		for (std::vector<ButtonInfo>::iterator j = extra.begin(); j != extra.end();)
+			if (j != i && j->overlap(sb.event))
+				j = extra.erase(j);
+			else
+				j++;
+		*i = sb.event;
+	}
 	update_extra_buttons();
 }
 

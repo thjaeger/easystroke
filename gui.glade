@@ -322,27 +322,40 @@
                                 <child>
                                   <widget class="GtkVButtonBox" id="vbuttonbox2">
                                     <property name="visible">True</property>
-                                    <property name="layout_style">spread</property>
                                     <child>
                                       <widget class="GtkButton" id="button_add_extra">
-                                        <property name="label" translatable="yes">Add</property>
+                                        <property name="label" translatable="yes">gtk-add</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
+                                        <property name="use_stock">True</property>
                                       </widget>
                                       <packing>
                                         <property name="position">0</property>
                                       </packing>
                                     </child>
                                     <child>
-                                      <widget class="GtkButton" id="button_remove_extra">
-                                        <property name="label" translatable="yes">Remove</property>
+                                      <widget class="GtkButton" id="button_edit_extra">
+                                        <property name="label" translatable="yes">gtk-edit</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
+                                        <property name="use_stock">True</property>
                                       </widget>
                                       <packing>
                                         <property name="position">1</property>
+                                      </packing>
+                                    </child>
+                                    <child>
+                                      <widget class="GtkButton" id="button_remove_extra">
+                                        <property name="label" translatable="yes">gtk-remove</property>
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">True</property>
+                                        <property name="receives_default">True</property>
+                                        <property name="use_stock">True</property>
+                                      </widget>
+                                      <packing>
+                                        <property name="position">2</property>
                                       </packing>
                                     </child>
                                   </widget>

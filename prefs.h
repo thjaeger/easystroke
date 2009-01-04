@@ -32,6 +32,7 @@ private:
 	void on_add();
 	void on_remove();
 	void on_add_extra();
+	void on_edit_extra();
 	void on_remove_extra();
 	void on_p_changed();
 	void on_p_default();
