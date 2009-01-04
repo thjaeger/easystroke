@@ -583,6 +583,8 @@ public:
 class AdvancedHandler : public Handler {
 	RTriple e;
 	guint remap_from;
+	Time click_time;
+	guint replay_button;
 	std::map<int, RAction> as;
 	std::map<int, Ranking *> rs;
 	std::map<int, RModifiers> mods;
@@ -604,7 +606,7 @@ class AdvancedHandler : public Handler {
 		rs.erase(b);
 	}
 	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b, guint b2) :
-		e(e_), remap_from(0), as(as_), rs(rs_), button(b), button2(b2) {
+		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button(b), button2(b2) {
 			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i)
 				map[i->first] = 0;
 		}
@@ -638,6 +640,7 @@ public:
 		press(button2, e);
 	}
 	virtual void press(guint b, RTriple e) {
+		click_time = 0;
 		int bb = (b == button) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
@@ -647,10 +650,16 @@ public:
 		}
 		RAction act = as[bb];
 		if (IS_SCROLL(act)) {
+			click_time = e->t;
+			replay_button = b;
 			mods[b] = act->prepare();
 			last_mods.reset();
 			replace_child(new ScrollAdvancedHandler(map));
 			return;
+		}
+		if (IS_IGNORE(act)) {
+			click_time = e->t;
+			replay_button = b;
 		}
 		IF_BUTTON(act, b2) {
 			if (remap_from)
@@ -672,7 +681,13 @@ public:
 	virtual void release(guint b, RTriple e) {
 		if (xinput_pressed.size() == 0) {
 			reset_buttons();
-			parent->replace_child(0);
+			Handler *h = NULL;
+			if (e->t < click_time + 200 && b == replay_button) {
+				current_dev->fake_press(b, b);
+				current_dev->fake_release(b, b);
+				h = new WaitForButtonHandler(b, false);
+			}
+			parent->replace_child(h);
 			return;
 		}
 		if (b == remap_from)
