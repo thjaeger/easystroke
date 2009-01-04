@@ -111,6 +111,7 @@ class Scroll : public ModAction {
 public:
 	Scroll() {}
 	static RScroll create(Gdk::ModifierType mods) { return RScroll(new Scroll(mods)); }
+	virtual const Glib::ustring get_label() const;
 };
 #define IS_SCROLL(act) (act && dynamic_cast<Scroll *>(act.get()))
 
@@ -121,6 +122,7 @@ class Ignore : public ModAction {
 public:
 	Ignore() {}
 	static RIgnore create(Gdk::ModifierType mods) { return RIgnore(new Ignore(mods)); }
+	virtual const Glib::ustring get_label() const;
 };
 #define IS_IGNORE(act) (act && dynamic_cast<Ignore *>(act.get()))
 

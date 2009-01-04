@@ -876,3 +876,17 @@ Glib::ustring ButtonInfo::get_button_text() const {
 	snprintf(name, sizeof(name), _("Button %d"), button);
 	return str + name;
 }
+
+const Glib::ustring Scroll::get_label() const {
+	if (mods)
+		return ModAction::get_label() + _(" + Scroll");
+	else
+		return _("Scroll");
+}
+
+const Glib::ustring Ignore::get_label() const {
+	if (mods)
+		return ModAction::get_label();
+	else
+		return _("Ignore");
+}

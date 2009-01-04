@@ -185,10 +185,9 @@ public:
 };
 
 class IgnoreHandler : public Handler {
-	OSD osd;
 	RModifiers mods;
 public:
-	IgnoreHandler(RModifiers mods_) : osd("Ignore"), mods(mods_) {}
+	IgnoreHandler(RModifiers mods_) : mods(mods_) {}
 	virtual void press_core(guint b, Time t, bool xi) {
 		replay(t);
 		if (!in_proximity)
@@ -482,13 +481,13 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
-	OSD osd;
 	float last_x, last_y;
 	Time last_t;
 	float offset_x, offset_y;
+	Glib::ustring str;
 
 protected:
-	AbstractScrollHandler() : osd("Scroll"), last_t(0), offset_x(0.0), offset_y(0.0) {}
+	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		for (int i = 0; i<n1; i++)
 			fake_button(b1);
@@ -734,7 +733,7 @@ public:
 		if (xinput_pressed.size() == 0) {
 			reset_buttons();
 			Handler *h = NULL;
-			if (e->t < click_time + 200 && b == replay_button) {
+			if (e->t < click_time + 250 && b == replay_button) {
 				sticky_mods.reset();
 				mods.clear();
 				if (xi_15) {
@@ -1774,7 +1773,7 @@ struct does_that_really_make_you_happy_stupid_compiler {
 };
 int n_modkeys = 10;
 
-class Modifiers {
+class Modifiers : Timeout {
 	static std::set<Modifiers *> all;
 	static void update_mods() {
 		static guint mod_state = 0;
@@ -1790,20 +1789,27 @@ class Modifiers {
 	}
 
 	guint mods;
+	Glib::ustring str;
+	OSD *osd;
 public:
-	Modifiers(guint mods_) : mods(mods_) {
+	Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_), osd(NULL) {
+		set_timeout(150);
 		all.insert(this);
 		update_mods();
+	}
+	virtual void timeout() {
+		osd = new OSD(str);
 	}
 	~Modifiers() {
 		all.erase(this);
 		update_mods();
+		delete osd;
 	}
 };
 std::set<Modifiers *> Modifiers::all;
 
 RModifiers ModAction::prepare() {
-	return RModifiers(new Modifiers(mods));
+	return RModifiers(new Modifiers(mods, get_label()));
 }
 
 void Misc::run() {
