@@ -106,7 +106,6 @@ BOOST_CLASS_VERSION(SendKey, 1)
 class Scroll : public ModAction {
 	friend class boost::serialization::access;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
-	void worker();
 	Scroll(Gdk::ModifierType mods) : ModAction(mods) {}
 public:
 	Scroll() {}

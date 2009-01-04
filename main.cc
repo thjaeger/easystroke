@@ -561,6 +561,25 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
+class AdvancedStrokeActionHandler : public Handler {
+	RStroke s;
+public:
+	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
+	virtual void press(guint b, RTriple e) {
+		s->button = b;
+		(*stroke_action)(s);
+		stroke_action.reset();
+		parent->replace_child(NULL);
+	}
+	virtual void release(guint b, RTriple e) {
+		(*stroke_action)(s);
+		stroke_action.reset();
+		parent->replace_child(NULL);
+	}
+	virtual std::string name() { return "InstantStrokeAction"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+};
+
 class AdvancedHandler : public Handler {
 	RTriple e;
 	guint remap_from;
@@ -590,7 +609,10 @@ class AdvancedHandler : public Handler {
 				map[i->first] = 0;
 		}
 public:
-	static AdvancedHandler *create(RStroke s, RTriple e, guint b, guint b2, Time press_t) {
+	static Handler *create(RStroke s, RTriple e, guint b, guint b2, Time press_t) {
+		if (stroke_action)
+			return new AdvancedStrokeActionHandler(s, e);
+
 		std::map<int, RAction> as;
 		std::map<int, Ranking *> rs;
 		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b, b2);
@@ -664,25 +686,6 @@ public:
 			delete i->second;
 	}
 	virtual std::string name() { return "Advanced"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-};
-
-class InstantStrokeActionHandler : public Handler {
-	RStroke s;
-public:
-	InstantStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
-	virtual void press(guint b, RTriple e) {
-		s->button = b;
-		(*stroke_action)(s);
-		stroke_action.reset();
-		parent->replace_child(NULL);
-	}
-	virtual void release(guint b, RTriple e) {
-		(*stroke_action)(s);
-		stroke_action.reset();
-		parent->replace_child(NULL);
-	}
-	virtual std::string name() { return "InstantStrokeAction"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
@@ -821,10 +824,7 @@ class StrokeHandler : public Handler, public Timeout {
 		if (!is_gesture)
 			cur->clear();
 		RStroke s = Stroke::create(*cur, button, button, true);
-		if (stroke_action)
-			parent->replace_child(new InstantStrokeActionHandler(s, last));
-		else
-			parent->replace_child(AdvancedHandler::create(s, last, button, button, press_t));
+		parent->replace_child(AdvancedHandler::create(s, last, button, button, press_t));
 	}
 
 	bool calc_speed(RTriple e) {
@@ -901,15 +901,6 @@ protected:
 		if (calc_speed(e))
 			return;
 		RStroke s = finish(b);
-
-		if (stroke_action) {
-			if (grabber->xinput)
-				discard(press_t);
-			(*stroke_action)(s);
-			stroke_action.reset();
-			parent->replace_child(NULL);
-			return;
-		}
 
 		if (grabber->xinput) {
 			parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
@@ -1021,10 +1012,7 @@ protected:
 			remove_timeout();
 			PreStroke ps;
 			RStroke s = Stroke::create(ps, b, b, false);
-			if (stroke_action)
-				replace_child(new InstantStrokeActionHandler(s, e));
-			else
-				replace_child(AdvancedHandler::create(s, e, b, b, e->t));
+			replace_child(AdvancedHandler::create(s, e, b, b, e->t));
 			return;
 		}
 		if (current_app)

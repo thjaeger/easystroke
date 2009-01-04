@@ -196,12 +196,6 @@ const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Asy
 
 extern Window get_window(Window w, Atom prop);
 
-bool wm_running() {
-	static XAtom _NET_SUPPORTING_WM_CHECK("_NET_SUPPORTING_WM_CHECK");
-	Window w = get_window(ROOT, *_NET_SUPPORTING_WM_CHECK);
-	return w && get_window(w, *_NET_SUPPORTING_WM_CHECK) == w;
-}
-
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
 	suspended = false;
@@ -437,18 +431,20 @@ void Grabber::grab_xi(bool grab) {
 		}
 }
 
+void Grabber::XiDevice::grab_device(bool grab) {
+	if (grab) {
+		if (XGrabDevice(dpy, dev, ROOT, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime))
+			throw GrabFailedException();
+	} else
+		XUngrabDevice(dpy, dev, CurrentTime);
+}
+
 void Grabber::grab_xi_devs(bool grab) {
 	if (!xi_devs_grabbed == !grab)
 		return;
 	xi_devs_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (grab) {
-			if (XGrabDevice(dpy, xi_devs[i]->dev, ROOT, False,
-						xi_devs[i]->all_events_n,
-						xi_devs[i]->events, GrabModeAsync, GrabModeAsync, CurrentTime))
-				throw GrabFailedException();
-		} else
-			XUngrabDevice(dpy, xi_devs[i]->dev, CurrentTime);
+		xi_devs[i]->grab_device(grab);
 }
 
 extern bool in_proximity;
@@ -537,7 +533,6 @@ bool Grabber::is_grabbed(guint b) {
 	return false;
 }
 
-// TODO: Modifiers?
 bool Grabber::is_instant(guint b) {
 	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
 		if (i->button == b && i->instant)

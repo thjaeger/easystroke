@@ -126,7 +126,6 @@ bool Popup::on_expose(GdkEventExpose* event) {
 
 void Composite::end_() {
 	points.clear();
-	// TODO
 	for (int i = 0; i < num_x; i++)
 		for (int j = 0; j < num_y; j++)
 			pieces[i][j]->hide();

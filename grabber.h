@@ -75,6 +75,7 @@ public:
 		}
 		void fake_press(int b, int core);
 		void fake_release(int b, int core);
+		void grab_device(bool);
 	};
 
 	unsigned int get_device_button_state(XiDevice *&dev);
