@@ -916,6 +916,7 @@ protected:
 		RStroke s = finish(0);
 
 		if (stroke_action) {
+			discard(press_t);
 			(*stroke_action)(s);
 			stroke_action.reset();
 			parent->replace_child(0);
