@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
+ * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -366,6 +366,8 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<int, RAction> &as, std:
 			}
 		}
 	}
+	if (s->timeout && !as[b1])
+		as[b1] = RAction(new Click);
 }
 
 ActionListDiff::~ActionListDiff() {

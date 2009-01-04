@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
+ * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -530,10 +530,17 @@ void Grabber::set() {
 	}
 }
 
-// TODO: Modifiers?
 bool Grabber::is_grabbed(guint b) {
 	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
 		if (i->button == b)
+			return true;
+	return false;
+}
+
+// TODO: Modifiers?
+bool Grabber::is_instant(guint b) {
+	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
+		if (i->button == b && i->instant)
 			return true;
 	return false;
 }
@@ -547,9 +554,8 @@ void Grabber::update_button(ButtonInfo bi) {
 	xi_suspended = true;
 	set();
 	grabbed_button = prefs.button.get();
-	buttons.clear();
 	buttons.resize(extra.size() + 1);
-	buttons.push_back(grabbed_button);
+	buttons[0] = grabbed_button;
 	std::copy(extra.begin(), extra.end(), ++buttons.begin());
 	suspended = false;
 	xi_suspended = false;

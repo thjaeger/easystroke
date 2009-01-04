@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
+ * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -120,10 +120,12 @@ public:
 	void xi_resume() { xi_suspended = false; set(); }
 	void update_button(ButtonInfo bi);
 	bool is_grabbed(guint b);
+	bool is_instant(guint b);
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
 
 	int get_default_button() { return grabbed_button.button; }
+	bool get_timing_workaround() { return timing_workaround; }
 
 	void unminimize();
 };

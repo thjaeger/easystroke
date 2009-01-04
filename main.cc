@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
+ * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -105,16 +105,12 @@ Trace *init_trace() {
 
 }
 
-RAction handle_stroke(RStroke s, float x, float y);
-
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
-
 void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
 class Handler {
 protected:
 	Handler *child;
-protected:
 public:
 	Handler *parent;
 	Handler() : child(0), parent(0) {}
@@ -150,6 +146,7 @@ public:
 		if (child)
 			child->init();
 	}
+	void remap(std::map<guint, guint> &map);
 	virtual void init() {}
 	virtual bool idle() { return false; }
 	virtual ~Handler() {
@@ -199,71 +196,59 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
 };
 
+void bail_out();
 
-class Remapper {
-	void handle_grabs() {
-		guint n = XGetPointerMapping(dpy, 0, 0);
-		for (guint i = 1; i<=n; i++) {
-			bool is_grabbed = !!core_grabs.count(i);
-			if (is_grabbed == (map(i) != i))
-				continue;
-			if (!is_grabbed) {
-				if (verbosity >= 2)
-					printf("Grabbing button %d\n", i);
-				XGrabButton(dpy, i, AnyModifier, ROOT, False, ButtonPressMask,
-						GrabModeAsync, GrabModeAsync, None, None);
-				core_grabs.insert(i);
-			} else {
-				if (verbosity >= 2)
-					printf("Ungrabbing button %d\n", i);
-				XUngrabButton(dpy, i, AnyModifier, ROOT);
-				core_grabs.erase(i);
-			}
-
+void handle_grabs() {
+	/*
+	guint n = XGetPointerMapping(dpy, 0, 0);
+	for (guint i = 1; i<=n; i++) {
+		bool is_grabbed = !!core_grabs.count(i);
+		if (is_grabbed == (map(i) != i))
+			continue;
+		if (!is_grabbed) {
+			if (verbosity >= 2)
+				printf("Grabbing button %d\n", i);
+			XGrabButton(dpy, i, AnyModifier, ROOT, False, ButtonPressMask,
+					GrabModeAsync, GrabModeAsync, None, None);
+			core_grabs.insert(i);
+		} else {
+			if (verbosity >= 2)
+				printf("Ungrabbing button %d\n", i);
+			XUngrabButton(dpy, i, AnyModifier, ROOT);
+			core_grabs.erase(i);
 		}
-	}
-protected:
-	virtual guint map(guint b) = 0;
-public:
-	static std::set<guint> core_grabs;
-	// This can potentially mess up the user's mouse, make sure that it doesn't fail
-	void remap(Grabber::XiDevice *xi_dev) {
-		if (!xi_15) {
-			handle_grabs();
-			return;
-		}
-		int ret;
-		do {
-			int n = XGetPointerMapping(dpy, 0, 0);
-			unsigned char m[n];
-			for (int i = 1; i<=n; i++)
-				m[i-1] = map(i);
-			while (MappingBusy == (ret = XSetPointerMapping(dpy, m, n)))
-				for (int i = 1; i<=n; i++)
-					XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-		} while (ret == BadValue);
-		if (!xi_dev)
-			return;
-		XDevice *dev = xi_dev->dev;
-		do {
-			int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
-			unsigned char m[n];
-			for (int i = 0; i<n; i++)
-				m[i] = i+1;
-			while (MappingBusy == (ret = XSetDeviceButtonMapping(dpy, dev, m, n)))
-				for (int i = 1; i<=n; i++)
-					xi_dev->fake_release(i, 0);
-		} while (ret == BadValue);
-	}
-};
 
-std::set<guint> Remapper::core_grabs;
+	}
+	*/
+}
+static std::set<guint> core_grabs;
+
+std::map<guint, guint> pointer_map;
+
+Handler *remap_pointer(const std::map<guint, guint> &map);
+void Handler::remap(std::map<guint, guint> &map) {
+	Handler *h = remap_pointer(map);
+	if (h)
+		replace_child(h);
+}
 
 void reset_buttons() {
-	struct Reset : public Remapper {
-		guint map(guint b) { return b; }
-	} reset;
-	reset.remap(0);
+	std::map<guint, guint> map;
+	delete remap_pointer(map);
+}
+
+RAction handle_stroke(RStroke s, RTriple e) {
+	Ranking *ranking = new Ranking;
+	RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
+	if (act)
+		act->prepare();
+	ranking->x = (int)e->x;
+	ranking->y = (int)e->y;
+	if (!IS_CLICK(act) || prefs.show_clicks.get())
+		Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
+	else
+		delete ranking;
+	return act;
 }
 
 void bail_out() {
@@ -271,6 +256,7 @@ void bail_out() {
 	for (int i = 1; i <= 9; i++)
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 	discard(CurrentTime);
+	xinput_pressed.clear();
 	reset_buttons();
 	XFlush(dpy);
 }
@@ -354,6 +340,99 @@ public:
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
 
+// This can potentially mess up the user's mouse, make sure that it doesn't fail
+Handler *remap_pointer(const std::map<guint, guint> &map) {
+	std::set<guint> remap;
+	std::map<guint, guint>::const_iterator j1 = pointer_map.begin(), j2 = map.begin();
+	while (true) {
+		if (j1 == pointer_map.end()) {
+			for (; j2 != map.end(); ++j2)
+				remap.insert(j2->first);
+			break;
+		}
+		if (j2 == map.end()) {
+			for (; j1 != pointer_map.end(); ++j1)
+				remap.insert(j1->first);
+			break;
+		}
+		guint b1 = j1->first, b2 = j2->first;
+		// TODO: Delete if xserver behavior changes
+		if (b2 != j2->second)
+			remap.insert(b2);
+		if (b1 < b2) {
+			remap.insert(b1);
+			++j1;
+			continue;
+		}
+		if (b2 < b1) {
+			remap.insert(b2);
+			++j2;
+			continue;
+		}
+		if (j1->second != j2->second)
+			remap.insert(b1);
+		++j1; ++j2;
+	}
+	if (!remap.size())
+		return NULL;
+
+	pointer_map = map;
+		
+	if (!xi_15) {
+		handle_grabs();
+		return NULL;
+	}
+
+	guint last = 0;
+	if (current_dev)
+		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
+			if (xinput_pressed.count(*i)) {
+				last = *i;
+				current_dev->fake_release(last, 0);
+			}
+		
+	{
+		int n = XGetPointerMapping(dpy, 0, 0);
+		unsigned char m[n];
+		for (int i = 0; i<n; i++)
+			m[i] = i+1;
+		for (std::map<guint, guint>::const_iterator i = map.begin(); i != map.end(); ++i)
+			m[i->first - 1] = i->second;
+		while (MappingBusy == XSetPointerMapping(dpy, m, n)) {
+			printf("Warning: remapping buttons failed, retrying...\n");
+			for (int i = 1; i<=n; i++)
+				XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+			XSync(dpy, False);
+			usleep(50);
+		}
+	}
+	if (!current_dev)
+		return NULL;
+	XDevice *dev = current_dev->dev;
+	{
+		int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
+		unsigned char m[n];
+		for (int i = 0; i<n; i++)
+			m[i] = i+1;
+		while (MappingBusy == XSetDeviceButtonMapping(dpy, dev, m, n)) {
+			printf("Warning: remapping device buttons failed, retrying...\n");
+			for (int i = 1; i<=n; i++)
+				current_dev->fake_release(i, 0);
+			XSync(dpy, False);
+			usleep(50);
+		}
+	}
+
+	if (last) {
+		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
+			if (xinput_pressed.count(*i)) {
+				current_dev->fake_press(*i, 0);
+			}
+		return new WaitForButtonHandler(last, true);
+	}
+	return NULL;
+}
+
 inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
@@ -420,20 +499,22 @@ public:
 	}
 };
 
-class ScrollHandler : public AbstractScrollHandler, Remapper {
+class ScrollHandler : public AbstractScrollHandler {
 	RModifiers mods;
-	guint map(guint b) { return (b < 4 || b > 7) ? 0 : b; }
+	std::map<guint, guint> map;
 public:
-	ScrollHandler(RModifiers mods_) : mods(mods_) {}
+	ScrollHandler(RModifiers mods_) : mods(mods_) {
+		map[4] = 0; map[5] = 0; map[6] = 0; map[7] = 0;
+	}
 	virtual void init() {
-		remap(current_dev);
+		remap(map);
 	}
 	virtual void motion(RTriple e) {
 		if (xinput_pressed.size())
 			AbstractScrollHandler::motion(e);
 	}
 	virtual void press(guint b, RTriple e) {
-		if (!xi_15 && map(b) == 0)
+		if (!xi_15 && b >= 4 && b <= 7)
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
 	virtual void release(guint b, RTriple e) {
@@ -450,85 +531,47 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
-class ScrollXiHandler : public AbstractScrollHandler, Remapper {
-	guint button;
-	RModifiers mods;
-
-	guint map(guint b) {
-		if (b == button)
-			return 0;
-		return b;
-	}
-protected:
-	void init() {
-		remap(current_dev);
-		current_dev->fake_press(button, map(button));
-		replace_child(new WaitForButtonHandler(button, false));
-	}
-public:
-	ScrollXiHandler(guint button_, RModifiers mods_) : button(button_), mods(mods_) {}
-	virtual void release(guint b, RTriple e) {
-		if (b != button)
-			return;
-		reset_buttons();
-		parent->replace_child(NULL);
-	}
-	virtual std::string name() { return "ScrollXi"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-};
-
-class ButtonXiHandler : public Handler, Remapper {
-	guint emulate, pressed;
-	RModifiers mods;
-
-	guint map(guint b) {
-		if (!xi_15)
-			return b;
-		if (b == emulate)
-			return pressed;
-		if (b == pressed)
-			return emulate;
-		return b;
-	}
-public:
-	ButtonXiHandler(guint emulate_, guint pressed_, RModifiers ms) : emulate(emulate_), pressed(pressed_), mods(ms) {}
-	virtual void init() {
-		remap(current_dev);
-		current_dev->fake_press(pressed, emulate);
-		replace_child(new WaitForButtonHandler(pressed, false));
-	}
-	virtual void release(guint b, RTriple e) {
-		if (b != pressed)
-			return;
-		if (!xi_15)
-			XTestFakeButtonEvent(dpy, emulate, False, CurrentTime);
-		reset_buttons();
-		parent->replace_child(0);
-	}
-	virtual std::string name() { return "ButtonXi"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
-};
-
 class ScrollAdvancedHandler : public AbstractScrollHandler {
+	const std::map<guint, guint> &map;
 public:
+	ScrollAdvancedHandler(const std::map<guint, guint> &map_) : map(map_) {}
+	virtual void init() {
+		std::map<guint, guint> new_map = map;
+		new_map.erase(4);
+		new_map.erase(5);
+		new_map.erase(6);
+		new_map.erase(7);
+		remap(new_map);
+	}
 	virtual void release(guint b, RTriple e) {
+		if (b >= 4 && b <= 7)
+			return;
 		Handler *p = parent;
-		p->replace_child(0);
+		p->replace_child(NULL);
 		p->release(b, e);
+	}
+	virtual void press(guint b, RTriple e) {
+		if (b >= 4 && b <= 7)
+			return;
+		Handler *p = parent;
+		p->replace_child(NULL);
+		p->press(b, e);
 	}
 	virtual std::string name() { return "ScrollAdvanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
-class AdvancedHandler : public Handler, Remapper {
+class AdvancedHandler : public Handler {
 	RTriple e;
-	guint remap_from, remap_to;
+	guint remap_from;
 	std::map<int, RAction> as;
 	std::map<int, Ranking *> rs;
 	std::map<int, RModifiers> mods;
 	RModifiers last_mods;
 
 	guint button, button2;
+
+	std::map<guint, guint> map;
 
 	void show_ranking(guint b, RTriple e) {
 		if (!rs.count(b))
@@ -541,93 +584,105 @@ class AdvancedHandler : public Handler, Remapper {
 		}
 		rs.erase(b);
 	}
+	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b, guint b2) :
+		e(e_), remap_from(0), as(as_), rs(rs_), button(b), button2(b2) {
+			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i)
+				map[i->first] = 0;
+		}
 public:
-	AdvancedHandler(RStroke s, RTriple e_, guint b, guint b2) :
-			e(e_), remap_from(0), button(b), button2(b2) {
-		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, button, button2);
-	}
-	guint map(guint b) {
-		if (b == remap_from)
-			return remap_to;
-		if (b == button)
-			return 0;
-		if (remap_from && b == remap_to)
-			return 0;
-		if (as.count(b))
-			return 0;
-		return b;
+	static AdvancedHandler *create(RStroke s, RTriple e, guint b, guint b2, Time press_t) {
+		std::map<int, RAction> as;
+		std::map<int, Ranking *> rs;
+		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b, b2);
+		if (as.count(b2) && IS_CLICK(as[b2])) {
+			replay(press_t);
+			return NULL;
+		}
+		discard(press_t);
+		return new AdvancedHandler(e, as, rs, b, b2);
 	}
 	virtual void init() {
-		current_dev->fake_release(button2, button2);
-		current_dev->fake_release(button, button);
 		if (as.count(button2)) {
 			RAction act = as[button2];
 			IF_BUTTON(act, b2) {
-				show_ranking(button2, e);
-				remap_from = button2;
-				remap_to = b2;
-				mods[b2] = act->prepare();
-				last_mods.reset();
-				remap(current_dev);
-				current_dev->fake_press(button, 0);
-				current_dev->fake_press(button2, 0);
-				replace_child(new WaitForButtonHandler(button2, true));
+				press(button2, e);
+				return;
+			}
+			if (IS_SCROLL(act)) {
+				press(button2, e);
 				return;
 			}
 		}
-		remap(current_dev);
-		current_dev->fake_press(button, 0);
-		current_dev->fake_press(button2, 0);
-		replace_child(new WaitForButtonHandler(button, true));
+		press(button2, e);
 	}
 	virtual void press(guint b, RTriple e) {
 		int bb = (b == button) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
 			last_mods.reset();
+			remap(map);
 			return;
 		}
 		RAction act = as[bb];
 		if (IS_SCROLL(act)) {
 			mods[b] = act->prepare();
 			last_mods.reset();
-			replace_child(new ScrollAdvancedHandler);
+			replace_child(new ScrollAdvancedHandler(map));
 			return;
 		}
 		IF_BUTTON(act, b2) {
 			if (remap_from)
-				return;
-			current_dev->fake_release(b, 0);
+				mods[remap_from].reset();
+			std::map<guint, guint> new_map = map;
 			remap_from = b;
-			remap_to = b2;
-			mods[b] = act->prepare();
+			new_map[b2] = 0;
+			new_map[remap_from] = b2;
 			last_mods.reset();
-			remap(current_dev);
-			current_dev->fake_press(b, 0);
-			replace_child(new WaitForButtonHandler(b, true));
+			mods[remap_from] = act->prepare();
+			remap(new_map);
 			return;
 		}
+		remap(map);
 		mods[b] = act->prepare();
 		last_mods.reset();
 		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
 		if (xinput_pressed.size() == 0) {
+			reset_buttons();
 			parent->replace_child(0);
 			return;
-		} else if (b == remap_from) {
-			remap_from = 0;
-			remap(current_dev);
 		}
+		if (b == remap_from)
+			remap_from = 0;
+		remap(map);
 		last_mods = mods[b];
 		mods.erase(b);
 	}
 	virtual ~AdvancedHandler() {
-		reset_buttons();
 		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
 			delete i->second;
 	}
 	virtual std::string name() { return "Advanced"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+};
+
+class InstantStrokeActionHandler : public Handler {
+	RStroke s;
+public:
+	InstantStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
+	virtual void press(guint b, RTriple e) {
+		s->button = b;
+		(*stroke_action)(s);
+		stroke_action.reset();
+		parent->replace_child(NULL);
+	}
+	virtual void release(guint b, RTriple e) {
+		(*stroke_action)(s);
+		stroke_action.reset();
+		parent->replace_child(NULL);
+	}
+	virtual std::string name() { return "InstantStrokeAction"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
@@ -724,6 +779,7 @@ void activate_window(Window w, Time t) {
 		XSetInputFocus(dpy, w, RevertToParent, t);
 }
 
+// TODO: Check discard/replay
 class StrokeHandler : public Handler, public Timeout {
 	guint button;
 	RPreStroke cur;
@@ -740,7 +796,7 @@ class StrokeHandler : public Handler, public Timeout {
 	RStroke finish(guint b) {
 		trace->end();
 		XFlush(dpy);
-		if (!is_gesture)
+		if (!is_gesture || grabber->is_instant(button))
 			cur->clear();
 		if (b && prefs.advanced_ignore.get())
 			cur->clear();
@@ -764,29 +820,11 @@ class StrokeHandler : public Handler, public Timeout {
 		}
 		if (!is_gesture)
 			cur->clear();
-		RStroke s = Stroke::create(*cur, button, 0, true);
-		RAction act = handle_stroke(s, last->x, last->y);
-		if (!act || IS_CLICK(act)) {
-			replay(press_t);
-			parent->replace_child(NULL);
-			if (!IS_CLICK(act))
-				XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
-			return;
-		}
-		discard(last->t);
-		current_dev->fake_release(button, button);
-		RModifiers mods = act->prepare();
-		act->run();
-		if (IS_SCROLL(act)) {
-			parent->replace_child(new ScrollXiHandler(button, mods));
-			return;
-		}
-		IF_BUTTON(act, b)
-			if (!(!repeated && xinput_pressed.count(button) && b == button)) {
-				parent->replace_child(new ButtonXiHandler(b, button, mods));
-				return;
-			}
-		parent->replace_child(0);
+		RStroke s = Stroke::create(*cur, button, button, true);
+		if (stroke_action)
+			parent->replace_child(new InstantStrokeActionHandler(s, last));
+		else
+			parent->replace_child(AdvancedHandler::create(s, last, button, button, press_t));
 	}
 
 	bool calc_speed(RTriple e) {
@@ -863,18 +901,19 @@ protected:
 		if (calc_speed(e))
 			return;
 		RStroke s = finish(b);
-		if (grabber->xinput)
-			discard(press_t);
 
 		if (stroke_action) {
-			handle_stroke(s, e->x, e->y);
+			if (grabber->xinput)
+				discard(press_t);
+			(*stroke_action)(s);
+			stroke_action.reset();
 			parent->replace_child(NULL);
 			return;
 		}
 
-		if (grabber->xinput)
-			parent->replace_child(new AdvancedHandler(s, e, button, b));
-		else {
+		if (grabber->xinput) {
+			parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
+		} else {
 			printf(_("Error: You need XInput to use advanced gestures\n"));
 			parent->replace_child(NULL);
 		}
@@ -885,11 +924,13 @@ protected:
 			return;
 		RStroke s = finish(0);
 
-		RAction act = handle_stroke(s, e->x, e->y);
 		if (stroke_action) {
+			(*stroke_action)(s);
+			stroke_action.reset();
 			parent->replace_child(0);
 			return;
 		}
+		RAction act = handle_stroke(s, e);
 		win->show_success(act);
 		RModifiers mods;
 		if (act) {
@@ -936,8 +977,6 @@ public:
 	}
 	~StrokeHandler() {
 		trace->end();
-		if (grabber->xinput)
-			discard(press_t);
 	}
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
@@ -953,7 +992,7 @@ protected:
 	virtual void press_core(guint b, Time t, bool xi) {
 		if (xi)
 			return;
-		if (b != 1 || grabber->is_grabbed(b)) {
+		if (b != 1 || !grabber->get_timing_workaround()) {
 			replay(t);
 			return;
 		}
@@ -978,6 +1017,16 @@ protected:
 	}
 	virtual void timeout() { discard(CurrentTime); }
 	virtual void press(guint b, RTriple e) {
+		if (grabber->is_instant(b)) {
+			remove_timeout();
+			PreStroke ps;
+			RStroke s = Stroke::create(ps, b, b, false);
+			if (stroke_action)
+				replace_child(new InstantStrokeActionHandler(s, e));
+			else
+				replace_child(AdvancedHandler::create(s, e, b, b, e->t));
+			return;
+		}
 		if (current_app)
 			activate_window(current_app, e->t);
 		remove_timeout();
@@ -1286,28 +1335,6 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-RAction handle_stroke(RStroke s, float x, float y) {
-	if (verbosity >= 4)
-		s->print();
-	if (stroke_action) {
-		(*stroke_action)(s);
-		stroke_action.reset();
-		return RAction();
-	} else {
-		Ranking *ranking = new Ranking;
-		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
-		if (act)
-			act->prepare();
-		ranking->x = (int)x;
-		ranking->y = (int)y;
-		if (!IS_CLICK(act) || prefs.show_clicks.get())
-			Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
-		else
-			delete ranking;
-		return act;
-	}
-}
-
 extern Window get_app_window(Window &w);
 
 int current_x, current_y;
@@ -1469,7 +1496,7 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 	MouseEvent *me = 0;
 	switch(ev.type) {
 	case MotionNotify:
-		if (verbosity >= 3)
+		if (verbosity >= 4)
 			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
 		me = new MouseEvent;
 		me->type = MouseEvent::MOTION;
@@ -1549,7 +1576,7 @@ MouseEvent *Main::get_mouse_event(XEvent &ev) {
 		}
 		if (grabber->is_event(ev.type, Grabber::MOTION)) {
 			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-			if (verbosity >= 3)
+			if (verbosity >= 4)
 				printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
 						mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
 			if (!current_dev || current_dev->dev->device_id != mev->deviceid)
