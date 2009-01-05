@@ -113,7 +113,6 @@ public:
 	void update(Window w);
 	std::string get_wm_class() { return wm_class; }
 
-	void fake_button(int b);
 	void grab(State s) { current = s; set(); }
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }

@@ -108,6 +108,11 @@ Trace *init_trace() {
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
+static void fake_button(guint b) {
+	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+}
+
 class Handler {
 protected:
 	Handler *child;
@@ -197,33 +202,6 @@ public:
 };
 
 void bail_out();
-
-void handle_grabs() {
-	/*
-	guint n = XGetPointerMapping(dpy, 0, 0);
-	for (guint i = 1; i<=n; i++) {
-		bool is_grabbed = !!core_grabs.count(i);
-		if (is_grabbed == (map(i) != i))
-			continue;
-		if (!is_grabbed) {
-			if (verbosity >= 2)
-				printf("Grabbing button %d\n", i);
-			XGrabButton(dpy, i, AnyModifier, ROOT, False, ButtonPressMask,
-					GrabModeAsync, GrabModeAsync, None, None);
-			core_grabs.insert(i);
-		} else {
-			if (verbosity >= 2)
-				printf("Ungrabbing button %d\n", i);
-			XUngrabButton(dpy, i, AnyModifier, ROOT);
-			core_grabs.erase(i);
-		}
-
-	}
-	*/
-}
-static std::set<guint> core_grabs;
-
-std::map<guint, guint> pointer_map;
 
 Handler *remap_pointer(const std::map<guint, guint> &map);
 void Handler::remap(std::map<guint, guint> &map) {
@@ -340,8 +318,81 @@ public:
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
 
+
+std::map<guint, guint> pointer_map;
+
+void remap_grabs(const std::map<guint, guint> &map) {
+	if (verbosity >= 4) {
+		printf("Old:\n");
+		for (std::map<guint, guint>::const_iterator i = pointer_map.begin(); i != pointer_map.end(); i++)
+			printf("%d -> %d\n", i->first, i->second);
+		printf("New:\n");
+		for (std::map<guint, guint>::const_iterator i = map.begin(); i != map.end(); i++)
+			printf("%d -> %d\n", i->first, i->second);
+	}
+
+	std::map<guint, guint>::const_iterator j1 = pointer_map.begin(), j2 = map.begin();
+	std::set<guint> to_press, to_release, to_grab, to_ungrab;
+	while (true) {
+		if (j1 == pointer_map.end() && j2 == map.end())
+			break;
+		if (j2 == map.end() || (j1 != pointer_map.end() && j1->first < j2->first)) {
+			if (xinput_pressed.count(j1->first)) {
+				if (j1->second)
+					to_release.insert(j1->second);
+				to_press.insert(j1->first);
+			}
+			to_ungrab.insert(j1->first);
+			++j1;
+			continue;
+		}
+		if (j1 == pointer_map.end() || j2->first < j1->first) {
+			if (xinput_pressed.count(j2->first)) {
+				to_release.insert(j2->first);
+				if (j2->second)
+					to_press.insert(j2->second);
+			}
+			to_grab.insert(j2->first);
+			++j2;
+			continue;
+		}
+		if (j1->second != j2->second) {
+			if (j1->second)
+				to_release.insert(j1->second);
+			if (j2->second)
+				to_press.insert(j2->second);
+		}
+		++j1; ++j2;
+	}
+	pointer_map = map;
+	for (std::set<guint>::iterator i = to_release.begin(); i != to_release.end(); ++i) {
+		if (verbosity >= 3)
+			printf("fake release: %d\n", *i);
+		XTestFakeButtonEvent(dpy, *i, False, CurrentTime);
+	}
+	for (std::set<guint>::iterator i = to_ungrab.begin(); i != to_ungrab.end(); ++i) {
+		if (verbosity >= 3)
+			printf("ungrab: %d\n", *i);
+		XUngrabButton(dpy, *i, AnyModifier, ROOT);
+	}
+	for (std::set<guint>::iterator i = to_press.begin(); i != to_press.end(); ++i) {
+		if (verbosity >= 3)
+			printf("fake press: %d\n", *i);
+		XTestFakeButtonEvent(dpy, *i, True, CurrentTime);
+	}
+	for (std::set<guint>::iterator i = to_grab.begin(); i != to_grab.end(); ++i) {
+		if (verbosity >= 3)
+			printf("grab: %d\n", *i);
+		XGrabButton(dpy, *i, AnyModifier, ROOT, False, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
+	}
+}
+
 // This can potentially mess up the user's mouse, make sure that it doesn't fail
 Handler *remap_pointer(const std::map<guint, guint> &map) {
+	if (!xi_15) {
+		remap_grabs(map);
+		return NULL;
+	}
 	std::set<guint> remap;
 	std::map<guint, guint>::const_iterator j1 = pointer_map.begin(), j2 = map.begin();
 	while (true) {
@@ -378,11 +429,6 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 
 	pointer_map = map;
 		
-	if (!xi_15) {
-		handle_grabs();
-		return NULL;
-	}
-
 	guint last = 0;
 	if (current_dev)
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
@@ -443,15 +489,11 @@ class AbstractScrollHandler : public Handler {
 
 protected:
 	AbstractScrollHandler() : osd("Scroll"), last_t(0), offset_x(0.0), offset_y(0.0) {}
-	virtual void fake_button(int b1, int n1, int b2, int n2) {
-		for (int i = 0; i<n1; i++) {
-			XTestFakeButtonEvent(dpy, b1, True, CurrentTime);
-			XTestFakeButtonEvent(dpy, b1, False, CurrentTime);
-		}
-		for (int i = 0; i<n2; i++) {
-			XTestFakeButtonEvent(dpy, b2, True, CurrentTime);
-			XTestFakeButtonEvent(dpy, b2, False, CurrentTime);
-		}
+	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
+		for (int i = 0; i<n1; i++)
+			fake_button(b1);
+		for (int i = 0; i<n2; i++)
+			fake_button(b2);
 	}
 	static float curve(float v) {
 		return v * exp(log(abs(v))/3);
@@ -495,7 +537,7 @@ public:
 			}
 		}
 		if (n1 || n2)
-			fake_button(b1,n1, b2,n2);
+			fake_wheel(b1,n1, b2,n2);
 	}
 };
 
@@ -504,7 +546,8 @@ class ScrollHandler : public AbstractScrollHandler {
 	std::map<guint, guint> map;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
-		map[4] = 0; map[5] = 0; map[6] = 0; map[7] = 0;
+		// If you want to use buttons > 9, you're on your own..
+		map[1] = 0; map[2] = 0; map[3] = 0; map[8] = 0; map[9] = 0;
 	}
 	virtual void init() {
 		remap(map);
@@ -513,8 +556,8 @@ public:
 		if (xinput_pressed.size())
 			AbstractScrollHandler::motion(e);
 	}
-	virtual void press(guint b, RTriple e) {
-		if (!xi_15 && b >= 4 && b <= 7)
+	virtual void press_core(guint b, Time t, bool xi) {
+		if (!xi_15)
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
 	virtual void release(guint b, RTriple e) {
@@ -549,6 +592,10 @@ public:
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->release(b, e);
+	}
+	virtual void press_core(guint b, Time t, bool xi) {
+		if (!xi_15)
+			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
 	virtual void press(guint b, RTriple e) {
 		if (b >= 4 && b <= 7)
@@ -608,7 +655,11 @@ class AdvancedHandler : public Handler {
 	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b1, guint b2) :
 		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button1(b1), button2(b2) {
 			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i)
-				map[i->first] = 0;
+				// TODO: Figure this out
+				if (i->first)
+					map[i->first] = 0;
+				else
+					map[b1] = 0;
 		}
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, Time press_t) {
@@ -630,6 +681,10 @@ public:
 	}
 	virtual void init() {
 		press(button2 ? button2 : button1, e);
+	}
+	virtual void press_core(guint b, Time t, bool xi) {
+		if (!xi_15)
+			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
 	virtual void press(guint b, RTriple e) {
 		click_time = 0;
@@ -675,9 +730,15 @@ public:
 			reset_buttons();
 			Handler *h = NULL;
 			if (e->t < click_time + 200 && b == replay_button) {
-				current_dev->fake_press(b, b);
-				current_dev->fake_release(b, b);
-				h = new WaitForButtonHandler(b, false);
+				last_mods.reset();
+				mods.clear();
+				if (xi_15) {
+					current_dev->fake_press(b, 0);
+					current_dev->fake_release(b, 0);
+					h = new WaitForButtonHandler(b, false);
+				} else {
+					fake_button(b);
+				}
 			}
 			parent->replace_child(h);
 			return;
