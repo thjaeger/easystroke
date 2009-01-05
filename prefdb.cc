@@ -57,7 +57,8 @@ PrefDB::PrefDB() :
 	timeout_gestures(false),
 	tray_icon(true),
 	color(Gdk::Color("980101")),
-	trace_width(5)
+	trace_width(5),
+	advanced_popups(true)
 {}
 
 template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
@@ -120,6 +121,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & trace_width.unsafe_ref();
 	if (version < 13) return;
 	ar & extra_buttons.unsafe_ref();
+	ar & advanced_popups.unsafe_ref();
 }
 
 void PrefDB::timeout() {
@@ -224,6 +226,7 @@ void PrefDB::init() {
 	watch(color);
 	watch(trace_width);
 	watch(extra_buttons);
+	watch(advanced_popups);
 }
 
 PrefDB prefs;

@@ -246,6 +246,8 @@ Prefs::Prefs() {
 	new Check(prefs.feedback, "check_feedback");
 	new Check(prefs.left_handed, "check_left_handed");
 	new Sensitive(prefs.feedback, "check_left_handed");
+	new Check(prefs.advanced_popups, "check_advanced_popups");
+	new Sensitive(prefs.feedback, "check_advanced_popups");
 
 	new Check(prefs.tray_icon, "check_tray_icon");
 

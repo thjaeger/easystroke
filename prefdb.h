@@ -133,6 +133,7 @@ public:
 	Source<RGBA> color;
 	Source<int> trace_width;
 	Source<std::vector<ButtonInfo> > extra_buttons;
+	Source<bool> advanced_popups;
 
 	void init();
 	virtual void timeout();
