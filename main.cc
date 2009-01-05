@@ -590,7 +590,7 @@ class AdvancedHandler : public Handler {
 	std::map<int, RModifiers> mods;
 	RModifiers last_mods;
 
-	guint button, button2;
+	guint button1, button2;
 
 	std::map<guint, guint> map;
 
@@ -605,43 +605,35 @@ class AdvancedHandler : public Handler {
 		}
 		rs.erase(b);
 	}
-	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b, guint b2) :
-		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button(b), button2(b2) {
+	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b1, guint b2) :
+		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button1(b1), button2(b2) {
 			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i)
 				map[i->first] = 0;
 		}
 public:
-	static Handler *create(RStroke s, RTriple e, guint b, guint b2, Time press_t) {
+	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, Time press_t) {
 		if (stroke_action)
 			return new AdvancedStrokeActionHandler(s, e);
 
 		std::map<int, RAction> as;
 		std::map<int, Ranking *> rs;
-		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b, b2);
+		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b1, b2);
 		if (as.count(b2) && IS_CLICK(as[b2])) {
 			replay(press_t);
 			return NULL;
 		}
-		discard(press_t);
-		return new AdvancedHandler(e, as, rs, b, b2);
+		if (as.count(b2))
+			discard(press_t);
+		else
+			replay(press_t);
+		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
 	virtual void init() {
-		if (as.count(button2)) {
-			RAction act = as[button2];
-			IF_BUTTON(act, b2) {
-				press(button2, e);
-				return;
-			}
-			if (IS_SCROLL(act)) {
-				press(button2, e);
-				return;
-			}
-		}
-		press(button2, e);
+		press(button2 ? button2 : button1, e);
 	}
 	virtual void press(guint b, RTriple e) {
 		click_time = 0;
-		int bb = (b == button) ? button2 : b;
+		int bb = (b == button1) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
 			last_mods.reset();
@@ -838,8 +830,8 @@ class StrokeHandler : public Handler, public Timeout {
 		}
 		if (!is_gesture)
 			cur->clear();
-		RStroke s = Stroke::create(*cur, button, button, true);
-		parent->replace_child(AdvancedHandler::create(s, last, button, button, press_t));
+		RStroke s = Stroke::create(*cur, button, 0, true);
+		parent->replace_child(AdvancedHandler::create(s, last, button, 0, press_t));
 	}
 
 	bool calc_speed(RTriple e) {
@@ -1179,9 +1171,9 @@ Main::Main() : kit(0) {
 		exit(EXIT_FAILURE);
 	}
 
+	prefs.init();
 	action_watcher = new ActionDBWatcher;
 	action_watcher->init();
-	prefs.init();
 
 	grabber = new Grabber;
 	grabber->grab(Grabber::BUTTON);

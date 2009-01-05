@@ -101,7 +101,7 @@ private:
 		ar & button;
 		if (version >= 2)
 			ar & trigger;
-		if (version < 4 && trigger == get_default_button())
+		if (version < 4 && (!button || trigger == get_default_button()))
 			trigger = 0;
 		if (version < 3)
 			return;
@@ -131,7 +131,7 @@ public:
 	bool trivial() const { return size() == 0 && button == 0; }
 	bool is_timeout() const { return timeout; }
 };
-BOOST_CLASS_VERSION(Stroke, 3)
+BOOST_CLASS_VERSION(Stroke, 4)
 
 class PreStroke : public std::vector<RTriple> {
 public:

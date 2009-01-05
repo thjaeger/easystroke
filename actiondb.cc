@@ -332,7 +332,7 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<int, RAction> &as, std:
 	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
 		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 			int b = (*j)->button;
-			if (!b)
+			if (!s->timeout && !b)
 				continue;
 			s->button = b;
 			double score;
@@ -366,8 +366,8 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<int, RAction> &as, std:
 			}
 		}
 	}
-	if (s->timeout && !as[b1])
-		as[b1] = RAction(new Click);
+	if (s->timeout && !as[0])
+		as[0] = RAction(new Click);
 }
 
 ActionListDiff::~ActionListDiff() {
