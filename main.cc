@@ -726,6 +726,8 @@ public:
 		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
+		if (b == remap_from && !xi_15)
+			XTestFakeButtonEvent(dpy, pointer_map[b], False, CurrentTime);
 		if (xinput_pressed.size() == 0) {
 			reset_buttons();
 			Handler *h = NULL;
