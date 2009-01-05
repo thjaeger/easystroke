@@ -470,7 +470,7 @@ void Actions::on_remove_app() {
 				action_list->app ? _("The application") : _("The group"),
 				action_list->name,
 				size,
-				(size == 1 ? "action" : "actions"));
+				(char *)(size == 1 ? "action" : "actions"));
 		FormatLabel foo(widgets, "label_delete", action_list->app ? _("an Application") : _("an Application Group"),
 				str.c_str());
 		Gtk::Button *del;

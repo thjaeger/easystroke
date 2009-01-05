@@ -227,6 +227,14 @@ extern "C" {
 	extern int _XiGetDevicePresenceNotifyEvent(Display *);
 }
 
+#ifndef XI_Add_DeviceProperties_Major
+#define XI_Add_DeviceProperties_Major 1
+#endif
+
+#ifndef XI_Add_DeviceProperties_Minor
+#define XI_Add_DeviceProperties_Minor 5
+#endif
+
 bool Grabber::init_xi() {
 	xi_devs = 0;
 	button_events_n = 3;
