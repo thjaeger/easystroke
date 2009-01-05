@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+_Name=Easystroke Gesture Recognition
+Type=Application
+Terminal=false
+Exec=easystroke
+Icon=easystroke
+Categories=GTK;Utility;Accessibility;
+_Comment=Control your desktop using mouse gestures

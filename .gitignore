@@ -10,3 +10,4 @@ debug.mk
 *.gz
 po/de
 po/POTFILES.in
+easystroke.desktop

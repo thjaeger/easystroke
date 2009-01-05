@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-04 19:24-0500\n"
-"PO-Revision-Date: 2009-01-04 19:25-0500\n"
+"POT-Creation-Date: 2009-01-05 13:13-0500\n"
+"PO-Revision-Date: 2009-01-05 13:18-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -153,7 +153,7 @@ msgstr "Gruppe"
 msgid "Gesture %d"
 msgstr "Geste %d"
 
-#: ../actions.cc:862 ../main.cc:458
+#: ../actions.cc:862 ../main.cc:507
 msgid "No Modifiers"
 msgstr "Keine Modifier"
 
@@ -200,11 +200,11 @@ msgstr "unterstützt"
 msgid "does not support"
 msgstr "unterstützt keine"
 
-#: ../grabber.cc:596
+#: ../grabber.cc:599
 msgid "(window manager frame)"
 msgstr "(Rahmen des Window-Managers)"
 
-#: ../grabber.cc:671
+#: ../grabber.cc:674
 #, c-format
 msgid "Window 0x%lx does not have an associated top-level window\n"
 msgstr "Fenster 0x%lx hat kein passendes Top-Level-Fenster\n"
@@ -219,60 +219,60 @@ msgstr "Falle auf \"Shape\"-Methode zurück: %s\n"
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#: ../main.cc:292
+#: ../main.cc:270
 #, c-format
 msgid "Error: %s failed.  Is easystroke already running?\n"
 msgstr "Fehler: %s ist fehlgeschlagen.  Ist easystroke bereits gestartet?\n"
 
-#: ../main.cc:293
+#: ../main.cc:271
 msgid "A grab"
 msgstr "Ein Grab"
 
-#: ../main.cc:293
+#: ../main.cc:271
 msgid "An XInput grab"
 msgstr "Ein XInput-Grab"
 
-#: ../main.cc:295 ../main.cc:1685
+#: ../main.cc:273 ../main.cc:1747
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
-#: ../main.cc:316
+#: ../main.cc:294
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 
-#: ../main.cc:333
+#: ../main.cc:311
 #, c-format
 msgid "Warning: WaitForButtonHandler timed out\n"
 msgstr "Warunung: WaitForButtonHandler timed out\n"
 
-#: ../main.cc:938
+#: ../main.cc:1002
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1096
+#: ../main.cc:1160
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1154
+#: ../main.cc:1218
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1193
+#: ../main.cc:1257
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1345
+#: ../main.cc:1409
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1350
+#: ../main.cc:1414
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
@@ -307,7 +307,7 @@ msgstr "Aktiv"
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:348 ../prefs.cc:602 ../prefs.cc:628
+#: ../prefs.cc:348 ../prefs.cc:596 ../prefs.cc:622
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
@@ -659,8 +659,10 @@ msgstr "gtk-remove"
 msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
 
-#~ msgid "Escape pressed: Resetting...\n"
-#~ msgstr "Escape gedrÃ¼ckt: ZurÃ¼cksetzen...\n"
+#: ../easystroke.desktop.in.h:1
+msgid "Control your desktop using mouse gestures"
+msgstr "Den Computer mit Mausgesten bedienen"
 
-#~ msgid "Add"
-#~ msgstr "HinzufÃ¼gen"
+#: ../easystroke.desktop.in.h:2
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke Gestenerkennung"

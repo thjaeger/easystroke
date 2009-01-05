@@ -38,7 +38,7 @@ POFILES  = $(wildcard po/*.po)
 MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
 MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in
+GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in easystroke.desktop
 GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
@@ -53,7 +53,7 @@ all: $(BINARY) $(MOFILES)
 .PHONY: all clean snapshot release translate
 
 clean:
-	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES)
+	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES) po/untitled.pot
 	$(RM) -r $(MODIRS)
 
 include $(DEPFILES)
@@ -75,6 +75,9 @@ gui.c: gui.glade
 	gtk-builder-convert $< - | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
 	echo "\";" >> $@
 
+easystroke.desktop: easystroke.desktop.in $(MOFILES)
+	intltool-merge po/ -d -u $< $@
+
 desktop.c: easystroke.desktop
 	echo "const char *desktop_file = \"\\" > $@
 	sed 's/Exec=easystroke/Exec=%s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
@@ -87,9 +90,9 @@ dbus-server.h: dbus.xml
 
 po/POTFILES.in: $(CCFILES) $(HFILES)
 	$(RM) $@
-	for f in `grep -El "\<_\(" $(CCFILES) $(HFILES)`; do echo $$f >> $@; done
+	for f in `grep -El "\<_\(" $^`; do echo $$f >> $@; done
 	echo gui.glade >> $@
-#	echo easystroke.desktop >> $@
+	echo easystroke.desktop.in >> $@
 
 translate: po/POTFILES.in
 	cd po && intltool-update --pot --gettext-package=easystroke
