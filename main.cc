@@ -422,9 +422,10 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 			break;
 		}
 		guint b1 = j1->first, b2 = j2->first;
-		// TODO: Delete if xserver behavior changes
+#ifndef SERVER16_BUTTON_MAPPING_PATCH
 		if (b2 != j2->second)
 			remap.insert(b2);
+#endif
 		if (b1 < b2) {
 			remap.insert(b1);
 			++j1;
@@ -467,6 +468,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 			usleep(50);
 		}
 	}
+#ifndef SERVER16_BUTTON_MAPPING_PATCH
 	if (!current_dev)
 		return NULL;
 	XDevice *dev = current_dev->dev;
@@ -483,6 +485,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 			usleep(50);
 		}
 	}
+#endif
 
 	if (last) {
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
