@@ -548,10 +548,13 @@ void Grabber::update_button(ButtonInfo bi) {
 	suspended = true;
 	xi_suspended = true;
 	set();
-	grabbed_button = prefs.button.get();
-	buttons.resize(extra.size() + 1);
-	buttons[0] = grabbed_button;
-	std::copy(extra.begin(), extra.end(), ++buttons.begin());
+	grabbed_button = bi;
+	buttons.clear();
+	buttons.reserve(extra.size() + 1);
+	buttons.push_back(bi);
+	for (std::vector<ButtonInfo>::const_iterator i = extra.begin(); i != extra.end(); ++i)
+		if (!i->overlap(bi))
+			buttons.push_back(*i);
 	suspended = false;
 	xi_suspended = false;
 	set();

@@ -378,8 +378,6 @@ void Prefs::on_add_extra() {
 	SelectButton sb(bi, true, true);
 	if (!sb.run())
 		return;
-	if (prefs.button.ref().overlap(sb.event))
-		return;
 	Atomic a;
 	std::vector<ButtonInfo> &extra = prefs.extra_buttons.write_ref(a);
 	for (std::vector<ButtonInfo>::iterator i = extra.begin(); i != extra.end();)
@@ -405,16 +403,12 @@ void Prefs::on_edit_extra() {
 		return;
 	Atomic a;
 	std::vector<ButtonInfo> &extra = prefs.extra_buttons.write_ref(a);
-	if (prefs.button.ref().overlap(sb.event)) {
-		extra.erase(i);
-	} else {
-		for (std::vector<ButtonInfo>::iterator j = extra.begin(); j != extra.end();)
-			if (j != i && j->overlap(sb.event))
-				j = extra.erase(j);
-			else
-				j++;
-		*i = sb.event;
-	}
+	for (std::vector<ButtonInfo>::iterator j = extra.begin(); j != extra.end();)
+		if (j != i && j->overlap(sb.event))
+			j = extra.erase(j);
+		else
+			j++;
+	*i = sb.event;
 	update_extra_buttons();
 }
 
