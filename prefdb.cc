@@ -125,7 +125,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 }
 
 void PrefDB::timeout() {
-	std::string filename = config_dir+"preferences";
+	std::string filename = config_dir+"preferences"+versions[0];
 	std::string tmp = filename + ".tmp";
 	try {
 		std::ofstream ofs(tmp.c_str());
@@ -191,16 +191,22 @@ public:
 
 void PrefDB::init() {
 	std::string filename = config_dir+"preferences";
-	try {
-		std::ifstream ifs(filename.c_str(), std::ios::binary);
-		if (!ifs.fail()) {
-			boost::archive::text_iarchive ia(ifs);
-			ia >> *this;
-			if (verbosity >= 2)
-				std::cout << "Loaded preferences." << std::endl;
+	for (const char **v = versions; *v; v++) {
+		if (is_file(filename + *v)) {
+			filename += *v;
+			try {
+				std::ifstream ifs(filename.c_str(), std::ios::binary);
+				if (!ifs.fail()) {
+					boost::archive::text_iarchive ia(ifs);
+					ia >> *this;
+					if (verbosity >= 2)
+						std::cout << "Loaded preferences." << std::endl;
+				}
+			} catch (...) {
+				printf(_("Error: Couldn't read preferences.\n"));
+			}
+			break;
 		}
-	} catch (...) {
-		printf(_("Error: Couldn't read preferences.\n"));
 	}
 	new TimeoutProfile(prefs.timeout_profile);
 	watch(exceptions);

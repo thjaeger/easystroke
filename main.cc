@@ -40,6 +40,7 @@
 #include <fcntl.h>
 #include <getopt.h>
 
+const char *versions[] = { "-0.4.0", "", NULL };
 
 bool show_gui = false;
 extern bool no_xi;
@@ -1221,9 +1222,7 @@ void send_dbus(char *str) {
 bool start_dbus();
 
 Main::Main() : kit(0) {
-	struct stat st;
-	bool have_po = lstat("po", &st) != -1 && S_ISDIR(st.st_mode);
-	bindtextdomain("easystroke", have_po ? "po" : LOCALEDIR);
+	bindtextdomain("easystroke", is_dir("po") ? "po" : LOCALEDIR);
 	bind_textdomain_codeset("easystroke", "UTF-8");
 	textdomain("easystroke");
 	if (0) {
@@ -1395,11 +1394,11 @@ std::string Main::parse_args_and_init_gtk() {
 }
 
 void Main::create_config_dir() {
-	struct stat st;
 	if (config_dir == "") {
 		config_dir = getenv("HOME");
 		config_dir += "/.easystroke";
 	}
+	struct stat st;
 	if (lstat(config_dir.c_str(), &st) == -1) {
 		if (mkdir(config_dir.c_str(), 0777) == -1) {
 			printf(_("Error: Couldn't create configuration directory \"%s\"\n"), config_dir.c_str());
@@ -1845,4 +1844,14 @@ void Misc::run() {
 		default:
 			return;
 	}
+}
+
+bool is_file(std::string filename) {
+	struct stat st;
+	return lstat(filename.c_str(), &st) != -1 && S_ISREG(st.st_mode);
+}
+
+bool is_dir(std::string dirname) {
+	struct stat st;
+	return lstat(dirname.c_str(), &st) != -1 && S_ISDIR(st.st_mode);
 }

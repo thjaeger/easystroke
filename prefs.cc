@@ -190,13 +190,11 @@ public:
 		dir += "/.config/autostart";
 		filename = dir + "/easystroke.desktop";
 
-		struct stat sb;
-		if (stat(dir.c_str(), &sb) == -1 || (sb.st_mode & S_IFMT) != S_IFDIR) {
+		if (!is_dir(dir)) {
 			autostart_ok.set(false);
 			return;
 		}
-		a = stat(filename.c_str(), &sb) != -1 &&
-			((sb.st_mode & S_IFMT) == S_IFREG || (sb.st_mode & S_IFMT) == S_IFLNK);
+		a = is_file(filename);
 	}
 	virtual void set(const bool a_) {
 		a = a_;

@@ -181,22 +181,27 @@ void update_actions() {
 
 void ActionDBWatcher::init() {
 	std::string filename = config_dir+"actions";
-	try {
-		ifstream ifs(filename.c_str(), ios::binary);
-		if (!ifs.fail()) {
-			boost::archive::text_iarchive ia(ifs);
-			ia >> actions;
-			if (verbosity >= 2)
-				printf("Loaded actions.\n");
+	for (const char **v = versions; *v; v++)
+		if (is_file(filename + *v)) {
+			filename += *v;
+			try {
+				ifstream ifs(filename.c_str(), ios::binary);
+				if (!ifs.fail()) {
+					boost::archive::text_iarchive ia(ifs);
+					ia >> actions;
+					if (verbosity >= 2)
+						printf("Loaded actions.\n");
+				}
+			} catch (exception &e) {
+				printf(_("Error: Couldn't read action database: %s.\n"), e.what());
+			}
+			break;
 		}
-	} catch (exception &e) {
-		printf(_("Error: Couldn't read action database: %s.\n"), e.what());
-	}
 	watch(action_dummy);
 }
 
 void ActionDBWatcher::timeout() {
-	std::string filename = config_dir+"actions";
+	std::string filename = config_dir+"actions"+versions[0];
 	std::string tmp = filename + ".tmp";
 	try {
 		ofstream ofs(tmp.c_str());
