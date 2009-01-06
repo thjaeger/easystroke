@@ -89,19 +89,31 @@ protected:
 	}
 };
 
+class CellEditableDummy : public Gtk::EventBox, public Gtk::CellEditable {
+public:
+	CellEditableDummy() : Glib::ObjectBase(typeid(CellEditableDummy)) {}
+protected:
+	virtual void start_editing_vfunc(GdkEvent *event) {
+		editing_done();
+		remove_widget();
+	}
+};
+
 Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
 		const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area, Gtk::CellRendererState flags) {
 	if (!property_editable())
 		    return 0;
-	if (mode == TEXT)
-		return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
-	if (mode == KEY) {
-		return Gtk::manage(new CellEditableAccel(this, path, widget));
+	switch (mode) {
+		case TEXT:
+			return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
+		case KEY:
+			return Gtk::manage(new CellEditableAccel(this, path, widget));
+		case COMBO:
+			return Gtk::manage(new CellEditableCombo(this, path, widget, items));
+		case POPUP:
+			return Gtk::manage(new CellEditableDummy);
 	}
-	if (mode == COMBO) {
-		return Gtk::manage(new CellEditableCombo(this, path, widget, items));
-	}
-	return 0;
+	return NULL;
 }
 
 char *KEY     = 0;
