@@ -635,7 +635,7 @@ class AdvancedHandler : public Handler {
 	std::map<int, RAction> as;
 	std::map<int, Ranking *> rs;
 	std::map<int, RModifiers> mods;
-	RModifiers last_mods;
+	RModifiers sticky_mods;
 
 	guint button1, button2;
 
@@ -691,7 +691,7 @@ public:
 		int bb = (b == button1) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
-			last_mods.reset();
+			sticky_mods.reset();
 			remap(map);
 			return;
 		}
@@ -700,7 +700,7 @@ public:
 			click_time = e->t;
 			replay_button = b;
 			mods[b] = act->prepare();
-			last_mods.reset();
+			sticky_mods.reset();
 			replace_child(new ScrollAdvancedHandler(map));
 			return;
 		}
@@ -715,14 +715,17 @@ public:
 			remap_from = b;
 			new_map[b2] = 0;
 			new_map[remap_from] = b2;
-			last_mods.reset();
 			mods[remap_from] = act->prepare();
+			sticky_mods.reset();
 			remap(new_map);
 			return;
 		}
 		remap(map);
 		mods[b] = act->prepare();
-		last_mods.reset();
+		if (IS_KEY(act))
+			sticky_mods = mods[b];
+		else
+			sticky_mods.reset();
 		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
@@ -732,7 +735,7 @@ public:
 			reset_buttons();
 			Handler *h = NULL;
 			if (e->t < click_time + 200 && b == replay_button) {
-				last_mods.reset();
+				sticky_mods.reset();
 				mods.clear();
 				if (xi_15) {
 					current_dev->fake_press(b, 0);
@@ -748,7 +751,6 @@ public:
 		if (b == remap_from)
 			remap_from = 0;
 		remap(map);
-		last_mods = mods[b];
 		mods.erase(b);
 	}
 	virtual ~AdvancedHandler() {

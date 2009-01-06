@@ -102,6 +102,7 @@ public:
 	virtual const Glib::ustring get_label() const;
 };
 BOOST_CLASS_VERSION(SendKey, 1)
+#define IS_KEY(act) (act && dynamic_cast<SendKey *>(act.get()))
 
 class Scroll : public ModAction {
 	friend class boost::serialization::access;
