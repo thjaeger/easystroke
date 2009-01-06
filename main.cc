@@ -164,11 +164,13 @@ public:
 
 
 class OSD : public Gtk::Window {
+	static std::list<OSD *> osd_stack;
+	int w;
 public:
 	OSD(Glib::ustring txt) : Gtk::Window(Gtk::WINDOW_POPUP) {
-		int w,h;
+		osd_stack.push_back(this);
 		set_accept_focus(false);
-		set_border_width(20);
+		set_border_width(15);
 		WIDGET(Gtk::Label, label, "<big><b>" + txt + "</b></big>");
 		label.set_use_markup();
 		label.modify_fg(Gtk::STATE_NORMAL, Gdk::Color("White"));
@@ -176,13 +178,27 @@ public:
 		set_opacity(0.75);
 		add(label);
 		label.show();
+		int h;
 		get_size(w,h);
-		int screen = DefaultScreen(dpy);
-		move(DisplayWidth(dpy, screen) - w - 50, 50);
+		do_move();
 		show();
 		get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
 	}
+	static void do_move() {
+		int screen = DefaultScreen(dpy);
+		int left = DisplayWidth(dpy, screen) - 10;
+		for (std::list<OSD *>::iterator i = osd_stack.begin(); i != osd_stack.end(); i++) {
+			left -= (*i)->w + 30;
+			(*i)->move(left, 40);
+		}
+	}
+	virtual ~OSD() {
+		osd_stack.remove(this);
+		do_move();
+	}
 };
+
+std::list<OSD *> OSD::osd_stack;
 
 class IgnoreHandler : public Handler {
 	RModifiers mods;
