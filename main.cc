@@ -634,12 +634,10 @@ public:
 	virtual void press(guint b, RTriple e) {
 		s->button = b;
 		(*stroke_action)(s);
-		stroke_action.reset();
 		parent->replace_child(NULL);
 	}
 	virtual void release(guint b, RTriple e) {
 		(*stroke_action)(s);
-		stroke_action.reset();
 		parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "InstantStrokeAction"; }
@@ -1009,7 +1007,6 @@ protected:
 		if (stroke_action) {
 			discard(press_t);
 			(*stroke_action)(s);
-			stroke_action.reset();
 			parent->replace_child(0);
 			return;
 		}
