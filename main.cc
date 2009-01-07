@@ -1166,8 +1166,6 @@ void quit(int) {
 		dead = true;
 }
 
-struct MouseEvent;
-
 class Main {
 	std::string parse_args_and_init_gtk();
 	void create_config_dir();
@@ -1180,9 +1178,7 @@ class Main {
 public:
 	Main();
 	void run();
-	MouseEvent *get_mouse_event(XEvent &ev);
 	bool handle(Glib::IOCondition);
-	void handle_mouse_event(MouseEvent *me1, MouseEvent *me2);
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	~Main();
@@ -1509,238 +1505,140 @@ class PresenceWatcher : public Timeout {
 } presence_watcher;
 
 void Main::handle_event(XEvent &ev) {
+	static guint last_button = 0;
+	static Time last_time = 0;
+	Handler *h = handler->top();
+
 	switch(ev.type) {
 	case EnterNotify:
 	case LeaveNotify:
 		handle_enter_leave(ev);
-		break;
+		return;
+
 	case PropertyNotify:
 		static XAtom WM_CLASS("WM_CLASS");
 		if (current && ev.xproperty.window == current && ev.xproperty.atom == *WM_CLASS)
 			grabber->update(current);
-		break;
+		return;
 
-	default:
-		if (grabber->proximity_selected) {
-			if (grabber->is_event(ev.type, Grabber::PROX_IN)) {
-				in_proximity = true;
-				if (verbosity >= 3)
-					printf("Proximity: In\n");
-			}
-			if (grabber->is_event(ev.type, Grabber::PROX_OUT)) {
-				in_proximity = false;
-				if (verbosity >= 3)
-					printf("Proximity: Out\n");
-				handler->top()->proximity_out();
-			}
-		}
-		if (ev.type == grabber->event_presence) {
-			if (verbosity >= 2)
-				printf("Device Presence\n");
-			presence_watcher.set_timeout(2000);
-		}
-	}
-}
-
-void update_current() {
-	grabber->update(current);
-}
-
-void suspend_flush() {
-	grabber->suspend();
-	XFlush(dpy);
-}
-
-void resume_flush() {
-	grabber->resume();
-	XFlush(dpy);
-}
-
-void select_window(sigc::slot<void, std::string> f) {
-	handler->top()->replace_child(new SelectHandler(f));
-}
-
-struct MouseEvent {
-	enum Type { PRESS, RELEASE, MOTION };
-	Type type;
-	guint button;
-	bool xi;
-	int x, y;
-	Time t;
-	float x_xi, y_xi, z_xi;
-};
-
-MouseEvent *Main::get_mouse_event(XEvent &ev) {
-	MouseEvent *me = 0;
-	switch(ev.type) {
 	case MotionNotify:
 		if (verbosity >= 4)
 			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
-		me = new MouseEvent;
-		me->type = MouseEvent::MOTION;
-		me->button = 0;
-		me->xi = false;
-		me->t = ev.xmotion.time;
-		me->x = ev.xmotion.x;
-		me->y = ev.xmotion.y;
-		return me;
+		if (!grabber->xinput)
+			h->motion(create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time));
+		return;
 
 	case ButtonPress:
 		if (verbosity >= 3)
 			printf("Press: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-		me = new MouseEvent;
-		me->type = MouseEvent::PRESS;
-		me->button = ev.xbutton.button;
-		me->xi = false;
-		me->t = ev.xbutton.time;
-		me->x = ev.xbutton.x;
-		me->y = ev.xbutton.y;
-		return me;
+		if (!grabber->xinput)
+			h->press(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
+		else
+			h->press_core(ev.xbutton.button, ev.xbutton.time,
+					ev.xbutton.button == last_button && ev.xbutton.time == last_time);
+		return;
 
 	case ButtonRelease:
 		if (verbosity >= 3)
 			printf("Release: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
-		me = new MouseEvent;
-		me->type = MouseEvent::RELEASE;
-		me->button = ev.xbutton.button;
-		me->xi = false;
-		me->t = ev.xbutton.time;
-		me->x = ev.xbutton.x;
-		me->y = ev.xbutton.y;
-		return me;
+		if (!grabber->xinput)
+			h->release(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
+		return;
+	}
 
-	default:
-		if (grabber->is_event(ev.type, Grabber::DOWN)) {
-			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
-						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
-			if (xinput_pressed.size())
-				if (!current_dev || current_dev->dev->device_id != bev->deviceid)
-					return 0;
-			current_dev = grabber->get_xi_dev(bev->deviceid);
-			xinput_pressed.insert(bev->button);
-			me = new MouseEvent;
-			me->type = MouseEvent::PRESS;
-			me->button = bev->button;
-			me->xi = true;
-			me->t = bev->time;
-			if (xi_15 && xinput_pressed.size() > 1)
-				translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
-			else
-				translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
-			me->z_xi = 0;
-			return me;
-		}
-		if (grabber->is_event(ev.type, Grabber::UP)) {
-			XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
-			if (verbosity >= 3)
-				printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
-						bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+	if (grabber->is_event(ev.type, Grabber::DOWN)) {
+		XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+		if (verbosity >= 3)
+			printf("Press (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n",bev->button, bev->x, bev->y,
+					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
+		last_button = bev->button;
+		last_time = bev->time;
+		if (xinput_pressed.size())
 			if (!current_dev || current_dev->dev->device_id != bev->deviceid)
-				return 0;
-			xinput_pressed.erase(bev->button);
-			me = new MouseEvent;
-			me->type = MouseEvent::RELEASE;
-			me->button = bev->button;
-			me->xi = true;
-			me->t = bev->time;
-			if (xi_15)
-				translate_coords(bev->deviceid, bev->axis_data, me->x_xi, me->y_xi);
-			else
-				translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, me->x_xi, me->y_xi);
-			me->z_xi = 0;
-			return me;
-		}
-		if (grabber->is_event(ev.type, Grabber::MOTION)) {
-			XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-			if (verbosity >= 4)
-				printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
-						mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
-			if (!current_dev || current_dev->dev->device_id != mev->deviceid)
-				return 0;
-			me = new MouseEvent;
-			me->type = MouseEvent::MOTION;
-			me->button = 0;
-			me->xi = true;
-			me->t = mev->time;
-			if (xi_15)
-				translate_coords(mev->deviceid, mev->axis_data, me->x_xi, me->y_xi);
-			else
-				translate_known_coords(mev->deviceid, mev->x, mev->y, mev->axis_data, me->x_xi, me->y_xi);
-			me->z_xi = 0;
-			Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
-			if (xi_dev && xi_dev->supports_pressure)
-				me->z_xi = xi_dev->normalize_pressure(mev->axis_data[2]);
-			return me;
-		}
-		return 0;
-	}
-}
-
-// Preconditions: me1 != 0
-void Main::handle_mouse_event(MouseEvent *me1, MouseEvent *me2) {
-	MouseEvent me;
-	bool xi = me1->xi || (me2 && me2->xi);
-	bool core = !me1->xi || (me2 && !me2->xi);
-	if (xi) {
-		if (me1->xi)
-			me = *me1;
+				return;
+		current_dev = grabber->get_xi_dev(bev->deviceid);
+		xinput_pressed.insert(bev->button);
+		float x, y;
+		if (xi_15 && xinput_pressed.size() > 1)
+			translate_coords(bev->deviceid, bev->axis_data, x, y);
 		else
-			me = *me2;
-	} else {
-		me = *me1;
-		me.x_xi = me.x;
-		me.y_xi = me.y;
+			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+		h->press(bev->button, create_triple(x, y, bev->time));
+		return;
 	}
-	delete me1;
-	delete me2;
 
-	if (!grabber->xinput || xi)
-		switch (me.type) {
-			case MouseEvent::MOTION:
-				if (prefs.pressure_abort.get() && me.z_xi >= prefs.pressure_threshold.get())
-					handler->top()->pressure();
-				handler->top()->motion(create_triple(me.x_xi, me.y_xi, me.t));
-				break;
-			case MouseEvent::PRESS:
-				handler->top()->press(me.button, create_triple(me.x_xi, me.y_xi, me.t));
-				break;
-			case MouseEvent::RELEASE:
-				handler->top()->release(me.button, create_triple(me.x_xi, me.y_xi, me.t));
-				break;
+	if (grabber->is_event(ev.type, Grabber::UP)) {
+		XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
+		if (verbosity >= 3)
+			printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
+					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+		if (!current_dev || current_dev->dev->device_id != bev->deviceid)
+			return;
+		xinput_pressed.erase(bev->button);
+		float x, y;
+		if (xi_15)
+			translate_coords(bev->deviceid, bev->axis_data, x, y);
+		else
+			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+
+		h->release(bev->button, create_triple(x, y, bev->time));
+		return;
+	}
+
+	if (grabber->is_event(ev.type, Grabber::MOTION)) {
+		XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
+		if (verbosity >= 4)
+			printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
+					mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
+		if (!current_dev || current_dev->dev->device_id != mev->deviceid)
+			return;
+		float x, y;
+		if (xi_15)
+			translate_coords(mev->deviceid, mev->axis_data, x, y);
+		else
+			translate_known_coords(mev->deviceid, mev->x, mev->y, mev->axis_data, x, y);
+		Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
+		int z = 0;
+		if (xi_dev && xi_dev->supports_pressure)
+			z = xi_dev->normalize_pressure(mev->axis_data[2]);
+		if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get()) {
+			h->pressure();
+			h = handler->top();
 		}
-	if (core && me.type == MouseEvent::PRESS)
-		handler->top()->press_core(me.button, me.t, xi);
+		h->motion(create_triple(x, y, mev->time));
+		return;
+	}
+
+	if (grabber->proximity_selected && grabber->is_event(ev.type, Grabber::PROX_IN)) {
+		in_proximity = true;
+		if (verbosity >= 3)
+			printf("Proximity: In\n");
+		return;
+	}
+	if (grabber->proximity_selected && grabber->is_event(ev.type, Grabber::PROX_OUT)) {
+		in_proximity = false;
+		if (verbosity >= 3)
+			printf("Proximity: Out\n");
+		h->proximity_out();
+		return;
+	}
+	if (ev.type == grabber->event_presence) {
+		if (verbosity >= 2)
+			printf("Device Presence\n");
+		presence_watcher.set_timeout(2000);
+		return;
+	}
 }
 
 bool Main::handle(Glib::IOCondition) {
-	MouseEvent *me = 0;
 	while (XPending(dpy)) {
 		try {
 			XEvent ev;
 			XNextEvent(dpy, &ev);
-			MouseEvent *me2 = get_mouse_event(ev);
-			if (me && me2 && me->type == me2->type && me->button == me2->button && me->t == me2->t) {
-				handle_mouse_event(me, me2);
-				me = 0;
-				continue;
-			}
-			if (me)
-				handle_mouse_event(me, 0);
-			me = me2;
-			if (me) {
-				if (!grabber->xinput || !XPending(dpy)) {
-					handle_mouse_event(me, 0);
-					me = 0;
-				}
-			} else {
-				if (!grabber->handle(ev))
-					handle_event(ev);
-			}
+			if (!grabber->handle(ev))
+				handle_event(ev);
 		} catch (GrabFailedException) {
 			printf(_("Error: A grab failed.  Resetting...\n"));
-			me = 0;
 			bail_out();
 		}
 	}
@@ -1767,6 +1665,24 @@ int main(int argc_, char **argv_) {
 	if (verbosity >= 2)
 		printf("Exiting...\n");
 	return EXIT_SUCCESS;
+}
+
+void update_current() {
+	grabber->update(current);
+}
+
+void suspend_flush() {
+	grabber->suspend();
+	XFlush(dpy);
+}
+
+void resume_flush() {
+	grabber->resume();
+	XFlush(dpy);
+}
+
+void select_window(sigc::slot<void, std::string> f) {
+	handler->top()->replace_child(new SelectHandler(f));
 }
 
 void SendKey::run() {
