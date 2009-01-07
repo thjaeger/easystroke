@@ -325,10 +325,14 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 		return false;
 	if (!a_->timeout != !b_->timeout)
 		return false;
-	if (a_->trigger != b_->trigger)
-		return false;
 	if (a_->button != b_->button)
 		return false;
+	if (a_->trigger != b_->trigger) {
+		if (a_->trigger && b_->trigger)
+			return false;
+		if (a_->trigger + b_->trigger != get_default_button())
+			return false;
+	}
 	if (a_->size() == 0 || b_->size() == 0) {
 		if (a_->size() == 0 && b_->size() == 0) {
 			score = 1;
