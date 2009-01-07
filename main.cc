@@ -942,7 +942,7 @@ class StrokeHandler : public Handler, public Timeout {
 protected:
 	virtual void press_core(guint b, Time t, bool xi) {
 		if (!xi)
-			discard(t);
+			replay(t);
 		// At this point we already have an xi press, so we are
 		// guarenteed to either get another press or a release.
 		repeated = true;
