@@ -43,7 +43,7 @@ PrefDB::PrefDB() :
 	radius(default_radius),
 	ignore_grab(false),
 	timing_workaround(false),
-	show_clicks(true),
+	show_clicks(false),
 	pressure_abort(false),
 	pressure_threshold(default_pressure_threshold),
 	proximity(false),
@@ -54,7 +54,7 @@ PrefDB::PrefDB() :
 	timeout_profile(TO_CONSERVATIVE),
 	timeout_gestures(false),
 	tray_icon(true),
-	color(Gdk::Color("980101")),
+	color(Gdk::Color("#980101")),
 	trace_width(5)
 {}
 
