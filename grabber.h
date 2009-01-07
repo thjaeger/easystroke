@@ -93,7 +93,7 @@ private:
 	State current, grabbed;
 	bool xi_grabbed;
 	bool xi_devs_grabbed;
-	bool suspended, xi_suspended;
+	bool suspended;
 	bool disabled;
 	bool active;
 	Cursor cursor_select;
@@ -116,8 +116,6 @@ public:
 	void grab(State s) { current = s; set(); }
 	void suspend() { suspended = true; set(); }
 	void resume() { suspended = false; set(); }
-	void xi_suspend() { xi_suspended = true; set(); }
-	void xi_resume() { xi_suspended = false; set(); }
 	void update_button(ButtonInfo bi);
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);

@@ -199,7 +199,6 @@ extern Window get_window(Window w, Atom prop);
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
 	suspended = false;
-	xi_suspended = false;
 	disabled = false;
 	active = true;
 	grabbed = NONE;
@@ -477,11 +476,11 @@ void Grabber::select_proximity() {
 }
 
 void Grabber::set() {
-	bool act = (current == NONE || current == BUTTON) ? active && !disabled : true;
-	grab_xi(!xi_suspended && current != ALL_SYNC && act);
-	grab_xi_devs(!xi_suspended && current == NONE && act);
+	bool act = !suspended && ((active && !disabled) || (current != NONE && current != BUTTON));
+	grab_xi(act && current != ALL_SYNC);
+	grab_xi_devs(act && current == NONE);
 	State old = grabbed;
-	grabbed = (!suspended && act) ? current : NONE;
+	grabbed = act ? current : NONE;
 	if (old == grabbed)
 		return;
 	if (verbosity >= 2)
@@ -553,7 +552,6 @@ void Grabber::update_button(ButtonInfo bi) {
 			std::equal(extra.begin(), extra.end(), ++buttons.begin()))
 		return;
 	suspended = true;
-	xi_suspended = true;
 	set();
 	grabbed_button = bi;
 	buttons.clear();
@@ -563,7 +561,6 @@ void Grabber::update_button(ButtonInfo bi) {
 		if (!i->overlap(bi))
 			buttons.push_back(*i);
 	suspended = false;
-	xi_suspended = false;
 	set();
 }
 

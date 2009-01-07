@@ -642,12 +642,12 @@ void Prefs::on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeM
 	Atomic a;
 	std::set<std::string> &ex = prefs.excluded_devices.write_ref(a);
 	Glib::ustring device = (*iter)[dcs.name];
-	grabber->xi_suspend();
+	grabber->suspend();
 	if ((*iter)[dcs.enabled])
 		ex.erase(device);
 	else
 		ex.insert(device);
-	grabber->xi_resume();
+	grabber->resume();
 }
 
 void Prefs::set_button_label() {
