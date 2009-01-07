@@ -1279,7 +1279,6 @@ bool handle_stroke(RStroke s, float x, float y, int trigger, int button, int but
 		s->print();
 	if (stroke_action) {
 		(*stroke_action)(s);
-		stroke_action.reset();
 		success = true;
 	} else {
 		Ranking *ranking = actions.get_action_list(grabber->get_wm_class())->handle(s, button_up);

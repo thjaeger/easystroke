@@ -622,25 +622,43 @@ void Actions::update_row(const Gtk::TreeRow &row) {
 	row[cols.action_bold] = action;
 }
 
+extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+void suspend_flush();
+void resume_flush();
+
 class Actions::OnStroke {
 	Actions *parent;
 	Gtk::Dialog *dialog;
 	Gtk::TreeRow &row;
-public:
-	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, Gtk::TreeRow &row_) : parent(parent_), dialog(dialog_), row(row_) {}
-	void run(RStroke stroke) {
+	RStroke stroke;
+	bool run() {
+		if (stroke->button == 0 && stroke->trivial()) {
+			suspend_flush();
+			Glib::ustring msg = Glib::ustring::compose(
+					"You are about to bind an action to a single click.  "
+					"This might make it difficult to use Button %1 in the future.  "
+					"Are you sure you want to continue?", stroke->button);
+			Gtk::MessageDialog md(*dialog, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_YES_NO, true);
+			bool abort = md.run() != Gtk::RESPONSE_YES;
+			resume_flush();
+			if (abort)
+				return false;
+		}
 		StrokeSet strokes;
 		strokes.insert(stroke);
 		parent->action_list->set_strokes(row[parent->cols.id], strokes);
 		parent->update_row(row);
 		update_actions();
 		dialog->response(0);
+		return false;
+	}
+public:
+	OnStroke(Actions *parent_, Gtk::Dialog *dialog_, Gtk::TreeRow &row_) : parent(parent_), dialog(dialog_), row(row_) {}
+	void delayed_run(RStroke stroke_) {
+		stroke = stroke_;
+		Glib::signal_idle().connect(sigc::mem_fun(*this, &OnStroke::run));
 	}
 };
-
-extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
-void suspend_flush();
-void resume_flush();
 
 void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
 	Gtk::Dialog *dialog;
@@ -664,7 +682,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 		del->set_sensitive(si->strokes.size());
 
 	OnStroke ps(this, dialog, row);
-	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::run)));
+	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::delayed_run)));
 
 	dialog->show();
 	cancel->grab_focus();
