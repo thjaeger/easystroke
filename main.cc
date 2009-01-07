@@ -445,7 +445,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 		return NULL;
 
 	pointer_map = map;
-		
+
 	guint last = 0;
 	if (current_dev)
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
@@ -453,7 +453,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 				last = *i;
 				current_dev->fake_release(last, 0);
 			}
-		
+
 	{
 		int n = XGetPointerMapping(dpy, 0, 0);
 		unsigned char m[n];
@@ -1501,10 +1501,21 @@ class PresenceWatcher : public Timeout {
 	}
 } presence_watcher;
 
+struct ButtonTime {
+	guint button;
+	Time time;
+};
+
+Bool is_device_press(Display *dpy_, XEvent *ev, XPointer arg) {
+	ButtonTime *bt = (ButtonTime *)arg;
+	XDeviceButtonEvent* bev = (XDeviceButtonEvent *)ev;
+	return grabber->is_event(ev->type, Grabber::DOWN) && bt->button == bev->button && bt->time == bev->time;
+}
+
 void Main::handle_event(XEvent &ev) {
 	static guint last_button = 0;
 	static Time last_time = 0;
-	Handler *h = handler->top();
+#define H (handler->top())
 
 	switch(ev.type) {
 	case EnterNotify:
@@ -1522,24 +1533,34 @@ void Main::handle_event(XEvent &ev) {
 		if (verbosity >= 4)
 			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
 		if (!grabber->xinput)
-			h->motion(create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time));
+			H->motion(create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time));
 		return;
 
 	case ButtonPress:
 		if (verbosity >= 3)
 			printf("Press: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
 		if (!grabber->xinput)
-			h->press(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
-		else
-			h->press_core(ev.xbutton.button, ev.xbutton.time,
-					ev.xbutton.button == last_button && ev.xbutton.time == last_time);
+			H->press(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
+		else {
+			bool xi = ev.xbutton.button == last_button && ev.xbutton.time == last_time;
+			if (!xi) {
+				XEvent xi_ev;
+				ButtonTime bt = { ev.xbutton.button, ev.xbutton.time };
+				if (XCheckIfEvent(dpy, &xi_ev, &is_device_press, (XPointer)&bt)) {
+					handle_event(xi_ev);
+					xi = true;
+				}
+			}
+			H->press_core(ev.xbutton.button, ev.xbutton.time, xi);
+
+		}
 		return;
 
 	case ButtonRelease:
 		if (verbosity >= 3)
 			printf("Release: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
 		if (!grabber->xinput)
-			h->release(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
+			H->release(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
 		return;
 	}
 
@@ -1560,7 +1581,7 @@ void Main::handle_event(XEvent &ev) {
 			translate_coords(bev->deviceid, bev->axis_data, x, y);
 		else
 			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
-		h->press(bev->button, create_triple(x, y, bev->time));
+		H->press(bev->button, create_triple(x, y, bev->time));
 		return;
 	}
 
@@ -1578,7 +1599,7 @@ void Main::handle_event(XEvent &ev) {
 		else
 			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
 
-		h->release(bev->button, create_triple(x, y, bev->time));
+		H->release(bev->button, create_triple(x, y, bev->time));
 		return;
 	}
 
@@ -1598,11 +1619,9 @@ void Main::handle_event(XEvent &ev) {
 		int z = 0;
 		if (xi_dev && xi_dev->supports_pressure)
 			z = xi_dev->normalize_pressure(mev->axis_data[2]);
-		if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get()) {
-			h->pressure();
-			h = handler->top();
-		}
-		h->motion(create_triple(x, y, mev->time));
+		if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
+			H->pressure();
+		H->motion(create_triple(x, y, mev->time));
 		return;
 	}
 
@@ -1616,7 +1635,7 @@ void Main::handle_event(XEvent &ev) {
 		in_proximity = false;
 		if (verbosity >= 3)
 			printf("Proximity: Out\n");
-		h->proximity_out();
+		H->proximity_out();
 		return;
 	}
 	if (ev.type == grabber->event_presence) {
@@ -1625,6 +1644,7 @@ void Main::handle_event(XEvent &ev) {
 		presence_watcher.set_timeout(2000);
 		return;
 	}
+#undef H
 }
 
 bool Main::handle(Glib::IOCondition) {
