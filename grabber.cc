@@ -504,20 +504,19 @@ void Grabber::set() {
 		XUngrabPointer(dpy, CurrentTime);
 
 	if (grabbed == BUTTON) {
+		unsigned int core_mask = xinput ? ButtonPressMask : ButtonMotionMask | ButtonPressMask | ButtonReleaseMask;
 		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XGrabButton(dpy, j->button, j->state, ROOT, False,
-					ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+			XGrabButton(dpy, j->button, j->state, ROOT, False, core_mask,
 					GrabModeSync, GrabModeAsync, None, None);
 			if (j->state == AnyModifier)
 				continue;
 			for (unsigned int *mask = ignore_mods; *mask; mask++)
-				XGrabButton(dpy, j->button, j->state ^ *mask, ROOT, False,
-						ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+				XGrabButton(dpy, j->button, j->state ^ *mask, ROOT, False, core_mask,
 						GrabModeSync, GrabModeAsync, None, None);
 		}
 		timing_workaround = !is_grabbed(1) && prefs.timing_workaround.get();
 		if (timing_workaround)
-			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonMotionMask | ButtonPressMask | ButtonReleaseMask,
+			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonPressMask,
 					GrabModeSync, GrabModeAsync, None, None);
 	}
 	if (grabbed == ALL_SYNC)
@@ -525,7 +524,7 @@ void Grabber::set() {
 				GrabModeSync, GrabModeAsync, None, None);
 	if (grabbed == SELECT) {
 		int i = 0;
-		while (XGrabPointer(dpy, ROOT, False, PointerMotionMask|ButtonMotionMask|ButtonPressMask|ButtonReleaseMask,
+		while (XGrabPointer(dpy, ROOT, False, ButtonPressMask,
 					GrabModeAsync, GrabModeAsync, ROOT, cursor_select, CurrentTime) != GrabSuccess) {
 			if (++i > 10)
 				throw GrabFailedException();
