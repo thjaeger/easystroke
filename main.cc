@@ -451,7 +451,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
 			if (xinput_pressed.count(*i)) {
 				last = *i;
-				current_dev->fake_release(last, 0);
+				current_dev->fake_release(last);
 			}
 
 	{
@@ -481,7 +481,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 		while (MappingBusy == XSetDeviceButtonMapping(dpy, dev, m, n)) {
 			printf("Warning: remapping device buttons failed, retrying...\n");
 			for (int i = 1; i<=n; i++)
-				current_dev->fake_release(i, 0);
+				current_dev->fake_release(i);
 			XSync(dpy, False);
 			usleep(50);
 		}
@@ -491,7 +491,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 	if (last) {
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
 			if (xinput_pressed.count(*i)) {
-				current_dev->fake_press(*i, 0);
+				current_dev->fake_press(*i);
 			}
 		return new WaitForButtonHandler(last, true);
 	}
@@ -755,8 +755,8 @@ public:
 				sticky_mods.reset();
 				mods.clear();
 				if (xi_15) {
-					current_dev->fake_press(b, 0);
-					current_dev->fake_release(b, 0);
+					current_dev->fake_press(b);
+					current_dev->fake_release(b);
 					h = new WaitForButtonHandler(b, false);
 				} else {
 					fake_button(b);
@@ -1084,10 +1084,10 @@ protected:
 				printf("Using wacom workaround\n");
 			for (int i = 1; i < 32; i++)
 				if (state & (1 << i))
-					dev->fake_release(i, i);
+					dev->fake_release(i);
 			for (int i = 31; i; i--)
 				if (state & (1 << i))
-					dev->fake_press(i, i);
+					dev->fake_press(i);
 			// This is probably not necessary, but we need to be on the safe
 			// side.  If anything goes wrong, the timeout fires and we discard everything
 			set_timeout(250);

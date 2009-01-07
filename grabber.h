@@ -73,8 +73,8 @@ public:
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
-		void fake_press(int b, int core);
-		void fake_release(int b, int core);
+		void fake_press(int b);
+		void fake_release(int b);
 		void grab_device(bool);
 	};
 
