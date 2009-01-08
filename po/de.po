@@ -8,13 +8,14 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-05 13:13-0500\n"
-"PO-Revision-Date: 2009-01-05 13:18-0500\n"
+"POT-Creation-Date: 2009-01-07 22:29-0500\n"
+"PO-Revision-Date: 2009-01-07 22:11-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
-"Content-Transfer-Encoding: 8bit"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: ../actiondb.cc:119
 #, c-format
@@ -25,41 +26,36 @@ msgstr "Fehler: Konnte Befehl \"%s\" nicht ausführen: fork() fehlgeschlagen.\n"
 msgid "Default"
 msgstr "Standard"
 
-#: ../actiondb.cc:193
+#: ../actiondb.cc:196
 #, c-format
 msgid "Error: Couldn't read action database: %s.\n"
 msgstr "Fehler: Konnte Aktionendatenbank nicht laden: %s.\n"
 
-#: ../actiondb.cc:206
+#: ../actiondb.cc:211
 msgid "rename() failed"
 msgstr "rename() fehlgeschlagen"
 
-#: ../actiondb.cc:210
+#: ../actiondb.cc:215
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "Fehler: Konnte Aktionendatenbank nicht speichern: %s.\n"
 
-#: ../actiondb.cc:215
+#: ../actiondb.cc:219 ../prefdb.cc:144
 msgid ""
-"Couldn't save actions.  Your changes will be lost.  \n"
-"Make sure that "
-msgstr "Konnte Aktionen nicht speichern.  Stellen sie sicher, dass"
-
-#: ../actiondb.cc:216 ../prefdb.cc:146
-msgid ""
-" is a directory and that you have write access to it.\n"
-"You can change the configuration directory using the -c or --config-dir "
-"command line options."
+"Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
+"directory and that you have write access to it.  You can change the "
+"configuration directory using the -c or --config-dir command line options."
 msgstr ""
-"ein Verzeichnis ist und dass Sie Schreibzugriff darauf haben.  Sie können "
-"das Konfigurationsverzeichnis mit den Kommandozeilenoptionen -c oder --"
-"config-dir verändern."
+"Konnte %1 nicht speichern.  Stellen sie sicher, dass \"%2\" ein Verzeichnis "
+"ist und dass Sie Schreibzugriff darauf haben.  Sie können das "
+"Konfigurationsverzeichnis mit den Kommandozeilenoptionen -c oder --config-"
+"dir verändern."
 
-#: ../actiondb.cc:316
+#: ../actiondb.cc:322
 msgid "click (default)"
 msgstr "Klick (standard)"
 
-#: ../actiondb.cc:323
+#: ../actiondb.cc:329
 #, c-format
 msgid "Couldn't find matching stroke.\n"
 msgstr "Konnte keine passende Geste finden.\n"
@@ -68,211 +64,229 @@ msgstr "Konnte keine passende Geste finden.\n"
 msgid "Key combination..."
 msgstr "Tastenkombination..."
 
-#: ../actions.cc:150
+#: ../actions.cc:162
 msgid "Key"
 msgstr "Taste"
 
-#: ../actions.cc:151
+#: ../actions.cc:163
 msgid "Command"
 msgstr "Befehl"
 
-#: ../actions.cc:152
+#: ../actions.cc:164 ../actions.cc:915
 msgid "Scroll"
 msgstr "Scrollen"
 
-#: ../actions.cc:153
+#: ../actions.cc:165 ../actions.cc:922
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: ../actions.cc:154 ../prefs.cc:302 ../prefs.cc:326
+#: ../actions.cc:166 ../prefs.cc:300 ../prefs.cc:324
 msgid "Button"
 msgstr "Maustaste"
 
-#: ../actions.cc:155
+#: ../actions.cc:167
 msgid "Misc"
 msgstr "Verschiedene"
 
-#: ../actions.cc:188
+#: ../actions.cc:200
 msgid "Stroke"
 msgstr "Geste"
 
-#: ../actions.cc:194
+#: ../actions.cc:206
 msgid "Name"
 msgstr "Name"
 
-#: ../actions.cc:218
+#: ../actions.cc:230
 msgid "Type"
 msgstr "Typ"
 
-#: ../actions.cc:224
+#: ../actions.cc:236
 msgid "Details"
 msgstr "Details"
 
-#: ../actions.cc:246
+#: ../actions.cc:258
 msgid "Application"
 msgstr "Anwendung"
 
-#: ../actions.cc:423
+#: ../actions.cc:435
 msgid "Action \"%1\" is"
 msgstr "wird die Aktion \"%1\""
 
-#: ../actions.cc:425
-msgid "%1 actions are"
-msgstr "werden %1 Aktionen"
+#: ../actions.cc:437
+msgid "One action is"
+msgid_plural "%1 actions are"
+msgstr[0] "Eine Aktion ist"
+msgstr[1] "%1 Aktionen sind"
 
-#: ../actions.cc:429
+#: ../actions.cc:441
 msgid "an Action"
 msgstr "eine Aktion"
 
-#: ../actions.cc:469
+#: ../actions.cc:481
 msgid "%1 \"%2\" (containing %3 %4) is"
 msgstr "werden %1 \"%2\" (mitsamt %3 %4)"
 
-#: ../actions.cc:470
+#: ../actions.cc:482
 msgid "The application"
 msgstr "Die Anwendung"
 
-#: ../actions.cc:470
+#: ../actions.cc:482
 msgid "The group"
 msgstr "Die Gruppe"
 
-#: ../actions.cc:474
+#: ../actions.cc:485
+msgid "action"
+msgid_plural "actions"
+msgstr[0] "Aktion"
+msgstr[1] "Aktionen"
+
+#: ../actions.cc:486
 msgid "an Application"
 msgstr "eine Anwendung"
 
-#: ../actions.cc:474
+#: ../actions.cc:486
 msgid "an Application Group"
 msgstr "eine Anwendungsgruppe"
 
-#: ../actions.cc:539
+#: ../actions.cc:551
 msgid "Group"
 msgstr "Gruppe"
 
-#: ../actions.cc:732
+#: ../actions.cc:643
+msgid ""
+"You are about to bind an action to a single click.  This might make it "
+"difficult to use Button %1 in the future.  Are you sure you want to continue?"
+msgstr ""
+
+#: ../actions.cc:763
 #, c-format
 msgid "Gesture %d"
 msgstr "Geste %d"
 
-#: ../actions.cc:862 ../main.cc:507
+#: ../actions.cc:893
 msgid "No Modifiers"
 msgstr "Keine Modifier"
 
-#: ../actions.cc:870
+#: ../actions.cc:901
 msgid "(Instantly) "
 msgstr "(Sofort) "
 
-#: ../actions.cc:872
+#: ../actions.cc:903
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:876
+#: ../actions.cc:907
 #, c-format
 msgid "Button %d"
 msgstr "Maustaste %d"
+
+#: ../actions.cc:913
+msgid " + Scroll"
+msgstr " + Scrollen"
 
 #: ../composite.cc:26
 msgid "'composite' not available"
 msgstr "'composite' nicht verfügbar"
 
-#: ../grabber.cc:325
+#: ../grabber.cc:332
 #, c-format
 msgid "Opening Device %s failed.\n"
 msgstr "Öffnen des Gerätes %s fehlgeschlagen.\n"
 
-#: ../grabber.cc:344
+#: ../grabber.cc:351
 #, c-format
 msgid "Opened Device \"%s\" (%s, %s proximity).\n"
 msgstr "Device \"%s\" geöffnet. (%s, %s Proximity).\n"
 
-#: ../grabber.cc:345
+#: ../grabber.cc:352
 msgid "absolute"
 msgstr "absolute"
 
-#: ../grabber.cc:345
+#: ../grabber.cc:352
 msgid "relative"
 msgstr "relativ"
 
-#: ../grabber.cc:346
+#: ../grabber.cc:353
 msgid "supports"
 msgstr "unterstützt"
 
-#: ../grabber.cc:346
+#: ../grabber.cc:353
 msgid "does not support"
 msgstr "unterstützt keine"
 
-#: ../grabber.cc:599
+#: ../grabber.cc:593
 msgid "(window manager frame)"
 msgstr "(Rahmen des Window-Managers)"
 
-#: ../grabber.cc:674
+#: ../grabber.cc:668
 #, c-format
 msgid "Window 0x%lx does not have an associated top-level window\n"
 msgstr "Fenster 0x%lx hat kein passendes Top-Level-Fenster\n"
 
-#: ../main.cc:80
+#: ../main.cc:81
 #, c-format
 msgid "Falling back to Shape method: %s\n"
 msgstr "Falle auf \"Shape\"-Methode zurück: %s\n"
 
-#: ../main.cc:102
+#: ../main.cc:103
 #, c-format
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#: ../main.cc:270
+#: ../main.cc:276
 #, c-format
 msgid "Error: %s failed.  Is easystroke already running?\n"
 msgstr "Fehler: %s ist fehlgeschlagen.  Ist easystroke bereits gestartet?\n"
 
-#: ../main.cc:271
+#: ../main.cc:277
 msgid "A grab"
 msgstr "Ein Grab"
 
-#: ../main.cc:271
+#: ../main.cc:277
 msgid "An XInput grab"
 msgstr "Ein XInput-Grab"
 
-#: ../main.cc:273 ../main.cc:1747
+#: ../main.cc:279 ../main.cc:1658
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
-#: ../main.cc:294
+#: ../main.cc:300
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 
-#: ../main.cc:311
+#: ../main.cc:317
 #, c-format
 msgid "Warning: WaitForButtonHandler timed out\n"
 msgstr "Warunung: WaitForButtonHandler timed out\n"
 
-#: ../main.cc:1002
+#: ../main.cc:997
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1160
+#: ../main.cc:1154
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1218
+#: ../main.cc:1208
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1257
+#: ../main.cc:1245
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1409
+#: ../main.cc:1397
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1414
+#: ../main.cc:1402
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
@@ -282,32 +296,24 @@ msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
 msgid "Error: Couldn't save preferences: %s.\n"
 msgstr "Fehler: Konnte Einstellungen nicht speichern: %s\n"
 
-#: ../prefdb.cc:145
-msgid ""
-"Couldn't save preferences.  Your changes will be lost.  \n"
-"Make sure that "
-msgstr ""
-"Konnte Einstellungen nicht speichern.\n"
-" Stellen Sie sicher, dass "
-
-#: ../prefdb.cc:203
+#: ../prefdb.cc:207
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Fehler: Konnte Einstellungen nicht laden.\n"
 
-#: ../prefs.cc:297
+#: ../prefs.cc:295
 msgid "Application (WM__CLASS)"
 msgstr "Anwendung (WM__CLASS)"
 
-#: ../prefs.cc:315
+#: ../prefs.cc:313
 msgid "Enabled"
 msgstr "Aktiv"
 
-#: ../prefs.cc:316
+#: ../prefs.cc:314
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:348 ../prefs.cc:596 ../prefs.cc:622
+#: ../prefs.cc:346 ../prefs.cc:594 ../prefs.cc:620
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 

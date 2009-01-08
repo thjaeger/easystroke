@@ -141,9 +141,10 @@ void PrefDB::timeout() {
 		if (!good_state)
 			return;
 		good_state = false;
-		new ErrorDialog(
-				_("Couldn't save preferences.  Your changes will be lost.  \nMake sure that ")+config_dir+
-				_(" is a directory and that you have write access to it.\nYou can change the configuration directory using the -c or --config-dir command line options."));
+		new ErrorDialog(Glib::ustring::compose(_( "Couldn't save %1.  Your changes will be lost.  "
+				"Make sure that \"%2\" is a directory and that you have write access to it.  "
+				"You can change the configuration directory "
+				"using the -c or --config-dir command line options."), "preferences", config_dir));
 	}
 }
 
