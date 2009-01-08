@@ -97,11 +97,11 @@ void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	ctx->set_source_rgba((red+0.5)/2.0, (green+0.5)/2.0, (blue+0.5)/2.0, alpha/2.0);
 	ctx->set_line_width(width+1.0);
 	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
+	ctx->set_line_join(Cairo::LINE_JOIN_ROUND);
 	ctx->stroke_preserve();
 
 	ctx->set_source_rgba(red, green, blue, alpha);
 	ctx->set_line_width(width*0.7);
-	ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 	ctx->stroke();
 
 }
