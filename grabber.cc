@@ -335,13 +335,13 @@ bool Grabber::update_device_list() {
 		}
 		xi_dev->name = dev->name;
 
-		DeviceButtonPress(xi_dev->dev, xi_dev->event_type[DOWN], xi_dev->events[DOWN]);
-		DeviceButtonRelease(xi_dev->dev, xi_dev->event_type[UP], xi_dev->events[UP]);
-		DeviceButtonMotion(xi_dev->dev, xi_dev->event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
-		DeviceMotionNotify(xi_dev->dev, xi_dev->event_type[MOTION], xi_dev->events[MOTION]);
+		DeviceButtonPress(xi_dev->dev, event_type[DOWN], xi_dev->events[DOWN]);
+		DeviceButtonRelease(xi_dev->dev, event_type[UP], xi_dev->events[UP]);
+		DeviceButtonMotion(xi_dev->dev, event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
+		DeviceMotionNotify(xi_dev->dev, event_type[MOTION], xi_dev->events[MOTION]);
 
-		ProximityIn(xi_dev->dev, xi_dev->event_type[PROX_IN], xi_dev->events[PROX_IN]);
-		ProximityOut(xi_dev->dev, xi_dev->event_type[PROX_OUT], xi_dev->events[PROX_OUT]);
+		ProximityIn(xi_dev->dev, event_type[PROX_IN], xi_dev->events[PROX_IN]);
+		ProximityOut(xi_dev->dev, event_type[PROX_OUT], xi_dev->events[PROX_OUT]);
 		xi_dev->supports_proximity = xi_dev->events[PROX_IN] && xi_dev->events[PROX_OUT];
 		xi_dev->all_events_n = xi_dev->supports_proximity ? 6 : 4;
 
@@ -365,16 +365,6 @@ Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
 		if (xi_devs[i]->dev->device_id == id)
 			return xi_devs[i];
 	return 0;
-}
-
-bool Grabber::is_event(int type, EventType et) {
-	if (!xinput)
-		return false;
-	for (int i = 0; i < xi_devs_n; i++)
-		if (type == xi_devs[i]->event_type[et]) {
-			return true;
-		}
-	return false;
 }
 
 unsigned int Grabber::get_device_button_state(XiDevice *&dev) {

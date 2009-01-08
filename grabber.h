@@ -57,14 +57,14 @@ public:
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	bool xinput;
 	bool proximity_selected;
-	bool is_event(int, EventType);
+	int event_type[6];
+	bool is_event(int type, EventType et) { return xinput && type == event_type[et]; }
 	void select_proximity();
 
 	struct XiDevice {
 		std::string name;
 		XDevice *dev;
 		XEventClass events[6];
-		int event_type[6];
 		int all_events_n;
 		bool supports_proximity, supports_pressure;
 		int pressure_min, pressure_max;
