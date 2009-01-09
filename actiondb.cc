@@ -219,7 +219,7 @@ void ActionDBWatcher::timeout() {
 		new ErrorDialog(Glib::ustring::compose(_( "Couldn't save %1.  Your changes will be lost.  "
 				"Make sure that \"%2\" is a directory and that you have write access to it.  "
 				"You can change the configuration directory "
-				"using the -c or --config-dir command line options."), "actions", config_dir));
+				"using the -c or --config-dir command line options."), _("actions"), config_dir));
 	}
 }
 
