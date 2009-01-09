@@ -237,8 +237,7 @@ RAction handle_stroke(RStroke s, RTriple e) {
 
 void bail_out() {
 	handler->replace_child(0);
-	for (int i = 1; i <= 9; i++)
-		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+	grabber->release_all();
 	discard(CurrentTime);
 	xinput_pressed.clear();
 	reset_buttons(true);
@@ -405,8 +404,7 @@ static void remap_pointer() {
 		m[i->first - 1] = i->second;
 	while (MappingBusy == XSetPointerMapping(dpy, m, n)) {
 		printf("Warning: remapping buttons failed, retrying...\n");
-		for (int i = 1; i<=n; i++)
-			XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+		grabber->release_all(n);
 		XSync(dpy, False);
 		usleep(50);
 	}

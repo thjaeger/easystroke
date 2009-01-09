@@ -72,10 +72,12 @@ public:
 		int min_x, max_x, min_y, max_y;
 		bool absolute;
 		int valuators[2];
+		int num_buttons;
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
 		void fake_button(int b, bool press);
+		void release_all();
 		void grab_device(bool);
 		void update_pointer_mapping();
 		void update_valuators(int *axis_data);
@@ -125,6 +127,7 @@ public:
 	bool is_instant(guint b);
 	void toggle_disabled() { disabled = !disabled; set(); }
 	bool update_device_list();
+	void release_all(int n = 0);
 
 	int get_default_button() { return grabbed_button.button; }
 	bool get_timing_workaround() { return timing_workaround; }

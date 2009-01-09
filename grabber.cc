@@ -298,12 +298,14 @@ bool Grabber::update_device_list() {
 
 		XiDevice *xi_dev = new XiDevice;
 
-		bool has_button = false;
+		xi_dev->num_buttons = 0;
 		xi_dev->supports_pressure = false;
 		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
 		for (int j = 0; j < dev->num_classes; j++) {
-			if (any->c_class == ButtonClass)
-				has_button = true;
+			if (any->c_class == ButtonClass) {
+				XButtonInfo *info = (XButtonInfo *)any;
+				xi_dev->num_buttons = info->num_buttons;
+			}
 			if (any->c_class == ValuatorClass) {
 				XValuatorInfo *info = (XValuatorInfo *)any;
 				if (info->num_axes >= 2) {
@@ -322,7 +324,7 @@ bool Grabber::update_device_list() {
 			any = (XAnyClassPtr) ((char *) any + any->length);
 		}
 
-		if (!has_button) {
+		if (!xi_dev->num_buttons) {
 			delete xi_dev;
 			continue;
 		}
@@ -604,6 +606,24 @@ void Grabber::XiDevice::update_valuators(int *axis_data) {
 		return;
 	valuators[0] = axis_data[0];
 	valuators[1] = axis_data[1];
+}
+
+void Grabber::release_all(int n) {
+	if (xi_15) {
+		for (int i = 0; i < xi_devs_n; i++)
+			xi_devs[i]->release_all();
+	} else {
+		if (!n)
+			n = XGetPointerMapping(dpy, 0, 0);
+		for (int i = 1; i <= n; i++)
+			XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+	}
+
+}
+
+void Grabber::XiDevice::release_all() {
+	for (int i = 1; i <= num_buttons; i++)
+		XTestFakeDeviceButtonEvent(dpy, dev, i, False, valuators, 2, 0);
 }
 
 void Grabber::XiDevice::fake_button(int b, bool press) {
