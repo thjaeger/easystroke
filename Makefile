@@ -53,7 +53,7 @@ all: $(BINARY) $(MOFILES)
 .PHONY: all clean snapshot release translate
 
 clean:
-	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES) po/untitled.pot
+	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES) po/*.pot
 	$(RM) -r $(MODIRS)
 
 include $(DEPFILES)
@@ -95,7 +95,7 @@ po/POTFILES.in: $(CCFILES) $(HFILES)
 	echo easystroke.desktop.in >> $@
 
 translate: po/POTFILES.in
-	cd po && intltool-update --pot --gettext-package=easystroke
+	cd po && XGETTEXT_ARGS="--package-name=easystroke --copyright-holder='Thomas Jaeger <ThJaeger@gmail.com>'" intltool-update --pot --gettext-package=easystroke
 
 update-translations: po/POTFILES.in
 	cd po && for f in $(POFILES); do \
