@@ -63,6 +63,7 @@ public:
 
 	struct XiDevice {
 		std::string name;
+		std::map<guint, guint> inv_map;
 		XDevice *dev;
 		XEventClass events[6];
 		int all_events_n;
@@ -70,16 +71,19 @@ public:
 		int pressure_min, pressure_max;
 		int min_x, max_x, min_y, max_y;
 		bool absolute;
+		int valuators[2];
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
-		void fake_press(int b);
-		void fake_release(int b);
+		void fake_button(int b, bool press);
 		void grab_device(bool);
+		void update_pointer_mapping();
+		void update_valuators(int *axis_data);
 	};
 
 	unsigned int get_device_button_state(XiDevice *&dev);
 	XiDevice *get_xi_dev(XID id);
+	int mapping_notify;
 	int event_presence;
 	XEventClass presence_class;
 

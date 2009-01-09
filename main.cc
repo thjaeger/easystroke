@@ -109,7 +109,7 @@ Trace *init_trace() {
 void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
-static void fake_button(guint b) {
+static void fake_click(guint b) {
 	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 }
@@ -152,7 +152,7 @@ public:
 		if (child)
 			child->init();
 	}
-	void remap(std::map<guint, guint> &map);
+	void remap(const std::map<guint, guint> &map);
 	virtual void init() {}
 	virtual bool idle() { return false; }
 	virtual ~Handler() {
@@ -219,17 +219,7 @@ public:
 
 void bail_out();
 
-Handler *remap_pointer(const std::map<guint, guint> &map);
-void Handler::remap(std::map<guint, guint> &map) {
-	Handler *h = remap_pointer(map);
-	if (h)
-		replace_child(h);
-}
-
-void reset_buttons() {
-	std::map<guint, guint> map;
-	delete remap_pointer(map);
-}
+static void reset_buttons(bool force);
 
 RAction handle_stroke(RStroke s, RTriple e) {
 	Ranking *ranking = new Ranking;
@@ -251,7 +241,7 @@ void bail_out() {
 		XTestFakeButtonEvent(dpy, i, False, CurrentTime);
 	discard(CurrentTime);
 	xinput_pressed.clear();
-	reset_buttons();
+	reset_buttons(true);
 	XFlush(dpy);
 }
 
@@ -403,11 +393,43 @@ void remap_grabs(const std::map<guint, guint> &map) {
 	}
 }
 
+static int mapping_events = 0;
+
 // This can potentially mess up the user's mouse, make sure that it doesn't fail
-Handler *remap_pointer(const std::map<guint, guint> &map) {
+static void remap_pointer() {
+	int n = XGetPointerMapping(dpy, 0, 0);
+	unsigned char m[n];
+	for (int i = 0; i<n; i++)
+		m[i] = i+1;
+	for (std::map<guint, guint>::const_iterator i = pointer_map.begin(); i != pointer_map.end(); ++i)
+		m[i->first - 1] = i->second;
+	while (MappingBusy == XSetPointerMapping(dpy, m, n)) {
+		printf("Warning: remapping buttons failed, retrying...\n");
+		for (int i = 1; i<=n; i++)
+			XTestFakeButtonEvent(dpy, i, False, CurrentTime);
+		XSync(dpy, False);
+		usleep(50);
+	}
+	mapping_events++;
+}
+
+static void reset_buttons(bool force) {
+	if (!pointer_map.size() && !force)
+		return;
+	if (xi_15) {
+		pointer_map.clear();
+		remap_pointer();
+	} else {
+		std::map<guint, guint> map;
+		remap_grabs(map);
+	}
+
+}
+
+void Handler::remap(const std::map<guint, guint> &map) {
 	if (!xi_15) {
 		remap_grabs(map);
-		return NULL;
+		return;
 	}
 	std::set<guint> remap;
 	std::map<guint, guint>::const_iterator j1 = pointer_map.begin(), j2 = map.begin();
@@ -442,7 +464,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 		++j1; ++j2;
 	}
 	if (!remap.size())
-		return NULL;
+		return;
 
 	pointer_map = map;
 
@@ -451,27 +473,13 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
 			if (xinput_pressed.count(*i)) {
 				last = *i;
-				current_dev->fake_release(last);
+				current_dev->fake_button(last, false);
 			}
 
-	{
-		int n = XGetPointerMapping(dpy, 0, 0);
-		unsigned char m[n];
-		for (int i = 0; i<n; i++)
-			m[i] = i+1;
-		for (std::map<guint, guint>::const_iterator i = map.begin(); i != map.end(); ++i)
-			m[i->first - 1] = i->second;
-		while (MappingBusy == XSetPointerMapping(dpy, m, n)) {
-			printf("Warning: remapping buttons failed, retrying...\n");
-			for (int i = 1; i<=n; i++)
-				XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-			XSync(dpy, False);
-			usleep(50);
-		}
-	}
+	remap_pointer();
 #ifndef SERVER16_BUTTON_MAPPING_PATCH
 	if (!current_dev)
-		return NULL;
+		return;
 	XDevice *dev = current_dev->dev;
 	{
 		int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
@@ -481,7 +489,7 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 		while (MappingBusy == XSetDeviceButtonMapping(dpy, dev, m, n)) {
 			printf("Warning: remapping device buttons failed, retrying...\n");
 			for (int i = 1; i<=n; i++)
-				current_dev->fake_release(i);
+				current_dev->fake_button(i, false);
 			XSync(dpy, False);
 			usleep(50);
 		}
@@ -491,11 +499,10 @@ Handler *remap_pointer(const std::map<guint, guint> &map) {
 	if (last) {
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
 			if (xinput_pressed.count(*i)) {
-				current_dev->fake_press(*i);
+				current_dev->fake_button(*i, true);
 			}
-		return new WaitForButtonHandler(last, true);
+		replace_child(new WaitForButtonHandler(last, true));
 	}
-	return NULL;
 }
 
 inline float abs(float x) { return x > 0 ? x : -x; }
@@ -510,9 +517,9 @@ protected:
 	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		for (int i = 0; i<n1; i++)
-			fake_button(b1);
+			fake_click(b1);
 		for (int i = 0; i<n2; i++)
-			fake_button(b2);
+			fake_click(b2);
 	}
 	static float curve(float v) {
 		return v * exp(log(abs(v))/3);
@@ -587,7 +594,7 @@ public:
 		parent->replace_child(0);
 	}
 	virtual ~ScrollHandler() {
-		reset_buttons();
+		reset_buttons(false);
 	}
 	virtual std::string name() { return "Scroll"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -749,17 +756,17 @@ public:
 		if (b == remap_from && !xi_15 && pointer_map[b])
 			XTestFakeButtonEvent(dpy, pointer_map[b], False, CurrentTime);
 		if (xinput_pressed.size() == 0) {
-			reset_buttons();
+			reset_buttons(false);
 			Handler *h = NULL;
 			if (e->t < click_time + 250 && b == replay_button) {
 				sticky_mods.reset();
 				mods.clear();
 				if (xi_15) {
-					current_dev->fake_press(b);
-					current_dev->fake_release(b);
+					current_dev->fake_button(b, true);
+					current_dev->fake_button(b, false);
 					h = new WaitForButtonHandler(b, false);
 				} else {
-					fake_button(b);
+					fake_click(b);
 				}
 			}
 			parent->replace_child(h);
@@ -1068,7 +1075,7 @@ float StrokeHandler::k = -0.01;
 class IdleHandler : public Handler, Timeout {
 protected:
 	virtual void init() {
-		reset_buttons();
+		reset_buttons(true);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
 		if (xi)
@@ -1085,10 +1092,10 @@ protected:
 				printf("Using wacom workaround\n");
 			for (int i = 1; i < 32; i++)
 				if (state & (1 << i))
-					dev->fake_release(i);
+					dev->fake_button(i, false);
 			for (int i = 31; i; i--)
 				if (state & (1 << i))
-					dev->fake_press(i);
+					dev->fake_button(i, true);
 			// This is probably not necessary, but we need to be on the safe
 			// side.  If anything goes wrong, the timeout fires and we discard everything
 			set_timeout(250);
@@ -1563,6 +1570,16 @@ void Main::handle_event(XEvent &ev) {
 		if (!grabber->xinput)
 			H->release(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
 		return;
+
+	case MappingNotify:
+		if (!xi_15 || ev.xmapping.request != MappingPointer)
+			return;
+		if (mapping_events) {
+			mapping_events--;
+			return;
+		}
+		remap_pointer();
+		return;
 	}
 
 	if (grabber->is_event(ev.type, Grabber::DOWN)) {
@@ -1572,10 +1589,12 @@ void Main::handle_event(XEvent &ev) {
 					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
 		last_button = bev->button;
 		last_time = bev->time;
-		if (xinput_pressed.size())
+		if (xinput_pressed.size()) {
 			if (!current_dev || current_dev->dev->device_id != bev->deviceid)
 				return;
-		current_dev = grabber->get_xi_dev(bev->deviceid);
+		} else
+			current_dev = grabber->get_xi_dev(bev->deviceid);
+		current_dev->update_valuators(bev->axis_data);
 		xinput_pressed.insert(bev->button);
 		float x, y;
 		if (xi_15 && xinput_pressed.size() > 1)
@@ -1593,6 +1612,7 @@ void Main::handle_event(XEvent &ev) {
 					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
 		if (!current_dev || current_dev->dev->device_id != bev->deviceid)
 			return;
+		current_dev->update_valuators(bev->axis_data);
 		xinput_pressed.erase(bev->button);
 		float x, y;
 		if (xi_15)
@@ -1611,6 +1631,7 @@ void Main::handle_event(XEvent &ev) {
 					mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
 		if (!current_dev || current_dev->dev->device_id != mev->deviceid)
 			return;
+		current_dev->update_valuators(mev->axis_data);
 		float x, y;
 		if (xi_15)
 			translate_coords(mev->deviceid, mev->axis_data, x, y);
@@ -1643,6 +1664,14 @@ void Main::handle_event(XEvent &ev) {
 		if (verbosity >= 2)
 			printf("Device Presence\n");
 		presence_watcher.set_timeout(2000);
+		return;
+	}
+	if (ev.type == grabber->mapping_notify) {
+		XDeviceMappingEvent* dev = (XDeviceMappingEvent *)&ev;
+		if (!xi_15 || dev->request != MappingPointer)
+			return;
+		Grabber::XiDevice *xi_dev = grabber->get_xi_dev(dev->deviceid);
+		xi_dev->update_pointer_mapping();
 		return;
 	}
 #undef H

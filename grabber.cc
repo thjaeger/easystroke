@@ -335,6 +335,9 @@ bool Grabber::update_device_list() {
 		}
 		xi_dev->name = dev->name;
 
+		xi_dev->valuators[0] = 0;
+		xi_dev->valuators[1] = 0;
+
 		DeviceButtonPress(xi_dev->dev, event_type[DOWN], xi_dev->events[DOWN]);
 		DeviceButtonRelease(xi_dev->dev, event_type[UP], xi_dev->events[UP]);
 		DeviceButtonMotion(xi_dev->dev, event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
@@ -346,6 +349,11 @@ bool Grabber::update_device_list() {
 		xi_dev->all_events_n = xi_dev->supports_proximity ? 6 : 4;
 
 		xi_devs[xi_devs_n++] = xi_dev;
+
+		XEventClass evs[0];
+		DeviceMappingNotify(xi_dev->dev, mapping_notify, evs[0]);
+		XSelectExtensionEvent(dpy, ROOT, evs, 1);
+		xi_dev->update_pointer_mapping();
 
 		if (verbosity >= 1)
 			printf(_("Opened Device \"%s\" (%s, %s proximity).\n"), dev->name,
@@ -442,6 +450,20 @@ void Grabber::grab_xi_devs(bool grab) {
 	xi_devs_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
 		xi_devs[i]->grab_device(grab);
+}
+
+void Grabber::XiDevice::update_pointer_mapping() {
+	if (!xi_15)
+		return;
+#define MAX_BUTTONS 256
+	unsigned char map[MAX_BUTTONS];
+	int n = XGetDeviceButtonMapping(dpy, dev, map, MAX_BUTTONS);
+	inv_map.clear();
+	for (int i = n-1; i; i--)
+		if (map[i] == i+1)
+			inv_map.erase(i+1);
+		else
+			inv_map[map[i]] = i+1;
 }
 
 extern bool in_proximity;
@@ -577,15 +599,24 @@ void Grabber::update(Window w) {
 	set();
 }
 
-void Grabber::XiDevice::fake_press(int b) {
-	XTestFakeDeviceButtonEvent(dpy, dev, b, True,  0, 0, 0);
-	if (!xi_15)
-		XTestFakeButtonEvent(dpy, b, True, CurrentTime);
+void Grabber::XiDevice::update_valuators(int *axis_data) {
+	if (!absolute)
+		return;
+	valuators[0] = axis_data[0];
+	valuators[1] = axis_data[1];
 }
-void Grabber::XiDevice::fake_release(int b) {
-	XTestFakeDeviceButtonEvent(dpy, dev, b, False, 0, 0, 0);
+
+void Grabber::XiDevice::fake_button(int b, bool press) {
+	guint b2 = b;
+	std::map<guint, guint>::iterator i = inv_map.find(b);
+	if (i != inv_map.end())
+		b2 = i->second;
+	// we actually do need to pass valuators here, otherwise all hell will break lose
+	XTestFakeDeviceButtonEvent(dpy, dev, b2, press, valuators, 2, 0);
+	if (verbosity >= 3)
+		printf("fake xi %s: %d -> %d\n", press ? "press" : "release", b2, b);
 	if (!xi_15)
-		XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+		XTestFakeButtonEvent(dpy, b2, press, CurrentTime);
 }
 
 std::string Grabber::get_wm_class(Window w) {
