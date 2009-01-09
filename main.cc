@@ -954,6 +954,7 @@ protected:
 		if (!repeated && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
 			if (verbosity >= 2)
 				printf("Ignoring xi-only stroke\n");
+			replay(0);
 			parent->replace_child(0);
 			return;
 		}
