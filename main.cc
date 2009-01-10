@@ -1058,7 +1058,9 @@ public:
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
-		if (!grabber->xinput)
+		if (grabber->xinput)
+			set_timeout(prefs.init_timeout.get());
+		else
 			discard(press_t);
 	}
 	~StrokeHandler() {
