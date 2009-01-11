@@ -23,10 +23,11 @@
 #include <boost/serialization/split_member.hpp>
 #include <gdkmm/color.h>
 
+#include "proto.pb.h"
 #include "var.h"
 
-enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater };
-enum TimeoutType { TimeoutOff, TimeoutConservative, TimeoutMedium, TimeoutAggressive, TimeoutFlick, TimeoutCustom };
+typedef Proto::Prefs::Trace TraceType;
+typedef Proto::Prefs::Timeout TimeoutType;
 
 class ButtonInfo {
 	friend class boost::serialization::access;
@@ -91,6 +92,22 @@ struct RGBA {
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
+template <class T> class DataSource : public IO<T> {
+	typedef T (Proto::Prefs::*Getter)() const;
+	typedef void (Proto::Prefs::*Setter)(T);
+	Proto::Prefs &data;
+	Getter getter;
+	Setter setter;
+public:
+	DataSource(Proto::Prefs &data_, Getter getter_, Setter setter_) : data(data_), getter(getter_), setter(setter_) {}
+	virtual void set(const T x) {
+		(data.*setter)(x);
+		Out<T>::update();
+	}
+	virtual T get() const { return (data.*getter)(); }
+};
+
+
 extern const double default_p;
 extern const ButtonInfo default_button;
 extern const int default_radius;
@@ -99,33 +116,34 @@ extern const int default_pressure_threshold;
 class PrefDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
 	bool good_state;
-	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+
+	Proto::Prefs data;
 public:
 	PrefDB();
 
 	Source<std::map<std::string, RButtonInfo> > exceptions;
-	Source<double> p;
+	DataSource<float> p;
 	Source<ButtonInfo> button;
-	Source<TraceType> trace;
-	Source<bool> advanced_ignore;
-	Source<int> radius;
-	Source<bool> ignore_grab;
-	Source<bool> timing_workaround;
-	Source<bool> pressure_abort;
-	Source<int> pressure_threshold;
-	Source<bool> proximity;
-	Source<bool> feedback;
-	Source<bool> left_handed;
-	Source<int> init_timeout;
-	Source<int> min_speed;
-	Source<TimeoutType> timeout_profile;
-	Source<bool> timeout_gestures;
-	Source<bool> tray_icon;
+	DataSource<TraceType> trace;
+	DataSource<bool> advanced_ignore;
+	DataSource<int32_t> radius;
+	DataSource<bool> ignore_grab;
+	DataSource<bool> timing_workaround;
+	DataSource<bool> pressure_abort;
+	DataSource<int32_t> pressure_threshold;
+	DataSource<bool> proximity;
+	DataSource<bool> popups;
+	DataSource<bool> left_handed;
+	DataSource<int32_t> init_timeout;
+	DataSource<int32_t> min_speed;
+	DataSource<TimeoutType> timeout_profile;
+	DataSource<bool> timeout_gestures;
+	DataSource<bool> tray_icon;
 	Source<std::set<std::string> > excluded_devices;
 	Source<RGBA> color;
-	Source<int> trace_width;
+	DataSource<int32_t> trace_width;
 	Source<std::vector<ButtonInfo> > extra_buttons;
-	Source<bool> advanced_popups;
+	DataSource<bool> advanced_popups;
 
 	void init();
 	virtual void timeout();

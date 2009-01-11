@@ -154,36 +154,36 @@ public:
 };
 
 static bool and_(bool x, bool y) { return x && y; }
-static bool is_custom(TimeoutType profile) { return profile == TimeoutCustom; }
-static bool draw_trace(TraceType t) { return t == TraceDefault || t == TraceShape; }
+static bool is_custom(TimeoutType profile) { return profile == Proto::Prefs::Custom; }
+static bool draw_trace(TraceType t) { return t == Proto::Prefs::Default || t == Proto::Prefs::Shape; }
 
 const Combo<TraceType>::Info trace_info[] = {
-	{ TraceNone, N_("None") },
-	{ TraceDefault, N_("Default") },
-	{ TraceShape, N_("XShape") },
-	{ TraceAnnotate, N_("Annotate (compiz)") },
-	{ TraceFire, N_("Fire (compiz)") },
-	{ TraceWater, N_("Water (compiz)") },
-	{ TraceDefault, 0 }
+	{ Proto::Prefs::NoTrace, N_("None") },
+	{ Proto::Prefs::Default, N_("Default") },
+	{ Proto::Prefs::Shape, N_("XShape") },
+	{ Proto::Prefs::Annotate, N_("Annotate (compiz)") },
+	{ Proto::Prefs::Fire, N_("Fire (compiz)") },
+	{ Proto::Prefs::Water, N_("Water (compiz)") },
+	{ Proto::Prefs::Default, 0 }
 };
 
 const Combo<TimeoutType>::Info timeout_info[] = {
-	{ TimeoutOff, N_("Timeout Off") },
-	{ TimeoutConservative, N_("Conservative") },
-	{ TimeoutMedium, N_("Medium") },
-	{ TimeoutAggressive, N_("Aggressive") },
-	{ TimeoutFlick, N_("Flick") },
-	{ TimeoutConservative, 0 }
+	{ Proto::Prefs::Off, N_("Timeout Off") },
+	{ Proto::Prefs::Conservative, N_("Conservative") },
+	{ Proto::Prefs::Medium, N_("Medium") },
+	{ Proto::Prefs::Aggressive, N_("Aggressive") },
+	{ Proto::Prefs::Flick, N_("Flick") },
+	{ Proto::Prefs::Conservative, 0 }
 };
 
 const Combo<TimeoutType>::Info timeout_info_exp[] = {
-	{ TimeoutOff, N_("Timeout Off") },
-	{ TimeoutConservative, N_("Conservative") },
-	{ TimeoutMedium, N_("Medium") },
-	{ TimeoutAggressive, N_("Aggressive") },
-	{ TimeoutFlick, N_("Flick") },
-	{ TimeoutCustom, N_("Custom") },
-	{ TimeoutConservative, 0 }
+	{ Proto::Prefs::Off, N_("Timeout Off") },
+	{ Proto::Prefs::Conservative, N_("Conservative") },
+	{ Proto::Prefs::Medium, N_("Medium") },
+	{ Proto::Prefs::Aggressive, N_("Aggressive") },
+	{ Proto::Prefs::Flick, N_("Flick") },
+	{ Proto::Prefs::Custom, N_("Custom") },
+	{ Proto::Prefs::Conservative, 0 }
 };
 
 Source<bool> autostart_ok(true);
@@ -250,11 +250,11 @@ Prefs::Prefs() {
 
 	new Check(prefs.proximity, "check_proximity");
 
-	new Check(prefs.feedback, "check_feedback");
+	new Check(prefs.popups, "check_feedback");
 	new Check(prefs.left_handed, "check_left_handed");
-	new Sensitive(prefs.feedback, "check_left_handed");
+	new Sensitive(prefs.popups, "check_left_handed");
 	new Check(prefs.advanced_popups, "check_advanced_popups");
-	new Sensitive(prefs.feedback, "check_advanced_popups");
+	new Sensitive(prefs.popups, "check_advanced_popups");
 
 	new Check(prefs.tray_icon, "check_tray_icon");
 

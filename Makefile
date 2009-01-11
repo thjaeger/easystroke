@@ -31,7 +31,7 @@ ICON     = easystroke.svg
 MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
-CCFILES  = $(wildcard *.cc) $(shell test -e proto.pb.cc || proto.pb.cc)
+CCFILES  = $(wildcard *.cc) $(shell test -e proto.pb.cc || echo proto.pb.cc)
 HFILES   = $(wildcard *.h)
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
 POFILES  = $(wildcard po/*.po)
@@ -58,7 +58,7 @@ clean:
 
 include $(DEPFILES)
 
-$(BINARY): $(OFILES)
+$(BINARY): proto.pb.h $(OFILES)
 	$(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 stroke.o: stroke.cc
@@ -87,6 +87,9 @@ dbus-server.cc: dbus-server.h
 
 dbus-server.h: dbus.xml
 	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
+
+%.pb.h: %.proto
+	protoc --cpp_out=. $<
 
 %.pb.cc: %.proto
 	protoc --cpp_out=. $<

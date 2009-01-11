@@ -55,10 +55,10 @@ message Prefs {
 		optional Button button = 2;
 	}
 
-	enum Trail {
+	enum Trace {
 		Default = 0;
 		Shape = 1;
-		None = 2;
+		NoTrace = 2;
 		Annotate = 3;
 		Fire = 4;
 		Water = 5;
@@ -83,7 +83,7 @@ message Prefs {
 	repeated Exception exceptions = 1;
 	optional float p = 2 [default = 0.5];
 	optional Button button = 3;
-	optional Trail trail = 4 [default = Default];
+	optional Trace trace = 4 [default = Default];
 	optional bool advanced_ignore = 5 [default = false];
 	optional int32 radius = 6 [default = 16];
 	optional bool ignore_grab = 7 [default = false];
@@ -99,7 +99,8 @@ message Prefs {
 	optional bool timeout_gestures = 17 [default = false];
 	optional bool tray_icon = 18 [default = true];
 	repeated string excluded_devices = 19;
-	optional int32 trail_width = 20 [default = 5];
-	repeated Button extra_buttons = 21;
-	optional bool advanced_popups = 22 [default = true];
+	optional Color color = 20;
+	optional int32 trace_width = 21 [default = 5];
+	repeated Button extra_buttons = 22;
+	optional bool advanced_popups = 23 [default = true];
 }

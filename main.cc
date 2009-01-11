@@ -89,15 +89,15 @@ static Trace *trace_composite() {
 static Trace *init_trace() {
 	try {
 		switch(prefs.trace.get()) {
-			case TraceNone:
+			case Proto::Prefs::NoTrace:
 				return new Trivial();
-			case TraceShape:
+			case Proto::Prefs::Shape:
 				return new Shape();
-			case TraceAnnotate:
+			case Proto::Prefs::Annotate:
 				return new Annotate();
-			case TraceFire:
+			case Proto::Prefs::Fire:
 				return new Fire();
-			case TraceWater:
+			case Proto::Prefs::Water:
 				return new Water();
 			default:
 				return trace_composite();

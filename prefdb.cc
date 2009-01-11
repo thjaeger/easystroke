@@ -35,105 +35,37 @@ const ButtonInfo default_button(Button2);
 const int default_radius = 16;
 const int default_pressure_threshold = 192;
 
+#define INIT_SOURCE(x) x(data, &Proto::Prefs::x, &Proto::Prefs::set_##x)
+
 PrefDB::PrefDB() :
 	TimeoutWatcher(5000),
 	good_state(true),
-	p(default_p),
+	INIT_SOURCE(p),
 	button(default_button),
-	trace(TraceDefault),
-	advanced_ignore(false),
-	radius(default_radius),
-	ignore_grab(false),
-	timing_workaround(false),
-	pressure_abort(false),
-	pressure_threshold(default_pressure_threshold),
-	proximity(false),
-	feedback(true),
-	left_handed(false),
-	init_timeout(200),
-	min_speed(40),
-	timeout_profile(TimeoutConservative),
-	timeout_gestures(false),
-	tray_icon(true),
+	INIT_SOURCE(trace),
+	INIT_SOURCE(advanced_ignore),
+	INIT_SOURCE(radius),
+	INIT_SOURCE(ignore_grab),
+	INIT_SOURCE(timing_workaround),
+	INIT_SOURCE(pressure_abort),
+	INIT_SOURCE(pressure_threshold),
+	INIT_SOURCE(proximity),
+	INIT_SOURCE(popups),
+	INIT_SOURCE(left_handed),
+	INIT_SOURCE(init_timeout),
+	INIT_SOURCE(min_speed),
+	INIT_SOURCE(timeout_profile),
+	INIT_SOURCE(timeout_gestures),
+	INIT_SOURCE(tray_icon),
 	color(Gdk::Color("#980101")),
-	trace_width(5),
-	advanced_popups(true)
+	INIT_SOURCE(trace_width),
+	INIT_SOURCE(advanced_popups)
 {}
-
-template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
-	if (version < 11) {
-		std::set<std::string> old;
-		ar & old;
-		for (std::set<std::string>::iterator i = old.begin(); i != old.end(); i++)
-			exceptions.unsafe_ref()[*i] = RButtonInfo();
-	} else ar & exceptions.unsafe_ref();
-	ar & p.unsafe_ref();
-	ar & button.unsafe_ref();
-	if (version < 2) {
-		bool help;
-		ar & help;
-	}
-	ar & trace.unsafe_ref();
-	if (trace.get() == TraceShape)
-		trace.unsafe_ref() = TraceDefault;
-	if (version < 3) {
-		int delay;
-		ar & delay;
-	}
-	if (version == 1) {
-		ButtonInfo foo;
-		ar & foo;
-		ar & foo;
-		return;
-	}
-	if (version < 2) return;
-	if (version != 6)
-		ar & advanced_ignore.unsafe_ref();
-	ar & radius.unsafe_ref();
-	if (version < 4) return;
-	ar & ignore_grab.unsafe_ref();
-	ar & timing_workaround.unsafe_ref();
-	bool show_clicks = false;
-	ar & show_clicks;
-	ar & pressure_abort.unsafe_ref();
-	ar & pressure_threshold.unsafe_ref();
-	ar & proximity.unsafe_ref();
-	if (version < 5) return;
-	ar & feedback.unsafe_ref();
-	ar & left_handed.unsafe_ref();
-	ar & init_timeout.unsafe_ref();
-	ar & min_speed.unsafe_ref();
-	if (version < 8) return;
-	ar & timeout_profile.unsafe_ref();
-	if (version < 9) return;
-	ar & timeout_gestures.unsafe_ref();
-	ar & tray_icon.unsafe_ref();
-	if (version < 10) return;
-	ar & excluded_devices.unsafe_ref();
-	if (version < 12) {
-		unsigned long c = 0;
-		ar & c;
-		color.unsafe_ref().color.set_rgb(257*(c >> 16), 257*((c >> 8) % 256), 257*(c % 256));
-		return;
-	} else {
-		ar & color.unsafe_ref();
-	}
-	ar & trace_width.unsafe_ref();
-	if (version < 13) return;
-	ar & extra_buttons.unsafe_ref();
-	ar & advanced_popups.unsafe_ref();
-}
 
 void PrefDB::timeout() {
 	std::string filename = config_dir+"preferences"+versions[0];
 	std::string tmp = filename + ".tmp";
 	try {
-		std::ofstream ofs(tmp.c_str());
-		boost::archive::text_oarchive oa(ofs);
-		const PrefDB *me = this;
-		oa << *me;
-		if (rename(tmp.c_str(), filename.c_str()))
-			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)
 			printf("Saved preferences.\n");
 	} catch (std::exception &e) {
@@ -162,27 +94,27 @@ class TimeoutProfile : private Base {
 public:
 	virtual void notify() {
 		switch (in.get()) {
-			case TimeoutOff:
+			case Proto::Prefs::Off:
 				prefs.init_timeout.set(0);
 				prefs.min_speed.set(0);
 				break;
-			case TimeoutConservative:
+			case Proto::Prefs::Conservative:
 				prefs.init_timeout.set(240);
 				prefs.min_speed.set(60);
 				break;
-			case TimeoutMedium:
+			case Proto::Prefs::Medium:
 				prefs.init_timeout.set(30);
 				prefs.min_speed.set(80);
 				break;
-			case TimeoutAggressive:
+			case Proto::Prefs::Aggressive:
 				prefs.init_timeout.set(15);
 				prefs.min_speed.set(150);
 				break;
-			case TimeoutFlick:
+			case Proto::Prefs::Flick:
 				prefs.init_timeout.set(20);
 				prefs.min_speed.set(500);
 				break;
-			case TimeoutCustom:
+			case Proto::Prefs::Custom:
 				break;
 		}
 	}
@@ -201,7 +133,7 @@ void PrefDB::init() {
 				std::ifstream ifs(filename.c_str(), std::ios::binary);
 				if (!ifs.fail()) {
 					boost::archive::text_iarchive ia(ifs);
-					ia >> *this;
+//					ia >> *this;
 					if (verbosity >= 2)
 						std::cout << "Loaded preferences." << std::endl;
 				}
@@ -223,7 +155,7 @@ void PrefDB::init() {
 	watch(pressure_abort);
 	watch(pressure_threshold);
 	watch(proximity);
-	watch(feedback);
+	watch(popups);
 	watch(left_handed);
 	watch(init_timeout);
 	watch(min_speed);
