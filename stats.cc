@@ -113,9 +113,11 @@ Glib::ustring format_float(float x) {
 }
 
 void Stats::on_stroke(Ranking *r) {
-	if (prefs.feedback.get() && r->best_stroke && (prefs.advanced_popups.get() || !r->best_stroke->button)) {
-		Feedback *popup = new Feedback(r->best_stroke, r->name, r->x, r->y);
-		Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
+	if (prefs.feedback.get() && r->best_stroke) {
+		if (prefs.advanced_popups.get() || !(r->best_stroke->button || r->best_stroke->timeout)) {
+			Feedback *popup = new Feedback(r->best_stroke, r->name, r->x, r->y);
+			Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
+		}
 	}
 
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
