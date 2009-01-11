@@ -118,7 +118,6 @@ public:
 	Source<int> radius;
 	Source<bool> ignore_grab;
 	Source<bool> timing_workaround;
-	Source<bool> show_clicks;
 	Source<bool> pressure_abort;
 	Source<int> pressure_threshold;
 	Source<bool> proximity;

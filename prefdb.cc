@@ -45,7 +45,6 @@ PrefDB::PrefDB() :
 	radius(default_radius),
 	ignore_grab(false),
 	timing_workaround(false),
-	show_clicks(false),
 	pressure_abort(false),
 	pressure_threshold(default_pressure_threshold),
 	proximity(false),
@@ -94,7 +93,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	if (version < 4) return;
 	ar & ignore_grab.unsafe_ref();
 	ar & timing_workaround.unsafe_ref();
-	ar & show_clicks.unsafe_ref();
+	bool show_clicks = false;
+	ar & show_clicks;
 	ar & pressure_abort.unsafe_ref();
 	ar & pressure_threshold.unsafe_ref();
 	ar & proximity.unsafe_ref();
@@ -218,7 +218,6 @@ void PrefDB::init() {
 	watch(radius);
 	watch(ignore_grab);
 	watch(timing_workaround);
-	watch(show_clicks);
 	watch(pressure_abort);
 	watch(pressure_threshold);
 	watch(proximity);

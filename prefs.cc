@@ -230,7 +230,6 @@ Prefs::Prefs() {
  	new Check(prefs.advanced_ignore, "check_advanced_ignore");
 	new Check(prefs.ignore_grab, "check_ignore_grab");
 	new Check(prefs.timing_workaround, "check_timing_workaround");
-	new Check(prefs.show_clicks, "check_show_clicks");
 
 	new Spin(prefs.radius, "spin_radius");
 

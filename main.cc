@@ -228,7 +228,7 @@ RAction handle_stroke(RStroke s, RTriple e) {
 		act->prepare();
 	ranking->x = (int)e->x;
 	ranking->y = (int)e->y;
-	if (!IS_CLICK(act) || prefs.show_clicks.get())
+	if (!IS_CLICK(act))
 		Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
 	else
 		delete ranking;
