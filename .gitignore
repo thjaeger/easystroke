@@ -14,3 +14,4 @@ po/it
 po/POTFILES.in
 po/*.pot
 easystroke.desktop
+proto.pb.*

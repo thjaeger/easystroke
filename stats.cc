@@ -110,7 +110,7 @@ void Ranking::queue_show(RTriple e) {
 }
 
 bool Ranking::show() {
-	if (prefs.feedback.get() && best_stroke) {
+	if (prefs.popups.get() && best_stroke) {
 		if (prefs.advanced_popups.get() || !(best_stroke->button || best_stroke->timeout)) {
 			Feedback *popup = new Feedback(best_stroke, name, x, y);
 			Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);

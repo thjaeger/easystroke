@@ -24,21 +24,21 @@ AOFLAGS  = -O3
 CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
 
-LIBS     = $(DFLAGS) -lboost_serialization -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lboost_serialization -lXtst -lprotobuf `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
 
 BINARY   = easystroke
 ICON     = easystroke.svg
 MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
 
-CCFILES  = $(wildcard *.cc)
+CCFILES  = $(wildcard *.cc) $(shell test -e proto.pb.cc || proto.pb.cc)
 HFILES   = $(wildcard *.h)
 OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
 POFILES  = $(wildcard po/*.po)
 MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
 MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in easystroke.desktop
+GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in easystroke.desktop proto.pb.cc proto.pb.h
 GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
@@ -87,6 +87,9 @@ dbus-server.cc: dbus-server.h
 
 dbus-server.h: dbus.xml
 	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
+
+%.pb.cc: %.proto
+	protoc --cpp_out=. $<
 
 po/POTFILES.in: $(CCFILES) $(HFILES)
 	$(RM) $@
