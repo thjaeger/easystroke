@@ -601,13 +601,6 @@ void Grabber::update(Window w) {
 	set();
 }
 
-void Grabber::XiDevice::update_valuators(int *axis_data) {
-	if (!absolute)
-		return;
-	valuators[0] = axis_data[0];
-	valuators[1] = axis_data[1];
-}
-
 void Grabber::release_all(int n) {
 	if (xi_15) {
 		for (int i = 0; i < xi_devs_n; i++)

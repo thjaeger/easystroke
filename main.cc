@@ -1416,47 +1416,47 @@ void Main::create_config_dir() {
 
 extern Window get_app_window(Window &w);
 
-int current_x, current_y;
-
-void translate_coords(XID xid, int *axis_data, float &x, float &y) {
-	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
-	if (!xi_dev->absolute) {
-		current_x += axis_data[0];
-		current_y += axis_data[1];
-		x = current_x;
-		y = current_y;
+void Grabber::XiDevice::translate_coords(int *axis_data, float &x, float &y) {
+	if (!absolute) {
+		valuators[0] += axis_data[0];
+		valuators[1] += axis_data[1];
+		x = valuators[0];
+		y = valuators[1];
 		return;
 	}
+	valuators[0] = axis_data[0];
+	valuators[1] = axis_data[1];
 	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
 	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
 	if (!rotated) {
-		x = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
-		y = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
+		x = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
+		y = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
 	} else {
-		x = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
-		y = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
+		x = rescaleValuatorAxis(axis_data[0], min_y, max_y, w);
+		y = rescaleValuatorAxis(axis_data[1], min_x, max_x, h);
 	}
 }
 
-bool translate_known_coords(XID xid, int sx, int sy, int *axis_data, float &x, float &y) {
+bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y) {
 	sx += offset_x;
 	sy += offset_y;
-	Grabber::XiDevice *xi_dev = grabber->get_xi_dev(xid);
-	if (!xi_dev->absolute) {
-		current_x = sx;
-		current_y = sy;
-		x = current_x;
-		y = current_y;
+	if (!absolute) {
+		valuators[0] = sx;
+		valuators[1] = sy;
+		x = valuators[0];
+		y = valuators[1];
 		return true;
 	}
+	valuators[0] = axis_data[0];
+	valuators[1] = axis_data[1];
 	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
 	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
-	x        = rescaleValuatorAxis(axis_data[0], xi_dev->min_x, xi_dev->max_x, w);
-	y        = rescaleValuatorAxis(axis_data[1], xi_dev->min_y, xi_dev->max_y, h);
+	x        = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
+	y        = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
 	if (axis_data[0] == sx && axis_data[1] == sy)
 		return true;
-	float x2 = rescaleValuatorAxis(axis_data[0], xi_dev->min_y, xi_dev->max_y, w);
-	float y2 = rescaleValuatorAxis(axis_data[1], xi_dev->min_x, xi_dev->max_x, h);
+	float x2 = rescaleValuatorAxis(axis_data[0], min_y, max_y, w);
+	float y2 = rescaleValuatorAxis(axis_data[1], min_x, max_x, h);
 	float d  = hypot(x - sx, y - sy);
 	float d2 = hypot(x2 - sx, y2 - sy);
 	if (d > 2 && d2 > 2) {
@@ -1594,13 +1594,14 @@ void Main::handle_event(XEvent &ev) {
 				return;
 		} else
 			current_dev = grabber->get_xi_dev(bev->deviceid);
-		current_dev->update_valuators(bev->axis_data);
+		if (!current_dev)
+			return;
 		xinput_pressed.insert(bev->button);
 		float x, y;
 		if (xi_15 && xinput_pressed.size() > 1)
-			translate_coords(bev->deviceid, bev->axis_data, x, y);
+			current_dev->translate_coords(bev->axis_data, x, y);
 		else
-			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+			current_dev->translate_known_coords(bev->x, bev->y, bev->axis_data, x, y);
 		H->press(bev->button, create_triple(x, y, bev->time));
 		return;
 	}
@@ -1612,13 +1613,12 @@ void Main::handle_event(XEvent &ev) {
 					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
 		if (!current_dev || current_dev->dev->device_id != bev->deviceid)
 			return;
-		current_dev->update_valuators(bev->axis_data);
 		xinput_pressed.erase(bev->button);
 		float x, y;
 		if (xi_15)
-			translate_coords(bev->deviceid, bev->axis_data, x, y);
+			current_dev->translate_coords(bev->axis_data, x, y);
 		else
-			translate_known_coords(bev->deviceid, bev->x, bev->y, bev->axis_data, x, y);
+			current_dev->translate_known_coords(bev->x, bev->y, bev->axis_data, x, y);
 
 		H->release(bev->button, create_triple(x, y, bev->time));
 		return;
@@ -1631,16 +1631,14 @@ void Main::handle_event(XEvent &ev) {
 					mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
 		if (!current_dev || current_dev->dev->device_id != mev->deviceid)
 			return;
-		current_dev->update_valuators(mev->axis_data);
 		float x, y;
 		if (xi_15)
-			translate_coords(mev->deviceid, mev->axis_data, x, y);
+			current_dev->translate_coords(mev->axis_data, x, y);
 		else
-			translate_known_coords(mev->deviceid, mev->x, mev->y, mev->axis_data, x, y);
-		Grabber::XiDevice *xi_dev = grabber->get_xi_dev(mev->deviceid);
+			current_dev->translate_known_coords(mev->x, mev->y, mev->axis_data, x, y);
 		int z = 0;
-		if (xi_dev && xi_dev->supports_pressure)
-			z = xi_dev->normalize_pressure(mev->axis_data[2]);
+		if (current_dev->supports_pressure)
+			z = current_dev->normalize_pressure(mev->axis_data[2]);
 		if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
 			H->pressure();
 		H->motion(create_triple(x, y, mev->time));
@@ -1671,7 +1669,8 @@ void Main::handle_event(XEvent &ev) {
 		if (!xi_15 || dev->request != MappingPointer)
 			return;
 		Grabber::XiDevice *xi_dev = grabber->get_xi_dev(dev->deviceid);
-		xi_dev->update_pointer_mapping();
+		if (xi_dev)
+			xi_dev->update_pointer_mapping();
 		return;
 	}
 #undef H

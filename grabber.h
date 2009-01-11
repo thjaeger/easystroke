@@ -80,7 +80,8 @@ public:
 		void release_all();
 		void grab_device(bool);
 		void update_pointer_mapping();
-		void update_valuators(int *axis_data);
+		void translate_coords(int *axis_data, float &x, float &y);
+		bool translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y);
 	};
 
 	unsigned int get_device_button_state(XiDevice *&dev);
