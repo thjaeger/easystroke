@@ -49,8 +49,8 @@ void init_xi() {
 	if (!devs)
 		exit(EXIT_FAILURE);
 	for (int i = 0; i < n; i++) {
-//		if (strcmp(devs[i].name, "stylus"))
-		if (strcmp(devs[i].name, "TPPS/2 IBM TrackPoint"))
+		if (strcmp(devs[i].name, "stylus"))
+//		if (strcmp(devs[i].name, "TPPS/2 IBM TrackPoint"))
 			continue;
 		dev = XOpenDevice(dpy, devs[i].id);
 		break;
