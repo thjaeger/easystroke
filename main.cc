@@ -106,8 +106,8 @@ Trace *init_trace() {
 
 }
 
-void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
-void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
+static void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
+static void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
 static void fake_click(guint b) {
 	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
@@ -581,6 +581,7 @@ public:
 			AbstractScrollHandler::motion(e);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
+		replay(t);
 		if (!xi_15)
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
@@ -618,6 +619,7 @@ public:
 		p->release(b, e);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
+		replay(t);
 		if (!xi_15)
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
@@ -692,19 +694,23 @@ public:
 		std::map<int, Ranking *> rs;
 		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b1, b2);
 		if (as.count(b2) && IS_CLICK(as[b2])) {
-			replay(press_t);
+			if (press_t)
+				replay(press_t);
 			return NULL;
 		}
-		if (as.count(b2))
-			discard(press_t);
-		else
-			replay(press_t);
+		if (press_t) {
+			if (as.count(b2))
+				discard(press_t);
+			else
+				replay(press_t);
+		}
 		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
 	virtual void init() {
 		press(button2 ? button2 : button1, e);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
+		replay(t);
 		if (!xi_15)
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 	}
@@ -876,19 +882,17 @@ void activate_window(Window w, Time t) {
 		XSetInputFocus(dpy, w, RevertToParent, t);
 }
 
-// TODO: Check discard/replay
 class StrokeHandler : public Handler, public Timeout {
 	guint button;
 	RPreStroke cur;
 	bool is_gesture;
 	bool drawing;
 	RTriple last;
-	bool repeated;
 	float min_speed;
 	float speed;
 	static float k;
 	bool use_timeout;
-	Time press_t;
+	Time press_t; // If there is a synchronous grab in place, this is the grab time.
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -910,9 +914,9 @@ class StrokeHandler : public Handler, public Timeout {
 			printf("Aborting stroke...\n");
 		trace->end();
 		if (!prefs.timeout_gestures.get()) {
-			replay(press_t);
+			if (press_t)
+				replay(press_t);
 			parent->replace_child(NULL);
-			XTestFakeRelativeMotionEvent(dpy, 0, 0, 5);
 			return;
 		}
 		if (!is_gesture)
@@ -944,11 +948,15 @@ class StrokeHandler : public Handler, public Timeout {
 	}
 protected:
 	virtual void press_core(guint b, Time t, bool xi) {
+		if (press_t) {
+			replay(press_t);
+			press_t = 0;
+		}
 		if (!xi)
 			replay(t);
 		// At this point we already have an xi press, so we are
 		// guarenteed to either get another press or a release.
-		repeated = true;
+		press_t = t;
 	}
 	virtual void pressure() {
 		trace->end();
@@ -956,10 +964,9 @@ protected:
 		parent->replace_child(0);
 	}
 	virtual void motion(RTriple e) {
-		if (!repeated && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
+		if (!press_t && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
 			if (verbosity >= 2)
 				printf("Ignoring xi-only stroke\n");
-			replay(0);
 			parent->replace_child(0);
 			return;
 		}
@@ -1001,6 +1008,7 @@ protected:
 			parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
 		} else {
 			printf(_("Error: You need XInput to use advanced gestures\n"));
+			discard(press_t);
 			parent->replace_child(NULL);
 		}
 	}
@@ -1026,10 +1034,7 @@ protected:
 		else
 			XBell(dpy, 0);
 		if (IS_CLICK(act)) {
-			if (grabber->xinput)
-				replay(press_t);
-			else
-				act = Button::create((Gdk::ModifierType)0, b);
+			replay(press_t);
 		} else {
 			if (grabber->xinput)
 				discard(press_t);
@@ -1043,25 +1048,22 @@ protected:
 			return;
 		}
 		IF_BUTTON(act, press)
-			if (press && !(!repeated && xinput_pressed.count(b) && press == button)) {
+			if (press) {
 				grabber->suspend();
-				XTestFakeButtonEvent(dpy, press, True, CurrentTime);
-				XTestFakeButtonEvent(dpy, press, False, CurrentTime);
+				fake_click(press);
 				grabber->resume();
 			}
-		parent->replace_child(0);
+		parent->replace_child(NULL);
 	}
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
-	repeated(false), min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
-	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(e->t) {
+	min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
+	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(0) {
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
-		if (grabber->xinput)
+		if (grabber->xinput && prefs.init_timeout.get())
 			set_timeout(prefs.init_timeout.get());
-		else
-			discard(press_t);
 	}
 	~StrokeHandler() {
 		trace->end();
@@ -1073,14 +1075,17 @@ public:
 float StrokeHandler::k = -0.01;
 
 class IdleHandler : public Handler, Timeout {
+	Time press_t;
 protected:
 	virtual void init() {
 		reset_buttons(true);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
-		if (xi)
-			return;
-		if (b != 1 || !grabber->get_timing_workaround()) {
+		if (press_t) {
+			replay(press_t);
+			press_t = 0;
+		}
+		if (xi || b != 1 || !grabber->get_timing_workaround()) {
 			replay(t);
 			return;
 		}
@@ -1098,12 +1103,13 @@ protected:
 					dev->fake_button(i, true);
 			// This is probably not necessary, but we need to be on the safe
 			// side.  If anything goes wrong, the timeout fires and we discard everything
+			press_t = t;
 			set_timeout(250);
 		} else {
 			replay(t);
 		}
 	}
-	virtual void timeout() { discard(CurrentTime); }
+	virtual void timeout() { replay(press_t); press_t = 0; }
 	virtual void press(guint b, RTriple e) {
 		if (grabber->is_instant(b)) {
 			remove_timeout();
@@ -1114,7 +1120,8 @@ protected:
 		}
 		if (current_app)
 			activate_window(current_app, e->t);
-		remove_timeout();
+		if (remove_timeout())
+			timeout();
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
