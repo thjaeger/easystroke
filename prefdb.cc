@@ -52,7 +52,7 @@ PrefDB::PrefDB() :
 	left_handed(false),
 	init_timeout(200),
 	min_speed(40),
-	timeout_profile(TO_CONSERVATIVE),
+	timeout_profile(TimeoutConservative),
 	timeout_gestures(false),
 	tray_icon(true),
 	color(Gdk::Color("#980101")),
@@ -158,33 +158,35 @@ bool ButtonInfo::overlap(const ButtonInfo &bi) const {
 }
 
 class TimeoutProfile : private Base {
-	Out<int> &in;
+	Out<TimeoutType> &in;
 public:
 	virtual void notify() {
 		switch (in.get()) {
-			case TO_OFF:
+			case TimeoutOff:
 				prefs.init_timeout.set(0);
 				prefs.min_speed.set(0);
 				break;
-			case TO_CONSERVATIVE:
+			case TimeoutConservative:
 				prefs.init_timeout.set(240);
 				prefs.min_speed.set(60);
 				break;
-			case TO_MEDIUM:
+			case TimeoutMedium:
 				prefs.init_timeout.set(30);
 				prefs.min_speed.set(80);
 				break;
-			case TO_AGGRESSIVE:
+			case TimeoutAggressive:
 				prefs.init_timeout.set(15);
 				prefs.min_speed.set(150);
 				break;
-			case TO_FLICK:
+			case TimeoutFlick:
 				prefs.init_timeout.set(20);
 				prefs.min_speed.set(500);
 				break;
+			case TimeoutCustom:
+				break;
 		}
 	}
-	TimeoutProfile(Out<int> &in_) : in(in_) {
+	TimeoutProfile(Out<TimeoutType> &in_) : in(in_) {
 		in.connect(this);
 		notify();
 	}

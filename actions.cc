@@ -759,9 +759,8 @@ void Actions::on_button_new() {
 	std::string name;
 	if (action_list != actions.get_root())
 		name = action_list->name + " ";
-	char buf[16];
-	snprintf(buf, 15, _("Gesture %d"), action_list->order_size());
-	action_list->set_name(id, name + buf);
+	name += Glib::ustring::compose(_("Gesture %1"), action_list->order_size());
+	action_list->set_name(id, name);
 
 	update_row(row);
 	focus(id, 1, true);
@@ -903,9 +902,7 @@ Glib::ustring ButtonInfo::get_button_text() const {
 		str += Glib::ustring() + "(" + _("Any Modifier") + " +) ";
 	else
 		str += Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
-	char name[16];
-	snprintf(name, sizeof(name), _("Button %d"), button);
-	return str + name;
+	return str + Glib::ustring::compose(_("Button %1"), button);
 }
 
 const Glib::ustring Scroll::get_label() const {

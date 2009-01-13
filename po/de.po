@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-09 15:20-0500\n"
-"PO-Revision-Date: 2009-01-09 15:22-0500\n"
+"POT-Creation-Date: 2009-01-13 01:49-0500\n"
+"PO-Revision-Date: 2009-01-13 01:49-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -22,7 +22,7 @@ msgstr ""
 msgid "Error: can't execute command \"%s\": fork() failed\n"
 msgstr "Fehler: Konnte Befehl \"%s\" nicht ausführen: fork() fehlgeschlagen.\n"
 
-#: ../actiondb.cc:169
+#: ../actiondb.cc:169 ../prefs.cc:162
 msgid "Default"
 msgstr "Standard"
 
@@ -76,15 +76,15 @@ msgstr "Taste"
 msgid "Command"
 msgstr "Befehl"
 
-#: ../actions.cc:164 ../actions.cc:915
+#: ../actions.cc:164 ../actions.cc:912
 msgid "Scroll"
 msgstr "Scrollen"
 
-#: ../actions.cc:165 ../actions.cc:922
+#: ../actions.cc:165 ../actions.cc:919
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: ../actions.cc:166 ../prefs.cc:300 ../prefs.cc:324
+#: ../actions.cc:166 ../prefs.cc:309 ../prefs.cc:333
 msgid "Button"
 msgstr "Maustaste"
 
@@ -161,31 +161,31 @@ msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
 msgstr ""
-"Sie sind dabei, eine Aktion einem einzelnen Klick zuzuordnen.  Dies könnte Schwierigkeiten bereiten, Maustaste %1 zu benutzen.  Sind Sie sich sicher, dass Sie fortfahren möchten?"
+"Sie sind dabei, eine Aktion einem einzelnen Klick zuzuordnen.  Dies könnte "
+"Schwierigkeiten bereiten, Maustaste %1 zu benutzen.  Sind Sie sich sicher, "
+"dass Sie fortfahren möchten?"
 
-#: ../actions.cc:763
-#, c-format
-msgid "Gesture %d"
-msgstr "Geste %d"
+#: ../actions.cc:762
+msgid "Gesture %1"
+msgstr "Geste %1"
 
-#: ../actions.cc:893
+#: ../actions.cc:892
 msgid "No Modifiers"
 msgstr "Keine Modifier"
 
-#: ../actions.cc:901
+#: ../actions.cc:900
 msgid "(Instantly) "
 msgstr "(Sofort) "
 
-#: ../actions.cc:903
+#: ../actions.cc:902
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:907
-#, c-format
-msgid "Button %d"
-msgstr "Maustaste %d"
+#: ../actions.cc:905 ../prefs.cc:462
+msgid "Button %1"
+msgstr "Maustaste %1"
 
-#: ../actions.cc:913
+#: ../actions.cc:910
 msgid " + Scroll"
 msgstr " + Scrollen"
 
@@ -198,32 +198,32 @@ msgstr "'composite' nicht verfügbar"
 msgid "Opening Device %s failed.\n"
 msgstr "Öffnen des Gerätes %s fehlgeschlagen.\n"
 
-#: ../grabber.cc:361
+#: ../grabber.cc:366
 #, c-format
 msgid "Opened Device \"%s\" (%s, %s proximity).\n"
 msgstr "Device \"%s\" geöffnet. (%s, %s Proximity).\n"
 
-#: ../grabber.cc:362
+#: ../grabber.cc:367
 msgid "absolute"
 msgstr "absolute"
 
-#: ../grabber.cc:362
+#: ../grabber.cc:367
 msgid "relative"
 msgstr "relativ"
 
-#: ../grabber.cc:363
+#: ../grabber.cc:368
 msgid "supports"
 msgstr "unterstützt"
 
-#: ../grabber.cc:363
+#: ../grabber.cc:368
 msgid "does not support"
 msgstr "unterstützt keine"
 
-#: ../grabber.cc:644
+#: ../grabber.cc:642
 msgid "(window manager frame)"
 msgstr "(Rahmen des Window-Managers)"
 
-#: ../grabber.cc:719
+#: ../grabber.cc:717
 #, c-format
 msgid "Window 0x%lx does not have an associated top-level window\n"
 msgstr "Fenster 0x%lx hat kein passendes Top-Level-Fenster\n"
@@ -238,60 +238,60 @@ msgstr "Falle auf \"Shape\"-Methode zurück: %s\n"
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#: ../main.cc:265
+#: ../main.cc:269
 #, c-format
 msgid "Error: %s failed.  Is easystroke already running?\n"
 msgstr "Fehler: %s ist fehlgeschlagen.  Ist easystroke bereits gestartet?\n"
 
-#: ../main.cc:266
+#: ../main.cc:270
 msgid "A grab"
 msgstr "Ein Grab"
 
-#: ../main.cc:266
+#: ../main.cc:270
 msgid "An XInput grab"
 msgstr "Ein XInput-Grab"
 
-#: ../main.cc:268 ../main.cc:1686
+#: ../main.cc:272 ../main.cc:1700
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
-#: ../main.cc:289
+#: ../main.cc:293
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 
-#: ../main.cc:306
+#: ../main.cc:310
 #, c-format
 msgid "Warning: WaitForButtonHandler timed out\n"
 msgstr "Warunung: WaitForButtonHandler timed out\n"
 
-#: ../main.cc:1003
+#: ../main.cc:1014
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1160
+#: ../main.cc:1175
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1214
+#: ../main.cc:1229
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1251
+#: ../main.cc:1266
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1403
+#: ../main.cc:1418
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1408
+#: ../main.cc:1423
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
@@ -305,24 +305,68 @@ msgstr "Fehler: Konnte Einstellungen nicht speichern: %s\n"
 msgid "preferences"
 msgstr "Einstellungen"
 
-#: ../prefdb.cc:207
+#: ../prefdb.cc:209
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Fehler: Konnte Einstellungen nicht laden.\n"
 
-#: ../prefs.cc:295
+#: ../prefs.cc:161
+msgid "None"
+msgstr "Keine"
+
+#: ../prefs.cc:163
+msgid "XShape"
+msgstr "XShape"
+
+#: ../prefs.cc:164
+msgid "Annotate (compiz)"
+msgstr "Annotate (compiz)"
+
+#: ../prefs.cc:165
+msgid "Fire (compiz)"
+msgstr "Feuer (compiz)"
+
+#: ../prefs.cc:166
+msgid "Water (compiz)"
+msgstr "Wasser (compiz)"
+
+#: ../prefs.cc:171 ../prefs.cc:180
+msgid "Timeout Off"
+msgstr "Timeout Aus"
+
+#: ../prefs.cc:172 ../prefs.cc:181
+msgid "Conservative"
+msgstr "Konservativ"
+
+#: ../prefs.cc:173 ../prefs.cc:182
+msgid "Medium"
+msgstr "Mittel"
+
+#: ../prefs.cc:174 ../prefs.cc:183
+msgid "Aggressive"
+msgstr "Aggressiv"
+
+#: ../prefs.cc:175 ../prefs.cc:184
+msgid "Flick"
+msgstr "Flick"
+
+#: ../prefs.cc:185
+msgid "Custom"
+msgstr "Benutzerdefiniert"
+
+#: ../prefs.cc:304
 msgid "Application (WM__CLASS)"
 msgstr "Anwendung (WM__CLASS)"
 
-#: ../prefs.cc:313
+#: ../prefs.cc:322
 msgid "Enabled"
 msgstr "Aktiv"
 
-#: ../prefs.cc:314
+#: ../prefs.cc:323
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:346 ../prefs.cc:594 ../prefs.cc:620
+#: ../prefs.cc:354 ../prefs.cc:611 ../prefs.cc:637
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
@@ -449,144 +493,80 @@ msgid "Autostart easystroke"
 msgstr "Automatisch starten"
 
 #: ../gui.glade.h:31
-msgid ""
-"Button 1\n"
-"Button 2\n"
-"Button 3\n"
-"Button 4\n"
-"Button 5\n"
-"Button 6\n"
-"Button 7\n"
-"Button 8\n"
-"Button 9\n"
-"Button 10\n"
-"Button 11\n"
-"Button 12"
-msgstr ""
-"Maustaste 1\n"
-"Maustaste 2\n"
-"Maustaste 3\n"
-"Maustaste 4\n"
-"Maustaste 5\n"
-"Maustaste 6\n"
-"Maustaste 7\n"
-"Maustaste 8\n"
-"Maustaste 9\n"
-"Maustaste 10\n"
-"Maustaste 11\n"
-"Maustaste 12"
-
-#: ../gui.glade.h:43
 msgid "Color"
 msgstr "Farbe"
 
-#: ../gui.glade.h:44
+#: ../gui.glade.h:32
 msgid "Direction"
 msgstr "Richtung"
 
-#: ../gui.glade.h:45
+#: ../gui.glade.h:33
 msgid "Ignore strokes leading up to advanced gestures"
 msgstr "Ignoriere die Mausbewegung bei Advanced Gestures"
 
-#: ../gui.glade.h:46
+#: ../gui.glade.h:34
 msgid "Instant Gestures"
 msgstr "Sofortige Gesten"
 
-#: ../gui.glade.h:47
+#: ../gui.glade.h:35
 msgid "Method to show gestures"
 msgstr "Methode zum Anzeigen der Gesten"
 
-#: ../gui.glade.h:48
+#: ../gui.glade.h:36
 msgid "Minimum speed (px/s)"
 msgstr "Minimalgeschwindigkeit (px/s)"
 
-#: ../gui.glade.h:49
-msgid ""
-"None\n"
-"Default\n"
-"Shape\n"
-"Annotate (compiz)\n"
-"Fire (compiz)\n"
-"Water (compiz)"
-msgstr ""
-"Keine\n"
-"Standard\n"
-"Shape\n"
-"Annotate (compiz)\n"
-"Fire (compiz)\n"
-"Water (compiz)"
-
-#: ../gui.glade.h:55
+#: ../gui.glade.h:37
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: ../gui.glade.h:56
+#: ../gui.glade.h:38
 msgid "Remove Application/Group"
 msgstr "Entferne Anwendung/Gruppe"
 
-#: ../gui.glade.h:57
+#: ../gui.glade.h:39
 msgid "Reset Action(s)"
 msgstr "Aktion(en) zurücksetzen"
 
-#: ../gui.glade.h:58
+#: ../gui.glade.h:40
 msgid "S_uper"
 msgstr "Super"
 
-#: ../gui.glade.h:59
+#: ../gui.glade.h:41
 msgid "Shape"
 msgstr "Form"
 
-#: ../gui.glade.h:60
-msgid "Show clicks"
-msgstr "Klicks anzeigen"
-
-#: ../gui.glade.h:61
+#: ../gui.glade.h:42
 msgid "Show deleted rows"
 msgstr "Zeige gelöschte Zeilen"
 
-#: ../gui.glade.h:62
+#: ../gui.glade.h:43
 msgid "Show popups ("
 msgstr "Popus anzeigen ("
 
-#: ../gui.glade.h:63
+#: ../gui.glade.h:44
 msgid "Show popups on advanced gestures"
 msgstr "Popups bei Advanced Gestures anzeigen"
 
-#: ../gui.glade.h:64
+#: ../gui.glade.h:45
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
 
-#: ../gui.glade.h:65
+#: ../gui.glade.h:46
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Bleibe im 'Scrollen' oder 'Ignorieren' Modus solange der Stift in Reichweite "
 "ist"
 
-#: ../gui.glade.h:66
+#: ../gui.glade.h:47
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
 
-#: ../gui.glade.h:67
-msgid ""
-"Timeout Off\n"
-"Conservative\n"
-"Medium\n"
-"Aggressive\n"
-"Flick\n"
-"Custom"
-msgstr ""
-"Timeout Aus\n"
-"Konservativ\n"
-"Mittel\n"
-"Aggresiv\n"
-"Flick\n"
-"Benutzerdefiniert"
-
-#: ../gui.glade.h:73
+#: ../gui.glade.h:48
 msgid "Timeout profile"
 msgstr "Timeout-Profil"
 
-#: ../gui.glade.h:74
+#: ../gui.glade.h:49
 msgid ""
 "Treat it as a click if the cursor isn't moved more \n"
 "than this many pixels away from the original position"
@@ -594,83 +574,83 @@ msgstr ""
 "Behandle Gesten, die kleiner als die angegebene \n"
 "Größe sind (in Pixeln), als Klicks"
 
-#: ../gui.glade.h:76
+#: ../gui.glade.h:51
 msgid "Width"
 msgstr "Breite"
 
-#: ../gui.glade.h:77
+#: ../gui.glade.h:52
 msgid "Work around timing issues on Wacom tablets and Tablet PCs"
 msgstr "Workaround für Timing-Problem auf Wacom Tablets und Tablet PCs"
 
-#: ../gui.glade.h:78
+#: ../gui.glade.h:53
 msgid "_Add Action"
 msgstr "Aktion hinzufügen"
 
-#: ../gui.glade.h:79
+#: ../gui.glade.h:54
 msgid "_Add Exception"
 msgstr "Ausnahme hinzufügen"
 
-#: ../gui.glade.h:80
+#: ../gui.glade.h:55
 msgid "_Alt"
 msgstr "Alt"
 
-#: ../gui.glade.h:81
+#: ../gui.glade.h:56
 msgid "_Control"
 msgstr "Strg"
 
-#: ../gui.glade.h:82
+#: ../gui.glade.h:57
 msgid "_Default"
 msgstr "Standard"
 
-#: ../gui.glade.h:83
+#: ../gui.glade.h:58
 msgid "_Delete Action(s)"
 msgstr "Aktion(en) löschen"
 
-#: ../gui.glade.h:84
+#: ../gui.glade.h:59
 msgid "_Delete Current"
 msgstr "Geste löschen"
 
-#: ../gui.glade.h:85
+#: ../gui.glade.h:60
 msgid "_Gesture Button"
 msgstr "Gesten-Maustaste"
 
-#: ../gui.glade.h:86
+#: ../gui.glade.h:61
 msgid "_Hide"
 msgstr "Verstecken"
 
-#: ../gui.glade.h:87
+#: ../gui.glade.h:62
 msgid "_History"
 msgstr "Verlauf"
 
-#: ../gui.glade.h:88
+#: ../gui.glade.h:63
 msgid "_Matrix"
 msgstr "Matrix"
 
-#: ../gui.glade.h:89
+#: ../gui.glade.h:64
 msgid "_Record Stroke"
 msgstr "Geste aufnehmen"
 
-#: ../gui.glade.h:90
+#: ../gui.glade.h:65
 msgid "_Remove Exception"
 msgstr "Ausnahme Entfernen"
 
-#: ../gui.glade.h:91
+#: ../gui.glade.h:66
 msgid "_Shift"
 msgstr "Umschalt"
 
-#: ../gui.glade.h:92
+#: ../gui.glade.h:67
 msgid "gtk-add"
 msgstr "gtk-add"
 
-#: ../gui.glade.h:93
+#: ../gui.glade.h:68
 msgid "gtk-edit"
 msgstr "gtk-edit"
 
-#: ../gui.glade.h:94
+#: ../gui.glade.h:69
 msgid "gtk-remove"
 msgstr "gtk-remove"
 
-#: ../gui.glade.h:95
+#: ../gui.glade.h:70
 msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
 

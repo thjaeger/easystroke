@@ -94,7 +94,7 @@ private:
 
 	Gtk::EventBox *eventbox;
 	Gtk::ToggleButton *toggle_shift, *toggle_control, *toggle_alt, *toggle_super, *toggle_any;
-	Gtk::ComboBox *select_button;
+	Gtk::ComboBoxText *select_button;
 	Gtk::CheckButton *check_instant;
 	sigc::connection handler[2];
 };

@@ -25,15 +25,8 @@
 
 #include "var.h"
 
-enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater, TraceN };
-
-
-#define TO_OFF 0
-#define TO_CONSERVATIVE 1
-#define TO_MEDIUM 2
-#define TO_AGGRESSIVE 3
-#define TO_FLICK 4
-#define TO_CUSTOM 5
+enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater };
+enum TimeoutType { TimeoutOff, TimeoutConservative, TimeoutMedium, TimeoutAggressive, TimeoutFlick, TimeoutCustom };
 
 class ButtonInfo {
 	friend class boost::serialization::access;
@@ -125,7 +118,7 @@ public:
 	Source<bool> left_handed;
 	Source<int> init_timeout;
 	Source<int> min_speed;
-	Source<int> timeout_profile;
+	Source<TimeoutType> timeout_profile;
 	Source<bool> timeout_gestures;
 	Source<bool> tray_icon;
 	Source<std::set<std::string> > excluded_devices;

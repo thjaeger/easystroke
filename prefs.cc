@@ -89,21 +89,43 @@ public:
 	}
 };
 
-class Combo : private Base {
-	IO<int> &io;
-	Gtk::ComboBox *combo;
-	virtual void notify() { combo->set_active(io.get()); }
+template <class T> class Combo : private Base {
+public:
+	struct Info {
+		T value;
+		const char* name;
+	};
+private:
+	IO<T> &io;
+	const Info *info;
+	Gtk::ComboBoxText *combo;
+	virtual void notify() {
+		T value = io.get();
+		int i = 0;
+		while (info[i].name && info[i].value != value) i++;
+		combo->set_active(i);
+	}
 	void on_changed() {
-		int i = combo->get_active_row_number();
-		if (i < 0 || i == io.get()) return;
-		io.set(i);
+		int row = combo->get_active_row_number();
+		if (row < 0)
+			return;
+		T value = info[row].value;
+		if (value == io.get())
+			return;
+		io.set(value);
 	}
 public:
-	Combo(IO<int> &io_, const Glib::ustring &name) : io(io_) {
+	Combo(IO<T> &io_, const Glib::ustring &name, const Info *info_) : io(io_), info(info_) {
 		io.connect(this);
-		widgets->get_widget(name, combo);
+		Gtk::Bin *parent;
+		widgets->get_widget(name, parent);
+		combo = Gtk::manage(new Gtk::ComboBoxText);
+		parent->add(*combo);
+		for (const Info *i = info; i->name; i++)
+			combo->append_text(i->name);
 		notify();
 		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
+		combo->show();
 	}
 };
 
@@ -131,50 +153,38 @@ public:
 	}
 };
 
-bool and_(bool x, bool y) { return x && y; }
-bool is_custom(int profile) { return profile == TO_CUSTOM; }
-bool draw_line(TraceType t) { return t == TraceDefault || t == TraceShape; }
+static bool and_(bool x, bool y) { return x && y; }
+static bool is_custom(TimeoutType profile) { return profile == TimeoutCustom; }
+static bool draw_trace(TraceType t) { return t == TraceDefault || t == TraceShape; }
 
-#define TRACE_NONE 0
-#define TRACE_DEFAULT 1
-#define TRACE_SHAPE 2
-#define TRACE_ANNOTATE 3
-#define TRACE_FIRE 4
-#define TRACE_WATER 5
+const Combo<TraceType>::Info trace_info[] = {
+	{ TraceNone, _("None") },
+	{ TraceDefault, _("Default") },
+	{ TraceShape, _("XShape") },
+	{ TraceAnnotate, _("Annotate (compiz)") },
+	{ TraceFire, _("Fire (compiz)") },
+	{ TraceWater, _("Water (compiz)") },
+	{ TraceDefault, 0 }
+};
 
-int trace_to_int(TraceType t) {
-	switch (t) {
-		case TraceNone:
-			return TRACE_NONE;
-		case TraceShape:
-			return TRACE_SHAPE;
-		case TraceAnnotate:
-			return TRACE_ANNOTATE;
-		case TraceFire:
-			return TRACE_FIRE;
-		case TraceWater:
-			return TRACE_WATER;
-		default:
-			return TRACE_DEFAULT;
-	}
-}
+const Combo<TimeoutType>::Info timeout_info[] = {
+	{ TimeoutOff, _("Timeout Off") },
+	{ TimeoutConservative, _("Conservative") },
+	{ TimeoutMedium, _("Medium") },
+	{ TimeoutAggressive, _("Aggressive") },
+	{ TimeoutFlick, _("Flick") },
+	{ TimeoutConservative, 0 }
+};
 
-TraceType int_to_trace(int i) {
-	switch (i) {
-		case TRACE_NONE:
-			return TraceNone;
-		case TRACE_SHAPE:
-			return TraceShape;
-		case TRACE_ANNOTATE:
-			return TraceAnnotate;
-		case TRACE_FIRE:
-			return TraceFire;
-		case TRACE_WATER:
-			return TraceWater;
-		default:
-			return TraceDefault;
-	}
-}
+const Combo<TimeoutType>::Info timeout_info_exp[] = {
+	{ TimeoutOff, _("Timeout Off") },
+	{ TimeoutConservative, _("Conservative") },
+	{ TimeoutMedium, _("Medium") },
+	{ TimeoutAggressive, _("Aggressive") },
+	{ TimeoutFlick, _("Flick") },
+	{ TimeoutCustom, _("Custom") },
+	{ TimeoutConservative, 0 }
+};
 
 Source<bool> autostart_ok(true);
 
@@ -257,10 +267,10 @@ Prefs::Prefs() {
 	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
-	new Combo(*new Bijection<TraceType, int>(&trace_to_int, &int_to_trace, prefs.trace), "combo_trace");
+	new Combo<TraceType>(prefs.trace, "box_trace", trace_info);
 	new Color(prefs.color, "button_color");
 	new Spin(prefs.trace_width, "spin_trace_width");
-	new Combo(prefs.timeout_profile, "combo_timeout");
+	new Combo<TimeoutType>(prefs.timeout_profile, "box_timeout", experimental ? timeout_info_exp : timeout_info);
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
 
@@ -286,8 +296,8 @@ Prefs::Prefs() {
 	new Sensitive(*fun2(&and_, xinput_v, *fun(&is_custom, prefs.timeout_profile)), "hbox_timeout");
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
-	new Sensitive(*fun(&draw_line, prefs.trace), "button_color");
-	new Sensitive(*fun(&draw_line, prefs.trace), "spin_trace_width");
+	new Sensitive(*fun(&draw_trace, prefs.trace), "button_color");
+	new Sensitive(*fun(&draw_trace, prefs.trace), "spin_trace_width");
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
@@ -334,7 +344,6 @@ Prefs::Prefs() {
 		hbox->hide();
 	       	widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
-		remove_last_entry("combo_timeout");
 	}
 	set_button_label();
 
@@ -442,8 +451,17 @@ SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	widgets->get_widget("toggle_control", toggle_control);
 	widgets->get_widget("toggle_super", toggle_super);
 	widgets->get_widget("toggle_any", toggle_any);
-	widgets->get_widget("select_button", select_button);
 	widgets->get_widget("check_instant", check_instant);
+	Gtk::Bin *box_button;
+	widgets->get_widget("box_button", box_button);
+	select_button = dynamic_cast<Gtk::ComboBoxText *>(box_button->get_child());
+	if (!select_button) {
+		select_button = Gtk::manage(new Gtk::ComboBoxText);
+		box_button->add(*select_button);
+		for (int i = 1; i <= 12; i++)
+			select_button->append_text(Glib::ustring::compose(_("Button %1"), i));
+		select_button->show();
+	}
 	select_button->set_active(bi.button-1);
 	toggle_shift->set_active(bi.button && (bi.state & GDK_SHIFT_MASK));
 	toggle_control->set_active(bi.button && (bi.state & GDK_CONTROL_MASK));

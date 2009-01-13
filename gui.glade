@@ -416,14 +416,11 @@
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkComboBox" id="combo_timeout">
+                              <widget class="GtkEventBox" id="box_timeout">
                                 <property name="visible">True</property>
-                                <property name="items" translatable="yes">Timeout Off
-Conservative
-Medium
-Aggressive
-Flick
-Custom</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
                               </widget>
                               <packing>
                                 <property name="expand">False</property>
@@ -537,7 +534,7 @@ Custom</property>
                         <property name="visible">True</property>
                         <property name="spacing">6</property>
                         <child>
-                          <widget class="GtkHBox" id="hbox7">
+                          <widget class="GtkHBox" id="hbox_trace">
                             <property name="visible">True</property>
                             <property name="spacing">6</property>
                             <child>
@@ -550,17 +547,15 @@ Custom</property>
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkComboBox" id="combo_trace">
+                              <widget class="GtkEventBox" id="box_trace">
                                 <property name="visible">True</property>
-                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="items" translatable="yes">None
-Default
-Shape
-Annotate (compiz)
-Fire (compiz)
-Water (compiz)</property>
+                                <child>
+                                  <placeholder/>
+                                </child>
                               </widget>
                               <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
                                 <property name="position">1</property>
                               </packing>
                             </child>
@@ -1552,27 +1547,17 @@ Please place your mouse or pen in the box below and press the button that you wa
               </packing>
             </child>
             <child>
-              <widget class="GtkComboBox" id="select_button">
+              <widget class="GtkEventBox" id="box_button">
                 <property name="visible">True</property>
-                <property name="items" translatable="yes">Button 1
-Button 2
-Button 3
-Button 4
-Button 5
-Button 6
-Button 7
-Button 8
-Button 9
-Button 10
-Button 11
-Button 12</property>
+                <child>
+                  <placeholder/>
+                </child>
               </widget>
               <packing>
                 <property name="left_attach">2</property>
                 <property name="right_attach">3</property>
                 <property name="top_attach">1</property>
                 <property name="bottom_attach">2</property>
-                <property name="x_options">GTK_EXPAND</property>
               </packing>
             </child>
           </widget>
