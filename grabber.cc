@@ -345,9 +345,14 @@ bool Grabber::update_device_list() {
 		DeviceButtonMotion(xi_dev->dev, event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
 		DeviceMotionNotify(xi_dev->dev, event_type[MOTION], xi_dev->events[MOTION]);
 
-		ProximityIn(xi_dev->dev, event_type[PROX_IN], xi_dev->events[PROX_IN]);
-		ProximityOut(xi_dev->dev, event_type[PROX_OUT], xi_dev->events[PROX_OUT]);
+		int prox_in, prox_out;
+		ProximityIn(xi_dev->dev, prox_in, xi_dev->events[PROX_IN]);
+		ProximityOut(xi_dev->dev, prox_out, xi_dev->events[PROX_OUT]);
 		xi_dev->supports_proximity = xi_dev->events[PROX_IN] && xi_dev->events[PROX_OUT];
+		if (xi_dev->supports_proximity) {
+			event_type[PROX_IN] = prox_in;
+			event_type[PROX_OUT] = prox_out;
+		}
 		xi_dev->all_events_n = xi_dev->supports_proximity ? 6 : 4;
 
 		xi_devs[xi_devs_n++] = xi_dev;
