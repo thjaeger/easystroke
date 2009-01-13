@@ -73,11 +73,11 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	ctx->restore();
 	Glib::ustring str;
 	if (trigger)
-		str = Glib::ustring::format(trigger) + "\xE2\x86\x92";
+		str = Glib::ustring::compose("%1\xE2\x86\x92", trigger);
 	if (timeout)
 		str += "x";
 	if (button)
-		str += Glib::ustring::format(button);
+		str += Glib::ustring::compose("%1", button);
 	if (str == "")
 		return;
 	ctx->set_source_rgba(1, 0, 0, 0.8);

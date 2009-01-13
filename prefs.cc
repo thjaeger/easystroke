@@ -122,7 +122,7 @@ public:
 		combo = Gtk::manage(new Gtk::ComboBoxText);
 		parent->add(*combo);
 		for (const Info *i = info; i->name; i++)
-			combo->append_text(i->name);
+			combo->append_text(_(i->name));
 		notify();
 		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
 		combo->show();
@@ -158,31 +158,31 @@ static bool is_custom(TimeoutType profile) { return profile == TimeoutCustom; }
 static bool draw_trace(TraceType t) { return t == TraceDefault || t == TraceShape; }
 
 const Combo<TraceType>::Info trace_info[] = {
-	{ TraceNone, _("None") },
-	{ TraceDefault, _("Default") },
-	{ TraceShape, _("XShape") },
-	{ TraceAnnotate, _("Annotate (compiz)") },
-	{ TraceFire, _("Fire (compiz)") },
-	{ TraceWater, _("Water (compiz)") },
+	{ TraceNone, N_("None") },
+	{ TraceDefault, N_("Default") },
+	{ TraceShape, N_("XShape") },
+	{ TraceAnnotate, N_("Annotate (compiz)") },
+	{ TraceFire, N_("Fire (compiz)") },
+	{ TraceWater, N_("Water (compiz)") },
 	{ TraceDefault, 0 }
 };
 
 const Combo<TimeoutType>::Info timeout_info[] = {
-	{ TimeoutOff, _("Timeout Off") },
-	{ TimeoutConservative, _("Conservative") },
-	{ TimeoutMedium, _("Medium") },
-	{ TimeoutAggressive, _("Aggressive") },
-	{ TimeoutFlick, _("Flick") },
+	{ TimeoutOff, N_("Timeout Off") },
+	{ TimeoutConservative, N_("Conservative") },
+	{ TimeoutMedium, N_("Medium") },
+	{ TimeoutAggressive, N_("Aggressive") },
+	{ TimeoutFlick, N_("Flick") },
 	{ TimeoutConservative, 0 }
 };
 
 const Combo<TimeoutType>::Info timeout_info_exp[] = {
-	{ TimeoutOff, _("Timeout Off") },
-	{ TimeoutConservative, _("Conservative") },
-	{ TimeoutMedium, _("Medium") },
-	{ TimeoutAggressive, _("Aggressive") },
-	{ TimeoutFlick, _("Flick") },
-	{ TimeoutCustom, _("Custom") },
+	{ TimeoutOff, N_("Timeout Off") },
+	{ TimeoutConservative, N_("Conservative") },
+	{ TimeoutMedium, N_("Medium") },
+	{ TimeoutAggressive, N_("Aggressive") },
+	{ TimeoutFlick, N_("Flick") },
+	{ TimeoutCustom, N_("Custom") },
 	{ TimeoutConservative, 0 }
 };
 
