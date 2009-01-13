@@ -365,13 +365,20 @@ void remap_grabs(const std::map<guint, guint> &map) {
 			++j2;
 			continue;
 		}
-		if (j1->second != j2->second) {
+		if (j1->second != j2->second && xinput_pressed.count(j1->first)) {
 			if (j1->second)
 				to_release.insert(j1->second);
 			if (j2->second)
 				to_press.insert(j2->second);
 		}
 		++j1; ++j2;
+	}
+	for (std::set<guint>::iterator i = to_press.begin(); i != to_press.end(); ++i) {
+		// If we intend to remap a button that stays grabbed, we need to temporarily ungrab
+		if (pointer_map.count(*i) && map.count(*i)) {
+			to_ungrab.insert(*i);
+			to_grab.insert(*i);
+		}
 	}
 	pointer_map = map;
 	for (std::set<guint>::iterator i = to_release.begin(); i != to_release.end(); ++i) {
@@ -713,12 +720,9 @@ public:
 	virtual void init() {
 		press(button2 ? button2 : button1, e);
 	}
-	virtual void press_core(guint b, Time t, bool xi) {
-		replay(t);
-		if (!xi_15)
-			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
-	}
 	virtual void press(guint b, RTriple e) {
+		if (!xi_15 && pointer_map.count(b))
+			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		click_time = 0;
 		int bb = (b == button1) ? button2 : b;
 		show_ranking(bb, e);
