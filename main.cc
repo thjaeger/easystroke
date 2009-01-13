@@ -210,6 +210,10 @@ public:
 		if (!in_proximity)
 			proximity_out();
 	}
+	virtual void press(guint b, RTriple e) {
+		if (!grabber->xinput)
+			press_core(b, e->t, false);
+	}
 	virtual void proximity_out() {
 		parent->replace_child(0);
 	}
@@ -1008,7 +1012,6 @@ protected:
 			parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
 		} else {
 			printf(_("Error: You need XInput to use advanced gestures\n"));
-			discard(press_t);
 			parent->replace_child(NULL);
 		}
 	}
@@ -1034,9 +1037,12 @@ protected:
 		else
 			XBell(dpy, 0);
 		if (IS_CLICK(act)) {
-			replay(press_t);
+			if (!grabber->xinput)
+				act = Button::create((Gdk::ModifierType)0, b);
+			if (press_t)
+				replay(press_t);
 		} else {
-			if (grabber->xinput)
+			if (press_t)
 				discard(press_t);
 		}
 		if (IS_IGNORE(act)) {
