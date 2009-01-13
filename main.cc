@@ -417,7 +417,7 @@ static void remap_pointer() {
 		printf("Warning: remapping buttons failed, retrying...\n");
 		grabber->release_all(n);
 		XSync(dpy, False);
-		usleep(50);
+		usleep(1000);
 	}
 	mapping_events++;
 }
@@ -485,10 +485,21 @@ void Handler::remap(const std::map<guint, guint> &map) {
 				current_dev->fake_button(last, false);
 			}
 
+	if (verbosity >= 3) {
+		printf("remapping: ");
+		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i) {
+			std::map<guint, guint>::const_iterator j = map.find(*i);
+			printf("%d -> %d, ", *i, j != map.end() ? j->second : -*i);
+		}
+		printf("\n");
+	}
+
 	remap_pointer();
-#ifndef SERVER16_BUTTON_MAPPING_PATCH
-	if (!current_dev)
+	if (!current_dev) {
+		printf("Warning: remapping buttons, but no current device\n");
 		return;
+	}
+#ifndef SERVER16_BUTTON_MAPPING_PATCH
 	XDevice *dev = current_dev->dev;
 	{
 		int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
@@ -962,15 +973,18 @@ protected:
 			replay(press_t);
 			press_t = 0;
 		}
-		if (!xi)
+		if (!xi) {
 			replay(t);
+			return;
+		}
 		// At this point we already have an xi press, so we are
 		// guarenteed to either get another press or a release.
 		press_t = t;
 	}
 	virtual void pressure() {
 		trace->end();
-		replay(press_t);
+		if (press_t)
+			replay(press_t);
 		parent->replace_child(0);
 	}
 	virtual void motion(RTriple e) {
