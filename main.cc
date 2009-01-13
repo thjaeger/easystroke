@@ -693,8 +693,10 @@ class AdvancedHandler : public Handler {
 				// TODO: Figure this out
 				if (i->first)
 					map[i->first] = 0;
-				else
-					map[b1] = 0;
+			if (b1)
+				map[b1] = 0;
+			if (b2)
+				map[b2] = 0;
 		}
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, Time press_t) {
