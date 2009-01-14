@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-14 10:55-0500\n"
-"PO-Revision-Date: 2009-01-14 10:56-0500\n"
+"POT-Creation-Date: 2009-01-14 12:03-0500\n"
+"PO-Revision-Date: 2009-01-14 12:35-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -130,15 +130,15 @@ msgstr[1] "Aktionen löschen"
 
 #: ../actions.cc:482
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
-msgstr "Wenn Sie fortfahren, werden %1 \"%2\" (mitsamt %3 %4) gelöscht."
+msgstr "Wenn Sie fortfahren, wird %1 \"%2\" (mitsamt %3 %4) gelöscht."
 
 #: ../actions.cc:483
 msgid "The application"
-msgstr "Die Anwendung"
+msgstr "die Anwendung"
 
 #: ../actions.cc:483
 msgid "The group"
-msgstr "Die Gruppe"
+msgstr "die Gruppe"
 
 #: ../actions.cc:486
 msgid "action"
