@@ -662,6 +662,9 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
+// Hack so that we don't have to move stuff around so much
+bool mods_equal(RModifiers m1, RModifiers m2);
+
 class AdvancedStrokeActionHandler : public Handler {
 	RStroke s;
 public:
@@ -780,9 +783,12 @@ public:
 		}
 		remap(map);
 		mods[b] = act->prepare();
-		if (IS_KEY(act))
-			sticky_mods = mods[b];
-		else
+		if (IS_KEY(act)) {
+			if (mods_equal(sticky_mods, mods[b]))
+				mods[b] = sticky_mods;
+			else
+				sticky_mods = mods[b];
+		} else
 			sticky_mods.reset();
 		act->run();
 	}
@@ -1841,6 +1847,9 @@ public:
 		all.insert(this);
 		update_mods();
 	}
+	bool operator==(const Modifiers &m) {
+		return mods == m.mods && str == m.str;
+	}
 	virtual void timeout() {
 		osd = new OSD(str);
 	}
@@ -1854,6 +1863,16 @@ std::set<Modifiers *> Modifiers::all;
 
 RModifiers ModAction::prepare() {
 	return RModifiers(new Modifiers(mods, get_label()));
+}
+
+RModifiers SendKey::prepare() {
+	if (!mods)
+		return RModifiers();
+	return RModifiers(new Modifiers(mods, ModAction::get_label()));
+}
+
+bool mods_equal(RModifiers m1, RModifiers m2) {
+	return m1 && m2 && *m1 == *m2;
 }
 
 void Misc::run() {

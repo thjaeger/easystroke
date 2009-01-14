@@ -99,6 +99,7 @@ public:
 	}
 
 	virtual void run();
+	virtual RModifiers prepare();
 	virtual const Glib::ustring get_label() const;
 };
 BOOST_CLASS_VERSION(SendKey, 1)
