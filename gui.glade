@@ -1819,9 +1819,9 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="yalign">0</property>
-                <property name="label" translatable="yes">&lt;span weight="bold" size="larger"&gt;Delete %s&lt;/span&gt;
+                <property name="label">&lt;span weight="bold" size="larger"&gt;%s&lt;/span&gt;
 
-%s about to be deleted.</property>
+%s</property>
                 <property name="use_markup">True</property>
                 <property name="wrap">True</property>
               </widget>

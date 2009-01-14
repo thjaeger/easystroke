@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-13 19:13-0500\n"
-"PO-Revision-Date: 2009-01-13 19:14-0500\n"
+"POT-Creation-Date: 2009-01-13 19:39-0500\n"
+"PO-Revision-Date: 2009-01-13 19:39-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -76,11 +76,11 @@ msgstr "Taste"
 msgid "Command"
 msgstr "Befehl"
 
-#: ../actions.cc:164 ../actions.cc:912
+#: ../actions.cc:164 ../actions.cc:914
 msgid "Scroll"
 msgstr "Scrollen"
 
-#: ../actions.cc:165 ../actions.cc:919
+#: ../actions.cc:165 ../actions.cc:921
 msgid "Ignore"
 msgstr "Ignorieren"
 
@@ -113,50 +113,52 @@ msgid "Application"
 msgstr "Anwendung"
 
 #: ../actions.cc:435
-msgid "Action \"%1\" is"
-msgstr "wird die Aktion \"%1\""
+msgid "Action \"%1\" is about to be deleted."
+msgstr "Wenn Sie fortfahren, wird die Aktion \"%1\" gelöscht."
 
 #: ../actions.cc:437
-msgid "One action is"
-msgid_plural "%1 actions are"
-msgstr[0] "Eine Aktion ist"
-msgstr[1] "%1 Aktionen sind"
+msgid "One action is about to be deleted."
+msgid_plural "%1 actions are about to be deleted"
+msgstr[0] "Wenn Sie fortfahren, wird eine Aktion gelöscht."
+msgstr[1] "Wenn Sie fortfahren, werden %1 Aktionen gelöscht."
 
-#: ../actions.cc:441
-msgid "an Action"
-msgstr "eine Aktion"
-
-#: ../actions.cc:481
-msgid "%1 \"%2\" (containing %3 %4) is"
-msgstr "werden %1 \"%2\" (mitsamt %3 %4)"
+#: ../actions.cc:442
+msgid "Delete an Action"
+msgid_plural "Delete Actions"
+msgstr[0] "Eine Aktion löschen"
+msgstr[1] "Aktionen löschen"
 
 #: ../actions.cc:482
+msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
+msgstr "Wenn Sie fortfahren, werden %1 \"%2\" (mitsamt %3 %4) gelöscht."
+
+#: ../actions.cc:483
 msgid "The application"
 msgstr "Die Anwendung"
 
-#: ../actions.cc:482
+#: ../actions.cc:483
 msgid "The group"
 msgstr "Die Gruppe"
 
-#: ../actions.cc:485
+#: ../actions.cc:486
 msgid "action"
 msgid_plural "actions"
 msgstr[0] "Aktion"
 msgstr[1] "Aktionen"
 
-#: ../actions.cc:486
-msgid "an Application"
-msgstr "eine Anwendung"
+#: ../actions.cc:488
+msgid "Delete an Application"
+msgstr "Eine Anwendung löschen"
 
-#: ../actions.cc:486
-msgid "an Application Group"
-msgstr "eine Anwendungsgruppe"
+#: ../actions.cc:488
+msgid "Delete an Application Group"
+msgstr "Eine Anwendungsgruppe löschen"
 
-#: ../actions.cc:551
+#: ../actions.cc:553
 msgid "Group"
 msgstr "Gruppe"
 
-#: ../actions.cc:643
+#: ../actions.cc:645
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
@@ -165,27 +167,27 @@ msgstr ""
 "Schwierigkeiten bereiten, Maustaste %1 zu benutzen.  Sind Sie sich sicher, "
 "dass Sie fortfahren möchten?"
 
-#: ../actions.cc:762
+#: ../actions.cc:764
 msgid "Gesture %1"
 msgstr "Geste %1"
 
-#: ../actions.cc:892
+#: ../actions.cc:894
 msgid "No Modifiers"
 msgstr "Keine Modifier"
 
-#: ../actions.cc:900
+#: ../actions.cc:902
 msgid "(Instantly) "
 msgstr "(Sofort) "
 
-#: ../actions.cc:902
+#: ../actions.cc:904
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:905 ../prefs.cc:462
+#: ../actions.cc:907 ../prefs.cc:462
 msgid "Button %1"
 msgstr "Maustaste %1"
 
-#: ../actions.cc:910
+#: ../actions.cc:912
 msgid " + Scroll"
 msgstr " + Scrollen"
 
@@ -413,17 +415,6 @@ msgstr "<b>Tablet-Optionen</b>"
 #: ../gui.glade.h:9
 #, no-c-format
 msgid ""
-"<span weight=\"bold\" size=\"larger\">Delete %s</span>\n"
-"\n"
-"%s about to be deleted."
-msgstr ""
-"<span weight=\"bold\" size=\"larger\">Lösche %s</span>\n"
-"\n"
-"Wenn Sie fortfahren, %s gelöscht."
-
-#: ../gui.glade.h:13
-#, no-c-format
-msgid ""
 "<span weight=\"bold\" size=\"larger\">Record a New Stroke</span>\n"
 "\n"
 "The next stroke will be associated with the action \"%s\".  You can draw it "
@@ -435,7 +426,7 @@ msgstr ""
 "beliebiger Position auf dem Bildschirm (mit Ausnahme der beiden "
 "Schaltflächen) erstellen."
 
-#: ../gui.glade.h:16
+#: ../gui.glade.h:12
 msgid ""
 "<span weight=\"bold\" size=\"larger\">Select a Mouse or Pen Button</span>\n"
 "\n"
@@ -448,129 +439,129 @@ msgstr ""
 "Drücken Sie auf die entsprechende Taste, während sich der Mauszeiger in der "
 "Box befindet.  Sie können auch zusätzlich Modifier drücken."
 
-#: ../gui.glade.h:19
+#: ../gui.glade.h:15
 msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
 msgstr "Breche Gesten ab folgendem Druck ab (von 255)"
 
-#: ../gui.glade.h:20
+#: ../gui.glade.h:16
 msgid "Accept gestures when menus are shown (experimental)"
 msgstr "Akzeptiere Gesten während Menüs angezeigt werden (experimentell)"
 
-#: ../gui.glade.h:21
+#: ../gui.glade.h:17
 msgid "Actions"
 msgstr "Aktionen"
 
-#: ../gui.glade.h:22
+#: ../gui.glade.h:18
 msgid "Add Application"
 msgstr "Anwendung hinzufügen"
 
-#: ../gui.glade.h:23
+#: ../gui.glade.h:19
 msgid "Add Group"
 msgstr "Gruppe hinzufügen"
 
-#: ../gui.glade.h:24
+#: ../gui.glade.h:20
 msgid "Additional Buttons"
 msgstr "Zusätzliche Maustasten"
 
-#: ../gui.glade.h:25
+#: ../gui.glade.h:21
 msgid "Advanced"
 msgstr "Fortgeschritten"
 
-#: ../gui.glade.h:26
+#: ../gui.glade.h:22
 msgid "Algorithm    "
 msgstr "Algorithmus    "
 
-#: ../gui.glade.h:27
+#: ../gui.glade.h:23
 msgid "Alternatively, you may select button and modifiers below."
 msgstr "Alternativ können sie Maustaste und Modifiers weiter unten auswählen."
 
-#: ../gui.glade.h:28
+#: ../gui.glade.h:24
 msgid "An_y Modifier"
 msgstr "Beliebiger Modifier"
 
-#: ../gui.glade.h:29
+#: ../gui.glade.h:25
 msgid "Applications"
 msgstr "Anwendungen"
 
-#: ../gui.glade.h:30
+#: ../gui.glade.h:26
 msgid "Autostart easystroke"
 msgstr "Automatisch starten"
 
-#: ../gui.glade.h:31
+#: ../gui.glade.h:27
 msgid "Color"
 msgstr "Farbe"
 
-#: ../gui.glade.h:32
+#: ../gui.glade.h:28
 msgid "Direction"
 msgstr "Richtung"
 
-#: ../gui.glade.h:33
+#: ../gui.glade.h:29
 msgid "Ignore strokes leading up to advanced gestures"
 msgstr "Ignoriere die Mausbewegung bei Advanced Gestures"
 
-#: ../gui.glade.h:34
+#: ../gui.glade.h:30
 msgid "Instant Gestures"
 msgstr "Sofortige Gesten"
 
-#: ../gui.glade.h:35
+#: ../gui.glade.h:31
 msgid "Method to show gestures"
 msgstr "Methode zum Anzeigen der Gesten"
 
-#: ../gui.glade.h:36
+#: ../gui.glade.h:32
 msgid "Minimum speed (px/s)"
 msgstr "Minimalgeschwindigkeit (px/s)"
 
-#: ../gui.glade.h:37
+#: ../gui.glade.h:33
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: ../gui.glade.h:38
+#: ../gui.glade.h:34
 msgid "Remove Application/Group"
 msgstr "Entferne Anwendung/Gruppe"
 
-#: ../gui.glade.h:39
+#: ../gui.glade.h:35
 msgid "Reset Action(s)"
 msgstr "Aktion(en) zurücksetzen"
 
-#: ../gui.glade.h:40
+#: ../gui.glade.h:36
 msgid "S_uper"
 msgstr "Super"
 
-#: ../gui.glade.h:41
+#: ../gui.glade.h:37
 msgid "Shape"
 msgstr "Form"
 
-#: ../gui.glade.h:42
+#: ../gui.glade.h:38
 msgid "Show deleted rows"
 msgstr "Zeige gelöschte Zeilen"
 
-#: ../gui.glade.h:43
+#: ../gui.glade.h:39
 msgid "Show popups ("
 msgstr "Popus anzeigen ("
 
-#: ../gui.glade.h:44
+#: ../gui.glade.h:40
 msgid "Show popups on advanced gestures"
 msgstr "Popups bei Advanced Gestures anzeigen"
 
-#: ../gui.glade.h:45
+#: ../gui.glade.h:41
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
 
-#: ../gui.glade.h:46
+#: ../gui.glade.h:42
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Bleibe im 'Scrollen' oder 'Ignorieren' Modus solange der Stift in Reichweite "
 "ist"
 
-#: ../gui.glade.h:47
+#: ../gui.glade.h:43
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
 
-#: ../gui.glade.h:48
+#: ../gui.glade.h:44
 msgid "Timeout profile"
 msgstr "Timeout-Profil"
 
-#: ../gui.glade.h:49
+#: ../gui.glade.h:45
 msgid ""
 "Treat it as a click if the cursor isn't moved more \n"
 "than this many pixels away from the original position"
@@ -578,83 +569,83 @@ msgstr ""
 "Behandle Gesten, die kleiner als die angegebene \n"
 "Größe sind (in Pixeln), als Klicks"
 
-#: ../gui.glade.h:51
+#: ../gui.glade.h:47
 msgid "Width"
 msgstr "Breite"
 
-#: ../gui.glade.h:52
+#: ../gui.glade.h:48
 msgid "Work around timing issues on Wacom tablets and Tablet PCs"
 msgstr "Workaround für Timing-Problem auf Wacom Tablets und Tablet PCs"
 
-#: ../gui.glade.h:53
+#: ../gui.glade.h:49
 msgid "_Add Action"
 msgstr "Aktion hinzufügen"
 
-#: ../gui.glade.h:54
+#: ../gui.glade.h:50
 msgid "_Add Exception"
 msgstr "Ausnahme hinzufügen"
 
-#: ../gui.glade.h:55
+#: ../gui.glade.h:51
 msgid "_Alt"
 msgstr "Alt"
 
-#: ../gui.glade.h:56
+#: ../gui.glade.h:52
 msgid "_Control"
 msgstr "Strg"
 
-#: ../gui.glade.h:57
+#: ../gui.glade.h:53
 msgid "_Default"
 msgstr "Standard"
 
-#: ../gui.glade.h:58
+#: ../gui.glade.h:54
 msgid "_Delete Action(s)"
 msgstr "Aktion(en) löschen"
 
-#: ../gui.glade.h:59
+#: ../gui.glade.h:55
 msgid "_Delete Current"
 msgstr "Geste löschen"
 
-#: ../gui.glade.h:60
+#: ../gui.glade.h:56
 msgid "_Gesture Button"
 msgstr "Gesten-Maustaste"
 
-#: ../gui.glade.h:61
+#: ../gui.glade.h:57
 msgid "_Hide"
 msgstr "Verstecken"
 
-#: ../gui.glade.h:62
+#: ../gui.glade.h:58
 msgid "_History"
 msgstr "Verlauf"
 
-#: ../gui.glade.h:63
+#: ../gui.glade.h:59
 msgid "_Matrix"
 msgstr "Matrix"
 
-#: ../gui.glade.h:64
+#: ../gui.glade.h:60
 msgid "_Record Stroke"
 msgstr "Geste aufnehmen"
 
-#: ../gui.glade.h:65
+#: ../gui.glade.h:61
 msgid "_Remove Exception"
 msgstr "Ausnahme Entfernen"
 
-#: ../gui.glade.h:66
+#: ../gui.glade.h:62
 msgid "_Shift"
 msgstr "Umschalt"
 
-#: ../gui.glade.h:67
+#: ../gui.glade.h:63
 msgid "gtk-add"
 msgstr "gtk-add"
 
-#: ../gui.glade.h:68
+#: ../gui.glade.h:64
 msgid "gtk-edit"
 msgstr "gtk-edit"
 
-#: ../gui.glade.h:69
+#: ../gui.glade.h:65
 msgid "gtk-remove"
 msgstr "gtk-remove"
 
-#: ../gui.glade.h:70
+#: ../gui.glade.h:66
 msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
 
@@ -665,4 +656,3 @@ msgstr "Den Computer mit Mausgesten bedienen"
 #: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke Gestenerkennung"
-

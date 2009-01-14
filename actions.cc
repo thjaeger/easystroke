@@ -432,13 +432,14 @@ void Actions::on_button_delete() {
 
 	Glib::ustring str;
 	if (n == 1)
-		str = Glib::ustring::compose(_("Action \"%1\" is"), get_selected_row()[cols.name]);
+		str = Glib::ustring::compose(_("Action \"%1\" is about to be deleted."), get_selected_row()[cols.name]);
 	else
-		str = Glib::ustring::compose(ngettext("One action is","%1 actions are", n), n);
+		str = Glib::ustring::compose(ngettext("One action is about to be deleted.",
+					"%1 actions are about to be deleted", n), n);
 
 	Gtk::Dialog *dialog;
 	widgets->get_widget("dialog_delete", dialog);
-	FormatLabel foo(widgets, "label_delete", _("an Action"), str.c_str());
+	FormatLabel foo(widgets, "label_delete", ngettext("Delete an Action", "Delete Actions", n), str.c_str());
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_delete", del);
 
@@ -478,12 +479,13 @@ void Actions::on_remove_app() {
 	if (size) {
 		Gtk::Dialog *dialog;
 		widgets->get_widget("dialog_delete", dialog);
-		Glib::ustring str = Glib::ustring::compose(_("%1 \"%2\" (containing %3 %4) is"),
+		Glib::ustring str = Glib::ustring::compose(_("%1 \"%2\" (containing %3 %4) is about to be deleted."),
 				action_list->app ? _("The application") : _("The group"),
 				action_list->name,
 				size,
 				ngettext("action", "actions", size));
-		FormatLabel foo(widgets, "label_delete", action_list->app ? _("an Application") : _("an Application Group"),
+		FormatLabel foo(widgets, "label_delete",
+				action_list->app ? _("Delete an Application") : _("Delete an Application Group"),
 				str.c_str());
 		Gtk::Button *del;
 		widgets->get_widget("button_delete_delete", del);
