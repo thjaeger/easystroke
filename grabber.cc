@@ -363,9 +363,9 @@ bool Grabber::update_device_list() {
 		xi_dev->update_pointer_mapping();
 
 		if (verbosity >= 1)
-			printf(_("Opened Device \"%s\" (%s, %s proximity).\n"), dev->name,
-					xi_dev->absolute ? _("absolute") : _("relative"),
-					xi_dev->supports_proximity ? _("supports") : _("does not support"));
+			printf("Opened Device \"%s\" (%s, %s proximity).\n", dev->name,
+					xi_dev->absolute ? "absolute" : "relative",
+					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 	XFreeDeviceList(devs);
 	proximity_selected = false;
@@ -714,6 +714,6 @@ Window get_app_window(Window &w) {
 		return w2;
 	}
 	if (verbosity >= 1)
-		printf(_("Window 0x%lx does not have an associated top-level window\n"), w);
+		printf("Window 0x%lx does not have an associated top-level window\n", w);
 	return w;
 }

@@ -326,7 +326,7 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 			printf("Executing Action %s\n", r.name.c_str());
 	} else {
 		if (verbosity >= 1)
-			printf(_("Couldn't find matching stroke.\n"));
+			printf("Couldn't find matching stroke.\n");
 	}
 	return r.action;
 }

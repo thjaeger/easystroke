@@ -78,7 +78,7 @@ Trace *trace_composite() {
 		return new Composite();
 	} catch (std::exception &e) {
 		if (verbosity >= 1)
-			printf(_("Falling back to Shape method: %s\n"), e.what());
+			printf("Falling back to Shape method: %s\n", e.what());
 		return new Shape();
 	}
 }
@@ -325,7 +325,7 @@ class WaitForPongHandler : public Handler, protected Timeout {
 public:
 	WaitForPongHandler() { set_timeout(100); }
 	virtual void timeout() {
-		printf(_("Warning: %s timed out\n"), "WaitForPongHandler");
+		printf("Warning: %s timed out\n", "WaitForPongHandler");
 		bail_out();
 	}
 	virtual void pong() { parent->replace_child(NULL); }
