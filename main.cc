@@ -310,55 +310,28 @@ void ping() {
 	XSendEvent(dpy, ping_window, False, 0, (XEvent *)&ev);
 }
 
-class WaitForButtonHandler : public Handler, protected Timeout {
-	guint button;
-	bool down;
-public:
-	WaitForButtonHandler(guint b, bool d) : button(b), down(d) {
-		set_timeout(100);
-	}
-	virtual void timeout() {
-		printf(_("Warning: %s timed out\n"), "WaitForButtonHandler");
-		bail_out();
-	}
-	virtual void press(guint b, RTriple e) {
-		if (!down)
-			return;
-		if (b == button)
-			parent->replace_child(0);
-	}
-	virtual void release(guint b, RTriple e) {
-		if (down)
-			return;
-		if (b == button)
-			parent->replace_child(0);
-	}
-	virtual std::string name() { return "WaitForButton"; }
-	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
-};
+static XAtom EASYSTROKE_ENSURE_DOWN("EASYSTROKE_ENSURE_DOWN");
+void ensure_down(guint b) {
+	XClientMessageEvent ev;
+	ev.type = ClientMessage;
+	ev.window = ping_window;
+	ev.message_type = *EASYSTROKE_ENSURE_DOWN;
+	ev.format = 32;
+	ev.data.l[0] = b;
+	XSendEvent(dpy, ping_window, False, 0, (XEvent *)&ev);
+}
 
-class RemapHandler : public Handler, protected Timeout {
-	std::set<guint> release_set;
+class WaitForPongHandler : public Handler, protected Timeout {
 public:
-	RemapHandler(std::set<guint> &rs) : release_set(rs) { set_timeout(100); }
+	WaitForPongHandler() { set_timeout(100); }
 	virtual void timeout() {
-		printf(_("Warning: %s timed out\n"), "RemapHandler");
+		printf(_("Warning: %s timed out\n"), "WaitForPongHandler");
 		bail_out();
-	}
-	virtual void release(guint b, RTriple e) {
-		if (release_set.count(b))
-			release_set.erase(b);
-		else {
-			if (verbosity >= 3)
-				printf("queuing release of button %d\n", b);
-			current_dev->fake_button(b, false);
-		}
 	}
 	virtual void pong() { parent->replace_child(NULL); }
-	virtual std::string name() { return "Remap"; }
+	virtual std::string name() { return "WaitForPong"; }
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
-
 
 std::map<guint, guint> pointer_map;
 
@@ -513,11 +486,7 @@ void Handler::remap(const std::map<guint, guint> &map) {
 	if (current_dev)
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
 			if (xinput_pressed.count(*i)) {
-				// Sweet trick.  The button should be pressed at this point, so this
-				// is usually a no-op.  But if the user released the button in the
-				// meantime, we get additional events.  If that's the case, the we
-				// resend the release event so that everything is in a consistent state
-				current_dev->fake_button(*i, true);
+				ensure_down(*i);
 				current_dev->fake_button(*i, false);
 				buttons.insert(*i);
 			}
@@ -557,7 +526,7 @@ void Handler::remap(const std::map<guint, guint> &map) {
 		for (std::set<guint>::iterator i = buttons.begin(); i != buttons.end(); ++i)
 			current_dev->fake_button(*i, true);
 		ping();
-		replace_child(new RemapHandler(buttons));
+		replace_child(new WaitForPongHandler);
 	}
 }
 
@@ -825,13 +794,9 @@ public:
 			if (e->t < click_time + 250 && b == replay_button) {
 				sticky_mods.reset();
 				mods.clear();
-				if (xi_15) {
-					current_dev->fake_button(b, true);
-					current_dev->fake_button(b, false);
-					h = new WaitForButtonHandler(b, false);
-				} else {
-					fake_click(b);
-				}
+				fake_click(b);
+				ping();
+				h = new WaitForPongHandler;
 			}
 			parent->replace_child(h);
 			return;
@@ -1161,8 +1126,10 @@ protected:
 			if (verbosity >= 2)
 				printf("Using wacom workaround\n");
 			for (int i = 1; i < 32; i++)
-				if (state & (1 << i))
+				if (state & (1 << i)) {
+					ensure_down(i);
 					dev->fake_button(i, false);
+				}
 			for (int i = 31; i; i--)
 				if (state & (1 << i))
 					dev->fake_button(i, true);
@@ -1646,9 +1613,23 @@ void Main::handle_event(XEvent &ev) {
 		return;
 
 	case ClientMessage:
-		if (ev.xclient.window == ping_window && ev.xclient.message_type == *EASYSTROKE_PING) {
+		if (ev.xclient.window != ping_window)
+			return;
+		if (ev.xclient.message_type == *EASYSTROKE_PING) {
 			if (verbosity >= 3)
 				printf("Pong\n");
+			H->pong();
+		}
+		if (ev.xclient.message_type == *EASYSTROKE_ENSURE_DOWN) {
+			guint b = ev.xclient.data.l[0];
+			if (xinput_pressed.count(b))
+				return;
+			if (verbosity >= 3)
+				printf("Forcing release of button %d\n", b);
+			if (current_dev)
+				current_dev->fake_button(b, false);
+			else
+				printf("Warning: no current device\n");
 			H->pong();
 		}
 		return;
