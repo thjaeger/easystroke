@@ -242,7 +242,7 @@ RAction handle_stroke(RStroke s, RTriple e) {
 void bail_out() {
 	handler->replace_child(0);
 	grabber->release_all();
-	discard(CurrentTime);
+	replay(CurrentTime);
 	xinput_pressed.clear();
 	reset_buttons(true);
 	XFlush(dpy);
@@ -660,6 +660,7 @@ class AdvancedStrokeActionHandler : public Handler {
 	RStroke s;
 public:
 	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
+	virtual void press_core(guint b, Time t, bool xi) { discard(t); }
 	virtual void press(guint b, RTriple e) {
 		s->button = b;
 		(*stroke_action)(s);
