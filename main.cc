@@ -662,13 +662,16 @@ public:
 	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
 	virtual void press_core(guint b, Time t, bool xi) { discard(t); }
 	virtual void press(guint b, RTriple e) {
-		s->button = b;
-		(*stroke_action)(s);
-		parent->replace_child(NULL);
+		if (stroke_action) {
+			s->button = b;
+			(*stroke_action)(s);
+		}
 	}
 	virtual void release(guint b, RTriple e) {
-		(*stroke_action)(s);
-		parent->replace_child(NULL);
+		if (stroke_action)
+			(*stroke_action)(s);
+		if (xinput_pressed.size() == 0)
+			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "InstantStrokeAction"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }

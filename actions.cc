@@ -665,6 +665,7 @@ public:
 	void delayed_run(RStroke stroke_) {
 		stroke = stroke_;
 		Glib::signal_idle().connect(sigc::mem_fun(*this, &OnStroke::run));
+		stroke_action.reset();
 	}
 };
 
@@ -696,7 +697,6 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	cancel->grab_focus();
 	int response = dialog->run();
 	dialog->hide();
-	stroke_action.reset();
 	if (response != 1)
 		return;
 
