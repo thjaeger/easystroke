@@ -627,9 +627,10 @@ public:
 };
 
 class ScrollAdvancedHandler : public AbstractScrollHandler {
+	RModifiers m;
 	const std::map<guint, guint> &map;
 public:
-	ScrollAdvancedHandler(const std::map<guint, guint> &map_) : map(map_) {}
+	ScrollAdvancedHandler(RModifiers m_, const std::map<guint, guint> &map_) : m(m_), map(map_) {}
 	virtual void init() {
 		std::map<guint, guint> new_map = map;
 		new_map.erase(4);
@@ -756,9 +757,9 @@ public:
 		if (IS_SCROLL(act)) {
 			click_time = e->t;
 			replay_button = b;
-			mods[b] = act->prepare();
+			RModifiers m = act->prepare();
 			sticky_mods.reset();
-			replace_child(new ScrollAdvancedHandler(map));
+			replace_child(new ScrollAdvancedHandler(m, map));
 			return;
 		}
 		if (IS_IGNORE(act)) {
