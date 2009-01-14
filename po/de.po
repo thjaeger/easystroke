@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-13 01:49-0500\n"
-"PO-Revision-Date: 2009-01-13 01:49-0500\n"
+"POT-Creation-Date: 2009-01-13 19:13-0500\n"
+"PO-Revision-Date: 2009-01-13 19:14-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -92,11 +92,11 @@ msgstr "Maustaste"
 msgid "Misc"
 msgstr "Verschiedene"
 
-#: ../actions.cc:200
+#: ../actions.cc:200 ../stats.cc:32 ../stats.cc:38
 msgid "Stroke"
 msgstr "Geste"
 
-#: ../actions.cc:206
+#: ../actions.cc:206 ../stats.cc:33 ../stats.cc:39
 msgid "Name"
 msgstr "Name"
 
@@ -251,7 +251,7 @@ msgstr "Ein Grab"
 msgid "An XInput grab"
 msgstr "Ein XInput-Grab"
 
-#: ../main.cc:272 ../main.cc:1700
+#: ../main.cc:272 ../main.cc:1720
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
@@ -266,32 +266,32 @@ msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 msgid "Warning: WaitForButtonHandler timed out\n"
 msgstr "Warunung: WaitForButtonHandler timed out\n"
 
-#: ../main.cc:1014
+#: ../main.cc:1034
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1175
+#: ../main.cc:1195
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1229
+#: ../main.cc:1249
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1266
+#: ../main.cc:1286
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1418
+#: ../main.cc:1438
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1423
+#: ../main.cc:1443
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
@@ -369,6 +369,10 @@ msgstr "Gerät"
 #: ../prefs.cc:354 ../prefs.cc:611 ../prefs.cc:637
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
+
+#: ../stats.cc:34 ../stats.cc:40
+msgid "Score"
+msgstr "Ergebnis"
 
 #: ../win.cc:156
 msgid "D_isabled"

@@ -17,6 +17,7 @@
 #include "win.h"
 #include "actiondb.h"
 #include <iomanip>
+#include <glibmm/i18n.h>
 
 Stats::Stats() {
 	Gtk::Button *button_matrix;
@@ -28,15 +29,15 @@ Stats::Stats() {
 
 	recent_store = Gtk::ListStore::create(cols);
 	recent_view->set_model(recent_store);
-	recent_view->append_column("Stroke", cols.stroke);
-	recent_view->append_column("Name", cols.name);
-	recent_view->append_column("Score", cols.score);
+	recent_view->append_column(_("Stroke"), cols.stroke);
+	recent_view->append_column(_("Name"), cols.name);
+	recent_view->append_column(_("Score"), cols.score);
 	recent_view->signal_cursor_changed().connect(sigc::mem_fun(*this, &Stats::on_cursor_changed));
 
 	ranking_view->set_model(Gtk::ListStore::create(cols));
-	ranking_view->append_column("Stroke", cols.stroke);
-	ranking_view->append_column("Name", cols.name);
-	ranking_view->append_column("Score", cols.score);
+	ranking_view->append_column(_("Stroke"), cols.stroke);
+	ranking_view->append_column(_("Name"), cols.name);
+	ranking_view->append_column(_("Score"), cols.score);
 }
 
 void Stats::on_cursor_changed() {
