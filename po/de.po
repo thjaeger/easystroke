@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-13 19:39-0500\n"
-"PO-Revision-Date: 2009-01-13 19:39-0500\n"
+"POT-Creation-Date: 2009-01-14 10:55-0500\n"
+"PO-Revision-Date: 2009-01-14 10:56-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
@@ -240,60 +240,60 @@ msgstr "Falle auf \"Shape\"-Methode zurück: %s\n"
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#: ../main.cc:269
+#: ../main.cc:270
 #, c-format
 msgid "Error: %s failed.  Is easystroke already running?\n"
 msgstr "Fehler: %s ist fehlgeschlagen.  Ist easystroke bereits gestartet?\n"
 
-#: ../main.cc:270
+#: ../main.cc:271
 msgid "A grab"
 msgstr "Ein Grab"
 
-#: ../main.cc:270
+#: ../main.cc:271
 msgid "An XInput grab"
 msgstr "Ein XInput-Grab"
 
-#: ../main.cc:272 ../main.cc:1720
+#: ../main.cc:273 ../main.cc:1750
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
-#: ../main.cc:293
+#: ../main.cc:294
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 
-#: ../main.cc:310
+#: ../main.cc:328
 #, c-format
-msgid "Warning: WaitForButtonHandler timed out\n"
-msgstr "Warunung: WaitForButtonHandler timed out\n"
+msgid "Warning: %s timed out\n"
+msgstr "Warunung: Timeout in %s\n"
 
-#: ../main.cc:1034
+#: ../main.cc:1038
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1195
+#: ../main.cc:1201
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1249
+#: ../main.cc:1255
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1286
+#: ../main.cc:1292
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1438
+#: ../main.cc:1446
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1443
+#: ../main.cc:1451
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
@@ -656,3 +656,4 @@ msgstr "Den Computer mit Mausgesten bedienen"
 #: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke Gestenerkennung"
+
