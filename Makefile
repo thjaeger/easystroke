@@ -95,7 +95,7 @@ po/POTFILES.in: $(CCFILES) $(HFILES)
 	echo easystroke.desktop.in >> $@
 
 translate: po/POTFILES.in
-	cd po && XGETTEXT_ARGS="--package-name=easystroke --copyright-holder='Thomas Jaeger <ThJaeger@gmail.com>'" intltool-update --pot --gettext-package=easystroke
+	cd po && XGETTEXT_ARGS="--package-name=easystroke --copyright-holder='Thomas Jaeger <ThJaeger@gmail.com>'" intltool-update --pot -g messages
 
 update-translations: po/POTFILES.in
 	cd po && for f in $(POFILES); do \
