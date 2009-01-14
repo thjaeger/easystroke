@@ -50,7 +50,7 @@ ARCH     = $(shell uname -m)
 
 all: $(BINARY) $(MOFILES)
 
-.PHONY: all clean snapshot release translate
+.PHONY: all clean snapshot release translate update-translations compile-translations
 
 clean:
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES) po/*.pot
@@ -96,6 +96,8 @@ po/POTFILES.in: $(CCFILES) $(HFILES)
 
 translate: po/POTFILES.in
 	cd po && XGETTEXT_ARGS="--package-name=easystroke --copyright-holder='Thomas Jaeger <ThJaeger@gmail.com>'" intltool-update --pot -g messages
+
+compile-translations: $(MOFILES)
 
 update-translations: po/POTFILES.in
 	cd po && for f in $(POFILES); do \
