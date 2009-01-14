@@ -58,7 +58,7 @@ char **argv;
 std::string config_dir;
 Win *win;
 
-Window current = 0, current_app = 0;
+Window current = 0, current_app = 0, ping_window = 0;
 Trace *trace = 0;
 Trace::Point orig;
 bool in_proximity = false;
@@ -134,6 +134,7 @@ public:
 	virtual void press_core(guint b, Time t, bool xi) { replay(t); }
 	virtual void pressure() {}
 	virtual void proximity_out() {}
+	virtual void pong() {}
 	void replace_child(Handler *c) {
 		if (child)
 			delete child;
@@ -299,6 +300,16 @@ int xIOErrorHandler(Display *dpy2) {
 	return 0;
 }
 
+static XAtom EASYSTROKE_PING("EASYSTROKE_PING");
+void ping() {
+	XClientMessageEvent ev;
+	ev.type = ClientMessage;
+	ev.window = ping_window;
+	ev.message_type = *EASYSTROKE_PING;
+	ev.format = 32;
+	XSendEvent(dpy, ping_window, False, 0, (XEvent *)&ev);
+}
+
 class WaitForButtonHandler : public Handler, protected Timeout {
 	guint button;
 	bool down;
@@ -307,11 +318,10 @@ public:
 		set_timeout(100);
 	}
 	virtual void timeout() {
-		printf(_("Warning: WaitForButtonHandler timed out\n"));
+		printf(_("Warning: %s timed out\n"), "WaitForButtonHandler");
 		bail_out();
 	}
 	virtual void press(guint b, RTriple e) {
-		discard(e->t);
 		if (!down)
 			return;
 		if (b == button)
@@ -324,6 +334,28 @@ public:
 			parent->replace_child(0);
 	}
 	virtual std::string name() { return "WaitForButton"; }
+	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
+};
+
+class RemapHandler : public Handler, protected Timeout {
+	std::set<guint> release_set;
+public:
+	RemapHandler(std::set<guint> &rs) : release_set(rs) { set_timeout(100); }
+	virtual void timeout() {
+		printf(_("Warning: %s timed out\n"), "RemapHandler");
+		bail_out();
+	}
+	virtual void release(guint b, RTriple e) {
+		if (release_set.count(b))
+			release_set.erase(b);
+		else {
+			if (verbosity >= 3)
+				printf("queuing release of button %d\n", b);
+			current_dev->fake_button(b, false);
+		}
+	}
+	virtual void pong() { parent->replace_child(NULL); }
+	virtual std::string name() { return "Remap"; }
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
 
@@ -477,12 +509,17 @@ void Handler::remap(const std::map<guint, guint> &map) {
 
 	pointer_map = map;
 
-	guint last = 0;
+	std::set<guint> buttons;
 	if (current_dev)
 		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
 			if (xinput_pressed.count(*i)) {
-				last = *i;
-				current_dev->fake_button(last, false);
+				// Sweet trick.  The button should be pressed at this point, so this
+				// is usually a no-op.  But if the user released the button in the
+				// meantime, we get additional events.  If that's the case, the we
+				// resend the release event so that everything is in a consistent state
+				current_dev->fake_button(*i, true);
+				current_dev->fake_button(*i, false);
+				buttons.insert(*i);
 			}
 
 	if (verbosity >= 3) {
@@ -516,12 +553,11 @@ void Handler::remap(const std::map<guint, guint> &map) {
 	}
 #endif
 
-	if (last) {
-		for (std::set<guint>::iterator i = remap.begin(); i != remap.end(); ++i)
-			if (xinput_pressed.count(*i)) {
-				current_dev->fake_button(*i, true);
-			}
-		replace_child(new WaitForButtonHandler(last, true));
+	if (buttons.size()) {
+		for (std::set<guint>::iterator i = buttons.begin(); i != buttons.end(); ++i)
+			current_dev->fake_button(*i, true);
+		ping();
+		replace_child(new RemapHandler(buttons));
 	}
 }
 
@@ -705,7 +741,6 @@ class AdvancedHandler : public Handler {
 	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b1, guint b2) :
 		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button1(b1), button2(b2) {
 			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i)
-				// TODO: Figure this out
 				if (i->first)
 					map[i->first] = 0;
 			if (b1)
@@ -1291,6 +1326,8 @@ Main::Main() : kit(0) {
 		exit(EXIT_FAILURE);
 	}
 
+	ping_window = XCreateSimpleWindow(dpy, ROOT, 0, 0, 1, 1, 0, 0, 0);
+
 	prefs.init();
 	action_watcher = new ActionDBWatcher;
 	action_watcher->init();
@@ -1603,9 +1640,17 @@ void Main::handle_event(XEvent &ev) {
 
 	case ButtonRelease:
 		if (verbosity >= 3)
-			printf("Release: %d (%d, %d)\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y);
+			printf("Release: %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
 		if (!grabber->xinput)
 			H->release(ev.xbutton.button, create_triple(ev.xbutton.x, ev.xbutton.y, ev.xbutton.time));
+		return;
+
+	case ClientMessage:
+		if (ev.xclient.window == ping_window && ev.xclient.message_type == *EASYSTROKE_PING) {
+			if (verbosity >= 3)
+				printf("Pong\n");
+			H->pong();
+		}
 		return;
 
 	case MappingNotify:
@@ -1646,8 +1691,8 @@ void Main::handle_event(XEvent &ev) {
 	if (grabber->is_event(ev.type, Grabber::UP)) {
 		XDeviceButtonEvent* bev = (XDeviceButtonEvent *)&ev;
 		if (verbosity >= 3)
-			printf("Release (Xi): %d (%d, %d, %d, %d, %d)\n", bev->button, bev->x, bev->y,
-					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2]);
+			printf("Release (Xi): %d (%d, %d, %d, %d, %d) at t = %ld\n", bev->button, bev->x, bev->y,
+					bev->axis_data[0], bev->axis_data[1], bev->axis_data[2], bev->time);
 		if (!current_dev || current_dev->dev->device_id != bev->deviceid)
 			return;
 		xinput_pressed.erase(bev->button);
