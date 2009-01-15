@@ -1111,47 +1111,36 @@ public:
 
 float StrokeHandler::k = -0.01;
 
-class IdleHandler : public Handler, Timeout {
-	Time press_t;
+class IdleHandler : public Handler {
 protected:
 	virtual void init() {
 		reset_buttons(true);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
-		if (press_t) {
-			replay(press_t);
-			press_t = 0;
-		}
 		if (xi || b != 1 || !grabber->get_timing_workaround()) {
 			replay(t);
 			return;
 		}
 		Grabber::XiDevice *dev;
 		unsigned int state = grabber->get_device_button_state(dev);
-		if (state & (state-1)) {
-			discard(t);
-			if (verbosity >= 2)
-				printf("Using wacom workaround\n");
-			for (int i = 1; i < 32; i++)
-				if (state & (1 << i)) {
-					ensure_down(i);
-					dev->fake_button(i, false);
-				}
-			for (int i = 31; i; i--)
-				if (state & (1 << i))
-					dev->fake_button(i, true);
-			// This is probably not necessary, but we need to be on the safe
-			// side.  If anything goes wrong, the timeout fires and we discard everything
-			press_t = t;
-			set_timeout(250);
-		} else {
+		if (!(state & (state-1))) {
 			replay(t);
+			return;
 		}
+		discard(t);
+		if (verbosity >= 2)
+			printf("Using wacom workaround\n");
+		for (int i = 1; i < 32; i++)
+			if (state & (1 << i)) {
+				ensure_down(i);
+				dev->fake_button(i, false);
+			}
+		for (int i = 31; i; i--)
+			if (state & (1 << i))
+				dev->fake_button(i, true);
 	}
-	virtual void timeout() { replay(press_t); press_t = 0; }
 	virtual void press(guint b, RTriple e) {
 		if (grabber->is_instant(b)) {
-			remove_timeout();
 			PreStroke ps;
 			RStroke s = Stroke::create(ps, b, b, false);
 			replace_child(AdvancedHandler::create(s, e, b, b, e->t));
@@ -1159,8 +1148,6 @@ protected:
 		}
 		if (current_app)
 			activate_window(current_app, e->t);
-		if (remove_timeout())
-			timeout();
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
