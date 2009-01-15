@@ -19,6 +19,7 @@
 #include "main.h"
 #include "prefdb.h"
 #include <glibmm/i18n.h>
+#include "grabber.h" // TODO???
 
 #include <typeinfo>
 
@@ -630,8 +631,6 @@ void Actions::update_row(const Gtk::TreeRow &row) {
 }
 
 extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
-void suspend_flush();
-void resume_flush();
 
 class Actions::OnStroke {
 	Actions *parent;
@@ -640,7 +639,7 @@ class Actions::OnStroke {
 	RStroke stroke;
 	bool run() {
 		if (stroke->button == 0 && stroke->trivial()) {
-			suspend_flush();
+			grabber->queue_suspend();
 			Glib::ustring msg = Glib::ustring::compose(
 					_("You are about to bind an action to a single click.  "
 						"This might make it difficult to use Button %1 in the future.  "
@@ -648,7 +647,7 @@ class Actions::OnStroke {
 					stroke->button ? stroke->button : prefs.button.ref().button);
 			Gtk::MessageDialog md(*dialog, msg, false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_YES_NO, true);
 			bool abort = md.run() != Gtk::RESPONSE_YES;
-			resume_flush();
+			grabber->queue_resume();
 			if (abort)
 				return false;
 		}
@@ -678,13 +677,13 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	static Gtk::Button *del = 0, *cancel = 0;
 	if (!del) {
 		widgets->get_widget("button_record_delete", del);
-		del->signal_enter().connect(sigc::ptr_fun(&suspend_flush));
-		del->signal_leave().connect(sigc::ptr_fun(&resume_flush));
+		del->signal_enter().connect(sigc::mem_fun(*grabber, &Grabber::queue_suspend));
+		del->signal_leave().connect(sigc::mem_fun(*grabber, &Grabber::queue_resume));
 	}
 	if (!cancel) {
 		widgets->get_widget("button_record_cancel", cancel);
-		cancel->signal_enter().connect(sigc::ptr_fun(&suspend_flush));
-		cancel->signal_leave().connect(sigc::ptr_fun(&resume_flush));
+		cancel->signal_enter().connect(sigc::mem_fun(*grabber, &Grabber::queue_suspend));
+		cancel->signal_leave().connect(sigc::mem_fun(*grabber, &Grabber::queue_resume));
 	}
 	RStrokeInfo si = action_list->get_info(row[cols.id]);
 	if (si)

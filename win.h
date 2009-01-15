@@ -61,7 +61,6 @@ public:
 	Prefs *prefs_tab;
 	Stats *stats;
 	void show_hide();
-	void toggle_disabled();
 	void show_success(bool good);
 private:
 	bool on_icon_size_changed(int);
@@ -73,7 +72,6 @@ private:
 	Gtk::Window *win;
 
 	Gtk::Menu menu;
-	Gtk::CheckMenuItem *menu_disabled;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
 	Glib::RefPtr<Gdk::Pixbuf> icon_pb[3];

@@ -19,6 +19,11 @@
 #include <X11/Xutil.h>
 #include <glibmm/i18n.h>
 
+extern Window get_window(Window w, Atom prop);
+extern Source<bool> xinput_v, supports_pressure, supports_proximity, disabled;
+extern Source<Window> current_window;
+extern bool in_proximity;
+
 bool no_xi = false;
 bool xi_15 = false;
 Grabber *grabber = 0;
@@ -81,8 +86,6 @@ XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
 
 BiMap<unsigned int, Window> minimized;
 unsigned int minimized_n = 0;
-
-extern Window get_window(Window w, Atom prop);
 
 void get_frame(Window w) {
 	Window frame = get_window(w, *_NET_FRAME_WINDOW);
@@ -181,6 +184,14 @@ void activate(Window w, Time t) {
 	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
 }
 
+class IdleNotifier : public Base {
+	sigc::slot<void> f;
+	void run() { f(); }
+public:
+	IdleNotifier(sigc::slot<void> f_) : f(f_) {}
+	virtual void notify() { queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
+};
+
 void Grabber::unminimize() {
 	if (minimized.empty())
 		return;
@@ -190,15 +201,12 @@ void Grabber::unminimize() {
 	activate(w, CurrentTime);
 }
 
-extern Source<bool> xinput_v, supports_pressure, supports_proximity;
-
 const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
-
-extern Window get_window(Window w, Atom prop);
 
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
-	suspended = false;
+	suspended = 0;
+	suspend();
 	disabled = false;
 	active = true;
 	grabbed = NONE;
@@ -209,7 +217,12 @@ Grabber::Grabber() : children(ROOT) {
 	grabbed_button.state = 0;
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 	xinput = init_xi();
-	update_button(prefs.button.get());
+	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
+	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
+	current_window.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
+	disabled.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::set)));
+	update();
+	resume();
 }
 
 Grabber::~Grabber() {
@@ -360,6 +373,7 @@ bool Grabber::update_device_list() {
 		XEventClass evs[0];
 		DeviceMappingNotify(xi_dev->dev, mapping_notify, evs[0]);
 		XSelectExtensionEvent(dpy, ROOT, evs, 1);
+
 		xi_dev->update_pointer_mapping();
 
 		if (verbosity >= 1)
@@ -368,11 +382,20 @@ bool Grabber::update_device_list() {
 					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 	XFreeDeviceList(devs);
+	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update_excluded)));
+	update_excluded();
 	proximity_selected = false;
 	select_proximity();
 	xi_grabbed = false;
 	set();
 	return true;
+}
+
+void Grabber::update_excluded() {
+	suspend();
+	for (int i = 0; i < xi_devs_n; i++)
+		xi_devs[i]->active = !prefs.excluded_devices.ref().count(xi_devs[i]->name);
+	resume();
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
@@ -385,7 +408,7 @@ Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
 unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
 	unsigned int mask = 0;
 	for (int i = 0; i < xi_devs_n; i++) {
-		if (prefs.excluded_devices.get().count(xi_devs[i]->name))
+		if (!xi_devs[i]->active)
 			continue;
 		XDeviceState *state = XQueryDeviceState(dpy, xi_devs[i]->dev);
 		if (!state)
@@ -417,7 +440,7 @@ void Grabber::grab_xi(bool grab) {
 		return;
 	xi_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (!prefs.excluded_devices.get().count(xi_devs[i]->name)) {
+		if (xi_devs[i]->active) {
 			if (grab) {
 				for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
 					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state, NULL,
@@ -473,7 +496,6 @@ void Grabber::XiDevice::update_pointer_mapping() {
 			inv_map[map[i]] = i+1;
 }
 
-extern bool in_proximity;
 void Grabber::select_proximity() {
 	bool select = prefs.proximity.get();
 	if (!select != !proximity_selected) {
@@ -495,7 +517,7 @@ void Grabber::select_proximity() {
 }
 
 void Grabber::set() {
-	bool act = !suspended && ((active && !disabled) || (current != NONE && current != BUTTON));
+	bool act = !suspended && ((active && !disabled.get()) || (current != NONE && current != BUTTON));
 	grab_xi(act && current != ALL_SYNC);
 	grab_xi_devs(act && current == NONE);
 	State old = grabbed;
@@ -565,24 +587,6 @@ bool Grabber::is_instant(guint b) {
 	return false;
 }
 
-void Grabber::update_button(ButtonInfo bi) {
-	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
-	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
-			std::equal(extra.begin(), extra.end(), ++buttons.begin()))
-		return;
-	suspended = true;
-	set();
-	grabbed_button = bi;
-	buttons.clear();
-	buttons.reserve(extra.size() + 1);
-	buttons.push_back(bi);
-	for (std::vector<ButtonInfo>::const_iterator i = extra.begin(); i != extra.end(); ++i)
-		if (!i->overlap(bi))
-			buttons.push_back(*i);
-	suspended = false;
-	set();
-}
-
 int get_default_button() {
 	if (grabber)
 		return grabber->get_default_button();
@@ -590,8 +594,8 @@ int get_default_button() {
 		return prefs.button.get().button;
 }
 
-void Grabber::update(Window w) {
-	wm_class = get_wm_class(w);
+void Grabber::update() {
+	wm_class = get_wm_class(current_window.get());
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
 	active = true;
 	ButtonInfo bi = prefs.button.ref();
@@ -602,8 +606,21 @@ void Grabber::update(Window w) {
 			active = false;
 		}
 	}
-	update_button(bi);
-	set();
+	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
+	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
+			std::equal(extra.begin(), extra.end(), ++buttons.begin())) {
+		set();
+		return;
+	}
+	suspend();
+	grabbed_button = bi;
+	buttons.clear();
+	buttons.reserve(extra.size() + 1);
+	buttons.push_back(bi);
+	for (std::vector<ButtonInfo>::const_iterator i = extra.begin(); i != extra.end(); ++i)
+		if (!i->overlap(bi))
+			buttons.push_back(*i);
+	resume();
 }
 
 void Grabber::release_all(int n) {

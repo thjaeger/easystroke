@@ -58,7 +58,9 @@ char **argv;
 std::string config_dir;
 Win *win;
 
-Window current = 0, current_app = 0, ping_window = 0;
+Source<Window> current_window(None);
+extern Source<bool> disabled;
+Window current_app = 0, ping_window = 0;
 Trace *trace = 0;
 Trace::Point orig;
 bool in_proximity = false;
@@ -114,6 +116,8 @@ static void fake_click(guint b) {
 	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 }
 
+static std::list<sigc::slot<void> > queued;
+
 class Handler {
 protected:
 	Handler *child;
@@ -152,6 +156,10 @@ public:
 		grabber->grab(new_handler->grab_mode());
 		if (child)
 			child->init();
+		while (queued.size() && handler->idle()) {
+			(*queued.begin())();
+			queued.pop_front();
+		}
 	}
 	void remap(const std::map<guint, guint> &map);
 	virtual void init() {}
@@ -164,6 +172,13 @@ public:
 	virtual Grabber::State grab_mode() = 0;
 };
 
+void queue(sigc::slot<void> f) {
+	if (handler->idle()) {
+		f();
+		XFlush(dpy);
+	} else
+		queued.push_back(f);
+}
 
 class OSD : public Gtk::Window {
 	static std::list<OSD *> osd_stack;
@@ -723,6 +738,10 @@ class AdvancedHandler : public Handler {
 		}
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, Time press_t) {
+		if (!grabber->xinput) {
+			printf(_("Error: You need XInput to use advanced gestures\n"));
+			return NULL;
+		}
 		if (stroke_action)
 			return new AdvancedStrokeActionHandler(s, e);
 
@@ -1039,12 +1058,7 @@ protected:
 			return;
 		RStroke s = finish(b);
 
-		if (grabber->xinput) {
-			parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
-		} else {
-			printf(_("Error: You need XInput to use advanced gestures\n"));
-			parent->replace_child(NULL);
-		}
+		parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
 	}
 
 	virtual void release(guint b, RTriple e) {
@@ -1159,28 +1173,17 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
 
-class SelectHandler : public Handler, public Timeout {
-	bool active;
+class SelectHandler : public Handler {
 	sigc::slot<void, std::string> callback;
-	virtual void timeout() {
-		active = true;
-		grabber->grab(Grabber::SELECT);
-		XFlush(dpy);
-	}
 	virtual void press_core(guint b, Time t, bool xi) {
 		discard(t);
-		if (!active)
-			return;
 		window_selected.reset(new sigc::slot<void, std::string>(callback));
 		parent->replace_child(0);
 	}
 public:
-	SelectHandler(sigc::slot<void, std::string> callback_) : active(false), callback(callback_) {
-		win->get_window().get_window()->lower();
-		set_timeout(100);
-	}
+	SelectHandler(sigc::slot<void, std::string> callback_) : callback(callback_) {}
 	virtual std::string name() { return "Select"; }
-	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
+	virtual Grabber::State grab_mode() { return Grabber::SELECT; }
 };
 
 
@@ -1294,7 +1297,6 @@ Main::Main() : kit(0) {
 	action_watcher->init();
 
 	grabber = new Grabber;
-	grabber->grab(Grabber::BUTTON);
 
 	trace = init_trace();
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
@@ -1516,20 +1518,20 @@ void Main::handle_enter_leave(XEvent &ev) {
 			continue;
 		if (ev.xcrossing.detail == NotifyInferior)
 			continue;
+		Window w = ev.xcrossing.window;
 		if (ev.type == EnterNotify) {
-			current = ev.xcrossing.window;
-			current_app = get_app_window(current);
+			current_window.set(w);
+			current_app = get_app_window(w);
 			if (verbosity >= 3)
-				printf("Entered window 0x%lx -> 0x%lx\n", ev.xcrossing.window, current_app);
+				printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
 		} else if (ev.type == LeaveNotify) {
-			if (ev.xcrossing.window != current)
+			if (ev.xcrossing.window != current_window.get())
 				continue;
 			if (verbosity >= 3)
-				printf("Left window 0x%lx\n", ev.xcrossing.window);
-			current = 0;
+				printf("Left window 0x%lx\n", w);
+			current_window.set(None);
 		} else printf("Error: Bogus Enter/Leave event\n");
 	} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
-	grabber->update(current);
 	if (window_selected) {
 		(*window_selected)(grabber->get_wm_class());
 		window_selected.reset();
@@ -1539,7 +1541,10 @@ void Main::handle_enter_leave(XEvent &ev) {
 
 class PresenceWatcher : public Timeout {
 	virtual void timeout() {
+		XDevice *dev = current_dev ? current_dev->dev : 0;
 		grabber->update_device_list();
+		if (dev && !grabber->get_xi_dev(dev->device_id))
+			bail_out();
 		win->prefs_tab->update_device_list();
 	}
 } presence_watcher;
@@ -1568,8 +1573,8 @@ void Main::handle_event(XEvent &ev) {
 
 	case PropertyNotify:
 		static XAtom WM_CLASS("WM_CLASS");
-		if (current && ev.xproperty.window == current && ev.xproperty.atom == *WM_CLASS)
-			grabber->update(current);
+		if (current_window.get() == ev.xproperty.window && ev.xproperty.atom == *WM_CLASS)
+			current_window.notify();
 		return;
 
 	case MotionNotify:
@@ -1770,22 +1775,16 @@ int main(int argc_, char **argv_) {
 	return EXIT_SUCCESS;
 }
 
-void update_current() {
-	grabber->update(current);
-}
-
-void suspend_flush() {
-	grabber->suspend();
-	XFlush(dpy);
-}
-
-void resume_flush() {
-	grabber->resume();
-	XFlush(dpy);
-}
+struct SelectClosure {
+	sigc::slot<void, std::string> f;
+	bool enqueue() { queue(sigc::mem_fun(*this, &SelectClosure::select)); return false; }
+	void select() { handler->top()->replace_child(new SelectHandler(f)); delete this; }
+};
 
 void select_window(sigc::slot<void, std::string> f) {
-	handler->top()->replace_child(new SelectHandler(f));
+	SelectClosure *select_closure = new SelectClosure;
+	select_closure->f = f;
+	Glib::signal_timeout().connect(sigc::mem_fun(*select_closure, &SelectClosure::enqueue), 100);
 }
 
 void SendKey::run() {
@@ -1871,7 +1870,7 @@ void Misc::run() {
 			grabber->unminimize();
 			return;
 		case DISABLE:
-			win->toggle_disabled();
+			disabled.set(!disabled.get());
 			return;
 		default:
 			return;

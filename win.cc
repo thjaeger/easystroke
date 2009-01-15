@@ -144,6 +144,26 @@ int run_dialog(const char *str) {
 	return response;
 }
 
+Source<bool> disabled;
+
+class MenuCheck : private Base {
+	IO<bool> &io;
+	Gtk::CheckMenuItem *check;
+	virtual void notify() { check->set_active(io.get()); }
+	void on_changed() {
+		bool b = check->get_active();
+		if (b == io.get()) return;
+		io.set(b);
+	}
+public:
+	MenuCheck(IO<bool> &io_, Gtk::CheckMenuItem *check_) : io(io_), check(check_) {
+		io.connect(this);
+		notify();
+		check->signal_toggled().connect(sigc::mem_fun(*this, &MenuCheck::on_changed));
+	}
+};
+
+
 Win::Win() {
 	widgets = Gtk::Builder::create_from_string(gui_buffer),
 	actions = new Actions;
@@ -154,9 +174,8 @@ Win::Win() {
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
 
 	WIDGET(Gtk::CheckMenuItem, menu_disabled, _("D_isabled"), true);
-	this->menu_disabled = &menu_disabled;
 	menu.append(menu_disabled);
-	menu_disabled.signal_toggled().connect(sigc::mem_fun(*grabber, &Grabber::toggle_disabled));
+	new MenuCheck(disabled, &menu_disabled);
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
 	menu.append(menu_quit);
 	menu_quit.signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
@@ -182,11 +201,6 @@ Win::~Win() {
 	delete actions;
 	delete prefs_tab;
 	delete stats;
-}
-
-void Win::toggle_disabled() {
-	bool disabled = menu_disabled->get_active();
-	menu_disabled->set_active(!disabled);
 }
 
 void Win::show_hide_icon() {

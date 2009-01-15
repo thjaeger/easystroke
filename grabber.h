@@ -49,7 +49,11 @@ float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
 bool has_wm_state(Window w);
 bool has_atom(Window w, Atom prop, Atom value);
 
+void queue(sigc::slot<void> f);
+
 class Grabber {
+	friend class Handler;
+	friend class StrokeHandler;
 public:
 	Children children;
 	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
@@ -68,6 +72,7 @@ public:
 		XEventClass events[6];
 		int all_events_n;
 		bool supports_proximity, supports_pressure;
+		bool active;
 		int pressure_min, pressure_max;
 		int min_x, max_x, min_y, max_y;
 		bool absolute;
@@ -100,8 +105,7 @@ private:
 	State current, grabbed;
 	bool xi_grabbed;
 	bool xi_devs_grabbed;
-	bool suspended;
-	bool disabled;
+	int suspended;
 	bool active;
 	Cursor cursor_select;
 	ButtonInfo grabbed_button;
@@ -113,21 +117,26 @@ private:
 	void grab_xi_devs(bool);
 	std::string get_wm_class(Window w);
 	std::string wm_class;
+
+	void update_excluded();
+
+	void grab(State s) { current = s; set(); }
+	void suspend() { suspended++; set(); }
+	void resume() { if (suspended) suspended--; set(); }
+	void update();
 public:
 	Grabber();
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
-	void update(Window w);
 	std::string get_wm_class() { return wm_class; }
 
-	void grab(State s) { current = s; set(); }
-	void suspend() { suspended = true; set(); }
-	void resume() { suspended = false; set(); }
-	void update_button(ButtonInfo bi);
+	void queue_suspend() { queue(sigc::mem_fun(*this, &Grabber::suspend)); }
+	void queue_resume() { queue(sigc::mem_fun(*this, &Grabber::resume)); }
+
+	bool update_device_list();
+
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);
-	void toggle_disabled() { disabled = !disabled; set(); }
-	bool update_device_list();
 	void release_all(int n = 0);
 
 	int get_default_button() { return grabbed_button.button; }

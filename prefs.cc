@@ -504,7 +504,7 @@ SelectButton::~SelectButton() {
 }
 
 bool SelectButton::run() {
-	grabber->suspend();
+	grabber->queue_suspend();
 	dialog->show();
 	Gtk::Button *select_ok;
 	widgets->get_widget("select_ok", select_ok);
@@ -514,7 +514,7 @@ bool SelectButton::run() {
 		response = dialog->run();
 	} while (!response);
 	dialog->hide();
-	grabber->resume();
+	grabber->queue_resume();
 	switch (response) {
 		case 1: // Okay
 			event.button = select_button->get_active_row_number() + 1;
@@ -578,7 +578,6 @@ void Prefs::on_select_button() {
 	if (!sb.run())
 		return;
 	bi = sb.event.button ? sb.event : default_button;
-	grabber->update_button(bi);
 	set_button_label();
 }
 
@@ -589,8 +588,6 @@ void Prefs::on_p_changed() {
 void Prefs::on_p_default() {
 	scale_p->set_value(default_p);
 }
-
-extern void update_current();
 
 void select_window(sigc::slot<void, std::string> f);
 
@@ -649,7 +646,6 @@ void Prefs::on_remove() {
 		Atomic a;
 		prefs.exceptions.write_ref(a).erase((Glib::ustring)((*iter)[cols.app]));
 		tm->erase(iter);
-		update_current();
 	}
 }
 
@@ -659,12 +655,10 @@ void Prefs::on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeM
 	Atomic a;
 	std::set<std::string> &ex = prefs.excluded_devices.write_ref(a);
 	Glib::ustring device = (*iter)[dcs.name];
-	grabber->suspend();
 	if ((*iter)[dcs.enabled])
 		ex.erase(device);
 	else
 		ex.insert(device);
-	grabber->resume();
 }
 
 void Prefs::set_button_label() {
