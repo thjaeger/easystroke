@@ -697,6 +697,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	cancel->grab_focus();
 	int response = dialog->run();
 	dialog->hide();
+	stroke_action.reset();
 	if (response != 1)
 		return;
 
