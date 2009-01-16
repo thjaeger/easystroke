@@ -50,6 +50,7 @@ bool has_wm_state(Window w);
 bool has_atom(Window w, Atom prop, Atom value);
 
 void queue(sigc::slot<void> f);
+std::string select_window();
 
 class Grabber {
 	friend class Handler;

@@ -467,10 +467,41 @@ void Actions::on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::i
 		renderer->property_editable().set_value(actions.get_root() != as && !as->app);
 }
 
-void select_window(sigc::slot<void, std::string> f);
+struct Actions::SelectApp {
+	Actions *parent;
+	ActionListDiff *actions;
+	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
+		if ((*iter)[parent->ca.actions] == actions) {
+			parent->apps_view->expand_to_path(path);
+			parent->apps_view->set_cursor(path);
+			return true;
+		}
+		return false;
+	}
+};
 
 void Actions::on_add_app() {
-	select_window(sigc::mem_fun(*this, &Actions::on_app_selected));
+	std::string name = select_window();
+	if (actions.apps.count(name)) {
+		SelectApp cb;
+		cb.parent = this;
+		cb.actions = actions.apps[name];
+		apps_model->foreach(sigc::mem_fun(cb, &SelectApp::test));
+		return;
+	}
+	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
+	ActionListDiff *child = parent->add_child(name, true);
+	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
+	       	apps_model->children().begin()->children() :
+		apps_view->get_selection()->get_selected()->children();
+	Gtk::TreeRow row = *(apps_model->append(ch));
+	row[ca.app] = name;
+	row[ca.actions] = child;
+	actions.apps[name] = child;
+	Gtk::TreePath path = apps_model->get_path(row);
+	apps_view->expand_to_path(path);
+	apps_view->set_cursor(path);
+	update_actions();
 }
 
 void Actions::on_remove_app() {
@@ -511,42 +542,6 @@ void Actions::on_reset_actions() {
 //		update_row(row); // This can't handle deleted rows...
 	}
 	update_action_list();
-}
-
-struct Actions::SelectApp {
-	Actions *parent;
-	ActionListDiff *actions;
-	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
-		if ((*iter)[parent->ca.actions] == actions) {
-			parent->apps_view->expand_to_path(path);
-			parent->apps_view->set_cursor(path);
-			return true;
-		}
-		return false;
-	}
-};
-
-void Actions::on_app_selected(std::string name) {
-	if (actions.apps.count(name)) {
-		SelectApp cb;
-		cb.parent = this;
-		cb.actions = actions.apps[name];
-		apps_model->foreach(sigc::mem_fun(cb, &SelectApp::test));
-		return;
-	}
-	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
-	ActionListDiff *child = parent->add_child(name, true);
-	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
-	       	apps_model->children().begin()->children() :
-		apps_view->get_selection()->get_selected()->children();
-	Gtk::TreeRow row = *(apps_model->append(ch));
-	row[ca.app] = name;
-	row[ca.actions] = child;
-	actions.apps[name] = child;
-	Gtk::TreePath path = apps_model->get_path(row);
-	apps_view->expand_to_path(path);
-	apps_view->set_cursor(path);
-	update_actions();
 }
 
 void Actions::on_add_group() {

@@ -589,13 +589,8 @@ void Prefs::on_p_default() {
 	scale_p->set_value(default_p);
 }
 
-void select_window(sigc::slot<void, std::string> f);
-
 void Prefs::on_add() {
-	select_window(sigc::mem_fun(*this, &Prefs::on_selected));
-}
-
-void Prefs::on_selected(std::string str) {
+	std::string str = select_window();
 	bool is_new;
 	{
 		Atomic a;

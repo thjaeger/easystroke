@@ -72,8 +72,6 @@ bool dead = false;
 class Handler;
 Handler *handler = 0;
 ActionDBWatcher *action_watcher = 0;
-boost::shared_ptr<sigc::slot<void, std::string> > window_selected;
-
 
 Trace *trace_composite() {
 	try {
@@ -323,6 +321,7 @@ void ping() {
 	ev.message_type = *EASYSTROKE_PING;
 	ev.format = 32;
 	XSendEvent(dpy, ping_window, False, 0, (XEvent *)&ev);
+	XFlush(dpy);
 }
 
 static XAtom EASYSTROKE_ENSURE_DOWN("EASYSTROKE_ENSURE_DOWN");
@@ -334,6 +333,7 @@ void ensure_down(guint b) {
 	ev.format = 32;
 	ev.data.l[0] = b;
 	XSendEvent(dpy, ping_window, False, 0, (XEvent *)&ev);
+	XFlush(dpy);
 }
 
 class WaitForPongHandler : public Handler, protected Timeout {
@@ -1174,18 +1174,20 @@ public:
 };
 
 class SelectHandler : public Handler {
-	sigc::slot<void, std::string> callback;
 	virtual void press_core(guint b, Time t, bool xi) {
 		discard(t);
-		window_selected.reset(new sigc::slot<void, std::string>(callback));
-		parent->replace_child(0);
+		parent->replace_child(new WaitForPongHandler);
+		ping();
+		queue(sigc::ptr_fun(&gtk_main_quit));
 	}
 public:
-	SelectHandler(sigc::slot<void, std::string> callback_) : callback(callback_) {}
+	static void create() {
+		win->get_window().get_window()->lower();
+		handler->top()->replace_child(new SelectHandler);
+	}
 	virtual std::string name() { return "Select"; }
 	virtual Grabber::State grab_mode() { return Grabber::SELECT; }
 };
-
 
 void run_by_name(const char *str) {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
@@ -1513,30 +1515,23 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 }
 
 void Main::handle_enter_leave(XEvent &ev) {
-	do {
-		if (ev.xcrossing.mode == NotifyGrab)
-			continue;
-		if (ev.xcrossing.detail == NotifyInferior)
-			continue;
-		Window w = ev.xcrossing.window;
-		if (ev.type == EnterNotify) {
-			current_window.set(w);
-			current_app = get_app_window(w);
-			if (verbosity >= 3)
-				printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
-		} else if (ev.type == LeaveNotify) {
-			if (ev.xcrossing.window != current_window.get())
-				continue;
-			if (verbosity >= 3)
-				printf("Left window 0x%lx\n", w);
-			current_window.set(None);
-		} else printf("Error: Bogus Enter/Leave event\n");
-	} while (window_selected && XCheckMaskEvent(dpy, EnterWindowMask|LeaveWindowMask, &ev));
-	if (window_selected) {
-		(*window_selected)(grabber->get_wm_class());
-		window_selected.reset();
-		win->get_window().raise();
-	}
+	if (ev.xcrossing.mode == NotifyGrab)
+		return;
+	if (ev.xcrossing.detail == NotifyInferior)
+		return;
+	Window w = ev.xcrossing.window;
+	if (ev.type == EnterNotify) {
+		current_window.set(w);
+		current_app = get_app_window(w);
+		if (verbosity >= 3)
+			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
+	} else if (ev.type == LeaveNotify) {
+		if (ev.xcrossing.window != current_window.get())
+			return;
+		if (verbosity >= 3)
+			printf("Left window 0x%lx\n", w);
+		current_window.set(None);
+	} else printf("Error: Bogus Enter/Leave event\n");
 }
 
 class PresenceWatcher : public Timeout {
@@ -1775,16 +1770,11 @@ int main(int argc_, char **argv_) {
 	return EXIT_SUCCESS;
 }
 
-struct SelectClosure {
-	sigc::slot<void, std::string> f;
-	bool enqueue() { queue(sigc::mem_fun(*this, &SelectClosure::select)); return false; }
-	void select() { handler->top()->replace_child(new SelectHandler(f)); delete this; }
-};
-
-void select_window(sigc::slot<void, std::string> f) {
-	SelectClosure *select_closure = new SelectClosure;
-	select_closure->f = f;
-	Glib::signal_timeout().connect(sigc::mem_fun(*select_closure, &SelectClosure::enqueue), 100);
+std::string select_window() {
+	queue(sigc::ptr_fun(&SelectHandler::create));
+	gtk_main();
+	win->get_window().raise();
+	return grabber->get_wm_class();
 }
 
 void SendKey::run() {

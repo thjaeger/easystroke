@@ -23,7 +23,6 @@ class Prefs {
 public:
 	Prefs();
 	virtual ~Prefs() {}
-	void on_selected(std::string);
 	void update_device_list();
 	void update_extra_buttons();
 private:
