@@ -231,7 +231,8 @@ bool Win::on_icon_size_changed(int size) {
 }
 
 void Win::timeout() {
-	icon->set(icon_pb[0]);
+	if (icon)
+		icon->set(icon_pb[0]);
 }
 
 void Win::show_success(bool good) {
