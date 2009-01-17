@@ -768,7 +768,7 @@ public:
 		if (!xi_15 && pointer_map.count(b))
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		click_time = 0;
-		int bb = (b == button1) ? button2 : b;
+		guint bb = (b == button1) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
 			sticky_mods.reset();
@@ -812,8 +812,10 @@ public:
 		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
-		if (b == remap_from && !xi_15 && pointer_map[b])
-			XTestFakeButtonEvent(dpy, pointer_map[b], False, CurrentTime);
+		bool remapped = b == remap_from ||
+			((b == button1 || b == button2) && (remap_from == button1 || remap_from == button2));
+		if (remapped && !xi_15 && pointer_map[remap_from])
+			XTestFakeButtonEvent(dpy, pointer_map[remap_from], False, CurrentTime);
 		if (xinput_pressed.size() == 0) {
 			reset_buttons(false);
 			Handler *h = NULL;
@@ -827,10 +829,10 @@ public:
 			parent->replace_child(h);
 			return;
 		}
-		if (b == remap_from)
+		mods.erase(remapped ? remap_from : b);
+		if (remapped)
 			remap_from = 0;
 		remap(map);
-		mods.erase(b);
 	}
 	virtual ~AdvancedHandler() {
 		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
