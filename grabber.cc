@@ -555,6 +555,8 @@ void Grabber::set() {
 	if (grabbed == BUTTON) {
 		unsigned int core_mask = xinput ? ButtonPressMask : ButtonMotionMask | ButtonPressMask | ButtonReleaseMask;
 		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
+			if (!xinput && is_instant(j->button))
+				continue;
 			XGrabButton(dpy, j->button, j->state, ROOT, False, core_mask,
 					xinput ? GrabModeSync : GrabModeAsync, GrabModeAsync, None, None);
 			if (j->state == AnyModifier)
