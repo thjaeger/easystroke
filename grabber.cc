@@ -253,11 +253,15 @@ bool Grabber::init_xi() {
 	if (no_xi)
 		return false;
 	int nFEV, nFER;
-	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER))
+	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER)) {
+		printf("Warning: XInput extension not available\n");
 		return false;
+	}
 	XExtensionVersion *v = XGetExtensionVersion(dpy, INAME);
-	if (!v->present)
+	if (!v->present) {
+		printf("Warning: XInput extension not available\n");
 		return false;
+	}
 	xi_15 = v->major_version > XI_Add_DeviceProperties_Major ||
 		(v->major_version == XI_Add_DeviceProperties_Major && v->minor_version >= XI_Add_DeviceProperties_Minor);
 	XFree(v);
@@ -269,6 +273,9 @@ bool Grabber::init_xi() {
 
 	if (!update_device_list())
 		return false;
+
+	if (!xi_devs_n)
+		printf("Warning: No suitable XInput devices found\n");
 
 	xinput_v.set(xi_devs_n);
 
@@ -297,8 +304,10 @@ bool Grabber::update_device_list() {
 
 	int n;
 	XDeviceInfo *devs = XListInputDevices(dpy, &n);
-	if (!devs)
+	if (!devs) {
+		printf("Warning: No XInput devices available\n");
 		return false;
+	}
 
 	xi_devs = new XiDevice *[n];
 	xi_devs_n = 0;
