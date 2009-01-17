@@ -1174,6 +1174,10 @@ public:
 };
 
 class SelectHandler : public Handler {
+	virtual void press(guint b, RTriple e) {
+		if (!grabber->xinput)
+			press_core(b, e->t, false);
+	}
 	virtual void press_core(guint b, Time t, bool xi) {
 		discard(t);
 		parent->replace_child(new WaitForPongHandler);
