@@ -58,7 +58,7 @@ class Grabber {
 public:
 	Children children;
 	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
-	static const char *state_name[6];
+	static const char *state_name[4];
 	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
 	bool xinput;
 	bool proximity_selected;

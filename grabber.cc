@@ -201,7 +201,7 @@ void Grabber::unminimize() {
 	activate(w, CurrentTime);
 }
 
-const char *Grabber::state_name[6] = { "None", "Button", "All (Sync)", "All (Async)", "Scroll", "Select" };
+const char *Grabber::state_name[4] = { "None", "Button", "All (Sync)", "Select" };
 
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
