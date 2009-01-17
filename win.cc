@@ -220,7 +220,8 @@ void Win::show_hide_icon() {
 }
 
 void Win::show_popup(guint button, guint32 activate_time) {
-	icon->popup_menu_at_position(menu, button, activate_time);
+	if (icon)
+		icon->popup_menu_at_position(menu, button, activate_time);
 }
 
 void Win::show_hide() {
@@ -247,7 +248,8 @@ bool Win::on_icon_size_changed(int size) {
 	icon_pb[2] = Stroke::trefoil()->draw(size);
 	composite_stock(win, icon_pb[1], "gtk-yes", 0.6);
 	composite_stock(win, icon_pb[2], "gtk-no", 0.5);
-	icon->set(icon_pb[0]);
+	if (icon)
+		icon->set(icon_pb[0]);
 	return true;
 }
 
