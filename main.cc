@@ -1305,6 +1305,9 @@ Main::Main() : kit(0) {
 	action_watcher->init();
 
 	grabber = new Grabber;
+	// Force enter events to be generated
+	XGrabPointer(dpy, ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+	XUngrabPointer(dpy, CurrentTime);
 
 	trace = init_trace();
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
