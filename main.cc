@@ -445,14 +445,10 @@ static void remap_pointer() {
 static void reset_buttons(bool force) {
 	if (!pointer_map.size() && !force)
 		return;
-	if (xi_15) {
-		pointer_map.clear();
-		remap_pointer();
-	} else {
-		std::map<guint, guint> map;
-		remap_grabs(map);
-	}
-
+	pointer_map.clear();
+	remap_pointer();
+	if (grabber->xinput && !xi_15)
+		remap_grabs(std::map<guint, guint>());
 }
 
 void Handler::remap(const std::map<guint, guint> &map) {
@@ -1638,7 +1634,7 @@ void Main::handle_event(XEvent &ev) {
 		return;
 
 	case MappingNotify:
-		if (!xi_15 || ev.xmapping.request != MappingPointer)
+		if (ev.xmapping.request != MappingPointer)
 			return;
 		if (mapping_events) {
 			mapping_events--;
