@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-14 14:44-0500\n"
+"POT-Creation-Date: 2009-01-18 00:14-0500\n"
 "PO-Revision-Date: 2009-01-14 12:35-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -59,101 +59,101 @@ msgstr "Aktionen"
 msgid "click (default)"
 msgstr "Klick (standard)"
 
-#: ../actions.cc:33
+#: ../actions.cc:34
 msgid "Key combination..."
 msgstr "Tastenkombination..."
 
-#: ../actions.cc:162
+#: ../actions.cc:163
 msgid "Key"
 msgstr "Taste"
 
-#: ../actions.cc:163
+#: ../actions.cc:164
 msgid "Command"
 msgstr "Befehl"
 
-#: ../actions.cc:164 ../actions.cc:914
+#: ../actions.cc:165 ../actions.cc:909
 msgid "Scroll"
 msgstr "Scrollen"
 
-#: ../actions.cc:165 ../actions.cc:921
+#: ../actions.cc:166 ../actions.cc:916
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: ../actions.cc:166 ../prefs.cc:309 ../prefs.cc:333
+#: ../actions.cc:167 ../prefs.cc:309 ../prefs.cc:333
 msgid "Button"
 msgstr "Maustaste"
 
-#: ../actions.cc:167
+#: ../actions.cc:168
 msgid "Misc"
 msgstr "Verschiedene"
 
-#: ../actions.cc:200 ../stats.cc:32 ../stats.cc:38
+#: ../actions.cc:201 ../stats.cc:32 ../stats.cc:38
 msgid "Stroke"
 msgstr "Geste"
 
-#: ../actions.cc:206 ../stats.cc:33 ../stats.cc:39
+#: ../actions.cc:207 ../stats.cc:33 ../stats.cc:39
 msgid "Name"
 msgstr "Name"
 
-#: ../actions.cc:230
+#: ../actions.cc:231
 msgid "Type"
 msgstr "Typ"
 
-#: ../actions.cc:236
+#: ../actions.cc:237
 msgid "Details"
 msgstr "Details"
 
-#: ../actions.cc:258
+#: ../actions.cc:259
 msgid "Application"
 msgstr "Anwendung"
 
-#: ../actions.cc:435
+#: ../actions.cc:436
 msgid "Action \"%1\" is about to be deleted."
 msgstr "Wenn Sie fortfahren, wird die Aktion \"%1\" gelöscht."
 
-#: ../actions.cc:437
+#: ../actions.cc:438
 msgid "One action is about to be deleted."
 msgid_plural "%1 actions are about to be deleted"
 msgstr[0] "Wenn Sie fortfahren, wird eine Aktion gelöscht."
 msgstr[1] "Wenn Sie fortfahren, werden %1 Aktionen gelöscht."
 
-#: ../actions.cc:442
+#: ../actions.cc:443
 msgid "Delete an Action"
 msgid_plural "Delete Actions"
 msgstr[0] "Eine Aktion löschen"
 msgstr[1] "Aktionen löschen"
 
-#: ../actions.cc:482
+#: ../actions.cc:514
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
 msgstr "Wenn Sie fortfahren, wird %1 \"%2\" (mitsamt %3 %4) gelöscht."
 
-#: ../actions.cc:483
+#: ../actions.cc:515
 msgid "The application"
 msgstr "die Anwendung"
 
-#: ../actions.cc:483
+#: ../actions.cc:515
 msgid "The group"
 msgstr "die Gruppe"
 
-#: ../actions.cc:486
+#: ../actions.cc:518
 msgid "action"
 msgid_plural "actions"
 msgstr[0] "Aktion"
 msgstr[1] "Aktionen"
 
-#: ../actions.cc:488
+#: ../actions.cc:520
 msgid "Delete an Application"
 msgstr "Eine Anwendung löschen"
 
-#: ../actions.cc:488
+#: ../actions.cc:520
 msgid "Delete an Application Group"
 msgstr "Eine Anwendungsgruppe löschen"
 
-#: ../actions.cc:553
+#: ../actions.cc:549
 msgid "Group"
 msgstr "Gruppe"
 
-#: ../actions.cc:645
+#: ../actions.cc:639
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
@@ -162,27 +162,27 @@ msgstr ""
 "Schwierigkeiten bereiten, Maustaste %1 zu benutzen.  Sind Sie sich sicher, "
 "dass Sie fortfahren möchten?"
 
-#: ../actions.cc:764
+#: ../actions.cc:759
 msgid "Gesture %1"
 msgstr "Geste %1"
 
-#: ../actions.cc:894
+#: ../actions.cc:889
 msgid "No Modifiers"
 msgstr "Keine Modifier"
 
-#: ../actions.cc:902
+#: ../actions.cc:897
 msgid "(Instantly) "
 msgstr "(Sofort) "
 
-#: ../actions.cc:904
+#: ../actions.cc:899
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:907 ../prefs.cc:462
+#: ../actions.cc:902 ../prefs.cc:462
 msgid "Button %1"
 msgstr "Maustaste %1"
 
-#: ../actions.cc:912
+#: ../actions.cc:907
 msgid " + Scroll"
 msgstr " + Scrollen"
 
@@ -190,12 +190,12 @@ msgstr " + Scrollen"
 msgid "'composite' not available"
 msgstr "'composite' nicht verfügbar"
 
-#: ../grabber.cc:334
+#: ../grabber.cc:356
 #, c-format
 msgid "Opening Device %s failed.\n"
 msgstr "Öffnen des Gerätes %s fehlgeschlagen.\n"
 
-#: ../grabber.cc:642
+#: ../grabber.cc:670
 msgid "(window manager frame)"
 msgstr "(Rahmen des Window-Managers)"
 
@@ -204,55 +204,55 @@ msgstr "(Rahmen des Window-Managers)"
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#: ../main.cc:270
+#: ../main.cc:283
 #, c-format
 msgid "Error: %s failed.  Is easystroke already running?\n"
 msgstr "Fehler: %s ist fehlgeschlagen.  Ist easystroke bereits gestartet?\n"
 
-#: ../main.cc:271
+#: ../main.cc:284
 msgid "A grab"
 msgstr "Ein Grab"
 
-#: ../main.cc:271
+#: ../main.cc:284
 msgid "An XInput grab"
 msgstr "Ein XInput-Grab"
 
-#: ../main.cc:273 ../main.cc:1750
+#: ../main.cc:286 ../main.cc:1749
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
-#: ../main.cc:294
+#: ../main.cc:307
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 
-#: ../main.cc:1038
+#: ../main.cc:738
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1201
+#: ../main.cc:1202
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1255
+#: ../main.cc:1256
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1292
+#: ../main.cc:1293
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1446
+#: ../main.cc:1449
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1451
+#: ../main.cc:1454
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
@@ -327,7 +327,7 @@ msgstr "Aktiv"
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:354 ../prefs.cc:611 ../prefs.cc:637
+#: ../prefs.cc:354 ../prefs.cc:603 ../prefs.cc:629
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
@@ -335,7 +335,7 @@ msgstr "<Anwendung deaktiviert>"
 msgid "Score"
 msgstr "Ergebnis"
 
-#: ../win.cc:156
+#: ../win.cc:176
 msgid "D_isabled"
 msgstr "Deaktiviert"
 
@@ -593,18 +593,6 @@ msgid "_Shift"
 msgstr "Umschalt"
 
 #: ../gui.glade.h:63
-msgid "gtk-add"
-msgstr "gtk-add"
-
-#: ../gui.glade.h:64
-msgid "gtk-edit"
-msgstr "gtk-edit"
-
-#: ../gui.glade.h:65
-msgid "gtk-remove"
-msgstr "gtk-remove"
-
-#: ../gui.glade.h:66
 msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
 

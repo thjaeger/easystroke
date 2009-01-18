@@ -324,7 +324,7 @@
                                     <property name="visible">True</property>
                                     <child>
                                       <widget class="GtkButton" id="button_add_extra">
-                                        <property name="label" translatable="yes">gtk-add</property>
+                                        <property name="label">gtk-add</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
@@ -336,7 +336,7 @@
                                     </child>
                                     <child>
                                       <widget class="GtkButton" id="button_edit_extra">
-                                        <property name="label" translatable="yes">gtk-edit</property>
+                                        <property name="label">gtk-edit</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
@@ -348,7 +348,7 @@
                                     </child>
                                     <child>
                                       <widget class="GtkButton" id="button_remove_extra">
-                                        <property name="label" translatable="yes">gtk-remove</property>
+                                        <property name="label">gtk-remove</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
