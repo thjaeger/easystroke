@@ -764,6 +764,7 @@ public:
 		if (!xi_15 && pointer_map.count(b))
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		click_time = 0;
+		remap_from = 0;
 		guint bb = (b == button1) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
@@ -785,19 +786,19 @@ public:
 			replay_button = b;
 		}
 		IF_BUTTON(act, b2) {
-			if (remap_from)
-				mods[remap_from].reset();
 			std::map<guint, guint> new_map = map;
 			remap_from = b;
 			new_map[b2] = 0;
 			new_map[remap_from] = b2;
-			mods[remap_from] = act->prepare();
-			sticky_mods.reset();
+			// This is kind of a hack:  Store modifiers in
+			// sticky_mods, so that they are automatically released
+			// on the next press
+			sticky_mods = act->prepare();
 			remap(new_map);
 			return;
 		}
-		remap(map);
 		mods[b] = act->prepare();
+		remap(map);
 		if (IS_KEY(act)) {
 			if (mods_equal(sticky_mods, mods[b]))
 				mods[b] = sticky_mods;
@@ -808,10 +809,8 @@ public:
 		act->run();
 	}
 	virtual void release(guint b, RTriple e) {
-		bool remapped = b == remap_from ||
-			((b == button1 || b == button2) && (remap_from == button1 || remap_from == button2));
-		if (remapped && !xi_15 && pointer_map[remap_from])
-			XTestFakeButtonEvent(dpy, pointer_map[remap_from], False, CurrentTime);
+		if (!xi_15 && pointer_map.count(b) && pointer_map[b])
+			XTestFakeButtonEvent(dpy, pointer_map[b], False, CurrentTime);
 		if (xinput_pressed.size() == 0) {
 			reset_buttons(false);
 			Handler *h = NULL;
@@ -825,9 +824,10 @@ public:
 			parent->replace_child(h);
 			return;
 		}
-		mods.erase(remapped ? remap_from : b);
-		if (remapped)
-			remap_from = 0;
+		mods.erase((b == button1) ? button2 : b);
+		if (remap_from)
+			sticky_mods.reset();
+		remap_from = 0;
 		remap(map);
 	}
 	virtual ~AdvancedHandler() {
