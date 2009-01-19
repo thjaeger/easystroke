@@ -237,7 +237,7 @@ void remove_last_entry(const Glib::ustring & name) {
 }
 
 Prefs::Prefs() {
- 	new Check(prefs.advanced_ignore, "check_advanced_ignore");
+	new Check(prefs.advanced_ignore, "check_advanced_ignore");
 	new Check(prefs.ignore_grab, "check_ignore_grab");
 	new Check(prefs.timing_workaround, "check_timing_workaround");
 
@@ -340,9 +340,9 @@ Prefs::Prefs() {
 
 	if (!experimental) {
 		Gtk::HBox *hbox;
-	       	widgets->get_widget("hbox_algo", hbox);
+		widgets->get_widget("hbox_algo", hbox);
 		hbox->hide();
-	       	widgets->get_widget("hbox_timeout", hbox);
+		widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
 	}
 	set_button_label();

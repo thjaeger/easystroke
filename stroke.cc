@@ -112,8 +112,8 @@ void Stroke::normalize() {
 	double scale = (scaleX > scaleY) ? scaleX : scaleY;
 	if (scale < 0.001) scale = 1;
 	for (vector<Point>::iterator i = points.begin(); i != points.end(); i++) {
-	   i->x = (i->x-(minX+maxX)/2)/scale + 0.5;
-	   i->y = (i->y-(minY+maxY)/2)/scale + 0.5;
+		i->x = (i->x-(minX+maxX)/2)/scale + 0.5;
+		i->y = (i->y-(minY+maxY)/2)/scale + 0.5;
 	}
 }
 

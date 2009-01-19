@@ -88,7 +88,7 @@ private:
 
 	Stroke(PreStroke &s, int trigger_, int button_, bool timeout_);
 
-        Glib::RefPtr<Gdk::Pixbuf> draw_(int size, double width = 2.0) const;
+	Glib::RefPtr<Gdk::Pixbuf> draw_(int size, double width = 2.0) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb[2];
 	std::vector<Point> points;
 

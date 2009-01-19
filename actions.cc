@@ -954,7 +954,7 @@ Glib::ustring ButtonInfo::get_button_text() const {
 	Glib::ustring str;
 	if (instant)
 		str += _("(Instantly) ");
-        if (state == AnyModifier)
+	if (state == AnyModifier)
 		str += Glib::ustring() + "(" + _("Any Modifier") + " +) ";
 	else
 		str += Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
