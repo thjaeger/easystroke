@@ -446,10 +446,15 @@ static void remap_pointer() {
 static void reset_buttons(bool force) {
 	if (!pointer_map.size() && !force)
 		return;
-	pointer_map.clear();
-	remap_pointer();
-	if (grabber->xinput && !xi_15)
-		remap_grabs(std::map<guint, guint>());
+	if (xi_15) {
+		pointer_map.clear();
+		remap_pointer();
+	} else {
+		if (grabber->xinput)
+			remap_grabs(std::map<guint, guint>());
+		if (force)
+			remap_pointer();
+	}
 }
 
 void Handler::remap(const std::map<guint, guint> &map) {
