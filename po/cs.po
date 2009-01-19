@@ -6,16 +6,16 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-18 19:57-0500\n"
-"PO-Revision-Date: 2009-01-18 21:39+0000\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2009-01-18 00:16-0500\n"
+"PO-Revision-Date: 2009-01-19 17:10+0000\n"
 "Last-Translator: Jakub Žáček <dawon.cz@gmail.com>\n"
 "Language-Team: Czech <cs@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-01-19 00:52+0000\n"
+"X-Launchpad-Export-Date: 2009-01-19 20:00+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:119
@@ -170,7 +170,7 @@ msgstr "Gesto %1"
 
 #: ../actions.cc:889
 msgid "No Modifiers"
-msgstr ""
+msgstr "Žádné modifikátory"
 
 #: ../actions.cc:897
 msgid "(Instantly) "
@@ -178,7 +178,7 @@ msgstr "(Instantně) "
 
 #: ../actions.cc:899
 msgid "Any Modifier"
-msgstr ""
+msgstr "Jakékoliv modifikátory"
 
 #: ../actions.cc:902 ../prefs.cc:462
 msgid "Button %1"
@@ -213,16 +213,16 @@ msgstr "Chyba: %s selhalo.  Neběží již EasyStroke?\n"
 
 #: ../main.cc:284
 msgid "A grab"
-msgstr ""
+msgstr "Grab"
 
 #: ../main.cc:284
 msgid "An XInput grab"
-msgstr ""
+msgstr "XInput grab"
 
 #: ../main.cc:286 ../main.cc:1749
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
-msgstr ""
+msgstr "Chyba: Grab selhal, restartování...\n"
 
 #: ../main.cc:307
 #, c-format
@@ -271,7 +271,7 @@ msgstr "nastavení"
 #: ../prefdb.cc:209
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
-msgstr "Chyba: Nelz načíst nastavení.\n"
+msgstr "Chyba: Nelze načíst nastavení.\n"
 
 #: ../prefs.cc:161
 msgid "None"
@@ -311,7 +311,7 @@ msgstr "Agresivní"
 
 #: ../prefs.cc:175 ../prefs.cc:184
 msgid "Flick"
-msgstr ""
+msgstr "Trhnutí"
 
 #: ../prefs.cc:185
 msgid "Custom"
@@ -400,7 +400,7 @@ msgstr ""
 
 #: ../gui.glade.h:15
 msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr ""
+msgstr "Přerušit gesto, když tlak přesáhne číslo nalevo (max 255)"
 
 #: ../gui.glade.h:16
 msgid "Accept gestures when menus are shown (experimental)"
@@ -420,7 +420,7 @@ msgstr "Přidat skupinu"
 
 #: ../gui.glade.h:20
 msgid "Additional Buttons"
-msgstr ""
+msgstr "Další tlačítka"
 
 #: ../gui.glade.h:21
 msgid "Advanced"
@@ -432,11 +432,11 @@ msgstr "Algoritmus    "
 
 #: ../gui.glade.h:23
 msgid "Alternatively, you may select button and modifiers below."
-msgstr ""
+msgstr "Alternativně můžete zvolit tlačítko a modifikátory níže."
 
 #: ../gui.glade.h:24
 msgid "An_y Modifier"
-msgstr ""
+msgstr "J_akýkoliv modifikátor"
 
 #: ../gui.glade.h:25
 msgid "Applications"
@@ -500,7 +500,7 @@ msgstr "Zobrazit vyskakovací okna ("
 
 #: ../gui.glade.h:40
 msgid "Show popups on advanced gestures"
-msgstr ""
+msgstr "Zobrazit vyskakovací okna u pokročilých gest"
 
 #: ../gui.glade.h:41
 msgid "Show tray icon"
@@ -508,7 +508,7 @@ msgstr "Zobrazovat ikonu v oznamovací oblasti"
 
 #: ../gui.glade.h:42
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr ""
+msgstr "Zůstat ve 'skrolovacím' a 'ignore' módu dokud je pero v dosahu"
 
 #: ../gui.glade.h:43
 msgid "Timeout Gestures"
@@ -523,6 +523,8 @@ msgid ""
 "Treat it as a click if the cursor isn't moved more \n"
 "than this many pixels away from the original position"
 msgstr ""
+"Pokud se kurzor nepohne více jak \n"
+"pixelů  pak považovat za kliknutí"
 
 #: ../gui.glade.h:47
 msgid "Width"
@@ -530,7 +532,7 @@ msgstr "Šířka"
 
 #: ../gui.glade.h:48
 msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-msgstr ""
+msgstr "Obejít problémy s časováním u Wacom tabletů a u Tablet PC"
 
 #: ../gui.glade.h:49
 msgid "_Add Action"
