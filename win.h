@@ -68,6 +68,7 @@ private:
 	void on_help_toggled();
 	void show_popup(guint, guint32);
 	void show_hide_icon();
+	void on_about();
 
 	Gtk::Window *win;
 

@@ -361,13 +361,13 @@ bool Stroke::compare(RStroke a_, RStroke b_, double &score) {
 		return score > 0.7;
 }
 
-Glib::RefPtr<Gdk::Pixbuf> Stroke::draw(int size, bool big) const {
-	if (size != STROKE_SIZE)
-		return draw_(size, big);
-	int i = big ? 1 : 0;
+Glib::RefPtr<Gdk::Pixbuf> Stroke::draw(int size, double width) const {
+	if (size != STROKE_SIZE || (width != 2.0 && width != 4.0))
+		return draw_(size, width);
+	int i = width == 2.0;
 	if (pb[i])
 		return pb[i];
-	pb[i] = draw_(size, big);
+	pb[i] = draw_(size, width);
 	return pb[i];
 }
 

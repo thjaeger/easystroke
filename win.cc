@@ -23,13 +23,13 @@
 
 Glib::RefPtr<Gtk::Builder> widgets;
 
-void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, bool big) const {
+void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, double width) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
-	x+=2; y+=2; w -= 4; h -= 4;
+	x += width; y += width; w -= 2*width; h -= 2*width;
 	ctx->save();
 	ctx->translate(x,y);
 	ctx->scale(w,h);
-	ctx->set_line_width((big ? 8.0 : 4.0)/(w+h));
+	ctx->set_line_width(2.0*width/(w+h));
 	if (size()) {
 		ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
 		int n = points.size();
@@ -92,11 +92,11 @@ void Stroke::draw_svg(std::string filename) const {
 	const int S = 32;
 	const int B = 1;
 	Cairo::RefPtr<Cairo::SvgSurface> s = Cairo::SvgSurface::create(filename, S, S);
-	draw(s, B, B, S-2*B, S-2*B, false);
+	draw(s, B, B, S-2*B, S-2*B);
 }
 
 
-Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size, bool big) const {
+Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size, double width) const {
 	Glib::RefPtr<Gdk::Pixbuf> pb = drawEmpty_(size);
 	int w = size;
 	int h = size;
@@ -105,7 +105,7 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size, bool big) const {
 	// This is all pretty messed up
 	// http://www.archivum.info/gtkmm-list@gnome.org/2007-05/msg00112.html
 	Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(row, Cairo::FORMAT_ARGB32, w, h, stride);
-	draw(surface, 0, 0, pb->get_width(), size, big);
+	draw(surface, 0, 0, pb->get_width(), size, width);
 	for (int i = 0; i < w; i++) {
 		guint8 *px = row;
 		for (int j = 0; j < h; j++) {
@@ -176,9 +176,18 @@ Win::Win() {
 	WIDGET(Gtk::CheckMenuItem, menu_disabled, _("D_isabled"), true);
 	menu.append(menu_disabled);
 	new MenuCheck(disabled, &menu_disabled);
+
+	WIDGET(Gtk::ImageMenuItem, menu_about, Gtk::Stock::ABOUT);
+	menu.append(menu_about);
+	menu_about.signal_activate().connect(sigc::mem_fun(*this, &Win::on_about));
+
+	WIDGET(Gtk::SeparatorMenuItem, menu_sep);
+	menu.append(menu_sep);
+
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
 	menu.append(menu_quit);
 	menu_quit.signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
+
 	menu.show_all();
 
 	widgets->get_widget("main", win);
@@ -222,6 +231,18 @@ void Win::show_hide_icon() {
 void Win::show_popup(guint button, guint32 activate_time) {
 	if (icon)
 		icon->popup_menu_at_position(menu, button, activate_time);
+}
+
+extern const char *version_string;
+void Win::on_about() {
+	Gtk::AboutDialog *about;
+	widgets->get_widget("aboutdialog", about);
+	about->set_logo(Stroke::trefoil()->draw(96, 4.0));
+	about->set_version(version_string);
+	about->set_program_name("easystroke\n");
+	about->show();
+	about->run();
+	about->hide();
 }
 
 void Win::show_hide() {

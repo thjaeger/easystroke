@@ -209,8 +209,8 @@ void Stats::on_pdf() {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
 	int k = 1;
 	for (std::list<RStroke>::iterator i = strokes.begin(); i != strokes.end(); i++, k++) {
-		(*i)->draw(surface, k*S+B, B, S-2*B, S-2*B, false);
-		(*i)->draw(surface, B, k*S+B, S-2*B, S-2*B, false);
+		(*i)->draw(surface, k*S+B, B, S-2*B, S-2*B);
+		(*i)->draw(surface, B, k*S+B, S-2*B, S-2*B);
 
 		ctx->set_source_rgba(0,0,0,1);
 		ctx->set_line_width(1);

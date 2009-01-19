@@ -1241,12 +1241,15 @@ class ReloadTrace : public Timeout {
 
 void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
-void open_uri(Gtk::LinkButton *button, const Glib::ustring& uri) {
+void xdg_open(const Glib::ustring str) {
 	if (!fork()) {
-		execlp("xdg-open", "xdg-open", uri.c_str(), NULL);
+		execlp("xdg-open", "xdg-open", str.c_str(), NULL);
 		exit(EXIT_FAILURE);
 	}
 }
+
+void link_button_hook(Gtk::LinkButton *, const Glib::ustring& uri) { xdg_open(uri); }
+void about_dialog_hook(Gtk::AboutDialog &, const Glib::ustring& url) { xdg_open(url); }
 
 // dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
 void send_dbus(char *str) {
@@ -1286,7 +1289,8 @@ Main::Main() : kit(0) {
 	signal(SIGINT, &quit);
 	signal(SIGCHLD, SIG_IGN);
 
-	Gtk::LinkButton::set_uri_hook(sigc::ptr_fun(&open_uri));
+	Gtk::LinkButton::set_uri_hook(sigc::ptr_fun(&link_button_hook));
+	Gtk::AboutDialog::set_url_hook(sigc::ptr_fun(&about_dialog_hook));
 
 	dpy = XOpenDisplay(display.c_str());
 	if (!dpy) {

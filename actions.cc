@@ -616,7 +616,7 @@ void Actions::update_row(const Gtk::TreeRow &row) {
 	bool deleted, stroke, name, action;
 	RStrokeInfo si = action_list->get_info(row[cols.id], &deleted, &stroke, &name, &action);
 	row[cols.stroke] = !si->strokes.empty() && *si->strokes.begin() ? 
-		(*si->strokes.begin())->draw(STROKE_SIZE, stroke) : Stroke::drawEmpty(STROKE_SIZE);
+		(*si->strokes.begin())->draw(STROKE_SIZE, stroke ? 4.0 : 2.0) : Stroke::drawEmpty(STROKE_SIZE);
 	row[cols.name] = si->name;
 	row[cols.type] = si->action ? type_to_name(&typeid(*si->action)) : "";
 	row[cols.arg]  = si->action ? si->action->get_label() : "";
