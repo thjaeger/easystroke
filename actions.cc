@@ -539,9 +539,10 @@ void Actions::on_reset_actions() {
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
 		Gtk::TreeRow row(*tm->get_iter(*i));
 		action_list->reset(row[cols.id]);
-//		update_row(row); // This can't handle deleted rows...
 	}
 	update_action_list();
+	on_selection_changed();
+	update_actions();
 }
 
 void Actions::on_add_group() {
@@ -650,6 +651,7 @@ class Actions::OnStroke {
 		strokes.insert(stroke);
 		parent->action_list->set_strokes(row[parent->cols.id], strokes);
 		parent->update_row(row);
+		parent->on_selection_changed();
 		update_actions();
 		dialog->response(0);
 		return false;
@@ -697,6 +699,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 
 	action_list->set_strokes(row[cols.id], StrokeSet());
 	update_row(row);
+	on_selection_changed();
 	update_actions();
 }
 
