@@ -128,6 +128,8 @@ public:
 		else
 			return this;
 	}
+	static bool idle() { return !handler->child; }
+
 	virtual void motion(RTriple e) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
@@ -154,14 +156,13 @@ public:
 		grabber->grab(new_handler->grab_mode());
 		if (child)
 			child->init();
-		while (queued.size() && handler->idle()) {
+		while (queued.size() && Handler::idle()) {
 			(*queued.begin())();
 			queued.pop_front();
 		}
 	}
 	void remap(const std::map<guint, guint> &map);
 	virtual void init() {}
-	virtual bool idle() { return false; }
 	virtual ~Handler() {
 		if (child)
 			delete child;
@@ -171,7 +172,7 @@ public:
 };
 
 void queue(sigc::slot<void> f) {
-	if (handler->idle()) {
+	if (Handler::idle()) {
 		f();
 		XFlush(dpy);
 	} else
@@ -279,7 +280,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	if (e->request_code == X_GrabButton || 
 			(grabber && grabber->xinput && e->request_code == grabber->nMajor &&
 			 e->minor_code == X_GrabDeviceButton)) {
-		if (!handler || handler->idle()) {
+		if (!handler || Handler::idle()) {
 			printf(_("Error: %s failed.  Is easystroke already running?\n"),
 					e->request_code == X_GrabButton ? _("A grab") : _("An XInput grab"));
 		} else {
@@ -1166,7 +1167,6 @@ public:
 	virtual ~IdleHandler() {
 		XUngrabKey(dpy, XKeysymToKeycode(dpy,XK_Escape), AnyModifier, ROOT);
 	}
-	virtual bool idle() { return true; }
 	virtual std::string name() { return "Idle"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
@@ -1205,7 +1205,7 @@ void run_by_name(const char *str) {
 void quit(int) {
 	if (dead)
 		bail_out();
-	if (handler->top()->idle() || dead)
+	if (Handler::idle() || dead)
 		Gtk::Main::quit();
 	else
 		dead = true;
@@ -1754,7 +1754,7 @@ bool Main::handle(Glib::IOCondition) {
 			bail_out();
 		}
 	}
-	if (handler->top()->idle() && dead)
+	if (Handler::idle() && dead)
 		Gtk::Main::quit();
 	return true;
 }
