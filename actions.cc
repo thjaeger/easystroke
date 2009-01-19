@@ -252,7 +252,7 @@ Actions::Actions() :
 	check_show_deleted->signal_toggled().connect(sigc::mem_fun(*this, &Actions::update_action_list));
 	expander_apps->property_expanded().signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
 	apps_view->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
-	apps_model = Gtk::TreeStore::create(ca);
+	apps_model = AppsStore::create(ca, this);
 
 	load_app_list(apps_model->children(), actions.get_root());
 
@@ -264,6 +264,7 @@ Actions::Actions() :
 	app_name_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_group_name_edited));
 
 	apps_view->set_model(apps_model);
+	apps_view->enable_model_drag_dest();
 	apps_view->expand_all();
 }
 
@@ -335,6 +336,52 @@ int Actions::compare_ids(const Gtk::TreeModel::iterator &a, const Gtk::TreeModel
 		return 1;
 }
 
+bool Actions::AppsStore::row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest,
+		const Gtk::SelectionData &selection) const {
+	static bool expecting = false;
+	static Gtk::TreePath expected;
+	if (expecting && expected != dest)
+		expecting = false;
+	if (!expecting) {
+		if (dest.get_depth() < 2 || dest.back() != 0)
+			return false;
+		expected = dest;
+		expected.up();
+		expecting = true;
+		return false;
+	}
+	expecting = false;
+	Gtk::TreePath src;
+	Glib::RefPtr<TreeModel> model;
+	if (!Gtk::TreeModel::Path::get_from_selection_data(selection, model, src))
+		return false;
+	if (model != parent->tm)
+		return false;
+	Gtk::TreeIter dest_iter = parent->apps_model->get_iter(dest);
+	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
+	return actions && actions != parent->action_list;
+}
+
+bool Actions::AppsStore::drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) {
+	Gtk::TreePath src;
+	Glib::RefPtr<TreeModel> model;
+	if (!Gtk::TreeModel::Path::get_from_selection_data(selection, model, src))
+		return false;
+	if (model != parent->tm)
+		return false;
+	Unique *src_id = (*parent->tm->get_iter(src))[parent->cols.id];
+	Gtk::TreeIter dest_iter = parent->apps_model->get_iter(dest);
+	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
+	if (!actions || actions == parent->action_list)
+		return false;
+	RStrokeInfo si = parent->action_list->get_info(src_id);
+	parent->action_list->remove(src_id);
+	actions->add(*si);
+	parent->update_action_list();
+	update_actions();
+	return true;
+}
+
 bool Actions::Store::row_draggable_vfunc(const Gtk::TreeModel::Path &path) const {
 	int col;
 	Gtk::SortType sort;
@@ -348,6 +395,15 @@ bool Actions::Store::row_draggable_vfunc(const Gtk::TreeModel::Path &path) const
 }
 
 bool Actions::Store::row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) const {
+	static bool ignore_next = false;
+	if (dest.get_depth() > 1) {
+		ignore_next = true;
+		return false;
+	}
+	if (ignore_next) {
+		ignore_next = false;
+		return false;
+	}
 	Gtk::TreePath src;
 	Glib::RefPtr<TreeModel> model;
 	if (!Gtk::TreeModel::Path::get_from_selection_data(selection, model, src))

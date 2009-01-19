@@ -86,12 +86,23 @@ private:
 		bool row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) const;
 		bool drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData& selection);
 	};
+	class AppsStore : public Gtk::TreeStore {
+		Actions *parent;
+	public:
+		AppsStore(const Gtk::TreeModelColumnRecord &columns, Actions *p) : Gtk::TreeStore(columns), parent(p) {}
+		static Glib::RefPtr<AppsStore> create(const Gtk::TreeModelColumnRecord &columns, Actions *parent) {
+			return Glib::RefPtr<AppsStore>(new AppsStore(columns, parent));
+		}
+	protected:
+		bool row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) const;
+		bool drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData& selection);
+	};
 	ModelColumns cols;
 	Gtk::TreeView *tv;
 	Glib::RefPtr<Store> tm;
 
 	Gtk::TreeView *apps_view;
-	Glib::RefPtr<Gtk::TreeStore> apps_model;
+	Glib::RefPtr<AppsStore> apps_model;
 
 	class Single : public Gtk::TreeModel::ColumnRecord {
 	public:
