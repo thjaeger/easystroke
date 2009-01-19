@@ -385,7 +385,7 @@ bool Actions::AppsStore::drag_data_received_vfunc(const Gtk::TreeModel::Path &de
 bool Actions::Store::row_draggable_vfunc(const Gtk::TreeModel::Path &path) const {
 	int col;
 	Gtk::SortType sort;
-	parent->tm->get_sort_column_id(col, sort); 
+	parent->tm->get_sort_column_id(col, sort);
 	if (col != Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID)
 		return false;
 	if (sort != Gtk::SORT_ASCENDING)
@@ -548,7 +548,7 @@ void Actions::on_add_app() {
 	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;
 	ActionListDiff *child = parent->add_child(name, true);
 	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
-	       	apps_model->children().begin()->children() :
+		apps_model->children().begin()->children() :
 		apps_view->get_selection()->get_selected()->children();
 	Gtk::TreeRow row = *(apps_model->append(ch));
 	row[ca.app] = name;
@@ -606,7 +606,7 @@ void Actions::on_add_group() {
 	Glib::ustring name = _("Group");
 	ActionListDiff *child = parent->add_child(name, false);
 	const Gtk::TreeNodeChildren &ch = parent == actions.get_root() ?
-	       	apps_model->children().begin()->children() :
+		apps_model->children().begin()->children() :
 		apps_view->get_selection()->get_selected()->children();
 	Gtk::TreeRow row = *(apps_model->append(ch));
 	row[ca.app] = name;

@@ -129,7 +129,7 @@ private:
 
 	bool editing_new;
 	bool editing;
-	
+
 	ActionListDiff *action_list;
 };
 

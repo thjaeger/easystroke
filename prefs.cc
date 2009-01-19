@@ -628,7 +628,7 @@ void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::u
 		bi2.reset(new ButtonInfo(sb.event));
 	row[cols.button] = bi2 ? bi2->get_button_text() : _("<App disabled>");
 	Atomic a;
-	prefs.exceptions.write_ref(a)[app] = bi2; 
+	prefs.exceptions.write_ref(a)[app] = bi2;
 }
 
 

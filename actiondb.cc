@@ -262,7 +262,7 @@ RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bo
 
 boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() const {
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = parent ? parent->get_strokes() :
-	       	boost::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
+		boost::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
 	for (std::set<Unique *>::const_iterator i = deleted.begin(); i != deleted.end(); i++)
 		strokes->erase(*i);
 	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
@@ -273,7 +273,7 @@ boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() 
 
 boost::shared_ptr<std::set<Unique *> > ActionListDiff::get_ids(bool include_deleted) const {
 	boost::shared_ptr<std::set<Unique *> > ids = parent ? parent->get_ids(false) :
-	       	boost::shared_ptr<std::set<Unique *> >(new std::set<Unique *>);
+		boost::shared_ptr<std::set<Unique *> >(new std::set<Unique *>);
 	if (!include_deleted)
 		for (std::set<Unique *>::const_iterator i = deleted.begin(); i != deleted.end(); i++)
 			ids->erase(*i);

@@ -277,7 +277,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 				return 0;
 		}
 	}
-	if (e->request_code == X_GrabButton || 
+	if (e->request_code == X_GrabButton ||
 			(grabber && grabber->xinput && e->request_code == grabber->nMajor &&
 			 e->minor_code == X_GrabDeviceButton)) {
 		if (!handler || Handler::idle()) {

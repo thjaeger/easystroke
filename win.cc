@@ -113,7 +113,6 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::draw_(int size, double width) const {
 			guint8 r = px[2];
 			guint8 g = px[1];
 			guint8 b = px[0];
-			
 			if (a) {
 				px[0] = ((((guint)r) << 8) - r) / a;
 				px[1] = ((((guint)g) << 8) - g) / a;
