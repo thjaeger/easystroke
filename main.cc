@@ -62,7 +62,6 @@ Source<Window> current_window(None);
 extern Source<bool> disabled;
 Window current_app = 0, ping_window = 0;
 Trace *trace = 0;
-Trace::Point orig;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Grabber::XiDevice *current_dev = 0;
@@ -949,6 +948,7 @@ class StrokeHandler : public Handler, public Timeout {
 	bool use_timeout;
 	Time press_t; // If there is a synchronous grab in place, this is the grab time.
 	bool freeze_workaround;
+	Trace::Point orig;
 
 	RStroke finish(guint b) {
 		trace->end();
