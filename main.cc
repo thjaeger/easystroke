@@ -40,39 +40,44 @@
 #include <fcntl.h>
 #include <getopt.h>
 
-const char *versions[] = { "-0.4.0", "", NULL };
-
-bool show_gui = false;
 extern bool no_xi;
 extern bool xi_15;
-bool rotated = false;
+extern Source<bool> disabled;
+
 bool experimental = false;
 int verbosity = 0;
-int offset_x = 0;
-int offset_y = 0;
-
-Display *dpy;
-int argc;
-char **argv;
-
+const char *versions[] = { "-0.4.0", "", NULL };
+Source<Window> current_window(None);
 std::string config_dir;
 Win *win;
-
-Source<Window> current_window(None);
-extern Source<bool> disabled;
-Window current_app = 0, ping_window = 0;
-Trace *trace = 0;
+Display *dpy;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
-Grabber::XiDevice *current_dev = 0;
-std::set<guint> xinput_pressed;
-bool dead = false;
+
+static bool show_gui = false;
+static bool rotated = false;
+static int offset_x = 0;
+static int offset_y = 0;
+
+static int argc;
+static char **argv;
+
+static Window current_app = 0, ping_window = 0;
+static Trace *trace = 0;
+static Grabber::XiDevice *current_dev = 0;
+static std::set<guint> xinput_pressed;
+static std::map<guint, guint> pointer_map;
+static int mapping_events = 0;
+static bool dead = false;
 
 class Handler;
-Handler *handler = 0;
-ActionDBWatcher *action_watcher = 0;
+static Handler *handler = 0;
+static ActionDBWatcher *action_watcher = 0;
 
-Trace *trace_composite() {
+static int (*oldHandler)(Display *, XErrorEvent *) = 0;
+static int (*oldIOHandler)(Display *) = 0;
+
+static Trace *trace_composite() {
 	try {
 		return new Composite();
 	} catch (std::exception &e) {
@@ -82,7 +87,7 @@ Trace *trace_composite() {
 	}
 }
 
-Trace *init_trace() {
+static Trace *init_trace() {
 	try {
 		switch(prefs.trace.get()) {
 			case TraceNone:
@@ -235,11 +240,11 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
 };
 
-void bail_out();
+static void bail_out();
 
 static void reset_buttons(bool force);
 
-RAction handle_stroke(RStroke s, RTriple e) {
+static RAction handle_stroke(RStroke s, RTriple e) {
 	Ranking *ranking = new Ranking;
 	RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
 	if (act)
@@ -253,7 +258,7 @@ RAction handle_stroke(RStroke s, RTriple e) {
 	return act;
 }
 
-void bail_out() {
+static void bail_out() {
 	handler->replace_child(0);
 	grabber->release_all();
 	replay(CurrentTime);
@@ -262,10 +267,7 @@ void bail_out() {
 	XFlush(dpy);
 }
 
-int (*oldHandler)(Display *, XErrorEvent *) = 0;
-int (*oldIOHandler)(Display *) = 0;
-
-int xErrorHandler(Display *dpy2, XErrorEvent *e) {
+static int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	if (dpy != dpy2)
 		return oldHandler(dpy2, e);
 	if (verbosity == 0 && e->error_code == BadWindow) {
@@ -301,7 +303,7 @@ int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	return 0;
 }
 
-int xIOErrorHandler(Display *dpy2) {
+static int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
 	printf(_("Fatal Error: Connection to X server lost, restarting...\n"));
@@ -314,7 +316,7 @@ int xIOErrorHandler(Display *dpy2) {
 }
 
 static XAtom EASYSTROKE_PING("EASYSTROKE_PING");
-void ping() {
+static void ping() {
 	XClientMessageEvent ev;
 	ev.type = ClientMessage;
 	ev.window = ping_window;
@@ -325,7 +327,7 @@ void ping() {
 }
 
 static XAtom EASYSTROKE_ENSURE_DOWN("EASYSTROKE_ENSURE_DOWN");
-void ensure_down(guint b) {
+static void ensure_down(guint b) {
 	XClientMessageEvent ev;
 	ev.type = ClientMessage;
 	ev.window = ping_window;
@@ -348,9 +350,7 @@ public:
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
 
-std::map<guint, guint> pointer_map;
-
-void remap_grabs(const std::map<guint, guint> &map) {
+static void remap_grabs(const std::map<guint, guint> &map) {
 	if (verbosity >= 4) {
 		printf("Old:\n");
 		for (std::map<guint, guint>::const_iterator i = pointer_map.begin(); i != pointer_map.end(); i++)
@@ -422,8 +422,6 @@ void remap_grabs(const std::map<guint, guint> &map) {
 		XGrabButton(dpy, *i, AnyModifier, ROOT, False, ButtonPressMask, GrabModeAsync, GrabModeAsync, None, None);
 	}
 }
-
-static int mapping_events = 0;
 
 // This can potentially mess up the user's mouse, make sure that it doesn't fail
 static void remap_pointer() {
@@ -546,7 +544,7 @@ void Handler::remap(const std::map<guint, guint> &map) {
 	}
 }
 
-inline float abs(float x) { return x > 0 ? x : -x; }
+static inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
 	float last_x, last_y;
@@ -679,7 +677,7 @@ public:
 };
 
 // Hack so that we don't have to move stuff around so much
-bool mods_equal(RModifiers m1, RModifiers m2);
+static bool mods_equal(RModifiers m1, RModifiers m2);
 
 class AdvancedStrokeActionHandler : public Handler {
 	RStroke s;
@@ -898,7 +896,7 @@ Window get_window(Window w, Atom prop) {
 	return ret;
 }
 
-void icccm_client_message(Window w, Atom a, Time t) {
+static void icccm_client_message(Window w, Atom a, Time t) {
 	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
 	XClientMessageEvent ev;
 	ev.type = ClientMessage;
@@ -910,7 +908,7 @@ void icccm_client_message(Window w, Atom a, Time t) {
 	XSendEvent(dpy, w, False, 0, (XEvent *)&ev);
 }
 
-void activate_window(Window w, Time t) {
+static void activate_window(Window w, Time t) {
 	static XAtom _NET_WM_WINDOW_TYPE("_NET_WM_WINDOW_TYPE");
 	static XAtom _NET_WM_WINDOW_TYPE_DOCK("_NET_WM_WINDOW_TYPE_DOCK");
 	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
@@ -1213,7 +1211,7 @@ void run_by_name(const char *str) {
 	printf(_("Warning: No action \"%s\" defined\n"), str);
 }
 
-void quit(int) {
+static void quit(int) {
 	if (dead)
 		bail_out();
 	if (Handler::idle() || dead)
@@ -1250,20 +1248,20 @@ class ReloadTrace : public Timeout {
 	}
 } reload_trace;
 
-void schedule_reload_trace() { reload_trace.set_timeout(1000); }
+static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
-void xdg_open(const Glib::ustring str) {
+static void xdg_open(const Glib::ustring str) {
 	if (!fork()) {
 		execlp("xdg-open", "xdg-open", str.c_str(), NULL);
 		exit(EXIT_FAILURE);
 	}
 }
 
-void link_button_hook(Gtk::LinkButton *, const Glib::ustring& uri) { xdg_open(uri); }
-void about_dialog_hook(Gtk::AboutDialog &, const Glib::ustring& url) { xdg_open(url); }
+static void link_button_hook(Gtk::LinkButton *, const Glib::ustring& uri) { xdg_open(uri); }
+static void about_dialog_hook(Gtk::AboutDialog &, const Glib::ustring& url) { xdg_open(url); }
 
 // dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
-void send_dbus(char *str) {
+static void send_dbus(char *str) {
 	GError *error = 0;
 	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
 	if (!bus) {
@@ -1554,7 +1552,7 @@ void Main::handle_enter_leave(XEvent &ev) {
 	} else printf("Error: Bogus Enter/Leave event\n");
 }
 
-class PresenceWatcher : public Timeout {
+static class PresenceWatcher : public Timeout {
 	virtual void timeout() {
 		XDevice *dev = current_dev ? current_dev->dev : 0;
 		grabber->update_device_list();
@@ -1569,7 +1567,7 @@ struct ButtonTime {
 	Time time;
 };
 
-Bool is_device_press(Display *dpy_, XEvent *ev, XPointer arg) {
+static Bool is_device_press(Display *dpy_, XEvent *ev, XPointer arg) {
 	ButtonTime *bt = (ButtonTime *)arg;
 	XDeviceButtonEvent* bev = (XDeviceButtonEvent *)ev;
 	return grabber->is_event(ev->type, Grabber::DOWN) && bt->button == bev->button && bt->time == bev->time;
@@ -1802,7 +1800,7 @@ void SendKey::run() {
 	XTestFakeKeyEvent(dpy, code, false, 0);
 }
 
-struct does_that_really_make_you_happy_stupid_compiler {
+static struct {
 	guint mask;
 	guint sym;
 } modkeys[] = {
@@ -1817,7 +1815,7 @@ struct does_that_really_make_you_happy_stupid_compiler {
 	{GDK_HYPER_MASK, XK_Hyper_L},
 	{GDK_META_MASK, XK_Meta_L},
 };
-int n_modkeys = 10;
+static int n_modkeys = 10;
 
 class Modifiers : Timeout {
 	static std::set<Modifiers *> all;
@@ -1867,7 +1865,7 @@ RModifiers SendKey::prepare() {
 	return RModifiers(new Modifiers(mods, ModAction::get_label()));
 }
 
-bool mods_equal(RModifiers m1, RModifiers m2) {
+static bool mods_equal(RModifiers m1, RModifiers m2) {
 	return m1 && m2 && *m1 == *m2;
 }
 
