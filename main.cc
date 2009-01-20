@@ -948,6 +948,7 @@ class StrokeHandler : public Handler, public Timeout {
 	static float k;
 	bool use_timeout;
 	Time press_t; // If there is a synchronous grab in place, this is the grab time.
+	bool freeze_workaround;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -1022,10 +1023,19 @@ protected:
 		parent->replace_child(0);
 	}
 	virtual void motion(RTriple e) {
-		if (!press_t && xinput_pressed.count(button) && !prefs.ignore_grab.get()) {
-			if (verbosity >= 2)
-				printf("Ignoring xi-only stroke\n");
-			parent->replace_child(0);
+		if (!press_t && grabber->xinput) {
+			// I don't know why (presumably a server bug), but sometimes
+			// XAllowEvents won't thaw the core pointer.  In that case,
+			// we'll get xi-only strokes
+			if (!freeze_workaround) {
+				discard(e->t);
+				freeze_workaround = true;
+			}
+			if (!prefs.ignore_grab.get()) {
+				if (verbosity >= 2)
+					printf("Ignoring xi-only stroke\n");
+				parent->replace_child(NULL);
+			}
 			return;
 		}
 		cur->add(e);
@@ -1058,16 +1068,12 @@ protected:
 	virtual void press(guint b, RTriple e) {
 		if (b == button)
 			return;
-		if (calc_speed(e))
-			return;
 		RStroke s = finish(b);
 
 		parent->replace_child(AdvancedHandler::create(s, e, button, b, press_t));
 	}
 
 	virtual void release(guint b, RTriple e) {
-		if (calc_speed(e))
-			return;
 		RStroke s = finish(0);
 
 		if (stroke_action) {
@@ -1113,7 +1119,7 @@ protected:
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
 	min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
-	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(0) {
+	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(0), freeze_workaround(false) {
 		orig.x = e->x; orig.y = e->y;
 		cur = PreStroke::create();
 		cur->add(e);
