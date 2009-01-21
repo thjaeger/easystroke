@@ -713,6 +713,7 @@ class AdvancedHandler : public Handler {
 	guint button1, button2;
 
 	std::map<guint, guint> map;
+	std::set<guint> pass;
 
 	void show_ranking(guint b, RTriple e) {
 		if (!rs.count(b))
@@ -762,14 +763,16 @@ public:
 		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
 	void do_remap() {
+		std::map<guint, guint> new_map = map;
+		for (std::set<guint>::iterator i = xinput_pressed.begin(); i != xinput_pressed.end(); ++i)
+			if (!pass.count(*i))
+				new_map[*i] = 0;
 		if (remap_from) {
-			std::map<guint, guint> new_map = map;
 			new_map[remap_to] = 0;
 			new_map[remap_from] = remap_to;
-			remap(new_map);
-		} else {
-			remap(map);
 		}
+		remap(new_map);
+
 	}
 	virtual void init() {
 		press(button2 ? button2 : button1, e);
@@ -783,9 +786,11 @@ public:
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
 			sticky_mods.reset();
+			pass.insert(b);
 			do_remap();
 			return;
 		}
+		pass.clear();
 		RAction act = as[bb];
 		if (IS_SCROLL(act)) {
 			click_time = e->t;
@@ -840,6 +845,7 @@ public:
 		if (remap_from)
 			sticky_mods.reset();
 		remap_from = 0;
+		pass.erase(b);
 		do_remap();
 	}
 	virtual ~AdvancedHandler() {
