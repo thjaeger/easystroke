@@ -727,13 +727,14 @@ class AdvancedHandler : public Handler {
 	}
 	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b1, guint b2) :
 		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button1(b1), button2(b2) {
-			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i)
+			// as.count((b == b1) ? b2 : b) <=> map[b] == 0
+			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i) {
+				// i->first == ((b == b1) ? b2 : b)
+				if (i->first == b2 && b1)
+					map[b1] = 0;
 				if (i->first)
 					map[i->first] = 0;
-			if (b1)
-				map[b1] = 0;
-			if (b2)
-				map[b2] = 0;
+			}
 		}
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, Time press_t) {
