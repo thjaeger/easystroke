@@ -705,9 +705,9 @@ class AdvancedHandler : public Handler {
 	guint remap_from;
 	Time click_time;
 	guint replay_button;
-	std::map<int, RAction> as;
-	std::map<int, Ranking *> rs;
-	std::map<int, RModifiers> mods;
+	std::map<guint, RAction> as;
+	std::map<guint, Ranking *> rs;
+	std::map<guint, RModifiers> mods;
 	RModifiers sticky_mods;
 
 	guint button1, button2;
@@ -725,10 +725,10 @@ class AdvancedHandler : public Handler {
 		}
 		rs.erase(b);
 	}
-	AdvancedHandler(RTriple e_, std::map<int, RAction> &as_, std::map<int, Ranking *> rs_, guint b1, guint b2) :
+	AdvancedHandler(RTriple e_, std::map<guint, RAction> &as_, std::map<guint, Ranking *> rs_, guint b1, guint b2) :
 		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button1(b1), button2(b2) {
 			// as.count((b == b1) ? b2 : b) <=> map[b] == 0
-			for (std::map<int, RAction>::iterator i = as.begin(); i != as.end(); ++i) {
+			for (std::map<guint, RAction>::iterator i = as.begin(); i != as.end(); ++i) {
 				// i->first == ((b == b1) ? b2 : b)
 				if (i->first == b2 && b1)
 					map[b1] = 0;
@@ -745,8 +745,8 @@ public:
 		if (stroke_action)
 			return new AdvancedStrokeActionHandler(s, e);
 
-		std::map<int, RAction> as;
-		std::map<int, Ranking *> rs;
+		std::map<guint, RAction> as;
+		std::map<guint, Ranking *> rs;
 		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b1, b2);
 		if (as.count(b2) && IS_CLICK(as[b2])) {
 			if (press_t)
@@ -835,7 +835,7 @@ public:
 		remap(map);
 	}
 	virtual ~AdvancedHandler() {
-		for (std::map<int, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
+		for (std::map<guint, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
 			delete i->second;
 	}
 	virtual std::string name() { return "Advanced"; }

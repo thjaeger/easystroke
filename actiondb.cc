@@ -331,7 +331,8 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 	return r.action;
 }
 
-void ActionListDiff::handle_advanced(RStroke s, std::map<int, RAction> &as, std::map<int, Ranking *> &rs, int b1, int b2) const {
+void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
+		std::map<guint, Ranking *> &rs, int b1, int b2) const {
 	if (!s)
 		return;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();

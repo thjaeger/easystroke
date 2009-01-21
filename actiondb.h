@@ -351,7 +351,7 @@ public:
 	void all_strokes(std::list<RStroke> &strokes) const;
 	RAction handle(RStroke s, Ranking &r) const;
 	// b1 is always reported as b2
-	void handle_advanced(RStroke s, std::map<int, RAction> &a, std::map<int, Ranking *> &r, int b1, int b2) const;
+	void handle_advanced(RStroke s, std::map<guint, RAction> &a, std::map<guint, Ranking *> &r, int b1, int b2) const;
 
 	~ActionListDiff();
 };
