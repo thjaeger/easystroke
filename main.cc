@@ -702,7 +702,7 @@ public:
 
 class AdvancedHandler : public Handler {
 	RTriple e;
-	guint remap_from;
+	guint remap_from, remap_to;
 	Time click_time;
 	guint replay_button;
 	std::map<guint, RAction> as;
@@ -761,6 +761,16 @@ public:
 		}
 		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
+	void do_remap() {
+		if (remap_from) {
+			std::map<guint, guint> new_map = map;
+			new_map[remap_to] = 0;
+			new_map[remap_from] = remap_to;
+			remap(new_map);
+		} else {
+			remap(map);
+		}
+	}
 	virtual void init() {
 		press(button2 ? button2 : button1, e);
 	}
@@ -773,7 +783,7 @@ public:
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
 			sticky_mods.reset();
-			remap(map);
+			do_remap();
 			return;
 		}
 		RAction act = as[bb];
@@ -790,19 +800,17 @@ public:
 			replay_button = b;
 		}
 		IF_BUTTON(act, b2) {
-			std::map<guint, guint> new_map = map;
-			remap_from = b;
-			new_map[b2] = 0;
-			new_map[remap_from] = b2;
 			// This is kind of a hack:  Store modifiers in
 			// sticky_mods, so that they are automatically released
 			// on the next press
 			sticky_mods = act->prepare();
-			remap(new_map);
+			remap_from = b;
+			remap_to = b2;
+			do_remap();
 			return;
 		}
 		mods[b] = act->prepare();
-		remap(map);
+		do_remap();
 		if (IS_KEY(act)) {
 			if (mods_equal(sticky_mods, mods[b]))
 				mods[b] = sticky_mods;
@@ -832,7 +840,7 @@ public:
 		if (remap_from)
 			sticky_mods.reset();
 		remap_from = 0;
-		remap(map);
+		do_remap();
 	}
 	virtual ~AdvancedHandler() {
 		for (std::map<guint, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
