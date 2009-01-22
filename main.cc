@@ -539,8 +539,8 @@ void Handler::remap(const std::map<guint, guint> &map) {
 	if (buttons.size()) {
 		for (std::set<guint>::iterator i = buttons.begin(); i != buttons.end(); ++i)
 			current_dev->fake_button(*i, true);
-		ping();
 		replace_child(new WaitForPongHandler);
+		ping();
 	}
 }
 
@@ -827,15 +827,15 @@ public:
 			XTestFakeButtonEvent(dpy, pointer_map[b], False, CurrentTime);
 		if (xinput_pressed.size() == 0) {
 			reset_buttons(false);
-			Handler *h = NULL;
 			if (e->t < click_time + 250 && b == replay_button) {
 				sticky_mods.reset();
 				mods.clear();
 				fake_click(b);
+				parent->replace_child(new WaitForPongHandler);
 				ping();
-				h = new WaitForPongHandler;
+				return;
 			}
-			parent->replace_child(h);
+			parent->replace_child(NULL);
 			return;
 		}
 		mods.erase((b == button1) ? button2 : b);
@@ -1648,13 +1648,12 @@ void Main::handle_event(XEvent &ev) {
 			guint b = ev.xclient.data.l[0];
 			if (xinput_pressed.count(b))
 				return;
-			if (verbosity >= 3)
+			if (verbosity >= 2)
 				printf("Forcing release of button %d\n", b);
 			if (current_dev)
 				current_dev->fake_button(b, false);
 			else
 				printf("Warning: no current device\n");
-			H->pong();
 		}
 		return;
 
