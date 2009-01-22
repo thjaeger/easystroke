@@ -749,17 +749,14 @@ public:
 		std::map<guint, RAction> as;
 		std::map<guint, Ranking *> rs;
 		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b1, b2);
-		if (as.count(b2) && IS_CLICK(as[b2])) {
-			if (press_t)
-				replay(press_t);
-			return NULL;
-		}
 		if (press_t) {
 			if (as.count(b2))
 				discard(press_t);
 			else
 				replay(press_t);
 		}
+		if (!as.size())
+			return NULL;
 		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
 	void do_remap() {
