@@ -192,7 +192,6 @@ struct Ranking {
 	RStroke stroke, best_stroke;
 	RAction action;
 	double score;
-	Unique *id;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
 	int x, y;

@@ -295,7 +295,6 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 		return RAction();
 	r.stroke = s;
 	r.score = -1;
-	r.id = NULL;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
 	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
 		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
@@ -309,7 +308,6 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 			if (score >= r.score) {
 				r.score = score;
 				if (match) {
-					r.id = i->first;
 					r.name = si->name;
 					r.action = si->action;
 					r.best_stroke = *j;
@@ -354,7 +352,6 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 				rs[b] = r;
 				r->stroke = RStroke(new Stroke(*s));
 				r->score = -1;
-				r->id = NULL;
 			}
 			RStrokeInfo si = get_info(i->first);
 			r->r.insert(pair<double, pair<std::string, RStroke> >
@@ -362,7 +359,6 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 			if (score >= r->score) {
 				r->score = score;
 				if (match) {
-					r->id = i->first;
 					r->name = si->name;
 					r->action = si->action;
 					r->best_stroke = *j;
