@@ -317,10 +317,8 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 			}
 		}
 	}
-	if (!r.action && s->trivial()) {
-		r.action = RAction(new Click);
-		r.name = _("click (default)");
-	}
+	if (!r.action && s->trivial())
+		return RAction(new Click);
 	if (r.action) {
 		if (verbosity >= 1)
 			printf("Executing Action %s\n", r.name.c_str());
