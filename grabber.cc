@@ -473,13 +473,20 @@ void Grabber::grab_xi(bool grab) {
 }
 
 void Grabber::XiDevice::grab_device(bool grab) {
-	if (grab) {
+	if (!grab) {
+		XUngrabDevice(dpy, dev, CurrentTime);
+		return;
+	}
+	int tries = 0;
+	while (true) {
 		int code = XGrabDevice(dpy, dev, ROOT, False, all_events_n, events,
 				GrabModeAsync, GrabModeAsync, CurrentTime);
-		if (code)
+		if (!code)
+			return;
+		if (code && (code != GrabFrozen || ++tries > 9))
 			throw GrabFailedException(code);
-	} else
-		XUngrabDevice(dpy, dev, CurrentTime);
+		usleep(tries*1000);
+	};
 }
 
 void Grabber::grab_xi_devs(bool grab) {
