@@ -147,7 +147,11 @@ public:
 };
 
 class GrabFailedException : public std::exception {
-	virtual const char* what() const throw();
+	char *msg;
+public:
+	GrabFailedException(int code) { asprintf(&msg, "Grab Failed: %d", code); }
+	virtual const char* what() const throw() { return msg; }
+	~GrabFailedException() throw() { free(msg); }
 };
 
 #endif

@@ -30,9 +30,6 @@ Grabber *grabber = 0;
 
 unsigned int ignore_mods[4] = { LockMask, Mod2Mask, LockMask | Mod2Mask, 0 };
 
-
-const char* GrabFailedException::what() const throw() { return "Grab Failed"; }
-
 template <class X1, class X2> class BiMap {
 	std::map<X1, X2> map1;
 	std::map<X2, X1> map2;
@@ -477,8 +474,10 @@ void Grabber::grab_xi(bool grab) {
 
 void Grabber::XiDevice::grab_device(bool grab) {
 	if (grab) {
-		if (XGrabDevice(dpy, dev, ROOT, False, all_events_n, events, GrabModeAsync, GrabModeAsync, CurrentTime))
-			throw GrabFailedException();
+		int code = XGrabDevice(dpy, dev, ROOT, False, all_events_n, events,
+				GrabModeAsync, GrabModeAsync, CurrentTime);
+		if (code)
+			throw GrabFailedException(code);
 	} else
 		XUngrabDevice(dpy, dev, CurrentTime);
 }
@@ -574,13 +573,10 @@ void Grabber::set() {
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask,
 				GrabModeSync, GrabModeAsync, None, None);
 	if (grabbed == SELECT) {
-		int i = 0;
-		while (XGrabPointer(dpy, ROOT, False, ButtonPressMask,
-					GrabModeAsync, GrabModeAsync, ROOT, cursor_select, CurrentTime) != GrabSuccess) {
-			if (++i > 10)
-				throw GrabFailedException();
-			usleep(10000);
-		}
+		int code = XGrabPointer(dpy, ROOT, False, ButtonPressMask,
+				GrabModeAsync, GrabModeAsync, ROOT, cursor_select, CurrentTime);
+		if (code != GrabSuccess)
+			throw GrabFailedException(code);
 	}
 }
 

@@ -1769,8 +1769,8 @@ bool Main::handle(Glib::IOCondition) {
 			XNextEvent(dpy, &ev);
 			if (!grabber->handle(ev))
 				handle_event(ev);
-		} catch (GrabFailedException) {
-			printf(_("Error: A grab failed.  Resetting...\n"));
+		} catch (GrabFailedException &e) {
+			printf(_("Error: %s\n"), e.what());
 			bail_out();
 		}
 	}
