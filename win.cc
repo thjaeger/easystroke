@@ -164,7 +164,12 @@ public:
 
 
 Win::Win() {
-	widgets = Gtk::Builder::create_from_string(gui_buffer),
+	try {
+		widgets = Gtk::Builder::create_from_string(gui_buffer);
+	} catch (Gtk::BuilderError &e) {
+		printf("Error building GUI: %s\n", e.what().c_str());
+		exit(EXIT_FAILURE);
+	}
 	actions = new Actions;
 	prefs_tab = new Prefs;
 	stats = new Stats;
