@@ -755,8 +755,18 @@ public:
 			else
 				replay(press_t);
 		}
-		if (!as.size())
+		if (!as.size()) {
+			for (std::map<guint, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++) {
+				Ranking *r = i->second;
+				if (i->first == b2) {
+					r->x = (int)e->x;
+					r->y = (int)e->y;
+					Glib::signal_idle().connect(sigc::mem_fun(r, &Ranking::show));
+				} else
+					delete r;
+			}
 			return NULL;
+		}
 		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
 	void do_remap() {
