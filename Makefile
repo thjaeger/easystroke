@@ -72,7 +72,7 @@ version.o: $(GIT)
 
 gui.c: gui.glade
 	echo "const char *gui_buffer = \"\\" > $@
-	sed 's/"/\\"/g' $< | sed 's/.*/&\\n\\/' >> $@
+	sed 's/"/\\"/g' $< | sed 's/ *\(.*\)/\1\\n\\/' >> $@
 	echo "\";" >> $@
 
 easystroke.desktop: easystroke.desktop.in $(MOFILES)
