@@ -1888,7 +1888,7 @@ The next stroke will be associated with the action "%s".  You can draw it anywhe
     <property name="website_label">http://easystroke.sourceforge.net</property>
     <property name="authors">Thomas Jaeger &lt;ThJaeger@gmail.com&gt;</property>
     <property name="translator_credits">Jakub &#x17D;&#xE1;&#x10D;ek (Czech)
-Massimiliano La Gala (Italien)</property>
+Massimiliano La Gala (Italian)</property>
     <child internal-child="vbox">
       <widget class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
