@@ -216,6 +216,8 @@ Win::~Win() {
 	delete stats;
 }
 
+extern void icon_warning();
+
 void Win::show_hide_icon() {
 	bool show = prefs.tray_icon.get();
 	if (show) {
@@ -226,9 +228,9 @@ void Win::show_hide_icon() {
 		icon->signal_activate().connect(sigc::mem_fun(*this, &Win::show_hide));
 		icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
 	} else {
-		if (!icon)
-			return;
-		icon.reset();
+		if (icon)
+			icon.reset();
+		icon_warning();
 	}
 }
 

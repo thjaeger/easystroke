@@ -1919,4 +1919,29 @@ Massimiliano La Gala (Italian)</property>
     <property name="step_increment">5</property>
     <property name="page_increment">20</property>
   </object>
+  <object class="GtkMessageDialog" id="dialog_icon">
+    <property name="border_width">5</property>
+    <property name="type_hint">normal</property>
+    <property name="skip_taskbar_hint">True</property>
+    <property name="buttons">ok</property>
+    <property name="text">Tray icon disabled</property>
+    <property name="secondary_text">To bring the configuration dialog up again, you should define an action of type Misc...Show/Hide.</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox6">
+        <property name="visible">True</property>
+        <property name="spacing">2</property>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area6">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </object>
 </interface>

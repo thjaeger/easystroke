@@ -152,10 +152,10 @@ class Misc : public Action {
 	friend class boost::serialization::access;
 public:
 	enum Type { NONE, UNMINIMIZE, SHOWHIDE, DISABLE };
+	Type type;
 private:
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 	Misc(Type t) : type(t) {}
-	Type type;
 public:
 	static const char *types[5];
 	Misc() {}

@@ -1225,6 +1225,17 @@ void run_by_name(const char *str) {
 	}
 	printf(_("Warning: No action \"%s\" defined\n"), str);
 }
+void icon_warning() {
+	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
+		Misc *m = dynamic_cast<Misc *>(i->second.action.get());
+		if (m && m->type == Misc::SHOWHIDE)
+			return;
+	}
+	Gtk::MessageDialog *md;
+	widgets->get_widget("dialog_icon", md);
+	md->run();
+	md->hide();
+}
 
 static void quit(int) {
 	if (dead)
