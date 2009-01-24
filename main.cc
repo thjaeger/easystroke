@@ -249,10 +249,8 @@ static RAction handle_stroke(RStroke s, RTriple e) {
 	RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
 	if (act)
 		act->prepare();
-	ranking->x = (int)e->x;
-	ranking->y = (int)e->y;
 	if (!IS_CLICK(act))
-		Glib::signal_idle().connect(sigc::mem_fun(ranking, &Ranking::show));
+		ranking->queue_show(e);
 	else
 		delete ranking;
 	return act;
@@ -719,11 +717,8 @@ class AdvancedHandler : public Handler {
 		if (!rs.count(b))
 			return;
 		Ranking *r = rs[b];
-		if (r) {
-			r->x = (int)e->x;
-			r->y = (int)e->y;
-			Glib::signal_idle().connect(sigc::mem_fun(r, &Ranking::show));
-		}
+		if (r)
+			r->queue_show(e);
 		rs.erase(b);
 	}
 	AdvancedHandler(RTriple e_, std::map<guint, RAction> &as_, std::map<guint, Ranking *> rs_, guint b1, guint b2) :
@@ -758,11 +753,9 @@ public:
 		if (!as.size()) {
 			for (std::map<guint, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++) {
 				Ranking *r = i->second;
-				if (i->first == b2) {
-					r->x = (int)e->x;
-					r->y = (int)e->y;
-					Glib::signal_idle().connect(sigc::mem_fun(r, &Ranking::show));
-				} else
+				if (i->first == b2)
+					r->queue_show(e);
+				else
 					delete r;
 			}
 			return NULL;

@@ -188,14 +188,16 @@ public:
 typedef boost::shared_ptr<StrokeInfo> RStrokeInfo;
 BOOST_CLASS_VERSION(StrokeInfo, 1)
 
-struct Ranking {
+class Ranking {
+	bool show();
+	int x, y;
+public:
 	RStroke stroke, best_stroke;
 	RAction action;
 	double score;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
-	int x, y;
-	bool show();
+	void queue_show(RTriple e);
 };
 
 class Unique {

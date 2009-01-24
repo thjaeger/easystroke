@@ -103,7 +103,19 @@ public:
 	}
 };
 
+void Ranking::queue_show(RTriple e) {
+	x = (int)e->x;
+	y = (int)e->y;
+	Glib::signal_idle().connect(sigc::mem_fun(*this, &Ranking::show));
+}
+
 bool Ranking::show() {
+	if (prefs.feedback.get() && best_stroke) {
+		if (prefs.advanced_popups.get() || !(best_stroke->button || best_stroke->timeout)) {
+			Feedback *popup = new Feedback(best_stroke, name, x, y);
+			Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
+		}
+	}
 	win->stats->on_stroke(this);
 	delete this;
 	return false;
@@ -114,13 +126,6 @@ Glib::ustring format_float(float x) {
 }
 
 void Stats::on_stroke(Ranking *r) {
-	if (prefs.feedback.get() && r->best_stroke) {
-		if (prefs.advanced_popups.get() || !(r->best_stroke->button || r->best_stroke->timeout)) {
-			Feedback *popup = new Feedback(r->best_stroke, r->name, r->x, r->y);
-			Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
-		}
-	}
-
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
 	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
 	row[cols.name] = r->name;
