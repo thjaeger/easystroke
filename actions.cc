@@ -494,9 +494,10 @@ void Actions::on_button_delete() {
 		str = Glib::ustring::compose(ngettext("One action is about to be deleted.",
 					"%1 actions are about to be deleted", n), n);
 
-	Gtk::Dialog *dialog;
+	Gtk::MessageDialog *dialog;
 	widgets->get_widget("dialog_delete", dialog);
-	FormatLabel foo(widgets, "label_delete", ngettext("Delete an Action", "Delete Actions", n), str.c_str());
+	dialog->set_message(ngettext("Delete an Action", "Delete Actions", n));
+	dialog->set_secondary_text(str);
 	Gtk::Button *del;
 	widgets->get_widget("button_delete_delete", del);
 
@@ -565,16 +566,15 @@ void Actions::on_remove_app() {
 		return;
 	int size = action_list->size_rec();
 	if (size) {
-		Gtk::Dialog *dialog;
+		Gtk::MessageDialog *dialog;
 		widgets->get_widget("dialog_delete", dialog);
 		Glib::ustring str = Glib::ustring::compose(_("%1 \"%2\" (containing %3 %4) is about to be deleted."),
 				action_list->app ? _("The application") : _("The group"),
 				action_list->name,
 				size,
 				ngettext("action", "actions", size));
-		FormatLabel foo(widgets, "label_delete",
-				action_list->app ? _("Delete an Application") : _("Delete an Application Group"),
-				str.c_str());
+		dialog->set_message(action_list->app ? _("Delete an Application") : _("Delete an Application Group"));
+		dialog->set_secondary_text(str);
 		Gtk::Button *del;
 		widgets->get_widget("button_delete_delete", del);
 		dialog->show();
@@ -722,10 +722,11 @@ public:
 };
 
 void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column) {
-	Gtk::Dialog *dialog;
-	widgets->get_widget("dialog_record", dialog);
 	Gtk::TreeRow row(*tm->get_iter(path));
-	FormatLabel foo(widgets, "label_record", Glib::ustring(row[cols.name]).c_str());
+	Gtk::MessageDialog *dialog;
+	widgets->get_widget("dialog_record", dialog);
+	dialog->set_message(_("Record a New Stroke"));
+	dialog->set_secondary_text(Glib::ustring::compose(_("The next stroke will be associated with the action \"%1\".  You can draw it anywhere on the screen (except for the two buttons below)."), row[cols.name]));
 
 	static Gtk::Button *del = 0, *cancel = 0;
 	if (!del) {

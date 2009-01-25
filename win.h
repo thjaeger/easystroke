@@ -98,15 +98,6 @@ private:
 	sigc::connection handler[2];
 };
 
-class FormatLabel {
-public:
-	FormatLabel(Glib::RefPtr<Gtk::Builder>, Glib::ustring, ...);
-	~FormatLabel();
-private:
-	Glib::ustring oldstring;
-	Gtk::Label *label;
-};
-
 class ErrorDialog : public Gtk::MessageDialog {
 	virtual void on_response(int) { delete this; }
 public:

@@ -292,22 +292,6 @@ void Win::show_success(bool good) {
 	set_timeout(2000);
 }
 
-FormatLabel::FormatLabel(Glib::RefPtr<Gtk::Builder> builder, Glib::ustring name, ...) {
-	builder->get_widget(name, label);
-	oldstring = label->get_label();
-	char newstring[256];
-	va_list argp;
-	va_start(argp, name);
-	vsnprintf(newstring, 255, oldstring.c_str(), argp);
-	va_end(argp);
-	label->set_label(newstring);
-	label->set_use_markup();
-}
-
-FormatLabel::~FormatLabel() {
-	label->set_text(oldstring);
-}
-
 ErrorDialog::ErrorDialog(const Glib::ustring &text) :
 		MessageDialog(win->get_window(), text, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true)
 	{ show(); }
