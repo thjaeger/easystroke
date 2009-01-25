@@ -74,6 +74,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="image">image8</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -87,6 +88,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="image">image9</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -100,6 +102,7 @@
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
+                                <property name="image">image10</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -122,6 +125,7 @@
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
+                            <property name="image">image11</property>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -1775,6 +1779,26 @@ Massimiliano La Gala (Italian)</property>
   <object class="GtkImage" id="image7">
     <property name="visible">True</property>
     <property name="stock">gtk-remove</property>
+    <property name="icon-size">4</property>
+  </object>
+  <object class="GtkImage" id="image8">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
+    <property name="icon-size">4</property>
+  </object>
+  <object class="GtkImage" id="image9">
+    <property name="visible">True</property>
+    <property name="stock">gtk-remove</property>
+    <property name="icon-size">4</property>
+  </object>
+  <object class="GtkImage" id="image10">
+    <property name="visible">True</property>
+    <property name="stock">gtk-add</property>
+    <property name="icon-size">4</property>
+  </object>
+  <object class="GtkImage" id="image11">
+    <property name="visible">True</property>
+    <property name="stock">gtk-clear</property>
     <property name="icon-size">4</property>
   </object>
 </interface>
