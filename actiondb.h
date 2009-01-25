@@ -159,7 +159,7 @@ private:
 public:
 	static const char *types[5];
 	Misc() {}
-	virtual const Glib::ustring get_label() const { return types[type]; }
+	virtual const Glib::ustring get_label() const;
 	static RMisc create(Type t) { return RMisc(new Misc(t)); }
 	virtual void run();
 };

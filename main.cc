@@ -280,8 +280,8 @@ static int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 			(grabber && grabber->xinput && e->request_code == grabber->nMajor &&
 			 e->minor_code == X_GrabDeviceButton)) {
 		if (!handler || Handler::idle()) {
-			printf(_("Error: %s failed.  Is easystroke already running?\n"),
-					e->request_code == X_GrabButton ? _("A grab") : _("An XInput grab"));
+			printf(_("Error: %s\n"), e->request_code==X_GrabButton ? "A grab failed" : "An XInput grab failed");
+			printf(_("Is easystroke already running?\n"));
 		} else {
 			printf(_("Error: A grab failed.  Resetting...\n"));
 			bail_out();
@@ -1233,6 +1233,8 @@ void icon_warning() {
 	}
 	Gtk::MessageDialog *md;
 	widgets->get_widget("dialog_icon", md);
+	md->set_message(_("Tray icon disabled"));
+	md->set_secondary_text(_("To bring the configuration dialog up again, you should define an action of type Misc...Show/Hide."));
 	md->run();
 	md->hide();
 }

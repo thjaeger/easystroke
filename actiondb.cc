@@ -132,7 +132,9 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", NULL };
+const Glib::ustring Misc::get_label() const { return _(types[type]); }
+
+const char *Misc::types[5] = { N_("None"), N_("Unminimize"), N_("Show/Hide"), N_("Disable (Enable)"), NULL };
 
 template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
 	ar & deleted;

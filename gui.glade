@@ -1706,8 +1706,6 @@ Massimiliano La Gala (Italian)</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="transient_for">main</property>
     <property name="buttons">ok</property>
-    <property name="text">Tray icon disabled</property>
-    <property name="secondary_text">To bring the configuration dialog up again, you should define an action of type Misc...Show/Hide.</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox6">
         <property name="visible">True</property>
