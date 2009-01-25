@@ -428,11 +428,16 @@ static void remap_pointer() {
 		m[i] = i+1;
 	for (std::map<guint, guint>::const_iterator i = pointer_map.begin(); i != pointer_map.end(); ++i)
 		m[i->first - 1] = i->second;
+	int tries = 0;
 	while (MappingBusy == XSetPointerMapping(dpy, m, n)) {
 		printf("Warning: remapping buttons failed, retrying...\n");
-		grabber->release_all(n);
-		XSync(dpy, False);
-		usleep(1000);
+		tries++;
+		if (!(tries % 3))
+			replay(CurrentTime);
+		if (!(tries % 5))
+			grabber->release_all(n);
+		XFlush(dpy);
+		usleep(tries*1000);
 	}
 	mapping_events++;
 }
