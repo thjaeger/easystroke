@@ -49,7 +49,7 @@ int verbosity = 0;
 const char *versions[] = { "-0.4.0", "", NULL };
 Source<Window> current_window(None);
 std::string config_dir;
-Win *win;
+Win *win = NULL;
 Display *dpy;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
@@ -1230,6 +1230,10 @@ void icon_warning() {
 		Misc *m = dynamic_cast<Misc *>(i->second.action.get());
 		if (m && m->type == Misc::SHOWHIDE)
 			return;
+	}
+	if (!win) {
+		show_gui = true;
+		return;
 	}
 	Gtk::MessageDialog *md;
 	widgets->get_widget("dialog_icon", md);
