@@ -646,8 +646,10 @@ class ScrollAdvancedHandler : public AbstractScrollHandler {
 	RModifiers m;
 	const std::map<guint, guint> &map;
 	guint &rb;
+	Time last_wheel, last_motion;
 public:
-	ScrollAdvancedHandler(RModifiers m_, const std::map<guint, guint> &map_, guint &rb_) : m(m_), map(map_), rb(rb_) {}
+	ScrollAdvancedHandler(RModifiers m_, const std::map<guint, guint> &map_, guint &rb_) :
+		m(m_), map(map_), rb(rb_), last_wheel(0) {}
 	virtual void init() {
 		std::map<guint, guint> new_map = map;
 		new_map.erase(4);
@@ -658,11 +660,18 @@ public:
 	}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
+		last_wheel = last_motion;
 		rb = 0;
+	}
+	virtual void motion(RTriple e) {
+		last_motion = e->t;
+		AbstractScrollHandler::motion(e);
 	}
 	virtual void release(guint b, RTriple e) {
 		if (b >= 4 && b <= 7)
 			return;
+		if (last_wheel + 10 > e->t)
+			usleep(1000*(last_wheel + 10 - e->t));
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->release(b, e);
@@ -675,6 +684,8 @@ public:
 	virtual void press(guint b, RTriple e) {
 		if (b >= 4 && b <= 7)
 			return;
+		if (last_wheel + 10 > e->t)
+			usleep(1000*(last_wheel + 10 - e->t));
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->press(b, e);
