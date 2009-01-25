@@ -162,6 +162,7 @@ public:
 	}
 };
 
+extern void quit();
 
 Win::Win() {
 	try {
@@ -190,7 +191,7 @@ Win::Win() {
 
 	WIDGET(Gtk::ImageMenuItem, menu_quit, Gtk::Stock::QUIT);
 	menu.append(menu_quit);
-	menu_quit.signal_activate().connect(sigc::ptr_fun(&Gtk::Main::quit));
+	menu_quit.signal_activate().connect(sigc::ptr_fun(&quit));
 
 	menu.show_all();
 

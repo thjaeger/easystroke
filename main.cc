@@ -68,7 +68,6 @@ static Grabber::XiDevice *current_dev = 0;
 static std::set<guint> xinput_pressed;
 static std::map<guint, guint> pointer_map;
 static int mapping_events = 0;
-static bool dead = false;
 
 class Handler;
 static Handler *handler = 0;
@@ -1243,14 +1242,15 @@ void icon_warning() {
 	md->hide();
 }
 
-static void quit(int) {
+void quit() {
+	static bool dead = false;
 	if (dead)
 		bail_out();
-	if (Handler::idle() || dead)
-		Gtk::Main::quit();
-	else
-		dead = true;
+	dead = true;
+	queue(sigc::ptr_fun(&Gtk::Main::quit));
 }
+
+static void quit(int) { quit(); }
 
 class Main {
 	std::string parse_args_and_init_gtk();
@@ -1794,8 +1794,6 @@ bool Main::handle(Glib::IOCondition) {
 			bail_out();
 		}
 	}
-	if (Handler::idle() && dead)
-		Gtk::Main::quit();
 	return true;
 }
 
