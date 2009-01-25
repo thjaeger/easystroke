@@ -82,7 +82,7 @@ public:
 		parent(parent_), path(path_)
 	{
 		while (*items)
-			append_text(*(items++));
+			append_text(_(*(items++)));
 	}
 protected:
 	virtual void on_changed() {
