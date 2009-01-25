@@ -87,7 +87,7 @@ public:
 	bool run();
 	ButtonInfo event;
 private:
-	Gtk::Dialog *dialog;
+	Gtk::MessageDialog *dialog;
 	bool on_button_press(GdkEventButton *ev);
 	void on_any_toggled();
 

@@ -445,6 +445,8 @@ struct Prefs::SelectRow {
 
 SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	widgets->get_widget("dialog_select", dialog);
+	dialog->set_message(_("Select a Mouse or Pen Button"));
+	dialog->set_secondary_text(_("Please place your mouse or pen in the box below and press the button that you want to select.  You can also hold down additional modifiers."));
 	widgets->get_widget("eventbox", eventbox);
 	widgets->get_widget("toggle_shift", toggle_shift);
 	widgets->get_widget("toggle_alt", toggle_alt);
