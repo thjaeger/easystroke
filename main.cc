@@ -645,8 +645,9 @@ public:
 class ScrollAdvancedHandler : public AbstractScrollHandler {
 	RModifiers m;
 	const std::map<guint, guint> &map;
+	guint &rb;
 public:
-	ScrollAdvancedHandler(RModifiers m_, const std::map<guint, guint> &map_) : m(m_), map(map_) {}
+	ScrollAdvancedHandler(RModifiers m_, const std::map<guint, guint> &map_, guint &rb_) : m(m_), map(map_), rb(rb_) {}
 	virtual void init() {
 		std::map<guint, guint> new_map = map;
 		new_map.erase(4);
@@ -654,6 +655,10 @@ public:
 		new_map.erase(6);
 		new_map.erase(7);
 		remap(new_map);
+	}
+	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
+		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
+		rb = 0;
 	}
 	virtual void release(guint b, RTriple e) {
 		if (b >= 4 && b <= 7)
@@ -707,6 +712,7 @@ class AdvancedHandler : public Handler {
 	guint remap_from, remap_to;
 	Time click_time;
 	guint replay_button;
+	RTriple replay_orig;
 	std::map<guint, RAction> as;
 	std::map<guint, Ranking *> rs;
 	std::map<guint, RModifiers> mods;
@@ -726,7 +732,7 @@ class AdvancedHandler : public Handler {
 		rs.erase(b);
 	}
 	AdvancedHandler(RTriple e_, std::map<guint, RAction> &as_, std::map<guint, Ranking *> rs_, guint b1, guint b2) :
-		e(e_), remap_from(0), click_time(0), as(as_), rs(rs_), button1(b1), button2(b2) {
+		e(e_), remap_from(0), click_time(0), replay_button(0), as(as_), rs(rs_), button1(b1), button2(b2) {
 			// as.count((b == b1) ? b2 : b) <=> map[b] == 0
 			for (std::map<guint, RAction>::iterator i = as.begin(); i != as.end(); ++i) {
 				// i->first == ((b == b1) ? b2 : b)
@@ -801,12 +807,13 @@ public:
 			replay_button = b;
 			RModifiers m = act->prepare();
 			sticky_mods.reset();
-			replace_child(new ScrollAdvancedHandler(m, map));
+			replace_child(new ScrollAdvancedHandler(m, map, replay_button));
 			return;
 		}
 		if (IS_IGNORE(act)) {
 			click_time = e->t;
 			replay_button = b;
+			replay_orig = e;
 		}
 		IF_BUTTON(act, b2) {
 			// This is kind of a hack:  Store modifiers in
@@ -828,6 +835,10 @@ public:
 		} else
 			sticky_mods.reset();
 		act->run();
+	}
+	virtual void motion(RTriple e) {
+		if (replay_button && hypot(replay_orig->x - e->x, replay_orig->y - e->y) > prefs.radius.get())
+			replay_button = 0;
 	}
 	virtual void release(guint b, RTriple e) {
 		if (!xi_15 && pointer_map.count(b) && pointer_map[b])
