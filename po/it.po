@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-24 21:37-0500\n"
-"PO-Revision-Date: 2009-01-21 18:55+0000\n"
+"POT-Creation-Date: 2009-01-24 22:14-0500\n"
+"PO-Revision-Date: 2009-01-25 21:00+0000\n"
 "Last-Translator: Massimiliano La Gala <Unknown>\n"
 "Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-01-21 21:16+0000\n"
+"X-Launchpad-Export-Date: 2009-01-25 21:32+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:119
@@ -33,11 +33,11 @@ msgstr ""
 
 #: ../actiondb.cc:137
 msgid "Show/Hide"
-msgstr ""
+msgstr "Mostra/nascondi"
 
 #: ../actiondb.cc:137
 msgid "Disable (Enable)"
-msgstr ""
+msgstr "Disabilita (abilita)"
 
 #: ../actiondb.cc:171 ../prefs.cc:162
 msgid "Default"
@@ -63,10 +63,10 @@ msgid ""
 "directory and that you have write access to it.  You can change the "
 "configuration directory using the -c or --config-dir command line options."
 msgstr ""
-"Impossibile salvare %1. Le tue modifiche saranno perse. Assicurati che \"%2"
-"\" sia una cartella e che tu ne abbia i diritti per accedervi. Puoi cambiare "
-"la cartella della configurazione utilizzando i parametri -c o --config-dir "
-"nella riga di comando."
+"Impossibile salvare %1. Le tue modifiche saranno perse. Assicurati che "
+"\"%2\" sia una cartella e che tu ne abbia i diritti per accedervi. Puoi "
+"cambiare la cartella della configurazione utilizzando i parametri -c o --"
+"config-dir nella riga di comando."
 
 #: ../actiondb.cc:224
 msgid "actions"
@@ -176,13 +176,15 @@ msgstr ""
 
 #: ../actions.cc:728
 msgid "Record a New Stroke"
-msgstr ""
+msgstr "Registra un nuovo Gesto"
 
 #: ../actions.cc:729
 msgid ""
 "The next stroke will be associated with the action \"%1\".  You can draw it "
 "anywhere on the screen (except for the two buttons below)."
 msgstr ""
+"Il prossimo gesto sarà associato con l'azione \"%1\". È possibile disegnarlo "
+"ovunque nello schermo (eccetto nei due pulsanti sottostanti)."
 
 #: ../actions.cc:819
 msgid "Gesture %1"
@@ -206,7 +208,7 @@ msgstr "Pulsante %1"
 
 #: ../actions.cc:967
 msgid " + Scroll"
-msgstr ""
+msgstr " + scorrimento"
 
 #: ../composite.cc:26
 msgid "'composite' not available"
@@ -219,7 +221,7 @@ msgstr "Apertura del dispositivo %s fallita.\n"
 
 #: ../grabber.cc:673
 msgid "(window manager frame)"
-msgstr ""
+msgstr "cornice del gestore finestre"
 
 #: ../main.cc:106 ../main.cc:282 ../main.cc:1793
 #, c-format
@@ -253,13 +255,15 @@ msgstr "Attenzione: Nessuna azione \"%s\" definita\n"
 
 #: ../main.cc:1239
 msgid "Tray icon disabled"
-msgstr ""
+msgstr "icona nel vassoio disabilitata"
 
 #: ../main.cc:1240
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
 msgstr ""
+"Per mostrare nuovamente la finestra di configurazione, dovresti definire un "
+"azione di tipo \"Misc->Mostra/nascondi\"."
 
 #: ../main.cc:1300
 #, c-format
@@ -353,13 +357,16 @@ msgstr "<App disabilitato>"
 
 #: ../prefs.cc:448
 msgid "Select a Mouse or Pen Button"
-msgstr "Selezione un pulsante del mouse o della penna"
+msgstr "Selezionare un pulsante del mouse o della penna"
 
 #: ../prefs.cc:449
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
 msgstr ""
+"Posizionare il mouse o la penna nel riquadro sottostante e premere il "
+"pulsante che si vuole selezionare. È anche possibile premere modificatori "
+"addizionali."
 
 #: ../stats.cc:34 ../stats.cc:40
 msgid "Score"
@@ -404,6 +411,7 @@ msgstr "<b>Opzioni Tablet</b>"
 #: ../gui.glade.h:8
 msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
 msgstr ""
+"Annulla gesto se la pressione eccede il numero sulla sinistra (fuori di 255)"
 
 #: ../gui.glade.h:9
 msgid "Accept gestures when menus are shown (experimental)"
@@ -441,7 +449,7 @@ msgstr ""
 
 #: ../gui.glade.h:17
 msgid "An_y Modifier"
-msgstr ""
+msgstr "Qualsiasi Modificatore (_y)"
 
 #: ../gui.glade.h:18
 msgid "Applications"
@@ -461,7 +469,7 @@ msgstr "Direzione"
 
 #: ../gui.glade.h:22
 msgid "Ignore strokes leading up to advanced gestures"
-msgstr ""
+msgstr "Ignora i gesti che portano ai \"gesti avanzati\""
 
 #: ../gui.glade.h:23
 msgid "Instant Gestures"
@@ -564,7 +572,7 @@ msgstr "Pre_definito"
 
 #: ../gui.glade.h:47
 msgid "_Delete Action(s)"
-msgstr ""
+msgstr "Cancella Azione/i (_d)"
 
 #: ../gui.glade.h:48
 msgid "_Delete Current"
