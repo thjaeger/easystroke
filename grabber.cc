@@ -28,7 +28,7 @@ bool no_xi = false;
 bool xi_15 = false;
 Grabber *grabber = 0;
 
-unsigned int ignore_mods[4] = { LockMask, Mod2Mask, LockMask | Mod2Mask, 0 };
+static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
 
 template <class X1, class X2> class BiMap {
 	std::map<X1, X2> map1;
@@ -244,9 +244,10 @@ extern "C" {
 #define XI_Add_DeviceProperties_Minor 5
 #endif
 
+static int button_events_n = 3;
+
 bool Grabber::init_xi() {
 	xi_devs = 0;
-	button_events_n = 3;
 	if (no_xi)
 		return false;
 	int nFEV, nFER;
@@ -439,6 +440,15 @@ unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
 	return 0;
 }
 
+void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
+	for (int i = 0; i < (bi.button == AnyModifier ? 1 : 4); i++)
+		if (grab)
+			XGrabDeviceButton(dpy, dev, bi.button, bi.state ^ ignore_mods[i], NULL, ROOT, False,
+					button_events_n, events, GrabModeAsync, GrabModeAsync);
+		else
+			XUngrabDeviceButton(dpy, dev, bi.button, bi.state ^ ignore_mods[i], NULL, ROOT);
+}
+
 void Grabber::grab_xi(bool grab) {
 	if (!xinput)
 		return;
@@ -446,35 +456,16 @@ void Grabber::grab_xi(bool grab) {
 		return;
 	xi_grabbed = grab;
 	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->active) {
-			if (grab) {
-				for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-					XGrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state, NULL,
-							ROOT, False, button_events_n, xi_devs[i]->events,
-							GrabModeAsync, GrabModeAsync);
-					if (j->state == AnyModifier)
-						continue;
-					for (unsigned int *mask = ignore_mods; *mask; mask++)
-						XGrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state ^ *mask,
-								NULL, ROOT, False, button_events_n, xi_devs[i]->events,
-								GrabModeAsync, GrabModeAsync);
-				}
-
-			} else
-				for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-					XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->button, j->state, NULL, ROOT);
-					if (j->state == AnyModifier)
-						continue;
-					for (unsigned int *mask = ignore_mods; *mask; mask++)
-						XUngrabDeviceButton(dpy, xi_devs[i]->dev, j->button,
-								j->state ^ *mask, NULL, ROOT);
-				}
-		}
+		if (xi_devs[i]->active)
+			for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
+				xi_devs[i]->grab_button(*j, grab);
+	// TODO: clear xinput_pressed
 }
 
 void Grabber::XiDevice::grab_device(bool grab) {
 	if (!grab) {
 		XUngrabDevice(dpy, dev, CurrentTime);
+		// TODO: clear xinput_pressed
 		return;
 	}
 	int tries = 0;
@@ -543,13 +534,9 @@ void Grabber::set() {
 		printf("grabbing: %s\n", state_name[grabbed]);
 
 	if (old == BUTTON) {
-		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			XUngrabButton(dpy, j->button, j->state, ROOT);
-			if (j->state == AnyModifier)
-				continue;
-			for (unsigned int *mask = ignore_mods; *mask; mask++)
-				XUngrabButton(dpy, j->button, j->state ^ *mask, ROOT);
-		}
+		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
+			for (int i = 0; i < (j->button == AnyModifier ? 1 : 4); i++)
+				XUngrabButton(dpy, j->button, j->state ^ ignore_mods[i], ROOT);
 		if (timing_workaround)
 			XUngrabButton(dpy, 1, AnyModifier, ROOT);
 	}
@@ -563,13 +550,9 @@ void Grabber::set() {
 		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
 			if (!xinput && is_instant(j->button))
 				continue;
-			XGrabButton(dpy, j->button, j->state, ROOT, False, core_mask,
-					xinput ? GrabModeSync : GrabModeAsync, GrabModeAsync, None, None);
-			if (j->state == AnyModifier)
-				continue;
-			for (unsigned int *mask = ignore_mods; *mask; mask++)
-				XGrabButton(dpy, j->button, j->state ^ *mask, ROOT, False, core_mask,
-						GrabModeSync, GrabModeAsync, None, None);
+			for (int i = 0; i < (j->button == AnyModifier ? 1 : 4); i++)
+				XGrabButton(dpy, j->button, j->state ^ ignore_mods[i], ROOT, False, core_mask,
+						xinput ? GrabModeSync : GrabModeAsync, GrabModeAsync, None, None);
 		}
 		timing_workaround = xinput && !is_grabbed(1) && prefs.timing_workaround.get();
 		if (timing_workaround)

@@ -84,7 +84,8 @@ public:
 		}
 		void fake_button(int b, bool press);
 		void release_all();
-		void grab_device(bool);
+		void grab_device(bool grab);
+		void grab_button(ButtonInfo &bi, bool grab);
 		void update_pointer_mapping();
 		void translate_coords(int *axis_data, float &x, float &y);
 		bool translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y);
@@ -100,7 +101,6 @@ public:
 	int xi_devs_n;
 	int nMajor;
 private:
-	int button_events_n;
 	bool init_xi();
 
 	State current, grabbed;
