@@ -1194,10 +1194,8 @@ protected:
 		if (verbosity >= 2)
 			printf("Using wacom workaround\n");
 		for (int i = 1; i < 32; i++)
-			if (state & (1 << i)) {
-				ensure_down(i);
+			if (state & (1 << i))
 				dev->fake_button(i, false);
-			}
 		for (int i = 31; i; i--)
 			if (state & (1 << i))
 				dev->fake_button(i, true);
