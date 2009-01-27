@@ -115,6 +115,7 @@ private:
 
 	void set();
 	void grab_xi(bool);
+	void regrab_xi();
 	void grab_xi_devs(bool);
 	std::string get_wm_class(Window w);
 	std::string wm_class;
@@ -145,6 +146,9 @@ public:
 
 	void unminimize();
 };
+
+extern Grabber::XiDevice *current_dev;
+extern std::set<guint> xinput_pressed;
 
 class GrabFailedException : public std::exception {
 	char *msg;

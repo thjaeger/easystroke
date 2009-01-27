@@ -307,6 +307,8 @@ bool Grabber::update_device_list() {
 		return false;
 	}
 
+	current_dev = NULL;
+
 	xi_devs = new XiDevice *[n];
 	xi_devs_n = 0;
 
@@ -445,8 +447,11 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
 		if (grab)
 			XGrabDeviceButton(dpy, dev, bi.button, bi.state ^ ignore_mods[i], NULL, ROOT, False,
 					button_events_n, events, GrabModeAsync, GrabModeAsync);
-		else
+		else {
 			XUngrabDeviceButton(dpy, dev, bi.button, bi.state ^ ignore_mods[i], NULL, ROOT);
+			if (current_dev && current_dev->dev->device_id == dev->device_id)
+				xinput_pressed.clear();
+		}
 }
 
 void Grabber::grab_xi(bool grab) {
@@ -459,13 +464,20 @@ void Grabber::grab_xi(bool grab) {
 		if (xi_devs[i]->active)
 			for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
 				xi_devs[i]->grab_button(*j, grab);
-	// TODO: clear xinput_pressed
+}
+
+void Grabber::regrab_xi() {
+	if (!xi_grabbed)
+		return;
+	grab_xi(false);
+	grab_xi(true);
 }
 
 void Grabber::XiDevice::grab_device(bool grab) {
 	if (!grab) {
 		XUngrabDevice(dpy, dev, CurrentTime);
-		// TODO: clear xinput_pressed
+		if (current_dev && current_dev->dev->device_id == dev->device_id)
+			xinput_pressed.clear();
 		return;
 	}
 	int tries = 0;

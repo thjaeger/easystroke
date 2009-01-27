@@ -53,6 +53,8 @@ Win *win = NULL;
 Display *dpy;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+Grabber::XiDevice *current_dev = 0;
+std::set<guint> xinput_pressed;
 
 static bool show_gui = false;
 static bool rotated = false;
@@ -64,8 +66,6 @@ static char **argv;
 
 static Window current_app = 0, ping_window = 0;
 static Trace *trace = 0;
-static Grabber::XiDevice *current_dev = 0;
-static std::set<guint> xinput_pressed;
 static std::map<guint, guint> pointer_map;
 static int mapping_events = 0;
 
@@ -1004,6 +1004,11 @@ class StrokeHandler : public Handler, public Timeout {
 		XFlush(dpy);
 	}
 
+	void abort_stroke() {
+		parent->replace_child(NULL);
+		grabber->regrab_xi();
+	}
+
 	void do_timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
@@ -1011,7 +1016,7 @@ class StrokeHandler : public Handler, public Timeout {
 		if (!prefs.timeout_gestures.get()) {
 			if (press_t)
 				replay(press_t);
-			parent->replace_child(NULL);
+			abort_stroke();
 			return;
 		}
 		if (!is_gesture)
@@ -1059,7 +1064,7 @@ protected:
 		trace->end();
 		if (press_t)
 			replay(press_t);
-		parent->replace_child(0);
+		abort_stroke();
 	}
 	virtual void motion(RTriple e) {
 		if (!press_t && grabber->xinput) {
@@ -1073,7 +1078,7 @@ protected:
 			if (!prefs.ignore_grab.get()) {
 				if (verbosity >= 2)
 					printf("Ignoring xi-only stroke\n");
-				parent->replace_child(NULL);
+				abort_stroke();
 			}
 			return;
 		}
