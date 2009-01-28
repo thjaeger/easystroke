@@ -177,6 +177,7 @@ Win::Win() {
 
 	show_hide_icon();
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
+	disabled.connect(new Notifier(sigc::mem_fun(*this, &Win::timeout)));
 
 	WIDGET(Gtk::CheckMenuItem, menu_disabled, _("D_isabled"), true);
 	menu.append(menu_disabled);
@@ -259,31 +260,33 @@ void Win::show_hide() {
 		win->show();
 }
 
-void composite_stock(Gtk::Widget *widget, Glib::RefPtr<Gdk::Pixbuf> dest, Glib::ustring name, double scale) {
-		Glib::RefPtr<Gdk::Pixbuf> pb = widget->render_icon(Gtk::StockID(name), Gtk::ICON_SIZE_MENU);
-		int w = (int)(dest->get_width() * scale);
-		int h = (int)(dest->get_height() * scale);
-		int x = (int)(dest->get_width() - w);
-		int y = 0;
-		double scale_x = (double)w/(double)(pb->get_width());
-		double scale_y = (double)h/(double)(pb->get_height());
-		pb->composite(dest, x, y, w, h, x, y, scale_x, scale_y, Gdk::INTERP_HYPER, 255);
+static void composite_stock(Gtk::Widget *widget, Glib::RefPtr<Gdk::Pixbuf> dest, Glib::ustring name, double scale) {
+	Glib::RefPtr<Gdk::Pixbuf> pb = widget->render_icon(Gtk::StockID(name), Gtk::ICON_SIZE_MENU);
+	int w = (int)(dest->get_width() * scale);
+	int h = (int)(dest->get_height() * scale);
+	int x = (int)(dest->get_width() - w);
+	int y = 0;
+	double scale_x = (double)w/(double)(pb->get_width());
+	double scale_y = (double)h/(double)(pb->get_height());
+	pb->composite(dest, x, y, w, h, x, y, scale_x, scale_y, Gdk::INTERP_HYPER, 255);
 }
 
 bool Win::on_icon_size_changed(int size) {
 	icon_pb[0] = Stroke::trefoil()->draw(size);
 	icon_pb[1] = Stroke::trefoil()->draw(size);
 	icon_pb[2] = Stroke::trefoil()->draw(size);
+	icon_pb[3] = Stroke::trefoil()->draw(size);
 	composite_stock(win, icon_pb[1], "gtk-yes", 0.6);
 	composite_stock(win, icon_pb[2], "gtk-no", 0.5);
+	icon_pb[3]->saturate_and_pixelate(icon_pb[3], 0.0, true);
 	if (icon)
-		icon->set(icon_pb[0]);
+		icon->set(icon_pb[disabled.get() ? 3 : 0]);
 	return true;
 }
 
 void Win::timeout() {
 	if (icon)
-		icon->set(icon_pb[0]);
+		icon->set(icon_pb[disabled.get() ? 3 : 0]);
 }
 
 void Win::show_success(bool good) {

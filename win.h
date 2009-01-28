@@ -75,7 +75,7 @@ private:
 	Gtk::Menu menu;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
-	Glib::RefPtr<Gdk::Pixbuf> icon_pb[3];
+	Glib::RefPtr<Gdk::Pixbuf> icon_pb[4];
 };
 
 extern Win *win;
