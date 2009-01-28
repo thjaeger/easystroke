@@ -787,8 +787,7 @@ public:
 		}
 		return new AdvancedHandler(e, as, rs, b1, b2);
 	}
-	void do_remap() {
-		std::map<guint, guint> new_map = map;
+	void get_map(std::map<guint, guint> &new_map) {
 		for (std::set<guint>::iterator i = xinput_pressed.begin(); i != xinput_pressed.end(); ++i)
 			if (!pass.count(*i))
 				new_map[*i] = 0;
@@ -796,6 +795,10 @@ public:
 			new_map[remap_to] = 0;
 			new_map[remap_from] = remap_to;
 		}
+	}
+	void do_remap() {
+		std::map<guint, guint> new_map = map;
+		get_map(new_map);
 		remap(new_map);
 
 	}
@@ -822,7 +825,9 @@ public:
 			replay_button = b;
 			RModifiers m = act->prepare();
 			sticky_mods.reset();
-			replace_child(new ScrollAdvancedHandler(m, map, replay_button));
+			std::map<guint, guint> new_map = map;
+			get_map(new_map);
+			replace_child(new ScrollAdvancedHandler(m, new_map, replay_button));
 			return;
 		}
 		if (IS_IGNORE(act)) {
