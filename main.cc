@@ -430,15 +430,19 @@ static void remap_pointer() {
 		m[i->first - 1] = i->second;
 	int tries = 0;
 	while (MappingBusy == XSetPointerMapping(dpy, m, n)) {
-		printf("Warning: remapping buttons failed, retrying...\n");
 		tries++;
-		if (!(tries % 3))
-			replay(CurrentTime);
 		if (!(tries % 5))
+			replay(CurrentTime);
+		if (!(tries % 20)) {
+			// after ~200ms
 			grabber->release_all(n);
+			printf("Warning: remapping buttons failed (%d times), retrying...\n", tries);
+		}
 		XFlush(dpy);
 		usleep(tries*1000);
 	}
+	if (tries > 5 && tries % 20)
+		printf("Warning: remapping buttons failed (%d times), retrying...\n", tries);
 	mapping_events++;
 }
 
