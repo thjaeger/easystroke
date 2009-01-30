@@ -170,20 +170,22 @@ const Combo<TraceType>::Info trace_info[] = {
 const Combo<TimeoutType>::Info timeout_info[] = {
 	{ TimeoutOff, N_("Timeout Off") },
 	{ TimeoutConservative, N_("Conservative") },
+	{ TimeoutDefault, N_("Default") },
 	{ TimeoutMedium, N_("Medium") },
 	{ TimeoutAggressive, N_("Aggressive") },
 	{ TimeoutFlick, N_("Flick") },
-	{ TimeoutConservative, 0 }
+	{ TimeoutDefault, 0 }
 };
 
 const Combo<TimeoutType>::Info timeout_info_exp[] = {
 	{ TimeoutOff, N_("Timeout Off") },
 	{ TimeoutConservative, N_("Conservative") },
+	{ TimeoutDefault, N_("Default") },
 	{ TimeoutMedium, N_("Medium") },
 	{ TimeoutAggressive, N_("Aggressive") },
 	{ TimeoutFlick, N_("Flick") },
 	{ TimeoutCustom, N_("Custom") },
-	{ TimeoutConservative, 0 }
+	{ TimeoutDefault, 0 }
 };
 
 Source<bool> autostart_ok(true);

@@ -167,6 +167,10 @@ public:
 				prefs.min_speed.set(0);
 				break;
 			case TimeoutConservative:
+				prefs.init_timeout.set(1000);
+				prefs.min_speed.set(10);
+				break;
+			case TimeoutDefault:
 				prefs.init_timeout.set(240);
 				prefs.min_speed.set(60);
 				break;

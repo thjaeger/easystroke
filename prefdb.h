@@ -26,7 +26,7 @@
 #include "var.h"
 
 enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater };
-enum TimeoutType { TimeoutOff, TimeoutConservative, TimeoutMedium, TimeoutAggressive, TimeoutFlick, TimeoutCustom };
+enum TimeoutType { TimeoutOff, TimeoutDefault, TimeoutMedium, TimeoutAggressive, TimeoutFlick, TimeoutCustom, TimeoutConservative };
 
 class ButtonInfo {
 	friend class boost::serialization::access;
