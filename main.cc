@@ -806,8 +806,7 @@ public:
 			sticky_mods.reset();
 			std::map<guint, guint> new_map = map;
 			get_map(new_map);
-			replace_child(new ScrollAdvancedHandler(m, new_map, replay_button));
-			return;
+			return replace_child(new ScrollAdvancedHandler(m, new_map, replay_button));
 		}
 		if (IS_IGNORE(act)) {
 			click_time = e->t;
@@ -852,8 +851,7 @@ public:
 				ping();
 				return;
 			}
-			parent->replace_child(NULL);
-			return;
+			return parent->replace_child(NULL);
 		}
 		mods.erase((b == button1) ? button2 : b);
 		if (remap_from)
@@ -1004,8 +1002,7 @@ class StrokeHandler : public Handler, public Timeout {
 		if (!prefs.timeout_gestures.get()) {
 			if (press_t)
 				replay(press_t);
-			abort_stroke();
-			return;
+			return abort_stroke();
 		}
 		if (!is_gesture)
 			cur->clear();
@@ -1066,8 +1063,7 @@ protected:
 			if (!prefs.ignore_grab.get()) {
 				if (verbosity >= 2)
 					printf("Ignoring xi-only stroke\n");
-				abort_stroke();
-				return;
+				return abort_stroke();
 			}
 		}
 		cur->add(e);
@@ -1111,8 +1107,7 @@ protected:
 		if (stroke_action) {
 			discard(press_t);
 			(*stroke_action)(s);
-			parent->replace_child(0);
-			return;
+			return parent->replace_child(NULL);
 		}
 		RAction act = handle_stroke(s, e);
 		win->show_success(act);
@@ -1132,14 +1127,10 @@ protected:
 			if (press_t)
 				discard(press_t);
 		}
-		if (IS_IGNORE(act)) {
-			parent->replace_child(new IgnoreHandler(mods));
-			return;
-		}
-		if (IS_SCROLL(act) && grabber->xinput) {
-			parent->replace_child(new ScrollHandler(mods));
-			return;
-		}
+		if (IS_IGNORE(act))
+			return parent->replace_child(new IgnoreHandler(mods));
+		if (IS_SCROLL(act) && grabber->xinput)
+			return parent->replace_child(new ScrollHandler(mods));
 		IF_BUTTON(act, press)
 			if (press) {
 				grabber->suspend();
