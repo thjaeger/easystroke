@@ -1213,13 +1213,28 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::SELECT; }
 };
 
+struct RunByName {
+	RAction act_;
+	void run() {
+		RAction act = act_;
+		delete this;
+		RModifiers mods = act->prepare();
+		if (IS_IGNORE(act))
+			return handler->replace_child(new IgnoreHandler(mods));
+		if (IS_SCROLL(act) && grabber->xinput)
+			return handler->replace_child(new ScrollHandler(mods));
+		act->run();
+	}
+};
+
 void run_by_name(const char *str) {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
-			RModifiers mods = i->second.action->prepare();
-			// TODO ???
-			i->second.action->run();
-			return;
+			if (!i->second.action)
+				return;
+			RunByName *rbn = new RunByName;
+			rbn->act_ = i->second.action;
+			queue(sigc::mem_fun(*rbn, &RunByName::run));
 		}
 	}
 	printf(_("Warning: No action \"%s\" defined\n"), str);
