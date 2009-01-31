@@ -54,8 +54,8 @@ class Action {
 	friend std::ostream& operator<<(std::ostream& output, const Action& c);
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
-	virtual void run() {};
-	virtual RModifiers prepare() { return RModifiers(); };
+	virtual void run() {}
+	virtual RModifiers prepare() { return RModifiers(); }
 	virtual const Glib::ustring get_label() const = 0;
 };
 
@@ -162,6 +162,7 @@ public:
 	}
 	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
 	virtual const Glib::ustring get_label() const;
+	virtual void run();
 };
 #define IF_BUTTON(act, b) for (unsigned int b = Button::get_button(act); b; b = 0)
 
@@ -197,7 +198,7 @@ class StrokeInfo {
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
 public:
 	StrokeInfo(RStroke s, RAction a) : action(a) { strokes.insert(s); }
-	StrokeInfo() {};
+	StrokeInfo() {}
 	StrokeSet strokes;
 	RAction action;
 	std::string name;

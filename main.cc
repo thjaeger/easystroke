@@ -242,18 +242,6 @@ static void bail_out();
 
 static void reset_buttons(bool force);
 
-static RAction handle_stroke(RStroke s, RTriple e) {
-	Ranking *ranking = new Ranking;
-	RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
-	if (act)
-		act->prepare();
-	if (!IS_CLICK(act))
-		ranking->queue_show(e);
-	else
-		delete ranking;
-	return act;
-}
-
 static void bail_out() {
 	handler->replace_child(0);
 	grabber->release_all();
@@ -1109,20 +1097,27 @@ protected:
 			(*stroke_action)(s);
 			return parent->replace_child(NULL);
 		}
-		RAction act = handle_stroke(s, e);
-		win->show_success(act);
-		RModifiers mods;
-		if (act) {
-			mods = act->prepare();
-			act->run();
-		}
+		Ranking *ranking = new Ranking;
+		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
+		if (!IS_CLICK(act))
+			ranking->queue_show(e);
 		else
+			delete ranking;
+		win->show_success(act);
+		if (!act) {
+			if (press_t)
+				replay(press_t);
 			XBell(dpy, 0);
+			return parent->replace_child(NULL);
+		}
+		RModifiers mods = act->prepare();
 		if (IS_CLICK(act)) {
 			if (!grabber->xinput)
 				act = Button::create((Gdk::ModifierType)0, b);
-			if (press_t)
+			if (press_t) {
 				replay(press_t);
+				return parent->replace_child(NULL);
+			}
 		} else {
 			if (press_t)
 				discard(press_t);
@@ -1131,12 +1126,7 @@ protected:
 			return parent->replace_child(new IgnoreHandler(mods));
 		if (IS_SCROLL(act) && grabber->xinput)
 			return parent->replace_child(new ScrollHandler(mods));
-		IF_BUTTON(act, press)
-			if (press) {
-				grabber->suspend();
-				fake_click(press);
-				grabber->resume();
-			}
+		act->run();
 		parent->replace_child(NULL);
 	}
 public:
@@ -1227,6 +1217,7 @@ void run_by_name(const char *str) {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
 			RModifiers mods = i->second.action->prepare();
+			// TODO ???
 			i->second.action->run();
 			return;
 		}
@@ -1831,6 +1822,12 @@ std::string select_window() {
 	gtk_main();
 	win->get_window().raise();
 	return grabber->get_wm_class();
+}
+
+void Button::run() {
+	grabber->suspend();
+	fake_click(button);
+	grabber->resume();
 }
 
 void SendKey::run() {

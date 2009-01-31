@@ -55,6 +55,7 @@ std::string select_window();
 class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
+	friend class Button;
 public:
 	Children children;
 	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
