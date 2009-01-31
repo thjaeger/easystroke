@@ -1,3 +1,21 @@
+2009-??-??  Released 0.4.0
+	* Support for xserver-1.6
+	* Additional gesture buttons
+	* Instant Gestures
+	* Add Czech, German and Italian translations
+	* Add 'Text' action
+	* Add "Timeout-Advanced" gestures
+	* Add conservative timeout profile, rename conservative to default
+	* Disable easystroke through middle-click 
+	* Show a different icon when disabled
+	* Show an 'icon hidden' warning when appropriate
+	* Never show clicks
+	* Display a warning for 'click' gestures
+	* Save preferences in version-specific file
+	* Option to not show popups on advanced gestures
+	* Don't abort gestures when Escape is pressed, as this was causing
+	  lock-ups
+
 2008-12-22  Released 0.3.1
 	* Better method for drawing strokes on a composited desktop
 	* Several bug-fixes
