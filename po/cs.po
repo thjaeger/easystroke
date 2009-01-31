@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-24 21:37-0500\n"
+"POT-Creation-Date: 2009-01-31 03:28-0500\n"
 "PO-Revision-Date: 2009-01-19 17:10+0000\n"
 "Last-Translator: Jakub Žáček <dawon.cz@gmail.com>\n"
 "Language-Team: Czech <cs@li.org>\n"
@@ -18,46 +18,46 @@ msgstr ""
 "X-Launchpad-Export-Date: 2009-01-19 20:00+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../actiondb.cc:119
+#: ../actiondb.cc:133
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
 msgstr "Chyba: nelze spustit příkaz \"%s\": fork() selhalo\n"
 
-#: ../actiondb.cc:137 ../prefs.cc:161
+#: ../actiondb.cc:151 ../prefs.cc:161
 msgid "None"
 msgstr "Žádný"
 
-#: ../actiondb.cc:137
+#: ../actiondb.cc:151
 msgid "Unminimize"
 msgstr ""
 
-#: ../actiondb.cc:137
+#: ../actiondb.cc:151
 msgid "Show/Hide"
 msgstr ""
 
-#: ../actiondb.cc:137
+#: ../actiondb.cc:151
 msgid "Disable (Enable)"
 msgstr ""
 
-#: ../actiondb.cc:171 ../prefs.cc:162
+#: ../actiondb.cc:185 ../prefs.cc:162 ../prefs.cc:173 ../prefs.cc:183
 msgid "Default"
 msgstr "Výchozí"
 
-#: ../actiondb.cc:198
+#: ../actiondb.cc:212
 #, c-format
 msgid "Error: Couldn't read action database: %s.\n"
 msgstr "Chyba: Nelze přečíst databázi akcí: %s.\n"
 
-#: ../actiondb.cc:213
+#: ../actiondb.cc:227
 msgid "rename() failed"
 msgstr "rename() selhalo"
 
-#: ../actiondb.cc:217
+#: ../actiondb.cc:231
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "Chyba: Nelze zapsat databázi akcí: %s.\n"
 
-#: ../actiondb.cc:221 ../prefdb.cc:144
+#: ../actiondb.cc:235 ../prefdb.cc:144
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
 "directory and that you have write access to it.  You can change the "
@@ -67,7 +67,7 @@ msgstr ""
 "složka a že do ní máte právo zápisu. Můžete změnit konfigurační složku "
 "parametrem -c nebo --config-dir v terminálu."
 
-#: ../actiondb.cc:224
+#: ../actiondb.cc:238
 msgid "actions"
 msgstr "akce"
 
@@ -75,100 +75,104 @@ msgstr "akce"
 msgid "Key combination..."
 msgstr "Kombinace kláves..."
 
-#: ../actions.cc:163
-msgid "Key"
-msgstr "Klávesa"
-
-#: ../actions.cc:164
+#: ../actions.cc:130
 msgid "Command"
 msgstr "Příkaz"
 
-#: ../actions.cc:165 ../actions.cc:969
+#: ../actions.cc:131
+msgid "Key"
+msgstr "Klávesa"
+
+#: ../actions.cc:132
+msgid "Text"
+msgstr ""
+
+#: ../actions.cc:133 ../actions.cc:961
 msgid "Scroll"
 msgstr "Posun"
 
-#: ../actions.cc:166 ../actions.cc:976
+#: ../actions.cc:134 ../actions.cc:968
 msgid "Ignore"
 msgstr "Ignorovat"
 
-#: ../actions.cc:167 ../prefs.cc:309 ../prefs.cc:333
+#: ../actions.cc:135 ../prefs.cc:311 ../prefs.cc:335
 msgid "Button"
 msgstr "Tlačítko"
 
-#: ../actions.cc:168
+#: ../actions.cc:136
 msgid "Misc"
 msgstr "Ostatní"
 
-#: ../actions.cc:201 ../stats.cc:32 ../stats.cc:38
+#: ../actions.cc:191 ../stats.cc:32 ../stats.cc:38
 msgid "Stroke"
 msgstr "Gesto"
 
-#: ../actions.cc:207 ../stats.cc:33 ../stats.cc:39
+#: ../actions.cc:197 ../stats.cc:33 ../stats.cc:39
 msgid "Name"
 msgstr "Název"
 
-#: ../actions.cc:231
+#: ../actions.cc:221
 msgid "Type"
 msgstr "Typ"
 
-#: ../actions.cc:237
+#: ../actions.cc:227
 msgid "Details"
 msgstr "Detaily"
 
-#: ../actions.cc:259
+#: ../actions.cc:250
 msgid "Application"
 msgstr "Aplikace"
 
-#: ../actions.cc:492
+#: ../actions.cc:480
 msgid "Action \"%1\" is about to be deleted."
 msgstr "Akce \"%1\" bude smazána."
 
-#: ../actions.cc:494
+#: ../actions.cc:482
 msgid "One action is about to be deleted."
 msgid_plural "%1 actions are about to be deleted"
 msgstr[0] "Jedna akce bude smazána."
 msgstr[1] "%1 akce budou smazány."
 msgstr[2] "%1 akcí bude smazáno."
 
-#: ../actions.cc:499
+#: ../actions.cc:487
 msgid "Delete an Action"
 msgid_plural "Delete Actions"
 msgstr[0] "Smazat akci"
 msgstr[1] "Smazat akce"
 msgstr[2] "Smazat akce"
 
-#: ../actions.cc:571
+#: ../actions.cc:559
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
 msgstr "%1 \"%2\" (obsahující %3 %4) bude smazána."
 
-#: ../actions.cc:572
+#: ../actions.cc:560
 msgid "The application"
 msgstr "Aplikace"
 
-#: ../actions.cc:572
+#: ../actions.cc:560
 msgid "The group"
 msgstr "Skupina"
 
-#: ../actions.cc:575
+#: ../actions.cc:563
 msgid "action"
 msgid_plural "actions"
 msgstr[0] "akce"
 msgstr[1] "akce"
 msgstr[2] "akcí"
 
-#: ../actions.cc:576
+#: ../actions.cc:564
 msgid "Delete an Application"
 msgstr "Smazat aplikaci"
 
-#: ../actions.cc:576
+#: ../actions.cc:564
 msgid "Delete an Application Group"
 msgstr "Smazat skupinu aplikací"
 
-#: ../actions.cc:606
+#: ../actions.cc:594
 msgid "Group"
 msgstr "Skupina"
 
-#: ../actions.cc:696
+#: ../actions.cc:684
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
@@ -176,11 +180,11 @@ msgstr ""
 "Chcete nastavit pro akci jedno kliknutí. Toto může v budouctnosti způsobovat "
 "problémy při používání tlačítka %1. Opravdu chcete pokračovat?"
 
-#: ../actions.cc:728
+#: ../actions.cc:716
 msgid "Record a New Stroke"
 msgstr "Zaznamenat nové gesto"
 
-#: ../actions.cc:729
+#: ../actions.cc:717
 msgid ""
 "The next stroke will be associated with the action \"%1\".  You can draw it "
 "anywhere on the screen (except for the two buttons below)."
@@ -188,27 +192,27 @@ msgstr ""
 "Následující gesto bude asociováno s akcí \"%1\". Můžete malovat kdekoliv na "
 "obrazovce (s výjimkou dvou tlačítek níže)."
 
-#: ../actions.cc:819
+#: ../actions.cc:807
 msgid "Gesture %1"
 msgstr "Gesto %1"
 
-#: ../actions.cc:949
+#: ../actions.cc:941
 msgid "No Modifiers"
 msgstr "Žádné modifikátory"
 
-#: ../actions.cc:957
+#: ../actions.cc:949
 msgid "(Instantly) "
 msgstr "(Instantně) "
 
-#: ../actions.cc:959
+#: ../actions.cc:951
 msgid "Any Modifier"
 msgstr "Jakékoliv modifikátory"
 
-#: ../actions.cc:962 ../prefs.cc:464
+#: ../actions.cc:954 ../prefs.cc:466
 msgid "Button %1"
 msgstr "Tlačítko %1"
 
-#: ../actions.cc:967
+#: ../actions.cc:959
 msgid " + Scroll"
 msgstr " + Rolovat"
 
@@ -216,16 +220,16 @@ msgstr " + Rolovat"
 msgid "'composite' not available"
 msgstr "'composite' není k dispozici"
 
-#: ../grabber.cc:353
+#: ../grabber.cc:356
 #, c-format
 msgid "Opening Device %s failed.\n"
 msgstr "Otevírání zařízení %s selhalo.\n"
 
-#: ../grabber.cc:673
+#: ../grabber.cc:668
 msgid "(window manager frame)"
 msgstr "(window manager frame)"
 
-#: ../main.cc:106 ../main.cc:282 ../main.cc:1793
+#: ../main.cc:106 ../main.cc:282 ../main.cc:1812
 #, c-format
 msgid "Error: %s\n"
 msgstr "Chyba: %s\n"
@@ -245,42 +249,42 @@ msgstr "Chyba: Grab selhal, restartování...\n"
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fatální chyba: Spojení s X servere zraceno, resetuji...\n"
 
-#: ../main.cc:737
+#: ../main.cc:743
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Chyba: Potřebujete XImput k používání pokročilých gest\n"
 
-#: ../main.cc:1225
+#: ../main.cc:1244
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Varování: Nebyla nadefinována akce \"%s\"\n"
 
-#: ../main.cc:1239
+#: ../main.cc:1258
 msgid "Tray icon disabled"
 msgstr ""
 
-#: ../main.cc:1240
+#: ../main.cc:1259
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
 msgstr ""
 
-#: ../main.cc:1300
+#: ../main.cc:1319
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Chyba při spouštění D-BUS\n"
 
-#: ../main.cc:1338
+#: ../main.cc:1357
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Nelze otevřít display.\n"
 
-#: ../main.cc:1494
+#: ../main.cc:1513
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Chyba: Nelze vytvořit konfigurační složku \"%s\"\n"
 
-#: ../main.cc:1499
+#: ../main.cc:1518
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Chyba: \"%s\" není složka\n"
@@ -294,7 +298,7 @@ msgstr "Chyba: Nelze uložit nastavení: %s.\n"
 msgid "preferences"
 msgstr "nastavení"
 
-#: ../prefdb.cc:209
+#: ../prefdb.cc:213
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Chyba: Nelze načíst nastavení.\n"
@@ -315,51 +319,51 @@ msgstr "Oheň (compiz)"
 msgid "Water (compiz)"
 msgstr "Voda (compiz)"
 
-#: ../prefs.cc:171 ../prefs.cc:180
+#: ../prefs.cc:171 ../prefs.cc:181
 msgid "Timeout Off"
 msgstr "Timeout vypnutý"
 
-#: ../prefs.cc:172 ../prefs.cc:181
+#: ../prefs.cc:172 ../prefs.cc:182
 msgid "Conservative"
 msgstr "Konzervativní"
 
-#: ../prefs.cc:173 ../prefs.cc:182
+#: ../prefs.cc:174 ../prefs.cc:184
 msgid "Medium"
 msgstr "Střední"
 
-#: ../prefs.cc:174 ../prefs.cc:183
+#: ../prefs.cc:175 ../prefs.cc:185
 msgid "Aggressive"
 msgstr "Agresivní"
 
-#: ../prefs.cc:175 ../prefs.cc:184
+#: ../prefs.cc:176 ../prefs.cc:186
 msgid "Flick"
 msgstr "Trhnutí"
 
-#: ../prefs.cc:185
+#: ../prefs.cc:187
 msgid "Custom"
 msgstr "Vlastní"
 
-#: ../prefs.cc:304
+#: ../prefs.cc:306
 msgid "Application (WM__CLASS)"
 msgstr "Aplikace (WM__CLASS)"
 
-#: ../prefs.cc:322
+#: ../prefs.cc:324
 msgid "Enabled"
 msgstr "Povoleno"
 
-#: ../prefs.cc:323
+#: ../prefs.cc:325
 msgid "Device"
 msgstr "Zařízení"
 
-#: ../prefs.cc:354 ../prefs.cc:605 ../prefs.cc:631
+#: ../prefs.cc:356 ../prefs.cc:607 ../prefs.cc:633
 msgid "<App disabled>"
 msgstr "<Apl zakázána>"
 
-#: ../prefs.cc:448
+#: ../prefs.cc:450
 msgid "Select a Mouse or Pen Button"
 msgstr "Zvolte tlačítko myši nebo pera"
 
-#: ../prefs.cc:449
+#: ../prefs.cc:451
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
@@ -371,7 +375,7 @@ msgstr ""
 msgid "Score"
 msgstr "Skóre"
 
-#: ../win.cc:181
+#: ../win.cc:182
 msgid "D_isabled"
 msgstr "Zakázán_o"
 

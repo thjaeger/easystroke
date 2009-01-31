@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-01-24 22:14-0500\n"
+"POT-Creation-Date: 2009-01-31 03:28-0500\n"
 "PO-Revision-Date: 2009-01-25 21:00+0000\n"
 "Last-Translator: Massimiliano La Gala <Unknown>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -18,57 +18,57 @@ msgstr ""
 "X-Launchpad-Export-Date: 2009-01-25 21:32+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
-#: ../actiondb.cc:119
+#: ../actiondb.cc:133
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
 msgstr "Errore: impossibile eseguire il comando \"%s\" fork() fallita\n"
 
-#: ../actiondb.cc:137 ../prefs.cc:161
+#: ../actiondb.cc:151 ../prefs.cc:161
 msgid "None"
 msgstr "Nessuno"
 
-#: ../actiondb.cc:137
+#: ../actiondb.cc:151
 msgid "Unminimize"
 msgstr ""
 
-#: ../actiondb.cc:137
+#: ../actiondb.cc:151
 msgid "Show/Hide"
 msgstr "Mostra/nascondi"
 
-#: ../actiondb.cc:137
+#: ../actiondb.cc:151
 msgid "Disable (Enable)"
 msgstr "Disabilita (abilita)"
 
-#: ../actiondb.cc:171 ../prefs.cc:162
+#: ../actiondb.cc:185 ../prefs.cc:162 ../prefs.cc:173 ../prefs.cc:183
 msgid "Default"
 msgstr "Predefinito"
 
-#: ../actiondb.cc:198
+#: ../actiondb.cc:212
 #, c-format
 msgid "Error: Couldn't read action database: %s.\n"
 msgstr "Errore: impossibile leggere il database delle azioni: %s\n"
 
-#: ../actiondb.cc:213
+#: ../actiondb.cc:227
 msgid "rename() failed"
 msgstr "rename() fallita"
 
-#: ../actiondb.cc:217
+#: ../actiondb.cc:231
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "Errore: impossibile salvare il database delle azioni: %s\n"
 
-#: ../actiondb.cc:221 ../prefdb.cc:144
+#: ../actiondb.cc:235 ../prefdb.cc:144
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
 "directory and that you have write access to it.  You can change the "
 "configuration directory using the -c or --config-dir command line options."
 msgstr ""
-"Impossibile salvare %1. Le tue modifiche saranno perse. Assicurati che "
-"\"%2\" sia una cartella e che tu ne abbia i diritti per accedervi. Puoi "
-"cambiare la cartella della configurazione utilizzando i parametri -c o --"
-"config-dir nella riga di comando."
+"Impossibile salvare %1. Le tue modifiche saranno perse. Assicurati che \"%2"
+"\" sia una cartella e che tu ne abbia i diritti per accedervi. Puoi cambiare "
+"la cartella della configurazione utilizzando i parametri -c o --config-dir "
+"nella riga di comando."
 
-#: ../actiondb.cc:224
+#: ../actiondb.cc:238
 msgid "actions"
 msgstr "azioni"
 
@@ -76,97 +76,101 @@ msgstr "azioni"
 msgid "Key combination..."
 msgstr "Combinazione di tasti"
 
-#: ../actions.cc:163
-msgid "Key"
-msgstr "Tasto"
-
-#: ../actions.cc:164
+#: ../actions.cc:130
 msgid "Command"
 msgstr "Comando"
 
-#: ../actions.cc:165 ../actions.cc:969
+#: ../actions.cc:131
+msgid "Key"
+msgstr "Tasto"
+
+#: ../actions.cc:132
+msgid "Text"
+msgstr ""
+
+#: ../actions.cc:133 ../actions.cc:961
 msgid "Scroll"
 msgstr "Scorri"
 
-#: ../actions.cc:166 ../actions.cc:976
+#: ../actions.cc:134 ../actions.cc:968
 msgid "Ignore"
 msgstr "Ignora"
 
-#: ../actions.cc:167 ../prefs.cc:309 ../prefs.cc:333
+#: ../actions.cc:135 ../prefs.cc:311 ../prefs.cc:335
 msgid "Button"
 msgstr "Tasto"
 
-#: ../actions.cc:168
+#: ../actions.cc:136
 msgid "Misc"
 msgstr "Varie"
 
-#: ../actions.cc:201 ../stats.cc:32 ../stats.cc:38
+#: ../actions.cc:191 ../stats.cc:32 ../stats.cc:38
 msgid "Stroke"
 msgstr "Tratto"
 
-#: ../actions.cc:207 ../stats.cc:33 ../stats.cc:39
+#: ../actions.cc:197 ../stats.cc:33 ../stats.cc:39
 msgid "Name"
 msgstr "Nome"
 
-#: ../actions.cc:231
+#: ../actions.cc:221
 msgid "Type"
 msgstr "Tipo"
 
-#: ../actions.cc:237
+#: ../actions.cc:227
 msgid "Details"
 msgstr "Dettagli"
 
-#: ../actions.cc:259
+#: ../actions.cc:250
 msgid "Application"
 msgstr "Applicazione"
 
-#: ../actions.cc:492
+#: ../actions.cc:480
 msgid "Action \"%1\" is about to be deleted."
 msgstr "l'azione \"%1\" sta per essere cancellata."
 
-#: ../actions.cc:494
+#: ../actions.cc:482
 msgid "One action is about to be deleted."
 msgid_plural "%1 actions are about to be deleted"
 msgstr[0] "Un azione sta per essere cancellata."
 msgstr[1] "%1 azoni stanno per essere cancellate"
 
-#: ../actions.cc:499
+#: ../actions.cc:487
 msgid "Delete an Action"
 msgid_plural "Delete Actions"
 msgstr[0] "Cancella un Azione"
 msgstr[1] "Cancella Azioni"
 
-#: ../actions.cc:571
+#: ../actions.cc:559
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
 msgstr "%1 \"%2\" (contententi %3 %4) sta per essere cancellata."
 
-#: ../actions.cc:572
+#: ../actions.cc:560
 msgid "The application"
 msgstr "L'applicazione"
 
-#: ../actions.cc:572
+#: ../actions.cc:560
 msgid "The group"
 msgstr "Il gruppo"
 
-#: ../actions.cc:575
+#: ../actions.cc:563
 msgid "action"
 msgid_plural "actions"
 msgstr[0] "azione"
 msgstr[1] "azioni"
 
-#: ../actions.cc:576
+#: ../actions.cc:564
 msgid "Delete an Application"
 msgstr "Cancella un applicazione"
 
-#: ../actions.cc:576
+#: ../actions.cc:564
 msgid "Delete an Application Group"
 msgstr "Cancella un gruppo di applicazioni"
 
-#: ../actions.cc:606
+#: ../actions.cc:594
 msgid "Group"
 msgstr "Gruppo"
 
-#: ../actions.cc:696
+#: ../actions.cc:684
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
@@ -174,11 +178,11 @@ msgstr ""
 "Stai per collegare un azione ad un singolo click. Ciò può rendere difficile "
 "in futuro l'utilizzo del pulsante %1. Sei sicuro di voler continuare?"
 
-#: ../actions.cc:728
+#: ../actions.cc:716
 msgid "Record a New Stroke"
 msgstr "Registra un nuovo Gesto"
 
-#: ../actions.cc:729
+#: ../actions.cc:717
 msgid ""
 "The next stroke will be associated with the action \"%1\".  You can draw it "
 "anywhere on the screen (except for the two buttons below)."
@@ -186,27 +190,27 @@ msgstr ""
 "Il prossimo gesto sarà associato con l'azione \"%1\". È possibile disegnarlo "
 "ovunque nello schermo (eccetto nei due pulsanti sottostanti)."
 
-#: ../actions.cc:819
+#: ../actions.cc:807
 msgid "Gesture %1"
 msgstr "Gesto %1"
 
-#: ../actions.cc:949
+#: ../actions.cc:941
 msgid "No Modifiers"
 msgstr "Nessun modificatore"
 
-#: ../actions.cc:957
+#: ../actions.cc:949
 msgid "(Instantly) "
 msgstr "(instantaneamente) "
 
-#: ../actions.cc:959
+#: ../actions.cc:951
 msgid "Any Modifier"
 msgstr "Qualsiasi modificatore"
 
-#: ../actions.cc:962 ../prefs.cc:464
+#: ../actions.cc:954 ../prefs.cc:466
 msgid "Button %1"
 msgstr "Pulsante %1"
 
-#: ../actions.cc:967
+#: ../actions.cc:959
 msgid " + Scroll"
 msgstr " + scorrimento"
 
@@ -214,16 +218,16 @@ msgstr " + scorrimento"
 msgid "'composite' not available"
 msgstr ""
 
-#: ../grabber.cc:353
+#: ../grabber.cc:356
 #, c-format
 msgid "Opening Device %s failed.\n"
 msgstr "Apertura del dispositivo %s fallita.\n"
 
-#: ../grabber.cc:673
+#: ../grabber.cc:668
 msgid "(window manager frame)"
 msgstr "cornice del gestore finestre"
 
-#: ../main.cc:106 ../main.cc:282 ../main.cc:1793
+#: ../main.cc:106 ../main.cc:282 ../main.cc:1812
 #, c-format
 msgid "Error: %s\n"
 msgstr "Errore: %s\n"
@@ -243,21 +247,21 @@ msgstr "Errore: acquisizione fallita. Resetto...\n"
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Errore Fatale: Connessione con X server perdura, riavvio...\n"
 
-#: ../main.cc:737
+#: ../main.cc:743
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Errore: Necessiti di XInput per utilizzare i gesti avanzati\n"
 
-#: ../main.cc:1225
+#: ../main.cc:1244
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Attenzione: Nessuna azione \"%s\" definita\n"
 
-#: ../main.cc:1239
+#: ../main.cc:1258
 msgid "Tray icon disabled"
 msgstr "icona nel vassoio disabilitata"
 
-#: ../main.cc:1240
+#: ../main.cc:1259
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
@@ -265,22 +269,22 @@ msgstr ""
 "Per mostrare nuovamente la finestra di configurazione, dovresti definire un "
 "azione di tipo \"Misc->Mostra/nascondi\"."
 
-#: ../main.cc:1300
+#: ../main.cc:1319
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Errore inizializzando D-BUS\n"
 
-#: ../main.cc:1338
+#: ../main.cc:1357
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Impossibile aprire il display.\n"
 
-#: ../main.cc:1494
+#: ../main.cc:1513
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Errore: Impossibile creare la cartella di configurazione \"%s\"\n"
 
-#: ../main.cc:1499
+#: ../main.cc:1518
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Errore: \"%s\" non è una cartella\n"
@@ -294,7 +298,7 @@ msgstr "Errore: Impossibile salvare le preferenze: %s.\n"
 msgid "preferences"
 msgstr "preferenze"
 
-#: ../prefdb.cc:209
+#: ../prefdb.cc:213
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Errore: impossibile leggere le preferenze.\n"
@@ -315,51 +319,51 @@ msgstr "Fuoco (compiz)"
 msgid "Water (compiz)"
 msgstr "Acqua (compiz)"
 
-#: ../prefs.cc:171 ../prefs.cc:180
+#: ../prefs.cc:171 ../prefs.cc:181
 msgid "Timeout Off"
 msgstr "Fine timeout"
 
-#: ../prefs.cc:172 ../prefs.cc:181
+#: ../prefs.cc:172 ../prefs.cc:182
 msgid "Conservative"
 msgstr "Conservativo"
 
-#: ../prefs.cc:173 ../prefs.cc:182
+#: ../prefs.cc:174 ../prefs.cc:184
 msgid "Medium"
 msgstr "Dispositivo"
 
-#: ../prefs.cc:174 ../prefs.cc:183
+#: ../prefs.cc:175 ../prefs.cc:185
 msgid "Aggressive"
 msgstr "Aggressivo"
 
-#: ../prefs.cc:175 ../prefs.cc:184
+#: ../prefs.cc:176 ../prefs.cc:186
 msgid "Flick"
 msgstr ""
 
-#: ../prefs.cc:185
+#: ../prefs.cc:187
 msgid "Custom"
 msgstr "Personalizzato"
 
-#: ../prefs.cc:304
+#: ../prefs.cc:306
 msgid "Application (WM__CLASS)"
 msgstr "Applicazione (WM__CLASS)"
 
-#: ../prefs.cc:322
+#: ../prefs.cc:324
 msgid "Enabled"
 msgstr "Attivo"
 
-#: ../prefs.cc:323
+#: ../prefs.cc:325
 msgid "Device"
 msgstr "Dispositivo"
 
-#: ../prefs.cc:354 ../prefs.cc:605 ../prefs.cc:631
+#: ../prefs.cc:356 ../prefs.cc:607 ../prefs.cc:633
 msgid "<App disabled>"
 msgstr "<App disabilitato>"
 
-#: ../prefs.cc:448
+#: ../prefs.cc:450
 msgid "Select a Mouse or Pen Button"
 msgstr "Selezionare un pulsante del mouse o della penna"
 
-#: ../prefs.cc:449
+#: ../prefs.cc:451
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
@@ -372,7 +376,7 @@ msgstr ""
 msgid "Score"
 msgstr "Punteggio"
 
-#: ../win.cc:181
+#: ../win.cc:182
 msgid "D_isabled"
 msgstr "D_isabilitato"
 
