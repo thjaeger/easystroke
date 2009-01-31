@@ -1067,8 +1067,8 @@ protected:
 				if (verbosity >= 2)
 					printf("Ignoring xi-only stroke\n");
 				abort_stroke();
+				return;
 			}
-			return;
 		}
 		cur->add(e);
 		float dist = hypot(e->x-orig.x, e->y-orig.y);
