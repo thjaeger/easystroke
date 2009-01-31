@@ -29,6 +29,7 @@
 class Action;
 class Command;
 class SendKey;
+class SendText;
 class Scroll;
 class Ignore;
 class Button;
@@ -37,6 +38,7 @@ class Misc;
 typedef boost::shared_ptr<Action> RAction;
 typedef boost::shared_ptr<Command> RCommand;
 typedef boost::shared_ptr<SendKey> RSendKey;
+typedef boost::shared_ptr<SendText> RSendText;
 typedef boost::shared_ptr<Scroll> RScroll;
 typedef boost::shared_ptr<Ignore> RIgnore;
 typedef boost::shared_ptr<Button> RButton;
@@ -104,6 +106,21 @@ public:
 };
 BOOST_CLASS_VERSION(SendKey, 1)
 #define IS_KEY(act) (act && dynamic_cast<SendKey *>(act.get()))
+
+class SendText : public Action {
+	friend class boost::serialization::access;
+	Glib::ustring text;
+	BOOST_SERIALIZATION_SPLIT_MEMBER()
+	template<class Archive> void load(Archive & ar, const unsigned int version);
+	template<class Archive> void save(Archive & ar, const unsigned int version) const;
+	SendText(Glib::ustring text_) : text(text_) {}
+public:
+	SendText() {}
+	static RSendText create(Glib::ustring text) { return RSendText(new SendText(text)); }
+
+	virtual void run();
+	virtual const Glib::ustring get_label() const { return text; }
+};
 
 class Scroll : public ModAction {
 	friend class boost::serialization::access;

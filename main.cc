@@ -1868,6 +1868,71 @@ void SendKey::run() {
 	XTestFakeKeyEvent(dpy, code, false, 0);
 }
 
+void fake_unicode(gunichar c) {
+	static const KeySym numcode[10] = { XK_0, XK_1, XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9 };
+	static const KeySym hexcode[6] = { XK_a, XK_b, XK_c, XK_d, XK_e, XK_f };
+
+	if (verbosity >= 3) {
+		char buf[7];
+		buf[g_unichar_to_utf8(c, buf)] = '\0';
+		printf("using unicode input for character %s\n", buf);
+	}
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Control_L), true, 0);
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Shift_L), true, 0);
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_u), true, 0);
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_u), false, 0);
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Shift_L), false, 0);
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Control_L), false, 0);
+	char buf[16];
+	snprintf(buf, sizeof(buf), "%x", c);
+	for (int i = 0; buf[i]; i++)
+		if (buf[i] >= '0' && buf[i] <= '9') {
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, numcode[buf[i]-'0']), true, 0);
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, numcode[buf[i]-'0']), false, 0);
+		} else if (buf[i] >= 'a' && buf[i] <= 'f') {
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, hexcode[buf[i]-'a']), true, 0);
+			XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, hexcode[buf[i]-'a']), false, 0);
+		}
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_space), true, 0);
+	XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_space), false, 0);
+}
+
+bool fake_char(gunichar c) {
+	char buf[16];
+	snprintf(buf, sizeof(buf), "U%04X", c);
+	KeySym keysym = XStringToKeysym(buf);
+	if (keysym == NoSymbol)
+		return false;
+	KeyCode keycode = XKeysymToKeycode(dpy, keysym);
+	if (!keycode)
+		return false;
+	KeyCode modifier = 0;
+	if (XKeycodeToKeysym(dpy, keycode, 0) != keysym) {
+		int i;
+		for (i = 1; i < 8; i++)
+			if (XKeycodeToKeysym(dpy, keycode, i) == keysym)
+				break;
+		if (i == 8)
+			return false;
+		XModifierKeymap *keymap = XGetModifierMapping(dpy);
+		modifier = keymap->modifiermap[i];
+		XFreeModifiermap(keymap);
+	}
+	if (modifier)
+		XTestFakeKeyEvent(dpy, modifier, true, 0);
+	XTestFakeKeyEvent(dpy, keycode, true, 0);
+	XTestFakeKeyEvent(dpy, keycode, false, 0);
+	if (modifier)
+		XTestFakeKeyEvent(dpy, modifier, false, 0);
+	return true;
+}
+
+void SendText::run() {
+	for (Glib::ustring::iterator i = text.begin(); i != text.end(); i++)
+		if (!fake_char(*i))
+			fake_unicode(*i);
+}
+
 static struct {
 	guint mask;
 	guint sym;

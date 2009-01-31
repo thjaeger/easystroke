@@ -37,6 +37,7 @@ BOOST_CLASS_EXPORT(Action)
 BOOST_CLASS_EXPORT(Command)
 BOOST_CLASS_EXPORT(ModAction)
 BOOST_CLASS_EXPORT(SendKey)
+BOOST_CLASS_EXPORT(SendText)
 BOOST_CLASS_EXPORT(Scroll)
 BOOST_CLASS_EXPORT(Ignore)
 BOOST_CLASS_EXPORT(Button)
@@ -71,6 +72,19 @@ template<class Archive> void SendKey::save(Archive & ar, const unsigned int vers
 	ar & boost::serialization::base_object<ModAction>(*this);
 	ar & key;
 	ar & code;
+}
+
+template<class Archive> void SendText::load(Archive & ar, const unsigned int version) {
+	ar & boost::serialization::base_object<Action>(*this);
+	std::string str;
+	ar & str;
+	text = str;
+}
+
+template<class Archive> void SendText::save(Archive & ar, const unsigned int version) const {
+	ar & boost::serialization::base_object<Action>(*this);
+	std::string str(text);
+	ar & str;
 }
 
 template<class Archive> void Scroll::serialize(Archive & ar, const unsigned int version) {
