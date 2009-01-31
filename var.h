@@ -19,6 +19,7 @@
 #include <set>
 #include <boost/shared_ptr.hpp>
 #include <glibmm.h>
+#include "util.h"
 
 class Base {
 public:
@@ -143,29 +144,14 @@ public:
 	template <class T> void watch(Out<T> &v) { v.connect(this); }
 };
 
-class TimeoutWatcher : public Watcher {
+class TimeoutWatcher : public Watcher, Timeout {
 	int ms;
-	sigc::connection *c;
-	bool to() { timeout(); c = 0; return false; }
-protected:
-	virtual void timeout() = 0;
 public:
-	TimeoutWatcher(int ms_) : ms(ms_), c(0) {}
-	virtual void notify() {
-		if (c) {
-			c->disconnect();
-			delete c;
-			c = 0;
-		}
-		c = new sigc::connection(Glib::signal_timeout().connect(sigc::mem_fun(*this, &TimeoutWatcher::to), ms));
-	}
+	TimeoutWatcher(int ms_) : ms(ms_) {}
+	virtual void notify() { set_timeout(ms); }
 	void execute_now() {
-		if (c) {
-			c->disconnect();
-			delete c;
-			c = 0;
+		if (remove_timeout())
 			timeout();
-		}
 	}
 };
 #endif
