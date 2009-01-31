@@ -204,8 +204,7 @@ public:
 		get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
 	}
 	static void do_move() {
-		int screen = DefaultScreen(dpy);
-		int left = DisplayWidth(dpy, screen) - 10;
+		int left = gdk_screen_width() - 10;
 		for (std::list<OSD *>::iterator i = osd_stack.begin(); i != osd_stack.end(); i++) {
 			left -= (*i)->w + 30;
 			(*i)->move(left, 40);
@@ -1534,8 +1533,8 @@ void Grabber::XiDevice::translate_coords(int *axis_data, float &x, float &y) {
 	}
 	valuators[0] = axis_data[0];
 	valuators[1] = axis_data[1];
-	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
-	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
+	int w = gdk_screen_width() - 1;
+	int h = gdk_screen_height() - 1;
 	if (!rotated) {
 		x = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
 		y = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
@@ -1557,8 +1556,8 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 	}
 	valuators[0] = axis_data[0];
 	valuators[1] = axis_data[1];
-	int w = DisplayWidth(dpy, DefaultScreen(dpy)) - 1;
-	int h = DisplayHeight(dpy, DefaultScreen(dpy)) - 1;
+	int w = gdk_screen_width() - 1;
+	int h = gdk_screen_height() - 1;
 	x        = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
 	y        = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
 	if (axis_data[0] == sx && axis_data[1] == sy)

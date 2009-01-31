@@ -47,11 +47,10 @@ void Popup::invalidate(int x1, int y1, int x2, int y2) {
 
 Composite::Composite() {
 #define N 128
-	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-	int w = screen->get_width();
-	int h = screen->get_height();
-	num_x = (screen->get_width()  - 1)/N + 1;
-	num_y = (screen->get_height() - 1)/N + 1;
+	int w = gdk_screen_width();
+	int h = gdk_screen_height();
+	num_x = (gdk_screen_width()  - 1)/N + 1;
+	num_y = (gdk_screen_height() - 1)/N + 1;
 	pieces = new Popup**[num_x];
 	for (int i = 0; i < num_x; i++) {
 		pieces[i] = new Popup*[num_y];

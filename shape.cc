@@ -13,6 +13,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include <gdk/gdk.h>
 #include "prefdb.h"
 #include "shape.h"
 #include "main.h"
@@ -21,13 +22,11 @@
 #include <X11/extensions/shape.h>
 
 Shape::Shape() {
-	int screen = DefaultScreen(dpy);
-	Window root = RootWindow(dpy, screen);
-	int w = DisplayWidth(dpy, screen);
-	int h = DisplayHeight(dpy, screen);
+	int w = gdk_screen_width();
+	int h = gdk_screen_height();
 	Gdk::Color col = prefs.color.get().color;
 	unsigned long bg = ((col.get_red()/257)<<16) + ((col.get_green()/257)<<8) + col.get_blue()/257;
-	win = XCreateSimpleWindow(dpy, root, 0, 0, w, h, 0, CopyFromParent, bg);
+	win = XCreateSimpleWindow(dpy, ROOT, 0, 0, w, h, 0, CopyFromParent, bg);
 	XSetWindowAttributes attr;
 	attr.override_redirect = True;
 	XChangeWindowAttributes(dpy, win, CWOverrideRedirect, &attr);
