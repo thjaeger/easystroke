@@ -479,10 +479,6 @@ void Handler::remap(const std::map<guint, guint> &map) {
 			break;
 		}
 		guint b1 = j1->first, b2 = j2->first;
-#ifndef SERVER16_BUTTON_MAPPING_PATCH
-		if (b2 != j2->second)
-			remap.insert(b2);
-#endif
 		if (b1 < b2) {
 			remap.insert(b1);
 			++j1;
@@ -525,22 +521,6 @@ void Handler::remap(const std::map<guint, guint> &map) {
 		printf("Warning: remapping buttons, but no current device\n");
 		return;
 	}
-#ifndef SERVER16_BUTTON_MAPPING_PATCH
-	XDevice *dev = current_dev->dev;
-	{
-		int n = XGetDeviceButtonMapping(dpy, dev, 0, 0);
-		unsigned char m[n];
-		for (int i = 0; i<n; i++)
-			m[i] = i+1;
-		while (MappingBusy == XSetDeviceButtonMapping(dpy, dev, m, n)) {
-			printf("Warning: remapping device buttons failed, retrying...\n");
-			for (int i = 1; i<=n; i++)
-				current_dev->fake_button(i, false);
-			XSync(dpy, False);
-			usleep(50);
-		}
-	}
-#endif
 
 	if (buttons.size()) {
 		for (std::set<guint>::iterator i = buttons.begin(); i != buttons.end(); ++i)
