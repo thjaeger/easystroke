@@ -303,8 +303,8 @@ Prefs::Prefs() {
 
 	tm = Gtk::ListStore::create(cols);
 	tv->set_model(tm);
-	tv->append_column(_("Application (WM__CLASS)"), cols.app);
-	tm->set_sort_column(cols.app, Gtk::SORT_ASCENDING);
+	tv->append_column(_("Application (WM__CLASS)"), cols.user_app);
+	tm->set_sort_column(cols.user_app, Gtk::SORT_ASCENDING);
 
 	CellRendererTextish *button_renderer = Gtk::manage(new CellRendererTextish);
 	button_renderer->mode = CellRendererTextish::POPUP;
@@ -353,6 +353,7 @@ Prefs::Prefs() {
 	for (std::map<std::string, RButtonInfo>::const_iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = i->first;
+		row[cols.user_app] = i->first == "" ? _("(window manager frame)") : i->first;
 		row[cols.button] = i->second ? i->second->get_button_text() : _("<App disabled>");
 	}
 }
@@ -437,7 +438,7 @@ struct Prefs::SelectRow {
 	Prefs *parent;
 	std::string name;
 	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
-		if ((*iter)[parent->cols.app] == name) {
+		if ((std::string)(*iter)[parent->cols.app] == name) {
 			parent->tv->set_cursor(path);
 			return true;
 		}
@@ -601,9 +602,11 @@ void Prefs::on_add() {
 		is_new = prefs.exceptions.write_ref(a).insert(
 				std::pair<std::string, RButtonInfo>(str, RButtonInfo())).second;
 	}
+	Glib::ustring user_str = str == "" ? _("(window manager frame)") : str;
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = str;
+		row[cols.user_app] = user_str;
 		row[cols.button] = _("<App disabled>");
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);
@@ -617,7 +620,7 @@ void Prefs::on_add() {
 
 void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
 	Gtk::TreeRow row(*tm->get_iter(path));
-	Glib::ustring app = row[cols.app];
+	std::string app = row[cols.app];
 	ButtonInfo bi;
 	bi.button = 0;
 	bi.state = 0;

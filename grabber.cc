@@ -665,7 +665,7 @@ void Grabber::XiDevice::fake_button(int b, bool press) {
 
 std::string Grabber::get_wm_class(Window w) {
 	if (!w)
-		return _("(window manager frame)");
+		return "";
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		return "";

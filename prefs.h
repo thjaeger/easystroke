@@ -43,8 +43,9 @@ private:
 
 	class ExceptionColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
-		ExceptionColumns() { add(app); add(button); }
-		Gtk::TreeModelColumn<Glib::ustring> app, button;
+		ExceptionColumns() { add(app); add(user_app); add(button); }
+		Gtk::TreeModelColumn<std::string> app;
+		Gtk::TreeModelColumn<Glib::ustring> user_app, button;
 	};
 	ExceptionColumns cols;
 	Glib::RefPtr<Gtk::ListStore> tm;

@@ -215,6 +215,12 @@ void PrefDB::init() {
 			break;
 		}
 	}
+	std::map<std::string, RButtonInfo>::iterator i = exceptions.unsafe_ref().find("(window manager frame)");
+	if (i != exceptions.unsafe_ref().end()) {
+		RButtonInfo bi = i->second;
+		exceptions.unsafe_ref().erase(i);
+		exceptions.unsafe_ref()[""] = bi;
+	}
 	new TimeoutProfile(prefs.timeout_profile);
 	watch(exceptions);
 	watch(p);
