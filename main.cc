@@ -777,6 +777,7 @@ public:
 			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
 		click_time = 0;
 		remap_from = 0;
+		replay_button = 0;
 		guint bb = (b == button1) ? button2 : b;
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
@@ -841,6 +842,7 @@ public:
 			}
 			return parent->replace_child(NULL);
 		}
+		replay_button = 0;
 		mods.erase((b == button1) ? button2 : b);
 		if (remap_from)
 			sticky_mods.reset();
