@@ -17,6 +17,7 @@
 #define __MAIN_H__
 
 #include <string>
+#include <X11/X.h>
 
 bool is_file(std::string filename);
 bool is_dir(std::string dirname);
@@ -32,7 +33,7 @@ typedef struct _XDisplay Display;
 }
 
 extern Display *dpy;
-#define ROOT (DefaultRootWindow(dpy))
+extern Window ROOT;
 
 class Win;
 extern Win *win;

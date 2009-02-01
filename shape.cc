@@ -18,7 +18,6 @@
 #include "shape.h"
 #include "main.h"
 
-#include <X11/Xutil.h>
 #include <X11/extensions/shape.h>
 
 Shape::Shape() {

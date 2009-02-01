@@ -28,8 +28,6 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/export.hpp>
 
-#include <X11/Xlib.h>
-
 const double default_p = 0.5;
 const ButtonInfo default_button(Button2);
 const int default_radius = 16;

@@ -16,6 +16,7 @@
 #include "grabber.h"
 #include "main.h"
 #include <X11/extensions/XTest.h>
+#include <X11/cursorfont.h>
 #include <X11/Xutil.h>
 #include <glibmm/i18n.h>
 

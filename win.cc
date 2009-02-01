@@ -18,7 +18,6 @@
 #include "stats.h"
 #include "win.h"
 #include "main.h"
-#include "grabber.h"
 #include <glibmm/i18n.h>
 
 Glib::RefPtr<Gtk::Builder> widgets;

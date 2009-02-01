@@ -18,9 +18,7 @@
 #include "prefdb.h"
 #include <string>
 #include <map>
-#include <X11/Xlib.h>
 #include <X11/extensions/XInput.h>
-#include <X11/cursorfont.h>
 
 class XAtom {
 	const char *name;

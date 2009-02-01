@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
+ * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -14,7 +14,6 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "water.h"
-#include <X11/Xutil.h>
 
 Water::Water() {
 	const char *ofc = "org.freedesktop.compiz";

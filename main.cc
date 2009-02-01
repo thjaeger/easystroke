@@ -51,6 +51,7 @@ Source<Window> current_window(None);
 std::string config_dir;
 Win *win = NULL;
 Display *dpy;
+Window ROOT;
 bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Grabber::XiDevice *current_dev = 0;
@@ -1362,6 +1363,7 @@ Main::Main() : kit(0) {
 		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
 	}
+	ROOT = DefaultRootWindow(dpy);
 
 	ping_window = XCreateSimpleWindow(dpy, ROOT, 0, 0, 1, 1, 0, 0, 0);
 
@@ -1857,6 +1859,11 @@ void Button::run() {
 void SendKey::run() {
 	XTestFakeKeyEvent(dpy, code, true, 0);
 	XTestFakeKeyEvent(dpy, code, false, 0);
+}
+
+void SendKey::compute_code() {
+	if (key)
+		code = XKeysymToKeycode(dpy, key);
 }
 
 void fake_unicode(gunichar c) {

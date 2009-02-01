@@ -29,8 +29,6 @@
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 
-#include <X11/extensions/XTest.h>
-
 BOOST_CLASS_EXPORT(StrokeSet)
 
 BOOST_CLASS_EXPORT(Action)
@@ -117,11 +115,6 @@ template<class Archive> void StrokeInfo::serialize(Archive & ar, const unsigned 
 }
 
 using namespace std;
-
-void SendKey::compute_code() {
-	if (key)
-		code = XKeysymToKeycode(dpy, key);
-}
 
 void Command::run() {
 	pid_t pid = fork();

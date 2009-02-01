@@ -19,8 +19,6 @@
 #include "grabber.h"
 #include <glibmm/i18n.h>
 
-#include <X11/Xutil.h>
-
 #include <set>
 #include <iostream>
 
