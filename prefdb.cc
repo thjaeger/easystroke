@@ -52,7 +52,7 @@ PrefDB::PrefDB() :
 	left_handed(false),
 	init_timeout(200),
 	min_speed(40),
-	timeout_profile(TimeoutConservative),
+	timeout_profile(TimeoutDefault),
 	timeout_gestures(false),
 	tray_icon(true),
 	color(Gdk::Color("#980101")),
