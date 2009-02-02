@@ -535,7 +535,7 @@ void Grabber::select_proximity() {
 }
 
 void Grabber::set() {
-	bool act = !suspended && ((active && !disabled.get()) || (current != NONE && current != BUTTON));
+	bool act = !suspended && ((active && !is_disabled) || (current != NONE && current != BUTTON));
 	grab_xi(act && current != ALL_SYNC);
 	grab_xi_devs(act && current == NONE);
 	State old = grabbed;
@@ -606,6 +606,7 @@ int get_default_button() {
 void Grabber::update() {
 	wm_class = get_wm_class(current_window.get());
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
+	is_disabled = disabled.get();
 	active = true;
 	ButtonInfo bi = prefs.button.ref();
 	if (i != prefs.exceptions.ref().end()) {
