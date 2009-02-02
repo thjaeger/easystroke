@@ -131,6 +131,8 @@ uninstall:
 
 snapshot: $(DIST)_$(ARCH).tar.gz
 
+tarball: $(DIST).tar.gz
+
 release: $(DIST).tar.gz
 	rsync -avP $(DIST).tar.gz thjaeger@frs.sourceforge.net:uploads/
 
