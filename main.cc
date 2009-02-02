@@ -956,14 +956,14 @@ class StrokeHandler : public Handler, public Timeout {
 	RPreStroke cur;
 	bool is_gesture;
 	bool drawing;
-	RTriple last;
+	RTriple last, orig;
 	float min_speed;
 	float speed;
 	static float k;
 	bool use_timeout;
 	Time press_t; // If there is a synchronous grab in place, this is the grab time.
 	bool freeze_workaround;
-	Trace::Point orig;
+	bool instant;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -1000,6 +1000,12 @@ class StrokeHandler : public Handler, public Timeout {
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, press_t));
 	}
 
+	void do_instant(Time t) {
+		PreStroke ps;
+		RStroke s = Stroke::create(ps, button, button, false);
+		parent->replace_child(AdvancedHandler::create(s, orig, button, button, t));
+	}
+
 	bool calc_speed(RTriple e) {
 		if (!grabber->xinput || !use_timeout)
 			return false;
@@ -1034,6 +1040,8 @@ protected:
 		// At this point we already have an xi press, so we are
 		// guarenteed to either get another press or a release.
 		press_t = t;
+		if (instant)
+			do_instant(press_t);
 	}
 	virtual void pressure() {
 		trace->end();
@@ -1057,7 +1065,7 @@ protected:
 			}
 		}
 		cur->add(e);
-		float dist = hypot(e->x-orig.x, e->y-orig.y);
+		float dist = hypot(e->x-orig->x, e->y-orig->y);
 		if (!is_gesture && dist > prefs.radius.get())
 			is_gesture = true;
 		if (!drawing && dist > 4) {
@@ -1084,6 +1092,8 @@ protected:
 	}
 
 	virtual void press(guint b, RTriple e) {
+		if (instant)
+			return abort_stroke();
 		if (b == button)
 			return;
 		RStroke s = finish(b);
@@ -1092,6 +1102,8 @@ protected:
 	}
 
 	virtual void release(guint b, RTriple e) {
+		if (instant)
+			return abort_stroke();
 		RStroke s = finish(0);
 
 		if (stroke_action) {
@@ -1132,18 +1144,19 @@ protected:
 		parent->replace_child(NULL);
 	}
 public:
-	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e),
+	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e), orig(e),
 	min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
-	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(0), freeze_workaround(false) {
-		orig.x = e->x; orig.y = e->y;
+	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(0), freeze_workaround(false) {}
+	virtual void init() {
+		instant = grabber->is_instant(button);
+		if (instant && prefs.ignore_grab.get())
+			return do_instant(orig->t);
 		cur = PreStroke::create();
-		cur->add(e);
+		cur->add(orig);
 		if (grabber->xinput && prefs.init_timeout.get())
 			set_timeout(prefs.init_timeout.get());
 	}
-	~StrokeHandler() {
-		trace->end();
-	}
+	~StrokeHandler() { trace->end(); }
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
@@ -1177,12 +1190,6 @@ protected:
 				dev->fake_button(i, true);
 	}
 	virtual void press(guint b, RTriple e) {
-		if (grabber->is_instant(b)) {
-			PreStroke ps;
-			RStroke s = Stroke::create(ps, b, b, false);
-			replace_child(AdvancedHandler::create(s, e, b, b, e->t));
-			return;
-		}
 		if (current_app)
 			activate_window(current_app, e->t);
 		replace_child(new StrokeHandler(b, e));
