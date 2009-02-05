@@ -51,7 +51,7 @@ private:
 	void focus(Unique *id, int col, bool edit);
 	bool do_focus(Unique *id, Gtk::TreeViewColumn *col, bool edit);
 
-	struct SelectApp;
+	bool select_app(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, ActionListDiff *actions);
 	void on_add_app();
 	void on_add_group();
 	void on_group_name_edited(const Glib::ustring& path, const Glib::ustring& new_text);

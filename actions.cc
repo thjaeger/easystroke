@@ -512,26 +512,19 @@ void Actions::on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::i
 		renderer->property_editable().set_value(actions.get_root() != as && !as->app);
 }
 
-struct Actions::SelectApp {
-	Actions *parent;
-	ActionListDiff *actions;
-	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
-		if ((*iter)[parent->ca.actions] == actions) {
-			parent->apps_view->expand_to_path(path);
-			parent->apps_view->set_cursor(path);
-			return true;
-		}
-		return false;
+bool Actions::select_app(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, ActionListDiff *actions) {
+	if ((*iter)[ca.actions] == actions) {
+		apps_view->expand_to_path(path);
+		apps_view->set_cursor(path);
+		return true;
 	}
-};
+	return false;
+}
 
 void Actions::on_add_app() {
 	std::string name = select_window();
 	if (actions.apps.count(name)) {
-		SelectApp cb;
-		cb.parent = this;
-		cb.actions = actions.apps[name];
-		apps_model->foreach(sigc::mem_fun(cb, &SelectApp::test));
+		apps_model->foreach(sigc::bind(sigc::mem_fun(*this, &Actions::select_app), actions.apps[name]));
 		return;
 	}
 	ActionListDiff *parent = action_list->app ? actions.get_root() : action_list;

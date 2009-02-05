@@ -432,18 +432,6 @@ void Prefs::on_remove_extra() {
 	update_extra_buttons();
 }
 
-struct Prefs::SelectRow {
-	Prefs *parent;
-	std::string name;
-	bool test(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter) {
-		if ((std::string)(*iter)[parent->cols.app] == name) {
-			parent->tv->set_cursor(path);
-			return true;
-		}
-		return false;
-	}
-};
-
 SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	widgets->get_widget("dialog_select", dialog);
 	dialog->set_message(_("Select a Mouse or Pen Button"));
@@ -592,6 +580,14 @@ void Prefs::on_p_default() {
 	scale_p->set_value(default_p);
 }
 
+bool Prefs::select_row(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, std::string name) {
+	if ((std::string)(*iter)[cols.app] == name) {
+		tv->set_cursor(path);
+		return true;
+	}
+	return false;
+}
+
 void Prefs::on_add() {
 	std::string str = select_window();
 	bool is_new;
@@ -609,10 +605,7 @@ void Prefs::on_add() {
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);
 	} else {
-		SelectRow cb;
-		cb.name = str;
-		cb.parent = this;
-		tm->foreach(sigc::mem_fun(cb, &SelectRow::test));
+		tm->foreach(sigc::bind(sigc::mem_fun(*this, &Prefs::select_row), str));
 	}
 }
 

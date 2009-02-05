@@ -38,8 +38,7 @@ private:
 	void on_select_button();
 	void on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
-
-	struct SelectRow;
+	bool select_row(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, std::string name);
 
 	class ExceptionColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
