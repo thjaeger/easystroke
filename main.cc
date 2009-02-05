@@ -1223,28 +1223,21 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::SELECT; }
 };
 
-struct RunByName {
-	RAction act_;
-	void run() {
-		RAction act = act_;
-		delete this;
-		RModifiers mods = act->prepare();
-		if (IS_IGNORE(act))
-			return handler->replace_child(new IgnoreHandler(mods));
-		if (IS_SCROLL(act) && grabber->xinput)
-			return handler->replace_child(new ScrollHandler(mods));
-		act->run();
-	}
-};
+static void do_run_by_name(RAction act) {
+	RModifiers mods = act->prepare();
+	if (IS_IGNORE(act))
+		return handler->replace_child(new IgnoreHandler(mods));
+	if (IS_SCROLL(act) && grabber->xinput)
+		return handler->replace_child(new ScrollHandler(mods));
+	act->run();
+}
 
 void run_by_name(const char *str) {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
-			if (!i->second.action)
-				return;
-			RunByName *rbn = new RunByName;
-			rbn->act_ = i->second.action;
-			queue(sigc::mem_fun(*rbn, &RunByName::run));
+			if (i->second.action)
+				queue(sigc::bind(sigc::ptr_fun(do_run_by_name), i->second.action));
+			return;
 		}
 	}
 	printf(_("Warning: No action \"%s\" defined\n"), str);

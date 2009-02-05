@@ -49,6 +49,7 @@ private:
 	Gtk::TreeRow get_selected_row();
 
 	void focus(Unique *id, int col, bool edit);
+	bool do_focus(Unique *id, Gtk::TreeViewColumn *col, bool edit);
 
 	struct SelectApp;
 	void on_add_app();

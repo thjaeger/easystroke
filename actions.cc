@@ -812,33 +812,20 @@ void Actions::on_button_new() {
 	update_actions();
 }
 
-struct Actions::Focus {
-	Actions *parent;
-	Unique *id;
-	Gtk::TreeViewColumn* col;
-	bool edit;
-	bool focus() {
-		if (!parent->editing) {
-			Gtk::TreeModel::Children chs = parent->tm->children();
-			for (Gtk::TreeIter i = chs.begin(); i != chs.end(); ++i)
-				if ((*i)[parent->cols.id] == id) {
-					parent->tv->set_cursor(Gtk::TreePath(*i), *col, edit);
-				}
-		}
-		delete this;
-		return false;
+bool Actions::do_focus(Unique *id, Gtk::TreeViewColumn *col, bool edit) {
+	if (!editing) {
+		Gtk::TreeModel::Children chs = tm->children();
+		for (Gtk::TreeIter i = chs.begin(); i != chs.end(); ++i)
+			if ((*i)[cols.id] == id) {
+				tv->set_cursor(Gtk::TreePath(*i), *col, edit);
+			}
 	}
-};
+	return false;
+}
 
 void Actions::focus(Unique *id, int col, bool edit) {
-	// More C++ closure fun.
-	Focus* focus = new Focus;
-	focus->parent = this;
-	focus->id = id;
-	focus->col = tv->get_column(col);
-	focus->edit = edit;
 	editing = false;
-	Glib::signal_idle().connect(sigc::mem_fun(*focus, &Focus::focus));
+	Glib::signal_idle().connect(sigc::bind(sigc::mem_fun(*this, &Actions::do_focus), id, tv->get_column(col), edit));
 }
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
