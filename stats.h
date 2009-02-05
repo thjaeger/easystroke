@@ -22,7 +22,7 @@ class Ranking;
 class Stats {
 public:
 	Stats();
-	void on_stroke(Ranking *);
+	bool on_stroke(Ranking *);
 private:
 	void on_pdf();
 	void on_cursor_changed();

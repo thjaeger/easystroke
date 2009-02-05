@@ -116,8 +116,7 @@ bool Ranking::show() {
 			Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
 		}
 	}
-	win->stats->on_stroke(this);
-	delete this;
+	Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(win->stats, &Stats::on_stroke), this), 200);
 	return false;
 }
 
@@ -125,7 +124,7 @@ Glib::ustring format_float(float x) {
 	return Glib::ustring::format(std::fixed, std::setprecision(2), x);
 }
 
-void Stats::on_stroke(Ranking *r) {
+bool Stats::on_stroke(Ranking *r) {
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
 	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
 	row[cols.name] = r->name;
@@ -150,6 +149,8 @@ void Stats::on_stroke(Ranking *r) {
 		row2[cols.name] = i->second.first;
 		row2[cols.score] = format_float(i->first * 100) + "%";
 	}
+	delete r;
+	return false;
 }
 
 #define GRAPH 0
