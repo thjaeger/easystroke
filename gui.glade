@@ -1405,7 +1405,8 @@ than this many pixels away from the original position</property>
     <property name="authors">Thomas Jaeger &lt;ThJaeger@gmail.com&gt;</property>
     <property name="translator_credits">Jakub &#x17D;&#xE1;&#x10D;ek (Czech)
 &#x393;&#x3BF;&#x3C5;&#x3C1;&#x3B3;&#x3B9;&#x3CE;&#x3C4;&#x3B7;&#x3C2; &#x393;&#x3B9;&#x3CE;&#x3C1;&#x3B3;&#x3BF;&#x3C2; (Greek)
-Massimiliano La Gala (Italian)</property>
+Massimiliano La Gala (Italian)
+Paco Molinero (Spanish)</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
