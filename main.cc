@@ -1120,7 +1120,7 @@ protected:
 		win->show_success(act);
 		if (!act) {
 			if (press_t)
-				replay(press_t);
+				discard(press_t);
 			XBell(dpy, 0);
 			return parent->replace_child(NULL);
 		}
