@@ -55,7 +55,8 @@ PrefDB::PrefDB() :
 	trace_width(5),
 	advanced_popups(true),
 	scroll_invert(true),
-	scroll_speed(2.0)
+	scroll_speed(2.0),
+	tray_feedback(false)
 {}
 
 template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
@@ -125,6 +126,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & advanced_popups.unsafe_ref();
 	ar & scroll_invert.unsafe_ref();
 	ar & scroll_speed.unsafe_ref();
+	ar & tray_feedback.unsafe_ref();
 }
 
 void PrefDB::timeout() {

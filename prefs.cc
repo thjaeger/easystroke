@@ -257,6 +257,8 @@ Prefs::Prefs() {
 	new Sensitive(prefs.feedback, "check_advanced_popups");
 
 	new Check(prefs.tray_icon, "check_tray_icon");
+	new Sensitive(prefs.tray_icon, "check_tray_feedback");
+	new Check(prefs.tray_feedback, "check_tray_feedback");
 
 	new Check(autostart, "check_autostart");
 	new Sensitive(autostart_ok, "check_autostart");

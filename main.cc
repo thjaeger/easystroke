@@ -1106,7 +1106,6 @@ protected:
 		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, ranking);
 		if (!IS_CLICK(act))
 			Ranking::queue_show(ranking, e);
-		win->show_success(act);
 		if (!act) {
 			if (press_t)
 				discard(press_t);

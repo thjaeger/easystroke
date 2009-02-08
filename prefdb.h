@@ -131,6 +131,7 @@ public:
 	PrefSource<bool> advanced_popups;
 	PrefSource<bool> scroll_invert;
 	PrefSource<double> scroll_speed;
+	PrefSource<bool> tray_feedback;
 
 	void init();
 	virtual void timeout();

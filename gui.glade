@@ -656,6 +656,7 @@
                         <child>
                           <object class="GtkHBox" id="hbox3">
                             <property name="visible">True</property>
+                            <property name="spacing">6</property>
                             <child>
                               <object class="GtkCheckButton" id="check_tray_icon">
                                 <property name="label" translatable="yes">Show tray icon</property>
@@ -669,6 +670,18 @@
                               </packing>
                             </child>
                             <child>
+                              <object class="GtkCheckButton" id="check_tray_feedback">
+                                <property name="label" translatable="yes">Show last gesture in tray</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                              </object>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
                               <object class="GtkCheckButton" id="check_autostart">
                                 <property name="label" translatable="yes">Autostart easystroke</property>
                                 <property name="visible">True</property>
@@ -677,7 +690,7 @@
                                 <property name="draw_indicator">True</property>
                               </object>
                               <packing>
-                                <property name="position">1</property>
+                                <property name="position">2</property>
                               </packing>
                             </child>
                           </object>

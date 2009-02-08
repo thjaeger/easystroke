@@ -58,7 +58,7 @@ public:
 	boost::shared_ptr<Prefs> prefs_tab;
 	boost::shared_ptr<Stats> stats;
 	void show_hide();
-	void show_success(bool good);
+	void set_icon(RStroke stroke, bool invert);
 private:
 	bool on_icon_size_changed(int);
 	virtual void timeout();
@@ -72,7 +72,7 @@ private:
 	Gtk::Menu menu;
 
 	Glib::RefPtr<Gtk::StatusIcon> icon;
-	Glib::RefPtr<Gdk::Pixbuf> icon_pb[4];
+	Glib::RefPtr<Gdk::Pixbuf> icon_pb[2];
 };
 
 extern Win *win;

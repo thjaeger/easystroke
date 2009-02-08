@@ -78,7 +78,7 @@ public:
 private:
 	Stroke(PreStroke &s, int trigger_, int button_, bool timeout_);
 
-	Glib::RefPtr<Gdk::Pixbuf> draw_(int size, double width = 2.0) const;
+	Glib::RefPtr<Gdk::Pixbuf> draw_(int size, double width = 2.0, bool inv = false) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb[2];
 
 	static Glib::RefPtr<Gdk::Pixbuf> drawEmpty_(int);
@@ -125,8 +125,8 @@ public:
 	static RStroke create(PreStroke &s, int trigger_, int button_, bool timeout_) {
 		return RStroke(new Stroke(s, trigger_, button_, timeout_));
 	}
-        Glib::RefPtr<Gdk::Pixbuf> draw(int size, double width = 2.0) const;
-	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, double width = 2.0) const;
+        Glib::RefPtr<Gdk::Pixbuf> draw(int size, double width = 2.0, bool inv = false) const;
+	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, double width = 2.0, bool inv = false) const;
 	void draw_svg(std::string filename) const;
 	bool show_icon();
 
