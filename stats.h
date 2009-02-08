@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2008, Thomas Jaeger <ThJaeger@gmail.com>
+ * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,9 +29,10 @@ private:
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
-		ModelColumns() { add(stroke); add(name); add(score); add(child); }
+		ModelColumns() { add(stroke); add(debug); add(name); add(score); add(child); }
 
 		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > stroke;
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > debug;
 		Gtk::TreeModelColumn<Glib::ustring> name;
 		Gtk::TreeModelColumn<Glib::ustring> score;
 		Gtk::TreeModelColumn<Glib::RefPtr<Gtk::ListStore> > child;

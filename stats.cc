@@ -16,6 +16,7 @@
 #include "stats.h"
 #include "win.h"
 #include "actiondb.h"
+#include "main.h"
 #include <iomanip>
 #include <glibmm/i18n.h>
 
@@ -36,6 +37,8 @@ Stats::Stats() {
 
 	ranking_view->set_model(Gtk::ListStore::create(cols));
 	ranking_view->append_column(_("Stroke"), cols.stroke);
+	if (verbosity >= 4)
+		ranking_view->append_column("Debug", cols.debug);
 	ranking_view->append_column(_("Name"), cols.name);
 	ranking_view->append_column(_("Score"), cols.score);
 }
@@ -124,6 +127,60 @@ Glib::ustring format_float(float x) {
 	return Glib::ustring::format(std::fixed, std::setprecision(2), x);
 }
 
+Glib::RefPtr<Gdk::Pixbuf> Stroke::drawDebug(RStroke a, RStroke b, int size) {
+	// TODO: This is copy'n'paste from win.cc
+	Glib::RefPtr<Gdk::Pixbuf> pb = drawEmpty_(size);
+	if (!a || !b || !a->stroke || !b->stroke)
+		return pb;
+	int w = size;
+	int h = size;
+	int stride = pb->get_rowstride();
+	guint8 *row = pb->get_pixels();
+	// This is all pretty messed up
+	// http://www.archivum.info/gtkmm-list@gnome.org/2007-05/msg00112.html
+	Cairo::RefPtr<Cairo::ImageSurface> surface = Cairo::ImageSurface::create(row, Cairo::FORMAT_ARGB32, w, h, stride);
+	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
+
+	for (unsigned int s = 0; s+1 < a->size(); s++)
+		for (unsigned int t = 0; t+1 < b->size(); t++) {
+			double col = 1.0 - stroke_angle_difference(a->stroke.get(), b->stroke.get(), s, t);
+			ctx->set_source_rgba(col,col,col,1.0);
+			ctx->rectangle(a->time(s)*size, (1.0-b->time(t+1))*size,
+					(a->time(s+1)-a->time(s))*size, (b->time(t+1)-b->time(t))*size);
+			ctx->fill();
+		}
+	int path_x[a->size() + b->size()];
+	int path_y[a->size() + b->size()];
+	stroke_compare(a->stroke.get(), b->stroke.get(), path_x, path_y);
+	ctx->set_source_rgba(1,0,0,1);
+	ctx->set_line_width(2);
+	ctx->move_to(size, 0);
+	for (int i = 0;; i++) {
+		ctx->line_to(a->time(path_x[i])*size, (1.0-b->time(path_y[i]))*size);
+		if (!path_x[i] && !path_y[i])
+			break;
+	}
+	ctx->stroke();
+
+	for (int i = 0; i < w; i++) {
+		guint8 *px = row;
+		for (int j = 0; j < h; j++) {
+			guint8 a = px[3];
+			guint8 r = px[2];
+			guint8 g = px[1];
+			guint8 b = px[0];
+			if (a) {
+				px[0] = ((((guint)r) << 8) - r) / a;
+				px[1] = ((((guint)g) << 8) - g) / a;
+				px[2] = ((((guint)b) << 8) - b) / a;
+			}
+			px += 4;
+		}
+		row += stride;
+	}
+	return pb;
+}
+
 bool Stats::on_stroke(Ranking *r) {
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
 	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
@@ -146,6 +203,8 @@ bool Stats::on_stroke(Ranking *r) {
 	for (std::multimap<double, std::pair<std::string, RStroke> >::iterator i = r->r.begin(); i != r->r.end(); i++) {
 		Gtk::TreeModel::Row row2 = *(ranking_store->prepend());
 		row2[cols.stroke] = i->second.second->draw(STROKE_SIZE);
+		if (verbosity >= 4)
+			row2[cols.debug] = Stroke::drawDebug(r->stroke, i->second.second, STROKE_SIZE);
 		row2[cols.name] = i->second.first;
 		row2[cols.score] = format_float(i->first * 100) + "%";
 	}
@@ -153,59 +212,9 @@ bool Stats::on_stroke(Ranking *r) {
 	return false;
 }
 
-#define GRAPH 0
-#define TRIANGLE 0
-
-#if TRIANGLE
-double abs(double x) {
-	return x > 0 ? x : (-x);
-}
-
-void test_triangle_inequality() {
-	int bad = 0;
-	int good = 0;
-	double worst = 0;
-	std::string worsti, worstj, worstk;
-	Ref<ActionDB> ref(actions());
-	for (StrokeIterator i = ref->strokes_begin(); i; i++) {
-		for (StrokeIterator j = ref->strokes_begin(); j; j++) {
-			if (i.stroke() == j.stroke())
-				continue;
-			for (StrokeIterator k = ref->strokes_begin(); k; k++) {
-				if (i.stroke() == k.stroke())
-					continue;
-				if (j.stroke() == k.stroke())
-					continue;
-				double scoreij = Stroke::compare(i.stroke(), j.stroke());
-				double scorejk = Stroke::compare(j.stroke(), k.stroke());
-				double scoreik = Stroke::compare(i.stroke(), k.stroke());
-//				double score = abs(scoreij*scorejk/scoreik);
-				double score = 1-abs(scoreik) - (1-abs(scoreij) + 1-abs(scorejk));
-				if (score > worst) {
-					worst = score;
-					worsti = i.name();
-					worstj = j.name();
-					worstk = k.name();
-				}
-				if (1-abs(scoreij) + 1-abs(scorejk) < 1-abs(scoreik))
-//				if (abs(scoreij * scorejk) > abs(scoreik))
-					bad++;
-				else
-					good++;
-			}
-		}
-	}
-	printf("good: %d, bad: %d\n", good, bad);
-	std::cout << "worst: " << worsti << ", " << worstj << ", " << worstk << " (" << worst << ")" << std::endl;
-}
-#endif
-
-
 void Stats::on_pdf() {
-#if TRIANGLE
-	test_triangle_inequality();
-#endif
-	{
+	if (verbosity >= 1)
+		show_us("Creating table: ");
 	const int S = 32;
 	const int B = 1;
 	std::list<RStroke> strokes;
@@ -229,7 +238,9 @@ void Stats::on_pdf() {
 		int l = 1;
 		for (std::list<RStroke>::iterator j = strokes.begin(); j != strokes.end(); j++, l++) {
 			double score;
-		        bool match = Stroke::compare(*i, *j, score);
+		        int match = Stroke::compare(*i, *j, score);
+			if (match < 0)
+				continue;
 			if (match) {
 				ctx->save();
 				ctx->set_source_rgba(0,0,1,score-0.6);
@@ -237,25 +248,15 @@ void Stats::on_pdf() {
 				ctx->fill();
 				ctx->restore();
 			}
-			if (score < -1.5)
-				continue;
 			Glib::ustring str = format_float(score);
 			Cairo::TextExtents te;
 			ctx->get_text_extents(str, te);
 			ctx->move_to(l*S+S/2 - te.x_bearing - te.width/2, k*S+S/2 - te.y_bearing - te.height/2);
 			ctx->show_text(str);
-#if GRAPH
-			score = Stroke::compare(i.stroke(), j.stroke(), 0);
-			ctx->move_to(l*S, k*S + (1-score)*S/2);
-			for (int p = 1; p!= 16; p++) {
-				score = Stroke::compare(i.stroke(), j.stroke(), p/15.0);
-				ctx->line_to(l*S+p*S/15.0, k*S + (1-score)*S/2);
-			}
-			ctx->stroke();
-#endif
 		}
 	}
-	}
+	if (verbosity >= 1)
+		show_us("Table completed: ");
 	if (!fork()) {
 		execlp("evince", "evince", "/tmp/strokes.pdf", NULL);
 		exit(EXIT_FAILURE);

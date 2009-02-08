@@ -33,8 +33,6 @@ private:
 	void on_add_extra();
 	void on_edit_extra();
 	void on_remove_extra();
-	void on_p_changed();
-	void on_p_default();
 	void on_select_button();
 	void on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
@@ -70,7 +68,6 @@ private:
 	Gtk::TreeView *etv;
 	Glib::RefPtr<Gtk::ListStore> etm;
 
-	Gtk::HScale* scale_p;
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
 	bool ignore_device_toggled;

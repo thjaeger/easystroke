@@ -21,6 +21,7 @@ LOCALEDIR= $(PREFIX)/share/locale
 DFLAGS   =
 OFLAGS   = -Os
 AOFLAGS  = -O3
+STROKEFLAGS  = -Wall -std=c99 $(DFLAGS)
 CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
 
@@ -33,7 +34,7 @@ MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 HFILES   = $(wildcard *.h)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) gui.o desktop.o version.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) stroke.o gui.o desktop.o version.o
 POFILES  = $(wildcard po/*.po)
 MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
 MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
@@ -61,8 +62,8 @@ include $(DEPFILES)
 $(BINARY): $(OFILES)
 	$(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
-stroke.o: stroke.cc
-	$(CXX) $(CXXFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+stroke.o: stroke.c
+	$(CC) $(STROKEFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<

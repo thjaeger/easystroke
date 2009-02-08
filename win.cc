@@ -31,34 +31,27 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	ctx->set_line_width(2.0*width/(w+h));
 	if (size()) {
 		ctx->set_line_cap(Cairo::LINE_CAP_ROUND);
-		int n = points.size();
+		int n = size();
 		float lambda = sqrt(3)-2.0;
 		float sum = lambda / (1 - lambda);
 		std::vector<Point> y(n);
-		y[0].x = sum * points[0].x;
-		y[0].y = sum * points[0].y;
-		for (int j = 0; j < n-1; j++) {
-			y[j+1].x = lambda * (y[j].x + points[j].x);
-			y[j+1].y = lambda * (y[j].y + points[j].y);
-		}
+		y[0] = points(0) * sum;
+		for (int j = 0; j < n-1; j++)
+			y[j+1] = (y[j] + points(j)) * lambda;
 		std::vector<Point> z(n);
-		z[n-1].x = -1.0 * sum * points[n-1].x;
-		z[n-1].y = -1.0 * sum * points[n-1].y;
-		for (int j = n-1; j > 0; j--) {
-			z[j-1].x = lambda * (z[j].x - points[j].x);
-			z[j-1].y = lambda * (z[j].y - points[j].y);
-		}
+		z[n-1] = points(n-1) * (-sum);
+		for (int j = n-1; j > 0; j--)
+			z[j-1] = (z[j] - points(j)) * lambda;
 		for (int j = 0; j < n-1; j++) {
 			// j -> j+1
-			ctx->set_source_rgba(0, points[j].time, 1-points[j].time, 1);
-			ctx->move_to(points[j].x, points[j].y);
-			ctx->curve_to(
-					points[j].x + y[j].x + z[j].x,
-					points[j].y + y[j].y + z[j].y,
-					points[j+1].x - y[j+1].x - z[j+1].x,
-					points[j+1].y - y[j+1].y - z[j+1].y,
-					points[j+1].x,
-					points[j+1].y);
+			ctx->set_source_rgba(0, time(j), 1-time(j), 1);
+			Point p[4];
+			p[0] = points(j);
+			p[3] = points(j+1);
+			p[1] = p[0] + y[j] + z[j];
+			p[2] = p[3] - y[j+1] - z[j+1];
+			ctx->move_to(p[0].x, p[0].y);
+			ctx->curve_to(p[1].x, p[1].y, p[2].x, p[2].y, p[3].x, p[3].y);
 			ctx->stroke();
 		}
 	} else if (!button) {

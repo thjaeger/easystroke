@@ -15,7 +15,7 @@
  */
 #ifndef __WIN_H__
 #define __WIN_H__
-#include "stroke.h"
+#include "gesture.h"
 #include <gtkmm.h>
 #include "util.h"
 #include "prefdb.h"

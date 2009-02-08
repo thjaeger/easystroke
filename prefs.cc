@@ -274,10 +274,9 @@ Prefs::Prefs() {
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
 
-	Gtk::Button *bbutton, *add_exception, *remove_exception, *button_default_p, *add_extra, *edit_extra, *remove_extra;
+	Gtk::Button *bbutton, *add_exception, *remove_exception, *add_extra, *edit_extra, *remove_extra;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);
-	widgets->get_widget("button_default_p", button_default_p);
 	widgets->get_widget("button_remove_exception", remove_exception);
 	widgets->get_widget("label_button", blabel);
 	widgets->get_widget("button_add_extra", add_extra);
@@ -286,7 +285,6 @@ Prefs::Prefs() {
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("treeview_devices", dtv);
 	widgets->get_widget("treeview_extra", etv);
-	widgets->get_widget("scale_p", scale_p);
 
 	new Sensitive(xinput_v, "check_timing_workaround");
 	new Sensitive(xinput_v, "check_ignore_grab");
@@ -333,15 +331,8 @@ Prefs::Prefs() {
 	etv->append_column(_("Button"), ecs.str);
 	update_extra_buttons();
 
-	double p = prefs.p.get();
-	scale_p->set_value(p);
-	scale_p->signal_value_changed().connect(sigc::mem_fun(*this, &Prefs::on_p_changed));
-	button_default_p->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_p_default));
-
 	if (!experimental) {
 		Gtk::HBox *hbox;
-		widgets->get_widget("hbox_algo", hbox);
-		hbox->hide();
 		widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
 	}
@@ -570,14 +561,6 @@ void Prefs::on_select_button() {
 		return;
 	bi = sb.event.button ? sb.event : default_button;
 	set_button_label();
-}
-
-void Prefs::on_p_changed() {
-	prefs.p.set(scale_p->get_value());
-}
-
-void Prefs::on_p_default() {
-	scale_p->set_value(default_p);
 }
 
 bool Prefs::select_row(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, std::string name) {

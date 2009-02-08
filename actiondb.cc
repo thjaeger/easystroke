@@ -303,18 +303,18 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 	if (!s)
 		return RAction();
 	r.stroke = s;
-	r.score = -1;
+	r.score = 0.0;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
 	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
 		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
 			double score;
-			bool match = Stroke::compare(s, *j, score);
-			if (score < 0.25)
+			int match = Stroke::compare(s, *j, score);
+			if (match < 0)
 				continue;
 			RStrokeInfo si = get_info(i->first);
 			r.r.insert(pair<double, pair<std::string, RStroke> >
 					(score, pair<std::string, RStroke>(si->name, *j)));
-			if (score >= r.score) {
+			if (score > r.score) {
 				r.score = score;
 				if (match) {
 					r.name = si->name;
@@ -348,8 +348,8 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 				continue;
 			s->button = b;
 			double score;
-			bool match = Stroke::compare(s, *j, score);
-			if (score < 0.25)
+			int match = Stroke::compare(s, *j, score);
+			if (match < 0)
 				continue;
 			Ranking *r;
 			if (b == b1)
@@ -365,7 +365,7 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 			RStrokeInfo si = get_info(i->first);
 			r->r.insert(pair<double, pair<std::string, RStroke> >
 					(score, pair<std::string, RStroke>(si->name, *j)));
-			if (score >= r->score) {
+			if (score > r->score) {
 				r->score = score;
 				if (match) {
 					r->name = si->name;

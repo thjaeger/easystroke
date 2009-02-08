@@ -21,5 +21,5 @@
 void show_us(const char *str) {
 	struct timeval tv;
 	gettimeofday(&tv, 0);
-	printf("%s: %ld\n", str, tv.tv_usec);
+	printf("%s: %ld.%ld\n", str, tv.tv_sec, tv.tv_usec);
 }

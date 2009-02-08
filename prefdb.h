@@ -91,7 +91,6 @@ struct RGBA {
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-extern const double default_p;
 extern const ButtonInfo default_button;
 extern const int default_radius;
 extern const int default_pressure_threshold;
@@ -104,7 +103,6 @@ public:
 	PrefDB();
 
 	Source<std::map<std::string, RButtonInfo> > exceptions;
-	Source<double> p;
 	Source<ButtonInfo> button;
 	Source<TraceType> trace;
 	Source<bool> advanced_ignore;
@@ -131,7 +129,7 @@ public:
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 13)
+BOOST_CLASS_VERSION(PrefDB, 14)
 
 extern PrefDB prefs;
 #endif

@@ -28,7 +28,6 @@
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/export.hpp>
 
-const double default_p = 0.5;
 const ButtonInfo default_button(Button2);
 const int default_radius = 16;
 const int default_pressure_threshold = 192;
@@ -36,7 +35,6 @@ const int default_pressure_threshold = 192;
 PrefDB::PrefDB() :
 	TimeoutWatcher(5000),
 	good_state(true),
-	p(default_p),
 	button(default_button),
 	trace(TraceDefault),
 	advanced_ignore(false),
@@ -65,7 +63,10 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 		for (std::set<std::string>::iterator i = old.begin(); i != old.end(); i++)
 			exceptions.unsafe_ref()[*i] = RButtonInfo();
 	} else ar & exceptions.unsafe_ref();
-	ar & p.unsafe_ref();
+	if (version < 14) {
+		double p = 0.5;
+		ar & p;
+	}
 	ar & button.unsafe_ref();
 	if (version < 2) {
 		bool help;
@@ -221,7 +222,6 @@ void PrefDB::init() {
 	}
 	new TimeoutProfile(prefs.timeout_profile);
 	watch(exceptions);
-	watch(p);
 	watch(button);
 	watch(trace);
 	watch(advanced_ignore);

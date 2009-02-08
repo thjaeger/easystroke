@@ -23,7 +23,7 @@
 #include <boost/serialization/split_member.hpp>
 #include <iostream>
 
-#include "stroke.h"
+#include "gesture.h"
 #include "prefdb.h"
 
 class Action;

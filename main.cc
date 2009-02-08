@@ -46,7 +46,7 @@ extern Source<bool> disabled;
 
 bool experimental = false;
 int verbosity = 0;
-const char *versions[] = { "-0.4.0", "", NULL };
+const char *versions[] = { "-0.4.1", "-0.4.0", "", NULL };
 Source<Window> current_window(None);
 std::string config_dir;
 Win *win = NULL;
@@ -1642,7 +1642,7 @@ void Main::handle_event(XEvent &ev) {
 		return;
 
 	case MotionNotify:
-		if (verbosity >= 4)
+		if (verbosity >= 5)
 			printf("Motion: (%d, %d)\n", ev.xmotion.x, ev.xmotion.y);
 		if (!grabber->xinput)
 			H->motion(create_triple(ev.xmotion.x, ev.xmotion.y, ev.xmotion.time));
@@ -1751,7 +1751,7 @@ void Main::handle_event(XEvent &ev) {
 
 	if (grabber->is_event(ev.type, Grabber::MOTION)) {
 		XDeviceMotionEvent* mev = (XDeviceMotionEvent *)&ev;
-		if (verbosity >= 4)
+		if (verbosity >= 5)
 			printf("Motion (Xi): (%d, %d, %d, %d, %d)\n", mev->x, mev->y,
 					mev->axis_data[0], mev->axis_data[1], mev->axis_data[2]);
 		if (!current_dev || current_dev->dev->device_id != mev->deviceid)
