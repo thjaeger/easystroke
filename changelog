@@ -1,8 +1,8 @@
-2009-??-??  Released 0.4.0
+2009-02-08  Released 0.4.0
 	* Support for xserver-1.6
 	* Additional gesture buttons
 	* Instant Gestures
-	* Add Czech, German and Italian translations
+	* Add Czech, German, Italian and Spanish translations
 	* Add 'Text' action
 	* Add "Timeout-Advanced" gestures
 	* Add conservative timeout profile, rename conservative to default
