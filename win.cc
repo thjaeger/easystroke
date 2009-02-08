@@ -44,7 +44,7 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 		for (int j = 0; j < n-1; j++) {
 			// j -> j+1
 			if (inv)
-				ctx->set_source_rgba(1.0, 1.0-time(j), time(j), 1.0);
+				ctx->set_source_rgba(time(j), 0.0, 1.0-time(j), 1.0);
 			else
 				ctx->set_source_rgba(0.0, time(j), 1.0-time(j), 1.0);
 			Point p[4];

@@ -10,6 +10,8 @@ debug.mk
 *.gz
 po/de
 po/cs
+po/el
+po/es
 po/it
 po/POTFILES.in
 po/*.pot
