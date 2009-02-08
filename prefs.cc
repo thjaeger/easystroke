@@ -44,22 +44,22 @@ public:
 	}
 };
 
-class Spin : private Base {
-	IO<int> &io;
-	Gtk::SpinButton *spin;
+template <class T> class Adjustment : private Base {
+	IO<T> &io;
+	Glib::RefPtr<Gtk::Adjustment> adj;
 	Gtk::Button *button;
-	virtual void notify() { spin->set_value(io.get()); }
+	virtual void notify() { adj->set_value(io.get()); }
 	void on_changed() {
-		int i = (int)spin->get_value();
+		T i = (T)adj->get_value();
 		if (i == io.get()) return;
 		io.set(i);
 	}
 public:
-	Spin(IO<int> &io_, const Glib::ustring & name) : io(io_) {
+	Adjustment(IO<T> &io_, const Glib::ustring & name) : io(io_) {
 		io.connect(this);
-		widgets->get_widget(name, spin);
+		adj = Glib::RefPtr<Gtk::Adjustment>::cast_dynamic(widgets->get_object(name));
 		notify();
-		spin->signal_value_changed().connect(sigc::mem_fun(*this, &Spin::on_changed));
+		adj->signal_value_changed().connect(sigc::mem_fun(*this, &Adjustment::on_changed));
 	}
 };
 
@@ -241,10 +241,10 @@ Prefs::Prefs() {
 	new Check(prefs.ignore_grab, "check_ignore_grab");
 	new Check(prefs.timing_workaround, "check_timing_workaround");
 
-	new Spin(prefs.radius, "spin_radius");
+	new Adjustment<int>(prefs.radius, "adjustment_radius");
 
 	new Check(prefs.pressure_abort, "check_pressure_abort");
-	new Spin(prefs.pressure_threshold, "spin_pressure_threshold");
+	new Adjustment<int>(prefs.pressure_threshold, "adjustment_pressure_threshold");
 	new Sensitive(prefs.pressure_abort, "spin_pressure_threshold");
 	new Sensitive(prefs.pressure_abort, "button_default_pressure_threshold");
 
@@ -261,18 +261,21 @@ Prefs::Prefs() {
 	new Check(autostart, "check_autostart");
 	new Sensitive(autostart_ok, "check_autostart");
 
-	new Spin(prefs.init_timeout, "spin_timeout");
-	new Spin(prefs.min_speed, "spin_min_speed");
+	new Adjustment<int>(prefs.init_timeout, "adjustment_timeout");
+	new Adjustment<int>(prefs.min_speed, "adjustment_min_speed");
 
 	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
 	new Combo<TraceType>(prefs.trace, "box_trace", trace_info);
 	new Color(prefs.color, "button_color");
-	new Spin(prefs.trace_width, "spin_trace_width");
+	new Adjustment<int>(prefs.trace_width, "adjustment_trace_width");
 	new Combo<TimeoutType>(prefs.timeout_profile, "box_timeout", experimental ? timeout_info_exp : timeout_info);
 
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
+
+	new Check(prefs.scroll_invert, "check_scroll_invert");
+	new Adjustment<double>(prefs.scroll_speed, "adjustment_scroll_speed");
 
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *add_extra, *edit_extra, *remove_extra;
 	widgets->get_widget("button_add_exception", add_exception);

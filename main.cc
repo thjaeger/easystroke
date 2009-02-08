@@ -547,8 +547,9 @@ public:
 		}
 		if (e->t == last_t)
 			return;
-		offset_x += curve((e->x-last_x)/(e->t-last_t))*(e->t-last_t)/10.0;
-		offset_y += curve((e->y-last_y)/(e->t-last_t))*(e->t-last_t)/5.0;
+		double factor = (prefs.scroll_invert.get() ? 1.0 : -1.0) * prefs.scroll_speed.get();
+		offset_x += factor * curve((e->x-last_x)/(e->t-last_t))*(e->t-last_t)/20.0;
+		offset_y += factor * curve((e->y-last_y)/(e->t-last_t))*(e->t-last_t)/10.0;
 		last_x = e->x;
 		last_y = e->y;
 		last_t = e->t;

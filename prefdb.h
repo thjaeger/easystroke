@@ -99,31 +99,38 @@ class PrefDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
 	bool good_state;
 	template<class Archive> void serialize(Archive & ar, const unsigned int version);
+
+	template <class T> struct PrefSource : public Source<T> {
+		PrefSource();
+		PrefSource(T x_);
+	};
 public:
 	PrefDB();
 
-	Source<std::map<std::string, RButtonInfo> > exceptions;
-	Source<ButtonInfo> button;
-	Source<TraceType> trace;
-	Source<bool> advanced_ignore;
-	Source<int> radius;
-	Source<bool> ignore_grab;
-	Source<bool> timing_workaround;
-	Source<bool> pressure_abort;
-	Source<int> pressure_threshold;
-	Source<bool> proximity;
-	Source<bool> feedback;
-	Source<bool> left_handed;
-	Source<int> init_timeout;
-	Source<int> min_speed;
-	Source<TimeoutType> timeout_profile;
-	Source<bool> timeout_gestures;
-	Source<bool> tray_icon;
-	Source<std::set<std::string> > excluded_devices;
-	Source<RGBA> color;
-	Source<int> trace_width;
-	Source<std::vector<ButtonInfo> > extra_buttons;
-	Source<bool> advanced_popups;
+	PrefSource<std::map<std::string, RButtonInfo> > exceptions;
+	PrefSource<ButtonInfo> button;
+	PrefSource<TraceType> trace;
+	PrefSource<bool> advanced_ignore;
+	PrefSource<int> radius;
+	PrefSource<bool> ignore_grab;
+	PrefSource<bool> timing_workaround;
+	PrefSource<bool> pressure_abort;
+	PrefSource<int> pressure_threshold;
+	PrefSource<bool> proximity;
+	PrefSource<bool> feedback;
+	PrefSource<bool> left_handed;
+	PrefSource<int> init_timeout;
+	PrefSource<int> min_speed;
+	PrefSource<TimeoutType> timeout_profile;
+	PrefSource<bool> timeout_gestures;
+	PrefSource<bool> tray_icon;
+	PrefSource<std::set<std::string> > excluded_devices;
+	PrefSource<RGBA> color;
+	PrefSource<int> trace_width;
+	PrefSource<std::vector<ButtonInfo> > extra_buttons;
+	PrefSource<bool> advanced_popups;
+	PrefSource<bool> scroll_invert;
+	PrefSource<double> scroll_speed;
 
 	void init();
 	virtual void timeout();
@@ -132,4 +139,7 @@ public:
 BOOST_CLASS_VERSION(PrefDB, 14)
 
 extern PrefDB prefs;
+
+template <class T> PrefDB::PrefSource<T>::PrefSource() : Source<T>() { prefs.watch(*this); }
+template <class T> PrefDB::PrefSource<T>::PrefSource(T x_) : Source<T>(x_) { prefs.watch(*this); }
 #endif

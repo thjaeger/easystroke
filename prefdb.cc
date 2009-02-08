@@ -53,7 +53,9 @@ PrefDB::PrefDB() :
 	tray_icon(true),
 	color(Gdk::Color("#980101")),
 	trace_width(5),
-	advanced_popups(true)
+	advanced_popups(true),
+	scroll_invert(true),
+	scroll_speed(2.0)
 {}
 
 template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
@@ -121,6 +123,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	if (version < 13) return;
 	ar & extra_buttons.unsafe_ref();
 	ar & advanced_popups.unsafe_ref();
+	ar & scroll_invert.unsafe_ref();
+	ar & scroll_speed.unsafe_ref();
 }
 
 void PrefDB::timeout() {
@@ -221,28 +225,6 @@ void PrefDB::init() {
 		exceptions.unsafe_ref()[""] = bi;
 	}
 	new TimeoutProfile(prefs.timeout_profile);
-	watch(exceptions);
-	watch(button);
-	watch(trace);
-	watch(advanced_ignore);
-	watch(radius);
-	watch(ignore_grab);
-	watch(timing_workaround);
-	watch(pressure_abort);
-	watch(pressure_threshold);
-	watch(proximity);
-	watch(feedback);
-	watch(left_handed);
-	watch(init_timeout);
-	watch(min_speed);
-	watch(timeout_profile);
-	watch(timeout_gestures);
-	watch(tray_icon);
-	watch(excluded_devices);
-	watch(color);
-	watch(trace_width);
-	watch(extra_buttons);
-	watch(advanced_popups);
 }
 
 PrefDB prefs;

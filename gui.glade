@@ -469,7 +469,7 @@
                               <object class="GtkSpinButton" id="spin_min_speed">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment6</property>
+                                <property name="adjustment">adjustment_min_speed</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -492,7 +492,7 @@
                               <object class="GtkSpinButton" id="spin_timeout">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment5</property>
+                                <property name="adjustment">adjustment_timeout</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -604,7 +604,7 @@
                               <object class="GtkSpinButton" id="spin_trace_width">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment4</property>
+                                <property name="adjustment">adjustment_trace_width</property>
                               </object>
                               <packing>
                                 <property name="position">5</property>
@@ -924,7 +924,7 @@
                               <object class="GtkSpinButton" id="spin_radius">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment3</property>
+                                <property name="adjustment">adjustment_radius</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -984,6 +984,50 @@ than this many pixels away from the original position</property>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
                             <property name="position">4</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHBox" id="hbox6">
+                            <property name="visible">True</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkCheckButton" id="check_scroll_invert">
+                                <property name="label" translatable="yes">Invert Scroll Direction</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                              </object>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label8">
+                                <property name="visible">True</property>
+                                <property name="label" translatable="yes">Scroll Speed</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkHScale" id="hscale1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="adjustment">adjustment_scroll_speed</property>
+                                <property name="value_pos">right</property>
+                              </object>
+                              <packing>
+                                <property name="position">2</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="padding">6</property>
+                            <property name="position">5</property>
                           </packing>
                         </child>
                       </object>
@@ -1056,7 +1100,7 @@ than this many pixels away from the original position</property>
                               <object class="GtkSpinButton" id="spin_pressure_threshold">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment1</property>
+                                <property name="adjustment">adjustment_pressure_threshold</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1354,33 +1398,27 @@ Paco Molinero (Spanish)</property>
       </object>
     </child>
   </object>
-  <object class="GtkAdjustment" id="adjustment1">
+  <object class="GtkAdjustment" id="adjustment_pressure_threshold">
     <property name="upper">255</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment2">
-    <property name="value">0.5</property>
-    <property name="upper">1</property>
-    <property name="step_increment">0.01</property>
-    <property name="page_increment">0.10000000000000001</property>
-  </object>
-  <object class="GtkAdjustment" id="adjustment3">
+  <object class="GtkAdjustment" id="adjustment_radius">
     <property name="upper">100</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment4">
+  <object class="GtkAdjustment" id="adjustment_trace_width">
     <property name="upper">20</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment5">
+  <object class="GtkAdjustment" id="adjustment_timeout">
     <property name="upper">2500</property>
     <property name="step_increment">20</property>
     <property name="page_increment">100</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment6">
+  <object class="GtkAdjustment" id="adjustment_min_speed">
     <property name="upper">10000</property>
     <property name="step_increment">5</property>
     <property name="page_increment">20</property>
@@ -1766,5 +1804,10 @@ Paco Molinero (Spanish)</property>
     <property name="visible">True</property>
     <property name="stock">gtk-clear</property>
     <property name="icon-size">4</property>
+  </object>
+  <object class="GtkAdjustment" id="adjustment_scroll_speed">
+    <property name="upper">10</property>
+    <property name="step_increment">0.20000000000000001</property>
+    <property name="page_increment">1</property>
   </object>
 </interface>
