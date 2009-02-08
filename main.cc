@@ -66,7 +66,7 @@ static int argc;
 static char **argv;
 
 static Window current_app = 0, ping_window = 0;
-static Trace *trace = 0;
+static boost::shared_ptr<Trace> trace;
 static std::map<guint, guint> pointer_map;
 static int mapping_events = 0;
 
@@ -697,7 +697,7 @@ class AdvancedHandler : public Handler {
 	guint replay_button;
 	RTriple replay_orig;
 	std::map<guint, RAction> as;
-	std::map<guint, Ranking *> rs;
+	std::map<guint, RRanking> rs;
 	std::map<guint, RModifiers> mods;
 	RModifiers sticky_mods;
 
@@ -709,12 +709,10 @@ class AdvancedHandler : public Handler {
 	void show_ranking(guint b, RTriple e) {
 		if (!rs.count(b))
 			return;
-		Ranking *r = rs[b];
-		if (r)
-			r->queue_show(e);
+		Ranking::queue_show(rs[b], e);
 		rs.erase(b);
 	}
-	AdvancedHandler(RTriple e_, std::map<guint, RAction> &as_, std::map<guint, Ranking *> rs_, guint b1, guint b2) :
+	AdvancedHandler(RTriple e_, std::map<guint, RAction> &as_, std::map<guint, RRanking> rs_, guint b1, guint b2) :
 		e(e_), remap_from(0), click_time(0), replay_button(0), as(as_), rs(rs_), button1(b1), button2(b2) {
 			// as.count((b == b1) ? b2 : b) <=> map[b] == 0
 			for (std::map<guint, RAction>::iterator i = as.begin(); i != as.end(); ++i) {
@@ -735,7 +733,7 @@ public:
 			return new AdvancedStrokeActionHandler(s, e);
 
 		std::map<guint, RAction> as;
-		std::map<guint, Ranking *> rs;
+		std::map<guint, RRanking> rs;
 		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b1, b2);
 		if (press_t) {
 			if (as.count(b2))
@@ -744,13 +742,8 @@ public:
 				replay(press_t);
 		}
 		if (!as.size()) {
-			for (std::map<guint, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++) {
-				Ranking *r = i->second;
-				if (i->first == b2)
-					r->queue_show(e);
-				else
-					delete r;
-			}
+			if (rs.count(b2))
+				Ranking::queue_show(rs[b2], e);
 			return NULL;
 		}
 		return new AdvancedHandler(e, as, rs, b1, b2);
@@ -850,10 +843,6 @@ public:
 		remap_from = 0;
 		pass.erase(b);
 		do_remap();
-	}
-	virtual ~AdvancedHandler() {
-		for (std::map<guint, Ranking *>::iterator i = rs.begin(); i != rs.end(); i++)
-			delete i->second;
 	}
 	virtual std::string name() { return "Advanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -1112,12 +1101,10 @@ protected:
 			(*stroke_action)(s);
 			return parent->replace_child(NULL);
 		}
-		Ranking *ranking = new Ranking;
-		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, *ranking);
+		RRanking ranking;
+		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, ranking);
 		if (!IS_CLICK(act))
-			ranking->queue_show(e);
-		else
-			delete ranking;
+			Ranking::queue_show(ranking, e);
 		win->show_success(act);
 		if (!act) {
 			if (press_t)
@@ -1292,9 +1279,7 @@ class ReloadTrace : public Timeout {
 	void timeout() {
 		if (verbosity >= 2)
 			printf("Reloading gesture display\n");
-		Trace *new_trace = init_trace();
-		delete trace;
-		trace = new_trace;
+		trace.reset(init_trace());
 	}
 } reload_trace;
 
@@ -1369,7 +1354,7 @@ Main::Main() : kit(0) {
 	XGrabPointer(dpy, ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XUngrabPointer(dpy, CurrentTime);
 
-	trace = init_trace();
+	trace.reset(init_trace());
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
 	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, NULL);
 	screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
@@ -1384,10 +1369,18 @@ Main::Main() : kit(0) {
 	start_dbus();
 }
 
+extern const char *gui_buffer;
+
 void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
 	io->connect(sigc::mem_fun(*this, &Main::handle));
 	io->attach();
+	try {
+		widgets = Gtk::Builder::create_from_string(gui_buffer);
+	} catch (Gtk::BuilderError &e) {
+		printf("Error building GUI: %s\n", e.what().c_str());
+		exit(EXIT_FAILURE);
+	}
 	win = new Win;
 	if (show_gui)
 		win->get_window().show();
@@ -1818,8 +1811,8 @@ bool Main::handle(Glib::IOCondition) {
 
 Main::~Main() {
 	trace->end();
+	trace.reset();
 	delete grabber;
-	delete trace;
 	delete kit;
 	XCloseDisplay(dpy);
 	prefs.execute_now();

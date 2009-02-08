@@ -28,8 +28,6 @@ class Ranking;
 // Convenience macro for on-the-fly creation of widgets
 #define WIDGET(TYPE, NAME, ARGS...) TYPE &NAME = *Gtk::manage(new TYPE(ARGS))
 
-int run_dialog(const char *);
-
 extern Glib::RefPtr<Gtk::Builder> widgets;
 
 class CellRendererTextish : public Gtk::CellRendererText {
@@ -54,12 +52,11 @@ private:
 class Win : Timeout {
 public:
 	Win();
-	virtual ~Win();
 
 	Gtk::Window& get_window() { return *win; }
-	Actions *actions;
-	Prefs *prefs_tab;
-	Stats *stats;
+	boost::shared_ptr<Actions> actions;
+	boost::shared_ptr<Prefs> prefs_tab;
+	boost::shared_ptr<Stats> stats;
 	void show_hide();
 	void show_success(bool good);
 private:
@@ -80,6 +77,32 @@ private:
 
 extern Win *win;
 
+class Stats {
+public:
+	Stats();
+	bool on_stroke(boost::shared_ptr<Ranking>);
+private:
+	void on_pdf();
+	void on_cursor_changed();
+
+	class ModelColumns : public Gtk::TreeModel::ColumnRecord {
+	public:
+		ModelColumns() { add(stroke); add(debug); add(name); add(score); add(child); }
+
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > stroke;
+		Gtk::TreeModelColumn<Glib::RefPtr<Gdk::Pixbuf> > debug;
+		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<Glib::ustring> score;
+		Gtk::TreeModelColumn<Glib::RefPtr<Gtk::ListStore> > child;
+	};
+	ModelColumns cols;
+
+	Gtk::TreeView *recent_view;
+	Glib::RefPtr<Gtk::ListStore> recent_store;
+
+	Gtk::TreeView *ranking_view;
+};
+
 class SelectButton {
 public:
 	SelectButton(ButtonInfo bi, bool def, bool any);
@@ -98,9 +121,5 @@ private:
 	sigc::connection handler[2];
 };
 
-class ErrorDialog : public Gtk::MessageDialog {
-	virtual void on_response(int) { delete this; }
-public:
-	ErrorDialog(const Glib::ustring &);
-};
+void error_dialog(const Glib::ustring &);
 #endif

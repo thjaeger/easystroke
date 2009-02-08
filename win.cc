@@ -15,7 +15,6 @@
  */
 #include "actions.h"
 #include "prefs.h"
-#include "stats.h"
 #include "win.h"
 #include "main.h"
 #include <glibmm/i18n.h>
@@ -124,17 +123,6 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty_(int size) {
 	return pb;
 }
 
-extern const char *gui_buffer;
-
-int run_dialog(const char *str) {
-	Glib::RefPtr<Gtk::Builder> xml = Gtk::Builder::create_from_string(gui_buffer);
-	Gtk::Dialog *dialog;
-	xml->get_widget(str, dialog);
-	int response = dialog->run();
-	dialog->hide();
-	return response;
-}
-
 Source<bool> disabled;
 
 class MenuCheck : private Base {
@@ -156,17 +144,7 @@ public:
 
 extern void quit();
 
-Win::Win() {
-	try {
-		widgets = Gtk::Builder::create_from_string(gui_buffer);
-	} catch (Gtk::BuilderError &e) {
-		printf("Error building GUI: %s\n", e.what().c_str());
-		exit(EXIT_FAILURE);
-	}
-	actions = new Actions;
-	prefs_tab = new Prefs;
-	stats = new Stats;
-
+Win::Win() : actions(new Actions), prefs_tab(new Prefs), stats(new Stats) {
 	show_hide_icon();
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
 	disabled.connect(new Notifier(sigc::mem_fun(*this, &Win::timeout)));
@@ -202,12 +180,6 @@ Win::Win() {
 	widgets->get_widget("button_hide4", button_hide[3]);
 	for (int i = 0; i < 4; i++)
 		button_hide[i]->signal_clicked().connect(sigc::mem_fun(win, &Gtk::Window::hide));
-}
-
-Win::~Win() {
-	delete actions;
-	delete prefs_tab;
-	delete stats;
 }
 
 extern void icon_warning();
@@ -296,6 +268,8 @@ void Win::show_success(bool good) {
 	set_timeout(2000);
 }
 
-ErrorDialog::ErrorDialog(const Glib::ustring &text) :
-		MessageDialog(win->get_window(), text, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true)
-	{ show(); }
+void error_dialog(const Glib::ustring &text) {
+	Gtk::MessageDialog dialog(win->get_window(), text, false, Gtk::MESSAGE_ERROR, Gtk::BUTTONS_OK, true);
+	dialog.show();
+	dialog.run();
+}

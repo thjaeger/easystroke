@@ -225,7 +225,7 @@ void ActionDBWatcher::timeout() {
 		if (!good_state)
 			return;
 		good_state = false;
-		new ErrorDialog(Glib::ustring::compose(_( "Couldn't save %1.  Your changes will be lost.  "
+		error_dialog(Glib::ustring::compose(_( "Couldn't save %1.  Your changes will be lost.  "
 				"Make sure that \"%2\" is a directory and that you have write access to it.  "
 				"You can change the configuration directory "
 				"using the -c or --config-dir command line options."), _("actions"), config_dir));
@@ -299,11 +299,12 @@ void ActionListDiff::all_strokes(std::list<RStroke> &strokes) const {
 		i->all_strokes(strokes);
 }
 
-RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
+RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	if (!s)
 		return RAction();
-	r.stroke = s;
-	r.score = 0.0;
+	r.reset(new Ranking);
+	r->stroke = s;
+	r->score = 0.0;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
 	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
 		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
@@ -312,32 +313,32 @@ RAction ActionListDiff::handle(RStroke s, Ranking &r) const {
 			if (match < 0)
 				continue;
 			RStrokeInfo si = get_info(i->first);
-			r.r.insert(pair<double, pair<std::string, RStroke> >
+			r->r.insert(pair<double, pair<std::string, RStroke> >
 					(score, pair<std::string, RStroke>(si->name, *j)));
-			if (score > r.score) {
-				r.score = score;
+			if (score > r->score) {
+				r->score = score;
 				if (match) {
-					r.name = si->name;
-					r.action = si->action;
-					r.best_stroke = *j;
+					r->name = si->name;
+					r->action = si->action;
+					r->best_stroke = *j;
 				}
 			}
 		}
 	}
-	if (!r.action && s->trivial())
+	if (!r->action && s->trivial())
 		return RAction(new Click);
-	if (r.action) {
+	if (r->action) {
 		if (verbosity >= 1)
-			printf("Executing Action %s\n", r.name.c_str());
+			printf("Executing Action %s\n", r->name.c_str());
 	} else {
 		if (verbosity >= 1)
 			printf("Couldn't find matching stroke.\n");
 	}
-	return r.action;
+	return r->action;
 }
 
 void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
-		std::map<guint, Ranking *> &rs, int b1, int b2) const {
+		std::map<guint, RRanking> &rs, int b1, int b2) const {
 	if (!s)
 		return;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
@@ -355,10 +356,10 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 			if (b == b1)
 				b = b2;
 			if (rs.count(b)) {
-				r = rs[b];
+				r = rs[b].get();
 			} else {
 				r = new Ranking;
-				rs[b] = r;
+				rs[b].reset(r);
 				r->stroke = RStroke(new Stroke(*s));
 				r->score = -1;
 			}

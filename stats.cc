@@ -13,7 +13,6 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "stats.h"
 #include "win.h"
 #include "actiondb.h"
 #include "main.h"
@@ -54,14 +53,14 @@ void Stats::on_cursor_changed() {
 }
 
 class Feedback {
-	Gtk::Window *icon;
-	Gtk::Window *text;
+	boost::shared_ptr<Gtk::Window> icon;
+	boost::shared_ptr<Gtk::Window> text;
 public:
-	Feedback(RStroke s, Glib::ustring t, int x, int y) : icon(0), text(0) {
+	Feedback(RStroke s, Glib::ustring t, int x, int y) {
 		x += (prefs.left_handed.get() ? 1 : -1)*3*STROKE_SIZE / 2;
 		int w,h;
 		if (s) {
-			icon = new Gtk::Window(Gtk::WINDOW_POPUP);
+			icon.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
 			WIDGET(Gtk::Image, image, s->draw(STROKE_SIZE));
 			icon->set_accept_focus(false);
 			icon->modify_bg(Gtk::STATE_NORMAL, Gdk::Color("LemonChiffon"));
@@ -73,7 +72,7 @@ public:
 		}
 
 		if (t != "") {
-			text = new Gtk::Window(Gtk::WINDOW_POPUP);
+			text.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
 			text->set_accept_focus(false);
 			text->set_border_width(2);
 			WIDGET(Gtk::Label, label, t);
@@ -92,34 +91,26 @@ public:
 			icon->get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
 		}
 	}
-	bool destroy() {
-		if (icon) {
-			icon->hide();
-			delete icon;
-		}
-		if (text) {
-			text->hide();
-			delete text;
-		}
-		delete this;
-		return false;
-	}
 };
 
-void Ranking::queue_show(RTriple e) {
-	x = (int)e->x;
-	y = (int)e->y;
-	Glib::signal_idle().connect(sigc::mem_fun(*this, &Ranking::show));
+void Ranking::queue_show(RRanking r, RTriple e) {
+	r->x = (int)e->x;
+	r->y = (int)e->y;
+	Glib::signal_idle().connect(sigc::bind(sigc::ptr_fun(&Ranking::show), r));
 }
 
-bool Ranking::show() {
-	if (prefs.feedback.get() && best_stroke) {
-		if (prefs.advanced_popups.get() || !(best_stroke->button || best_stroke->timeout)) {
-			Feedback *popup = new Feedback(best_stroke, name, x, y);
-			Glib::signal_timeout().connect(sigc::mem_fun(*popup, &Feedback::destroy), 600);
+bool delete_me(boost::shared_ptr<Feedback>) {
+	return false;
+}
+
+bool Ranking::show(RRanking r) {
+	if (prefs.feedback.get() && r->best_stroke) {
+		if (prefs.advanced_popups.get() || !(r->best_stroke->button || r->best_stroke->timeout)) {
+			boost::shared_ptr<Feedback> popup(new Feedback(r->best_stroke, r->name, r->x, r->y));
+			Glib::signal_timeout().connect(sigc::bind(sigc::ptr_fun(&delete_me), popup), 600);
 		}
 	}
-	Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(win->stats, &Stats::on_stroke), this), 200);
+	Glib::signal_timeout().connect(sigc::bind(sigc::mem_fun(*win->stats, &Stats::on_stroke), r), 200);
 	return false;
 }
 
@@ -181,7 +172,7 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::drawDebug(RStroke a, RStroke b, int size) {
 	return pb;
 }
 
-bool Stats::on_stroke(Ranking *r) {
+bool Stats::on_stroke(RRanking r) {
 	Gtk::TreeModel::Row row = *(recent_store->prepend());
 	row[cols.stroke] = r->stroke->draw(STROKE_SIZE);
 	row[cols.name] = r->name;
@@ -208,7 +199,6 @@ bool Stats::on_stroke(Ranking *r) {
 		row2[cols.name] = i->second.first;
 		row2[cols.score] = format_float(i->first * 100) + "%";
 	}
-	delete r;
 	return false;
 }
 

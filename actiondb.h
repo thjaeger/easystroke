@@ -34,6 +34,7 @@ class Scroll;
 class Ignore;
 class Button;
 class Misc;
+class Ranking;
 
 typedef boost::shared_ptr<Action> RAction;
 typedef boost::shared_ptr<Command> RCommand;
@@ -43,6 +44,7 @@ typedef boost::shared_ptr<Scroll> RScroll;
 typedef boost::shared_ptr<Ignore> RIgnore;
 typedef boost::shared_ptr<Button> RButton;
 typedef boost::shared_ptr<Misc> RMisc;
+typedef boost::shared_ptr<Ranking> RRanking;
 
 class Unique;
 
@@ -207,7 +209,7 @@ typedef boost::shared_ptr<StrokeInfo> RStrokeInfo;
 BOOST_CLASS_VERSION(StrokeInfo, 1)
 
 class Ranking {
-	bool show();
+	static bool show(RRanking r);
 	int x, y;
 public:
 	RStroke stroke, best_stroke;
@@ -215,7 +217,7 @@ public:
 	double score;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
-	void queue_show(RTriple e);
+	static void queue_show(RRanking r, RTriple e);
 };
 
 class Unique {
@@ -368,9 +370,9 @@ public:
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
 	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
 	void all_strokes(std::list<RStroke> &strokes) const;
-	RAction handle(RStroke s, Ranking &r) const;
+	RAction handle(RStroke s, RRanking &r) const;
 	// b1 is always reported as b2
-	void handle_advanced(RStroke s, std::map<guint, RAction> &a, std::map<guint, Ranking *> &r, int b1, int b2) const;
+	void handle_advanced(RStroke s, std::map<guint, RAction> &a, std::map<guint, RRanking> &r, int b1, int b2) const;
 
 	~ActionListDiff();
 };
