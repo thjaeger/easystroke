@@ -250,7 +250,7 @@ void Stats::on_pdf() {
 	if (verbosity >= 1)
 		show_us("Table completed: ");
 	if (!fork()) {
-		execlp("evince", "evince", "/tmp/strokes.pdf", NULL);
+		execlp("xdg-open", "xdg-open", "/tmp/strokes.pdf", NULL);
 		exit(EXIT_FAILURE);
 	}
 }
