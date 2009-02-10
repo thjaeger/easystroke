@@ -96,7 +96,6 @@ struct RGBA {
 };
 
 extern const ButtonInfo default_button;
-extern const int default_radius;
 extern const int default_pressure_threshold;
 
 class PrefDB : public TimeoutWatcher {
@@ -115,7 +114,6 @@ public:
 	PrefSource<ButtonInfo> button;
 	PrefSource<TraceType> trace;
 	PrefSource<bool> advanced_ignore;
-	PrefSource<int> radius;
 	PrefSource<bool> ignore_grab;
 	PrefSource<bool> timing_workaround;
 	PrefSource<bool> pressure_abort;

@@ -241,8 +241,6 @@ Prefs::Prefs() {
 	new Check(prefs.ignore_grab, "check_ignore_grab");
 	new Check(prefs.timing_workaround, "check_timing_workaround");
 
-	new Adjustment<int>(prefs.radius, "adjustment_radius");
-
 	new Check(prefs.pressure_abort, "check_pressure_abort");
 	new Adjustment<int>(prefs.pressure_threshold, "adjustment_pressure_threshold");
 	new Sensitive(prefs.pressure_abort, "spin_pressure_threshold");
@@ -266,7 +264,6 @@ Prefs::Prefs() {
 	new Adjustment<int>(prefs.init_timeout, "adjustment_timeout");
 	new Adjustment<int>(prefs.min_speed, "adjustment_min_speed");
 
-	new ButtonSet<int>(prefs.radius, "button_default_radius", default_radius);
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
 	new Combo<TraceType>(prefs.trace, "box_trace", trace_info);

@@ -819,7 +819,7 @@ public:
 		act->run();
 	}
 	virtual void motion(RTriple e) {
-		if (replay_button && hypot(replay_orig->x - e->x, replay_orig->y - e->y) > prefs.radius.get())
+		if (replay_button && hypot(replay_orig->x - e->x, replay_orig->y - e->y) > 16)
 			replay_button = 0;
 	}
 	virtual void release(guint b, RTriple e) {
@@ -1057,7 +1057,7 @@ protected:
 		}
 		cur->add(e);
 		float dist = hypot(e->x-orig->x, e->y-orig->y);
-		if (!is_gesture && dist > prefs.radius.get())
+		if (!is_gesture && dist > 16)
 			is_gesture = true;
 		if (!drawing && dist > 4) {
 			drawing = true;

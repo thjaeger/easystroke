@@ -29,7 +29,6 @@
 #include <boost/serialization/export.hpp>
 
 const ButtonInfo default_button(Button2);
-const int default_radius = 16;
 const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
@@ -38,7 +37,6 @@ PrefDB::PrefDB() :
 	button(default_button),
 	trace(TraceDefault),
 	advanced_ignore(false),
-	radius(default_radius),
 	ignore_grab(false),
 	timing_workaround(false),
 	pressure_abort(false),
@@ -91,7 +89,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	if (version < 2) return;
 	if (version != 6)
 		ar & advanced_ignore.unsafe_ref();
-	ar & radius.unsafe_ref();
+	int radius = 16;
+	ar & radius;
 	if (version < 4) return;
 	ar & ignore_grab.unsafe_ref();
 	ar & timing_workaround.unsafe_ref();
