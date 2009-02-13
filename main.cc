@@ -1128,7 +1128,20 @@ protected:
 			return parent->replace_child(new IgnoreHandler(mods));
 		if (IS_SCROLL(act) && grabber->xinput)
 			return parent->replace_child(new ScrollHandler(mods));
+		char buf[16];
+		snprintf(buf, sizeof(buf), "%d", (int)orig->x);
+		setenv("EASYSTROKE_X1", buf, 1);
+		snprintf(buf, sizeof(buf), "%d", (int)orig->y);
+		setenv("EASYSTROKE_Y1", buf, 1);
+		snprintf(buf, sizeof(buf), "%d", (int)e->x);
+		setenv("EASYSTROKE_X2", buf, 1);
+		snprintf(buf, sizeof(buf), "%d", (int)e->y);
+		setenv("EASYSTROKE_Y2", buf, 1);
 		act->run();
+		unsetenv("EASYSTROKE_X1");
+		unsetenv("EASYSTROKE_Y1");
+		unsetenv("EASYSTROKE_X2");
+		unsetenv("EASYSTROKE_Y2");
 		parent->replace_child(NULL);
 	}
 public:
