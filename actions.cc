@@ -832,7 +832,7 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 void Actions::on_text_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
 	Gtk::TreeRow row(*tm->get_iter(path));
 	Type type = from_name(row[cols.type]);
-	if (type == BUTTON) {
+	if (type == COMMAND) {
 		action_list->set_action(row[cols.id], Command::create(new_text));
 	} else if (type == TEXT) {
 		action_list->set_action(row[cols.id], SendText::create(new_text));
