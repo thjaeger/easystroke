@@ -88,6 +88,30 @@ public:
 	virtual T get() const { return x; }
 };
 
+template <class T> class Adapter : public IO<T>, private Base {
+	Out<T> &in;
+	bool changed;
+	T x;
+public:
+	Adapter(Out<T> &in_) : in(in_) { in.connect(this); }
+	virtual void notify() {
+		if (changed) {
+			if (x == in.get())
+				changed = false;
+		} else {
+			Out<T>::update();
+		}
+	}
+	virtual void set(const T x_) {
+		x = x_;
+		changed = x != in.get();
+		Out<T>::update();
+	}
+	virtual T get() const {
+		return changed ? x : in.get();
+	}
+};
+
 template <class X, class Y> class Fun : public Out<Y>, private Base {
 	sigc::slot<Y, X> f;
 	Out<X> &in;
