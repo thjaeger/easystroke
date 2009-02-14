@@ -22,6 +22,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <gdkmm/color.h>
+#include <boost/shared_ptr.hpp>
 
 #include "var.h"
 

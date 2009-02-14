@@ -22,7 +22,7 @@
 #include <set>
 #include <iostream>
 
-class Check : private Base {
+class Check : public Base {
 	IO<bool> &io;
 	Gtk::CheckButton *check;
 	virtual void notify() { check->set_active(io.get()); }
@@ -40,7 +40,7 @@ public:
 	}
 };
 
-template <class T> class Adjustment : private Base {
+template <class T> class Adjustment : public Base {
 	IO<T> &io;
 	Glib::RefPtr<Gtk::Adjustment> adj;
 	Gtk::Button *button;
@@ -59,7 +59,7 @@ public:
 	}
 };
 
-class Color : private Base {
+class Color : public Base {
 	IO<RGBA> &io;
 	Gtk::ColorButton *color;
 	virtual void notify() {
@@ -83,7 +83,7 @@ public:
 	}
 };
 
-template <class T> class Combo : private Base {
+template <class T> class Combo : public Base {
 public:
 	struct Info {
 		T value;

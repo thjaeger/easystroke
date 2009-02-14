@@ -16,12 +16,10 @@
 #ifndef __VAR_H__
 #define __VAR_H__
 
-#include <set>
-#include <boost/shared_ptr.hpp>
-#include <glibmm.h>
+#include <sigc++/sigc++.h>
 #include "util.h"
 
-class Base {
+class Base : public sigc::trackable {
 public:
 	virtual void notify() = 0;
 };
@@ -34,24 +32,18 @@ public:
 };
 
 class Atomic {
-	std::set<Base *> update_queue;
+	sigc::signal<void> out;
 public:
-	void defer(Base *out) { update_queue.insert(out); }
-	~Atomic() {
-		for (std::set<Base *>::iterator i = update_queue.begin(); i != update_queue.end(); i++)
-			(*i)->notify();
-	}
+	void defer(Base *s) { out.connect(sigc::mem_fun(*s, &Base::notify)); }
+	~Atomic() { out.emit(); }
 };
 
 template <class T> class Out {
-	std::set<Base *> out;
+	sigc::signal<void> out;
 protected:
-	void update() {
-		for (std::set<Base *>::iterator i = out.begin(); i != out.end(); i++)
-			(*i)->notify();
-	}
+	void update() { out.emit(); }
 public:
-	void connect(Base *s) { out.insert(s); }
+	void connect(Base *s) { out.connect(sigc::mem_fun(*s, &Base::notify)); }
 	virtual T get() const = 0;
 };
 
