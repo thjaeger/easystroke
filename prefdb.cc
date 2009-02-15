@@ -44,8 +44,8 @@ PrefDB::PrefDB() :
 	proximity(false),
 	feedback(true),
 	left_handed(false),
-	init_timeout(200),
-	min_speed(40),
+	init_timeout(250),
+	final_timeout(250),
 	timeout_profile(TimeoutDefault),
 	timeout_gestures(false),
 	tray_icon(true),
@@ -103,7 +103,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & feedback.unsafe_ref();
 	ar & left_handed.unsafe_ref();
 	ar & init_timeout.unsafe_ref();
-	ar & min_speed.unsafe_ref();
+	ar & final_timeout.unsafe_ref();
 	if (version < 8) return;
 	ar & timeout_profile.unsafe_ref();
 	if (version < 9) return;
@@ -168,27 +168,27 @@ public:
 		switch (in.get()) {
 			case TimeoutOff:
 				prefs.init_timeout.set(0);
-				prefs.min_speed.set(0);
+				prefs.final_timeout.set(0);
 				break;
 			case TimeoutConservative:
-				prefs.init_timeout.set(1000);
-				prefs.min_speed.set(10);
+				prefs.init_timeout.set(750);
+				prefs.final_timeout.set(750);
 				break;
 			case TimeoutDefault:
-				prefs.init_timeout.set(240);
-				prefs.min_speed.set(60);
+				prefs.init_timeout.set(250);
+				prefs.final_timeout.set(250);
 				break;
 			case TimeoutMedium:
-				prefs.init_timeout.set(30);
-				prefs.min_speed.set(80);
+				prefs.init_timeout.set(100);
+				prefs.final_timeout.set(100);
 				break;
 			case TimeoutAggressive:
-				prefs.init_timeout.set(15);
-				prefs.min_speed.set(150);
+				prefs.init_timeout.set(50);
+				prefs.final_timeout.set(75);
 				break;
 			case TimeoutFlick:
-				prefs.init_timeout.set(20);
-				prefs.min_speed.set(500);
+				prefs.init_timeout.set(30);
+				prefs.final_timeout.set(40);
 				break;
 			case TimeoutCustom:
 				break;

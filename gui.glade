@@ -457,7 +457,7 @@
                             <child>
                               <object class="GtkLabel" id="label15">
                                 <property name="visible">True</property>
-                                <property name="label" translatable="yes">Minimum speed (px/s)</property>
+                                <property name="label" translatable="yes">Initial Timeout (ms)</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -466,10 +466,10 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="spin_min_speed">
+                              <object class="GtkSpinButton" id="spin_init_timeout">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment_min_speed</property>
+                                <property name="adjustment">adjustment_init_timeout</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -489,10 +489,10 @@
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkSpinButton" id="spin_timeout">
+                              <object class="GtkSpinButton" id="spin_final_timeout">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="adjustment">adjustment_timeout</property>
+                                <property name="adjustment">adjustment_final_timeout</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1365,13 +1365,13 @@ Paco Molinero (Spanish)</property>
     <property name="step_increment">1</property>
     <property name="page_increment">10</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment_timeout">
+  <object class="GtkAdjustment" id="adjustment_final_timeout">
     <property name="upper">2500</property>
-    <property name="step_increment">20</property>
-    <property name="page_increment">100</property>
+    <property name="step_increment">5</property>
+    <property name="page_increment">20</property>
   </object>
-  <object class="GtkAdjustment" id="adjustment_min_speed">
-    <property name="upper">10000</property>
+  <object class="GtkAdjustment" id="adjustment_init_timeout">
+    <property name="upper">2500</property>
     <property name="step_increment">5</property>
     <property name="page_increment">20</property>
   </object>

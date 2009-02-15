@@ -139,6 +139,7 @@ public:
 
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);
+	bool is_click_hold(guint b);
 	void release_all(int n = 0);
 
 	int get_default_button() { return grabbed_button.button; }

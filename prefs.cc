@@ -261,8 +261,8 @@ Prefs::Prefs() {
 	new Check(autostart, "check_autostart");
 	new Sensitive(autostart_ok, "check_autostart");
 
-	new Adjustment<int>(prefs.init_timeout, "adjustment_timeout");
-	new Adjustment<int>(prefs.min_speed, "adjustment_min_speed");
+	new Adjustment<int>(prefs.init_timeout, "adjustment_init_timeout");
+	new Adjustment<int>(prefs.final_timeout, "adjustment_final_timeout");
 
 	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 

@@ -597,6 +597,13 @@ bool Grabber::is_instant(guint b) {
 	return false;
 }
 
+bool Grabber::is_click_hold(guint b) {
+	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
+		if (i->button == b && i->click_hold)
+			return true;
+	return false;
+}
+
 int get_default_button() {
 	if (grabber)
 		return grabber->get_default_button();

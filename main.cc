@@ -942,19 +942,27 @@ static void activate_window(Window w, Time t) {
 		XSetInputFocus(dpy, w, RevertToParent, t);
 }
 
-class StrokeHandler : public Handler, public Timeout {
+class StrokeHandler : public Handler, public sigc::trackable {
 	guint button;
 	RPreStroke cur;
 	bool is_gesture;
 	bool drawing;
 	RTriple last, orig;
-	float min_speed;
-	float speed;
-	static float k;
 	bool use_timeout;
 	Time press_t; // If there is a synchronous grab in place, this is the grab time.
 	bool freeze_workaround;
 	bool instant;
+	int init_timeout, final_timeout, radius;
+	struct Connection {
+		sigc::connection c;
+		double dist;
+		Connection(StrokeHandler *parent, double dist_, int to) : dist(dist_) {
+			c = Glib::signal_timeout().connect(sigc::mem_fun(*parent, &StrokeHandler::timeout), to);
+		}
+		~Connection() { c.disconnect(); }
+	};
+	typedef boost::shared_ptr<Connection> RConnection;
+	std::vector<RConnection> connections;
 
 	RStroke finish(guint b) {
 		trace->end();
@@ -966,29 +974,27 @@ class StrokeHandler : public Handler, public Timeout {
 		return Stroke::create(*cur, button, b, false);
 	}
 
-	virtual void timeout() {
-		do_timeout();
-		XFlush(dpy);
-	}
-
 	void abort_stroke() {
 		parent->replace_child(NULL);
 		grabber->regrab_xi();
 	}
 
-	void do_timeout() {
+	bool timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
 		trace->end();
 		if (!prefs.timeout_gestures.get()) {
 			if (press_t)
 				replay(press_t);
-			return abort_stroke();
+			abort_stroke();
+			return false;
 		}
 		if (!is_gesture)
 			cur->clear();
 		RStroke s = Stroke::create(*cur, button, 0, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, press_t));
+		XFlush(dpy);
+		return false;
 	}
 
 	void do_instant(Time t) {
@@ -997,25 +1003,19 @@ class StrokeHandler : public Handler, public Timeout {
 		parent->replace_child(AdvancedHandler::create(s, orig, button, button, t));
 	}
 
-	bool calc_speed(RTriple e) {
-		if (!grabber->xinput || !use_timeout)
-			return false;
-		int dt = e->t - last->t;
-		float c = exp(k * dt);
-		if (dt) {
-			float dist = hypot(e->x-last->x, e->y-last->y);
-			speed = c * speed + (1-c) * dist/dt;
-		} else {
-			speed = c * speed;
-		}
-		last = e;
+	bool expired(RConnection c, double dist) {
+		c->dist -= dist;
+		return c->dist < 0;
+	}
 
-		if (speed < min_speed) {
-			timeout();
-			return true;
-		}
-		long ms = (long)(log(min_speed/speed) / k);
-		set_timeout(ms);
+	bool calc_speed(RTriple e) {
+		if (!use_timeout)
+			return false;
+		double dist = hypot(e->x - last->x, e->y - last->y);
+		connections.erase(remove_if(connections.begin(), connections.end(),
+					sigc::bind(sigc::mem_fun(*this, &StrokeHandler::expired), dist)), connections.end());
+		connections.push_back(RConnection(new Connection(this, radius, is_gesture ? final_timeout : init_timeout)));
+		last = e;
 		return false;
 	}
 protected:
@@ -1057,9 +1057,16 @@ protected:
 		}
 		cur->add(e);
 		float dist = hypot(e->x-orig->x, e->y-orig->y);
-		if (!is_gesture && dist > 16)
+		if (!is_gesture && dist > 16) {
+			if (use_timeout && !final_timeout) {
+				if (press_t)
+					replay(press_t);
+				return abort_stroke();
+			}
+			connections.clear();
 			is_gesture = true;
-		if (!drawing && dist > 4) {
+		}
+		if (!drawing && dist > 4 && (!use_timeout || final_timeout)) {
 			drawing = true;
 			bool first = true;
 			for (PreStroke::iterator i = cur->begin(); i != cur->end(); i++) {
@@ -1146,23 +1153,29 @@ protected:
 	}
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e), orig(e),
-	min_speed(0.001*prefs.min_speed.get()), speed(min_speed * exp(-k*prefs.init_timeout.get())),
-	use_timeout(prefs.init_timeout.get() && prefs.min_speed.get()), press_t(0), freeze_workaround(false) {}
+	use_timeout(grabber->xinput && prefs.init_timeout.get()), press_t(0), freeze_workaround(false),
+	init_timeout(prefs.init_timeout.get()), final_timeout(prefs.final_timeout.get()), radius(16) {}
 	virtual void init() {
 		instant = grabber->is_instant(button);
 		if (instant && prefs.ignore_grab.get())
 			return do_instant(orig->t);
+		if (grabber->is_click_hold(button)) {
+			use_timeout = grabber->xinput;
+			init_timeout = 500;
+			final_timeout = 0;
+		}
+		if (final_timeout && final_timeout < 32 && radius < 16*32/final_timeout)
+			radius = 16*32/final_timeout;
+		init_timeout = init_timeout*radius/16;
+		final_timeout = final_timeout*radius/16;
 		cur = PreStroke::create();
 		cur->add(orig);
-		if (grabber->xinput && prefs.init_timeout.get())
-			set_timeout(prefs.init_timeout.get());
+		calc_speed(last);
 	}
 	~StrokeHandler() { trace->end(); }
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
-
-float StrokeHandler::k = -0.01;
 
 class IdleHandler : public Handler {
 protected:

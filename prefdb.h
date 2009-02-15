@@ -122,7 +122,7 @@ public:
 	PrefSource<bool> feedback;
 	PrefSource<bool> left_handed;
 	PrefSource<int> init_timeout;
-	PrefSource<int> min_speed;
+	PrefSource<int> final_timeout;
 	PrefSource<TimeoutType> timeout_profile;
 	PrefSource<bool> timeout_gestures;
 	PrefSource<bool> tray_icon;
