@@ -1,3 +1,13 @@
+(Unreleased) 0.4.1
+	* New stroke matching algorithm
+	* New timeout algorithm
+	* Click & Hold gestures
+	* Kill radius property
+	* Set environment variables containing start/end point
+	* Fix 'Command' action
+	* Option to show last gesture in tray
+	* Option to change scroll speed/direction
+
 2009-02-08  Released 0.4.0
 	* Support for xserver-1.6
 	* Additional gesture buttons
