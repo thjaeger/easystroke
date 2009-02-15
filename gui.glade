@@ -1645,7 +1645,7 @@ Paco Molinero (Spanish)</property>
             </child>
             <child>
               <object class="GtkRadioButton" id="radio_instant">
-                <property name="label" translatable="yes">Instant</property>
+                <property name="label" translatable="yes">Instant Gestures</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-08 15:23-0500\n"
+"POT-Creation-Date: 2009-02-15 15:23-0500\n"
 "PO-Revision-Date: 2009-01-24 19:24-0500\n"
 "Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -56,7 +56,7 @@ msgstr "rename() fehlgeschlagen"
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "Fehler: Konnte Aktionendatenbank nicht speichern: %s.\n"
 
-#: ../actiondb.cc:228 ../prefdb.cc:149
+#: ../actiondb.cc:228 ../prefdb.cc:148
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
 "directory and that you have write access to it.  You can change the "
@@ -87,15 +87,15 @@ msgstr "Taste"
 msgid "Text"
 msgstr "Text"
 
-#: ../actions.cc:133 ../actions.cc:941
+#: ../actions.cc:133 ../actions.cc:943
 msgid "Scroll"
 msgstr "Scrollen"
 
-#: ../actions.cc:134 ../actions.cc:948
+#: ../actions.cc:134 ../actions.cc:950
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: ../actions.cc:135 ../prefs.cc:312 ../prefs.cc:336
+#: ../actions.cc:135 ../prefs.cc:309 ../prefs.cc:333
 msgid "Button"
 msgstr "Maustaste"
 
@@ -204,14 +204,18 @@ msgid "(Instantly) "
 msgstr "(Sofort) "
 
 #: ../actions.cc:931
+msgid "(Click & Hold) "
+msgstr ""
+
+#: ../actions.cc:933
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:934 ../prefs.cc:449
+#: ../actions.cc:936 ../prefs.cc:450
 msgid "Button %1"
 msgstr "Maustaste %1"
 
-#: ../actions.cc:939
+#: ../actions.cc:941
 msgid " + Scroll"
 msgstr " + Scrollen"
 
@@ -224,7 +228,7 @@ msgstr "'composite' nicht verfügbar"
 msgid "Opening Device %s failed.\n"
 msgstr "Öffnen des Gerätes %s fehlgeschlagen.\n"
 
-#: ../main.cc:107 ../main.cc:270 ../main.cc:1807
+#: ../main.cc:107 ../main.cc:270 ../main.cc:1827
 #, c-format
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
@@ -249,16 +253,16 @@ msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1232
+#: ../main.cc:1252
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1246
+#: ../main.cc:1266
 msgid "Tray icon disabled"
 msgstr "Tray-Symbol deaktiviert"
 
-#: ../main.cc:1247
+#: ../main.cc:1267
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
@@ -266,36 +270,36 @@ msgstr ""
 "Um den Konfigurationsdialog wieder anzuzeigen, können Sie eine Aktion vom "
 "Typ Verschiedene..Anzeigen/Verstecken erstellen."
 
-#: ../main.cc:1305
+#: ../main.cc:1325
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1343
+#: ../main.cc:1363
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1508
+#: ../main.cc:1528
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1513
+#: ../main.cc:1533
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
 
-#: ../prefdb.cc:145
+#: ../prefdb.cc:144
 #, c-format
 msgid "Error: Couldn't save preferences: %s.\n"
 msgstr "Fehler: Konnte Einstellungen nicht speichern: %s\n"
 
-#: ../prefdb.cc:152
+#: ../prefdb.cc:151
 msgid "preferences"
 msgstr "Einstellungen"
 
-#: ../prefdb.cc:218
+#: ../prefdb.cc:217
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Fehler: Konnte Einstellungen nicht laden.\n"
@@ -340,31 +344,31 @@ msgstr "Flick"
 msgid "Custom"
 msgstr "Benutzerdefiniert"
 
-#: ../prefs.cc:307
+#: ../prefs.cc:304
 msgid "Application (WM__CLASS)"
 msgstr "Anwendung (WM__CLASS)"
 
-#: ../prefs.cc:325
+#: ../prefs.cc:322
 msgid "Enabled"
 msgstr "Aktiv"
 
-#: ../prefs.cc:326
+#: ../prefs.cc:323
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:350 ../prefs.cc:587
+#: ../prefs.cc:347 ../prefs.cc:595
 msgid "(window manager frame)"
 msgstr "(Rahmen des Window-Managers)"
 
-#: ../prefs.cc:351 ../prefs.cc:592 ../prefs.cc:615
+#: ../prefs.cc:348 ../prefs.cc:600 ../prefs.cc:623
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
-#: ../prefs.cc:433
+#: ../prefs.cc:430
 msgid "Select a Mouse or Pen Button"
 msgstr "Eine Maus- oder Stifttaste auswählen"
 
-#: ../prefs.cc:434
+#: ../prefs.cc:431
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
@@ -457,90 +461,90 @@ msgid "Autostart easystroke"
 msgstr "Automatisch starten"
 
 #: ../gui.glade.h:19
+msgid "Click & Hold"
+msgstr ""
+
+#: ../gui.glade.h:20
 msgid "Color"
 msgstr "Farbe"
 
-#: ../gui.glade.h:20
+#: ../gui.glade.h:21
 msgid "Ignore strokes leading up to advanced gestures"
 msgstr "Ignoriere die Mausbewegung bei Advanced Gestures"
 
-#: ../gui.glade.h:21
+#: ../gui.glade.h:22
+msgid "Initial Timeout (ms)"
+msgstr "Anfängliches Timeout (ms)"
+
+#: ../gui.glade.h:23
 msgid "Instant Gestures"
 msgstr "Sofortige Gesten"
 
-#: ../gui.glade.h:22
+#: ../gui.glade.h:24
 msgid "Invert Scroll Direction"
 msgstr "Scroll-Richtung invertieren"
 
-#: ../gui.glade.h:23
+#: ../gui.glade.h:25
 msgid "Method to show gestures"
 msgstr "Methode zum Anzeigen der Gesten"
 
-#: ../gui.glade.h:24
-msgid "Minimum speed (px/s)"
-msgstr "Minimalgeschwindigkeit (px/s)"
-
-#: ../gui.glade.h:25
+#: ../gui.glade.h:26
 msgid "Preferences"
 msgstr "Einstellungen"
 
-#: ../gui.glade.h:26
+#: ../gui.glade.h:27
 msgid "Remove Application/Group"
 msgstr "Entferne Anwendung/Gruppe"
 
-#: ../gui.glade.h:27
+#: ../gui.glade.h:28
 msgid "Reset Action(s)"
 msgstr "Aktion(en) zurücksetzen"
 
-#: ../gui.glade.h:28
+#: ../gui.glade.h:29
 msgid "S_uper"
 msgstr "Super"
 
-#: ../gui.glade.h:29
+#: ../gui.glade.h:30
 msgid "Scroll Speed"
 msgstr "Scrollgeschwindigkeit"
 
-#: ../gui.glade.h:30
+#: ../gui.glade.h:31
 msgid "Show deleted rows"
 msgstr "Zeige gelöschte Zeilen"
 
-#: ../gui.glade.h:31
+#: ../gui.glade.h:32
 msgid "Show last gesture in tray"
 msgstr "Zeige die letzte Geste im Tray"
 
-#: ../gui.glade.h:32
+#: ../gui.glade.h:33
 msgid "Show popups ("
 msgstr "Popus anzeigen ("
 
-#: ../gui.glade.h:33
+#: ../gui.glade.h:34
 msgid "Show popups on advanced gestures"
 msgstr "Popups bei Advanced Gestures anzeigen"
 
-#: ../gui.glade.h:34
+#: ../gui.glade.h:35
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
 
-#: ../gui.glade.h:35
+#: ../gui.glade.h:36
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Bleibe im 'Scrollen' oder 'Ignorieren' Modus solange der Stift in Reichweite "
 "ist"
 
-#: ../gui.glade.h:36
+#: ../gui.glade.h:37
+msgid "Timeout"
+msgstr "Timeout"
+
+#: ../gui.glade.h:38
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
 
-#: ../gui.glade.h:37
+#: ../gui.glade.h:39
 msgid "Timeout profile"
 msgstr "Timeout-Profil"
-
-#: ../gui.glade.h:38
-msgid ""
-"Treat it as a click if the cursor isn't moved more \n"
-"than this many pixels away from the original position"
-msgstr ""
-"Behandle Gesten, die kleiner als die angegebene \n"
-"Größe sind (in Pixeln), als Klicks"
 
 #: ../gui.glade.h:40
 msgid "Width"
