@@ -927,6 +927,8 @@ Glib::ustring ButtonInfo::get_button_text() const {
 	Glib::ustring str;
 	if (instant)
 		str += _("(Instantly) ");
+	if (click_hold)
+		str += _("(Click & Hold) ");
 	if (state == AnyModifier)
 		str += Glib::ustring() + "(" + _("Any Modifier") + " +) ";
 	else

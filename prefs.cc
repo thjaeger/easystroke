@@ -438,9 +438,13 @@ SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	widgets->get_widget("toggle_control", toggle_control);
 	widgets->get_widget("toggle_super", toggle_super);
 	widgets->get_widget("toggle_any", toggle_any);
-	widgets->get_widget("check_instant", check_instant);
+	widgets->get_widget("radio_timeout_default", radio_timeout_default);
+	widgets->get_widget("radio_instant", radio_instant);
+	widgets->get_widget("radio_click_hold", radio_click_hold);
 	Gtk::Bin *box_button;
 	widgets->get_widget("box_button", box_button);
+	Gtk::HBox *hbox_button_timeout;
+	widgets->get_widget("hbox_button_timeout", hbox_button_timeout);
 	select_button = dynamic_cast<Gtk::ComboBoxText *>(box_button->get_child());
 	if (!select_button) {
 		select_button = Gtk::manage(new Gtk::ComboBoxText);
@@ -456,13 +460,18 @@ SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 	toggle_super->set_active(bi.button && (bi.state & GDK_SUPER_MASK));
 	toggle_any->set_active(any && bi.button && bi.state == AnyModifier);
 	if (any) {
-		check_instant->show();
+		hbox_button_timeout->show();
 		toggle_any->show();
 	} else {
-		check_instant->hide();
+		hbox_button_timeout->hide();
 		toggle_any->hide();
 	}
-	check_instant->set_active(bi.instant);
+	if (bi.instant)
+		radio_instant->set_active();
+	else if (bi.click_hold)
+		radio_click_hold->set_active();
+	else
+		radio_timeout_default->set_active();
 
 	Gtk::Button *select_default;
 	widgets->get_widget("select_default", select_default);
@@ -520,7 +529,8 @@ bool SelectButton::run() {
 				event.state |= GDK_MOD1_MASK;
 			if (toggle_super->get_active())
 				event.state |= GDK_SUPER_MASK;
-			event.instant = check_instant->get_active();
+			event.instant = radio_instant->get_active();
+			event.click_hold = radio_click_hold->get_active();
 			return true;
 		case 2: // Default
 			event.button = 0;
@@ -538,7 +548,8 @@ bool SelectButton::run() {
 bool SelectButton::on_button_press(GdkEventButton *ev) {
 	event.button = ev->button;
 	event.state  = ev->state;
-	event.instant = check_instant->get_active();
+	event.instant = radio_instant->get_active();
+	event.click_hold = radio_click_hold->get_active();
 	if (toggle_any->get_active()) {
 		event.state = AnyModifier;
 	} else {
