@@ -962,6 +962,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		~Connection() { c.disconnect(); }
 	};
 	typedef boost::shared_ptr<Connection> RConnection;
+	sigc::connection init_connection;
 	std::vector<RConnection> connections;
 
 	RStroke finish(guint b) {
@@ -1006,17 +1007,6 @@ class StrokeHandler : public Handler, public sigc::trackable {
 	bool expired(RConnection c, double dist) {
 		c->dist -= dist;
 		return c->dist < 0;
-	}
-
-	bool calc_speed(RTriple e) {
-		if (!use_timeout)
-			return false;
-		double dist = hypot(e->x - last->x, e->y - last->y);
-		connections.erase(remove_if(connections.begin(), connections.end(),
-					sigc::bind(sigc::mem_fun(*this, &StrokeHandler::expired), dist)), connections.end());
-		connections.push_back(RConnection(new Connection(this, radius, is_gesture ? final_timeout : init_timeout)));
-		last = e;
-		return false;
 	}
 protected:
 	virtual void press_core(guint b, Time t, bool xi) {
@@ -1063,7 +1053,7 @@ protected:
 					replay(press_t);
 				return abort_stroke();
 			}
-			connections.clear();
+			init_connection.disconnect();
 			is_gesture = true;
 		}
 		if (!drawing && dist > 4 && (!use_timeout || final_timeout)) {
@@ -1086,7 +1076,13 @@ protected:
 			p.y = e->y;
 			trace->draw(p);
 		}
-		calc_speed(e);
+		if (use_timeout && is_gesture) {
+			connections.erase(remove_if(connections.begin(), connections.end(),
+						sigc::bind(sigc::mem_fun(*this, &StrokeHandler::expired),
+							hypot(e->x - last->x, e->y - last->y))), connections.end());
+			connections.push_back(RConnection(new Connection(this, radius, final_timeout)));
+		}
+		last = e;
 	}
 
 	virtual void press(guint b, RTriple e) {
@@ -1164,13 +1160,16 @@ public:
 			init_timeout = 500;
 			final_timeout = 0;
 		}
-		if (final_timeout && final_timeout < 32 && radius < 16*32/final_timeout)
-			radius = 16*32/final_timeout;
-		init_timeout = init_timeout*radius/16;
-		final_timeout = final_timeout*radius/16;
 		cur = PreStroke::create();
 		cur->add(orig);
-		calc_speed(last);
+		if (!use_timeout)
+			return;
+		if (final_timeout && final_timeout < 32 && radius < 16*32/final_timeout) {
+			radius = 16*32/final_timeout;
+			final_timeout = final_timeout*radius/16;
+		}
+		init_connection = Glib::signal_timeout().connect(
+				sigc::mem_fun(*this, &StrokeHandler::timeout), init_timeout);
 	}
 	~StrokeHandler() { trace->end(); }
 	virtual std::string name() { return "Stroke"; }
