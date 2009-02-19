@@ -984,7 +984,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
 		trace->end();
-		if (!prefs.timeout_gestures.get()) {
+		if (!prefs.timeout_gestures.get() && !grabber->is_click_hold(button)) {
 			if (press_t)
 				replay(press_t);
 			abort_stroke();
