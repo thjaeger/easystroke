@@ -188,7 +188,7 @@ public:
 				break;
 			case TimeoutFlick:
 				prefs.init_timeout.set(30);
-				prefs.final_timeout.set(40);
+				prefs.final_timeout.set(50);
 				break;
 			case TimeoutCustom:
 				break;
