@@ -166,7 +166,7 @@ public:
 	virtual const Glib::ustring get_label() const;
 	virtual void run();
 };
-#define IF_BUTTON(act, b) for (unsigned int b = Button::get_button(act); b; b = 0)
+#define IF_BUTTON(act, b) if (unsigned int b = Button::get_button(act))
 
 class Misc : public Action {
 	friend class boost::serialization::access;
