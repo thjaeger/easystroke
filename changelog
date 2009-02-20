@@ -1,4 +1,4 @@
-(Unreleased) 0.4.1
+2009-02-20 Released 0.4.1
 	* New stroke matching algorithm
 	* New timeout algorithm
 	* Click & Hold gestures
