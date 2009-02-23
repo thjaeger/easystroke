@@ -1309,8 +1309,9 @@ class ReloadTrace : public Timeout {
 	void timeout() {
 		if (verbosity >= 2)
 			printf("Reloading gesture display\n");
-		trace.reset(init_trace());
+		queue(sigc::mem_fun(*this, &ReloadTrace::reload));
 	}
+	void reload() { trace.reset(init_trace()); }
 } reload_trace;
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
