@@ -54,7 +54,8 @@ PrefDB::PrefDB() :
 	advanced_popups(true),
 	scroll_invert(true),
 	scroll_speed(2.0),
-	tray_feedback(false)
+	tray_feedback(false),
+	show_osd(true)
 {}
 
 template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {

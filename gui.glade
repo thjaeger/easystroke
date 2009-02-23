@@ -918,12 +918,33 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkCheckButton" id="check_advanced_popups">
-                            <property name="label" translatable="yes">Show popups on advanced gestures</property>
+                          <object class="GtkHBox" id="hbox7">
                             <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">False</property>
-                            <property name="draw_indicator">True</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkCheckButton" id="check_advanced_popups">
+                                <property name="label" translatable="yes">Show popups on advanced gestures</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                              </object>
+                              <packing>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkCheckButton" id="check_osd">
+                                <property name="label" translatable="yes">Show OSD</property>
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">False</property>
+                                <property name="draw_indicator">True</property>
+                              </object>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
                           </object>
                           <packing>
                             <property name="position">2</property>

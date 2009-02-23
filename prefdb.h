@@ -134,12 +134,13 @@ public:
 	PrefSource<bool> scroll_invert;
 	PrefSource<double> scroll_speed;
 	PrefSource<bool> tray_feedback;
+	PrefSource<bool> show_osd;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 14)
+BOOST_CLASS_VERSION(PrefDB, 15)
 
 extern PrefDB prefs;
 

@@ -1979,7 +1979,8 @@ class Modifiers : Timeout {
 	OSD *osd;
 public:
 	Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_), osd(NULL) {
-		set_timeout(150);
+		if (prefs.show_osd.get())
+			set_timeout(150);
 		all.insert(this);
 		update_mods();
 	}
