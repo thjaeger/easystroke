@@ -1254,6 +1254,11 @@ void run_by_name(const char *str) {
 	}
 	printf(_("Warning: No action \"%s\" defined\n"), str);
 }
+
+bool disable_root() {
+	return !actions.get_root()->order_size() && actions.get_root()->size_rec();
+}
+
 void icon_warning() {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		Misc *m = dynamic_cast<Misc *>(i->second.action.get());

@@ -611,6 +611,8 @@ int get_default_button() {
 		return prefs.button.get().button;
 }
 
+extern bool disable_root();
+
 void Grabber::update() {
 	wm_class = get_wm_class(current_window.get());
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
@@ -623,6 +625,9 @@ void Grabber::update() {
 		} else {
 			active = false;
 		}
+	} else {
+		if (disable_root())
+			active = false;
 	}
 	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
 	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
