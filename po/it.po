@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-15 15:23-0500\n"
-"PO-Revision-Date: 2009-01-25 21:00+0000\n"
+"POT-Creation-Date: 2009-02-15 16:03-0500\n"
+"PO-Revision-Date: 2009-02-24 10:30+0000\n"
 "Last-Translator: Massimiliano La Gala <Unknown>\n"
 "Language-Team: Italian <it@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-01-25 21:32+0000\n"
+"X-Launchpad-Export-Date: 2009-02-25 04:40+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
@@ -29,7 +29,7 @@ msgstr "Nessuno"
 
 #: ../actiondb.cc:144
 msgid "Unminimize"
-msgstr ""
+msgstr "ripristina"
 
 #: ../actiondb.cc:144
 msgid "Show/Hide"
@@ -63,10 +63,10 @@ msgid ""
 "directory and that you have write access to it.  You can change the "
 "configuration directory using the -c or --config-dir command line options."
 msgstr ""
-"Impossibile salvare %1. Le tue modifiche saranno perse. Assicurati che \"%2"
-"\" sia una cartella e che tu ne abbia i diritti per accedervi. Puoi cambiare "
-"la cartella della configurazione utilizzando i parametri -c o --config-dir "
-"nella riga di comando."
+"Impossibile salvare %1. Le tue modifiche saranno perse. Assicurati che "
+"\"%2\" sia una cartella e che tu ne abbia i diritti per accedervi. Puoi "
+"cambiare la cartella della configurazione utilizzando i parametri -c o --"
+"config-dir nella riga di comando."
 
 #: ../actiondb.cc:231
 msgid "actions"
@@ -86,7 +86,7 @@ msgstr "Tasto"
 
 #: ../actions.cc:132
 msgid "Text"
-msgstr ""
+msgstr "Testo"
 
 #: ../actions.cc:133 ../actions.cc:943
 msgid "Scroll"
@@ -204,7 +204,7 @@ msgstr "(instantaneamente) "
 
 #: ../actions.cc:931
 msgid "(Click & Hold) "
-msgstr ""
+msgstr "(clicca e tieni premuto) "
 
 #: ../actions.cc:933
 msgid "Any Modifier"
@@ -220,14 +220,14 @@ msgstr " + scorrimento"
 
 #: ../composite.cc:26
 msgid "'composite' not available"
-msgstr ""
+msgstr "'composite' non disponibile"
 
 #: ../grabber.cc:357
 #, c-format
 msgid "Opening Device %s failed.\n"
 msgstr "Apertura del dispositivo %s fallita.\n"
 
-#: ../main.cc:107 ../main.cc:270 ../main.cc:1827
+#: ../main.cc:107 ../main.cc:270 ../main.cc:1831
 #, c-format
 msgid "Error: %s\n"
 msgstr "Errore: %s\n"
@@ -252,16 +252,16 @@ msgstr "Errore Fatale: Connessione con X server perdura, riavvio...\n"
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Errore: Necessiti di XInput per utilizzare i gesti avanzati\n"
 
-#: ../main.cc:1252
+#: ../main.cc:1256
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Attenzione: Nessuna azione \"%s\" definita\n"
 
-#: ../main.cc:1266
+#: ../main.cc:1270
 msgid "Tray icon disabled"
 msgstr "icona nel vassoio disabilitata"
 
-#: ../main.cc:1267
+#: ../main.cc:1271
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
@@ -269,22 +269,22 @@ msgstr ""
 "Per mostrare nuovamente la finestra di configurazione, dovresti definire un "
 "azione di tipo \"Misc->Mostra/nascondi\"."
 
-#: ../main.cc:1325
+#: ../main.cc:1329
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Errore inizializzando D-BUS\n"
 
-#: ../main.cc:1363
+#: ../main.cc:1367
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Impossibile aprire il display.\n"
 
-#: ../main.cc:1528
+#: ../main.cc:1532
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Errore: Impossibile creare la cartella di configurazione \"%s\"\n"
 
-#: ../main.cc:1533
+#: ../main.cc:1537
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Errore: \"%s\" non è una cartella\n"
@@ -337,7 +337,7 @@ msgstr "Aggressivo"
 
 #: ../prefs.cc:174 ../prefs.cc:184
 msgid "Flick"
-msgstr ""
+msgstr "Flick"
 
 #: ../prefs.cc:185
 msgid "Custom"
@@ -465,7 +465,7 @@ msgstr "esegui automaticamente easystroke"
 
 #: ../gui.glade.h:19
 msgid "Click & Hold"
-msgstr ""
+msgstr "clicca e tieni premuto"
 
 #: ../gui.glade.h:20
 msgid "Color"
@@ -477,7 +477,7 @@ msgstr "Ignora i gesti che portano ai \"gesti avanzati\""
 
 #: ../gui.glade.h:22
 msgid "Initial Timeout (ms)"
-msgstr ""
+msgstr "Timeout iniziale (ms)"
 
 #: ../gui.glade.h:23
 msgid "Instant Gestures"
@@ -485,7 +485,7 @@ msgstr "Gesti istantanei"
 
 #: ../gui.glade.h:24
 msgid "Invert Scroll Direction"
-msgstr ""
+msgstr "Invertire direzione di scorrimento"
 
 #: ../gui.glade.h:25
 msgid "Method to show gestures"
@@ -509,7 +509,7 @@ msgstr "S_uper"
 
 #: ../gui.glade.h:30
 msgid "Scroll Speed"
-msgstr ""
+msgstr "Velocità di scorrimento"
 
 #: ../gui.glade.h:31
 msgid "Show deleted rows"
@@ -517,7 +517,7 @@ msgstr "Mostra righe cancellate"
 
 #: ../gui.glade.h:32
 msgid "Show last gesture in tray"
-msgstr ""
+msgstr "Mostra l'ultimo gesto nel vassoio"
 
 #: ../gui.glade.h:33
 msgid "Show popups ("
@@ -534,7 +534,7 @@ msgstr "Mostrare l'icona nell'area di notifica"
 #: ../gui.glade.h:36
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
-"Rimani nella modalità 'scorri' e 'ignora' fintanto che la penne è "
+"Rimani nella modalità 'scorri' e 'ignora' fintanto che la penna è "
 "all'interno del range"
 
 #: ../gui.glade.h:37
@@ -616,7 +616,7 @@ msgstr "_Shift"
 
 #: ../gui.glade.h:56
 msgid "optimize for left-handed operation )"
-msgstr "ottimizza operazioni per mancini"
+msgstr "ottimizza operazioni per mancini )"
 
 #: ../easystroke.desktop.in.h:1
 msgid "Control your desktop using mouse gestures"
