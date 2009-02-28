@@ -674,7 +674,7 @@ void Grabber::XiDevice::fake_button(int b, bool press) {
 	if (verbosity >= 3)
 		printf("fake xi %s: %d -> %d\n", press ? "press" : "release", b2, b);
 	if (!xi_15)
-		XTestFakeButtonEvent(dpy, b2, press, CurrentTime);
+		fake_core_button(b2, press);
 }
 
 std::string Grabber::get_wm_class(Window w) {

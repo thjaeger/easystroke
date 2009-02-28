@@ -113,9 +113,13 @@ static Trace *init_trace() {
 static void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 static void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
+void fake_core_button(guint b, bool press) {
+	XTestFakeButtonEvent(dpy, b, press, CurrentTime);
+}
+
 static void fake_click(guint b) {
-	XTestFakeButtonEvent(dpy, b, True, CurrentTime);
-	XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+	fake_core_button(b, true);
+	fake_core_button(b, false);
 }
 
 static std::list<sigc::slot<void> > queued;
@@ -389,7 +393,7 @@ static void remap_grabs(const std::map<guint, guint> &map) {
 	for (std::set<guint>::iterator i = to_release.begin(); i != to_release.end(); ++i) {
 		if (verbosity >= 3)
 			printf("fake release: %d\n", *i);
-		XTestFakeButtonEvent(dpy, *i, False, CurrentTime);
+		fake_core_button(*i, false);
 	}
 	for (std::set<guint>::iterator i = to_ungrab.begin(); i != to_ungrab.end(); ++i) {
 		if (verbosity >= 3)
@@ -399,7 +403,7 @@ static void remap_grabs(const std::map<guint, guint> &map) {
 	for (std::set<guint>::iterator i = to_press.begin(); i != to_press.end(); ++i) {
 		if (verbosity >= 3)
 			printf("fake press: %d\n", *i);
-		XTestFakeButtonEvent(dpy, *i, True, CurrentTime);
+		fake_core_button(*i, true);
 	}
 	for (std::set<guint>::iterator i = to_grab.begin(); i != to_grab.end(); ++i) {
 		if (verbosity >= 3)
@@ -599,7 +603,7 @@ public:
 	virtual void press_core(guint b, Time t, bool xi) {
 		replay(t);
 		if (!xi_15)
-			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+			fake_core_button(b, false);
 	}
 	virtual void release(guint b, RTriple e) {
 		if (!in_proximity && !xinput_pressed.size())
@@ -652,7 +656,7 @@ public:
 	virtual void press_core(guint b, Time t, bool xi) {
 		replay(t);
 		if (!xi_15)
-			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+			fake_core_button(b, false);
 	}
 	virtual void press(guint b, RTriple e) {
 		if (b >= 4 && b <= 7)
@@ -769,7 +773,7 @@ public:
 	}
 	virtual void press(guint b, RTriple e) {
 		if (!xi_15 && pointer_map.count(b))
-			XTestFakeButtonEvent(dpy, b, False, CurrentTime);
+			fake_core_button(b,false);
 		click_time = 0;
 		remap_from = 0;
 		replay_button = 0;
@@ -824,7 +828,7 @@ public:
 	}
 	virtual void release(guint b, RTriple e) {
 		if (!xi_15 && pointer_map.count(b) && pointer_map[b])
-			XTestFakeButtonEvent(dpy, pointer_map[b], False, CurrentTime);
+			fake_core_button(pointer_map[b], false);
 		if (xinput_pressed.size() == 0) {
 			reset_buttons(false);
 			if (e->t < click_time + 250 && b == replay_button) {

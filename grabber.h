@@ -49,6 +49,7 @@ bool has_atom(Window w, Atom prop, Atom value);
 
 void queue(sigc::slot<void> f);
 std::string select_window();
+void fake_core_button(guint b, bool press);
 
 class Grabber {
 	friend class Handler;
