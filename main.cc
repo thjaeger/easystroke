@@ -1633,10 +1633,15 @@ void Main::handle_enter_leave(XEvent &ev) {
 
 static class PresenceWatcher : public Timeout {
 	virtual void timeout() {
-		XDevice *dev = current_dev ? current_dev->dev : 0;
-		grabber->update_device_list();
-		if (dev && !grabber->get_xi_dev(dev->device_id))
-			bail_out();
+		if (handler->idle() || !current_dev) {
+			grabber->update_device_list();
+		} else {
+			XID device_id = current_dev->dev->device_id;
+			grabber->update_device_list();
+			current_dev = grabber->get_xi_dev(device_id);
+			if (!current_dev)
+				bail_out();
+		}
 		win->prefs_tab->update_device_list();
 	}
 } presence_watcher;
