@@ -290,11 +290,10 @@ Prefs::Prefs() {
 	widgets->get_widget("treeview_devices", dtv);
 	widgets->get_widget("treeview_extra", etv);
 
-	new Sensitive(xinput_v, "check_timing_workaround");
-	new Sensitive(xinput_v, "check_ignore_grab");
 	new Sensitive(xinput_v, "hbox_timeout_profile");
-	new Sensitive(xinput_v, "check_timeout_gestures");
-	new Sensitive(xinput_v, "treeview_devices");
+	new Sensitive(xinput_v, "frame_advanced1");
+	new Sensitive(xinput_v, "frame_advanced2");
+	new Sensitive(xinput_v, "frame_advanced3");
 	new Sensitive(*fun2(&and_, xinput_v, *fun(&is_custom, prefs.timeout_profile)), "hbox_timeout");
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
