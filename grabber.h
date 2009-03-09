@@ -20,6 +20,8 @@
 #include <map>
 #include <X11/extensions/XInput.h>
 
+#define MAX_BUTTONS 256
+
 class XAtom {
 	const char *name;
 	Atom atom;

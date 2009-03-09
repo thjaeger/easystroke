@@ -504,7 +504,6 @@ void Grabber::grab_xi_devs(bool grab) {
 void Grabber::XiDevice::update_pointer_mapping() {
 	if (!xi_15)
 		return;
-#define MAX_BUTTONS 256
 	unsigned char map[MAX_BUTTONS];
 	int n = XGetDeviceButtonMapping(dpy, dev, map, MAX_BUTTONS);
 	inv_map.clear();

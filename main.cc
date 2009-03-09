@@ -67,7 +67,7 @@ static char **argv;
 
 static Window current_app = 0, ping_window = 0;
 static boost::shared_ptr<Trace> trace;
-static std::map<guint, guint> pointer_map;
+static std::map<guint, guint> pointer_map, core_inv_map;
 static int mapping_events = 0;
 
 class Handler;
@@ -114,6 +114,8 @@ static void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
 static void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
 
 void fake_core_button(guint b, bool press) {
+	if (!grabber->xinput && core_inv_map.count(b))
+		b = core_inv_map[b];
 	XTestFakeButtonEvent(dpy, b, press, CurrentTime);
 }
 
@@ -438,15 +440,27 @@ static void remap_pointer() {
 	mapping_events++;
 }
 
+static void update_core_mapping() {
+	unsigned char map[MAX_BUTTONS];
+	int n = XGetPointerMapping(dpy, map, MAX_BUTTONS);
+	core_inv_map.clear();
+	for (int i = n-1; i; i--)
+		if (map[i] == i+1)
+			core_inv_map.erase(i+1);
+		else
+			core_inv_map[map[i]] = i+1;
+}
+
 static void reset_buttons(bool force) {
+	if (!grabber->xinput)
+		return;
 	if (!pointer_map.size() && !force)
 		return;
 	if (xi_15) {
 		pointer_map.clear();
 		remap_pointer();
 	} else {
-		if (grabber->xinput)
-			remap_grabs(std::map<guint, guint>());
+		remap_grabs(std::map<guint, guint>());
 		if (force)
 			remap_pointer();
 	}
@@ -1183,6 +1197,8 @@ public:
 class IdleHandler : public Handler {
 protected:
 	virtual void init() {
+		if (!grabber->xinput)
+			update_core_mapping();
 		reset_buttons(true);
 	}
 	virtual void press_core(guint b, Time t, bool xi) {
@@ -1732,6 +1748,10 @@ void Main::handle_event(XEvent &ev) {
 	case MappingNotify:
 		if (ev.xmapping.request != MappingPointer)
 			return;
+		if (!grabber->xinput) {
+			update_core_mapping();
+			return;
+		}
 		if (mapping_events) {
 			mapping_events--;
 			return;
