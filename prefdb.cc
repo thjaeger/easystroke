@@ -138,6 +138,7 @@ void PrefDB::timeout() {
 		boost::archive::text_oarchive oa(ofs);
 		const PrefDB *me = this;
 		oa << *me;
+		ofs.close();
 		if (rename(tmp.c_str(), filename.c_str()))
 			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)

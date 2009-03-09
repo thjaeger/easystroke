@@ -216,6 +216,7 @@ void ActionDBWatcher::timeout() {
 		ofstream ofs(tmp.c_str());
 		boost::archive::text_oarchive oa(ofs);
 		oa << (const ActionDB &)actions;
+		ofs.close();
 		if (rename(tmp.c_str(), filename.c_str()))
 			throw std::runtime_error(_("rename() failed"));
 		if (verbosity >= 2)
