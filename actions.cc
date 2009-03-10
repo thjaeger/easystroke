@@ -23,6 +23,36 @@
 
 #include <typeinfo>
 
+bool TreeViewMulti::on_button_press_event(GdkEventButton* event) {
+	int cell_x, cell_y;
+	pending = (get_path_at_pos(event->x, event->y, path, column, cell_x, cell_y))
+		&& (get_selection()->is_selected(path))
+		&& !(event->state & (GDK_CONTROL_MASK|GDK_SHIFT_MASK));
+	return Gtk::TreeView::on_button_press_event(event);
+}
+
+bool TreeViewMulti::on_button_release_event(GdkEventButton* event) {
+	if (pending) {
+		pending = false;
+		set_cursor(path, *column, false);
+	}
+	return Gtk::TreeView::on_button_release_event(event);
+}
+
+void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context) {
+	pending = false;
+	if (get_selection()->count_selected_rows() <= 1)
+		return Gtk::TreeView::on_drag_begin(context);
+	Glib::RefPtr<Gdk::Pixbuf> pb = render_icon(Gtk::Stock::DND_MULTIPLE, Gtk::ICON_SIZE_DND);
+	context->set_icon(pb, pb->get_width(), pb->get_height());
+}
+
+bool negate(bool b) { return !b; }
+
+TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
+	get_selection()->set_select_function(sigc::group(&negate, sigc::ref(pending)));
+}
+
 class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
 	CellRendererTextish *parent;
 	Glib::ustring path;
@@ -151,14 +181,16 @@ const char *type_info_to_name(const std::type_info *info) {
 }
 
 Actions::Actions() :
-	tv(0),
 	apps_view(0),
 	editing_new(false),
 	editing(false),
 	action_list(actions.get_root())
 {
-	widgets->get_widget("treeview_actions", tv);
+	Gtk::ScrolledWindow *sw;
+	widgets->get_widget("scrolledwindow_actions", sw);
 	widgets->get_widget("treeview_apps", apps_view);
+	sw->add(tv);
+	tv.show();
 
 	Gtk::Button *button_add, *button_add_app, *button_add_group;
 	widgets->get_widget("button_add_action", button_add);
@@ -178,29 +210,29 @@ Actions::Actions() :
 	button_remove_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_remove_app));
 	button_reset_actions->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_reset_actions));
 
-	tv->signal_cursor_changed().connect(sigc::mem_fun(*this, &Actions::on_cursor_changed));
-	tv->signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
-	tv->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_selection_changed));
+	tv.signal_cursor_changed().connect(sigc::mem_fun(*this, &Actions::on_cursor_changed));
+	tv.signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
+	tv.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_selection_changed));
 
 	tm = Store::create(cols, this);
 
-	tv->get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-	tv->set_row_separator_func(sigc::mem_fun(*this, &Actions::on_row_separator));
+	tv.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
+	tv.set_row_separator_func(sigc::mem_fun(*this, &Actions::on_row_separator));
 
 	int n;
-	n = tv->append_column(_("Stroke"), cols.stroke);
-	tv->get_column(n-1)->set_sort_column(cols.id);
+	n = tv.append_column(_("Stroke"), cols.stroke);
+	tv.get_column(n-1)->set_sort_column(cols.id);
 	tm->set_sort_func(cols.id, sigc::mem_fun(*this, &Actions::compare_ids));
 	tm->set_default_sort_func(sigc::mem_fun(*this, &Actions::compare_ids));
 	tm->set_sort_column(Gtk::TreeSortable::DEFAULT_SORT_COLUMN_ID, Gtk::SORT_ASCENDING);
 
-	n = tv->append_column(_("Name"), cols.name);
-	Gtk::CellRendererText *name_renderer = dynamic_cast<Gtk::CellRendererText *>(tv->get_column_cell_renderer(n-1));
+	n = tv.append_column(_("Name"), cols.name);
+	Gtk::CellRendererText *name_renderer = dynamic_cast<Gtk::CellRendererText *>(tv.get_column_cell_renderer(n-1));
 	name_renderer->property_editable() = true;
 	name_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_name_edited));
 	name_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
 	name_renderer->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
-	Gtk::TreeView::Column *col_name = tv->get_column(n-1);
+	Gtk::TreeView::Column *col_name = tv.get_column(n-1);
 	col_name->set_sort_column(cols.name);
 //	col_name->add_attribute(name_renderer->property_text(), cols.name);
 	col_name->set_cell_data_func(*name_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_name));
@@ -218,14 +250,14 @@ Actions::Actions() :
 	type_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_something_editing_started));
 	type_renderer->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 
-	n = tv->append_column(_("Type"), *type_renderer);
-	Gtk::TreeView::Column *col_type = tv->get_column(n-1);
+	n = tv.append_column(_("Type"), *type_renderer);
+	Gtk::TreeView::Column *col_type = tv.get_column(n-1);
 	col_type->add_attribute(type_renderer->property_text(), cols.type);
 	col_type->set_cell_data_func(*type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_type));
 
 	CellRendererTextish *arg_renderer = Gtk::manage(new CellRendererTextish);
-	n = tv->append_column(_("Details"), *arg_renderer);
-	Gtk::TreeView::Column *col_arg = tv->get_column(n-1);
+	n = tv.append_column(_("Details"), *arg_renderer);
+	Gtk::TreeView::Column *col_arg = tv.get_column(n-1);
 	col_arg->add_attribute(arg_renderer->property_text(), cols.arg);
 	col_arg->set_cell_data_func(*arg_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_arg));
 	arg_renderer->property_editable() = true;
@@ -236,9 +268,9 @@ Actions::Actions() :
 	arg_renderer->items = Misc::types;
 
 	update_action_list();
-	tv->set_model(tm);
-	tv->enable_model_drag_source();
-	tv->enable_model_drag_dest();
+	tv.set_model(tm);
+	tv.enable_model_drag_source();
+	tv.enable_model_drag_dest();
 
 	check_show_deleted->signal_toggled().connect(sigc::mem_fun(*this, &Actions::update_action_list));
 	expander_apps->property_expanded().signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
@@ -421,7 +453,7 @@ bool Actions::Store::drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, 
 }
 
 void Actions::on_type_edited(const Glib::ustring &path, const Glib::ustring &new_text) {
-	tv->grab_focus();
+	tv.grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
 	Type new_type = from_name(new_text);
 	Type old_type = from_name(row[cols.type]);
@@ -473,7 +505,7 @@ void Actions::on_type_edited(const Glib::ustring &path, const Glib::ustring &new
 }
 
 void Actions::on_button_delete() {
-	int n = tv->get_selection()->count_selected_rows();
+	int n = tv.get_selection()->count_selected_rows();
 
 	Glib::ustring str;
 	if (n == 1)
@@ -496,7 +528,7 @@ void Actions::on_button_delete() {
 	if (!ok)
 		return;
 
-	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+	std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
 		Gtk::TreeRow row(*tm->get_iter(*i));
 		action_list->remove(row[cols.id]);
@@ -572,7 +604,7 @@ void Actions::on_remove_app() {
 }
 
 void Actions::on_reset_actions() {
-	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+	std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
 	for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
 		Gtk::TreeRow row(*tm->get_iter(*i));
 		action_list->reset(row[cols.id]);
@@ -744,29 +776,29 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 void Actions::on_button_record() {
 	Gtk::TreeModel::Path path;
 	Gtk::TreeViewColumn *col;
-	tv->get_cursor(path, col);
+	tv.get_cursor(path, col);
 	on_row_activated(path, col);
 }
 
 void Actions::on_cursor_changed() {
 	Gtk::TreeModel::Path path;
 	Gtk::TreeViewColumn *col;
-	tv->get_cursor(path, col);
+	tv.get_cursor(path, col);
 	Gtk::TreeRow row(*tm->get_iter(path));
 }
 
 Gtk::TreeRow Actions::get_selected_row() {
-	std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+	std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
 	return Gtk::TreeRow(*tm->get_iter(*paths.begin()));
 }
 
 void Actions::on_selection_changed() {
-	int n = tv->get_selection()->count_selected_rows();
+	int n = tv.get_selection()->count_selected_rows();
 	button_record->set_sensitive(n == 1);
 	button_delete->set_sensitive(n >= 1);
 	bool resettable = false;
 	if (n) {
-		std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+		std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
 		for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
 			Gtk::TreeRow row(*tm->get_iter(*i));
 			if (action_list->resettable(row[cols.id])) {
@@ -781,8 +813,8 @@ void Actions::on_selection_changed() {
 void Actions::on_button_new() {
 	editing_new = true;
 	Unique *before = 0;
-	if (tv->get_selection()->count_selected_rows()) {
-		std::vector<Gtk::TreePath> paths = tv->get_selection()->get_selected_rows();
+	if (tv.get_selection()->count_selected_rows()) {
+		std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
 		Gtk::TreeIter i = tm->get_iter(paths[paths.size()-1]);
 		i++;
 		if (i != tm->children().end())
@@ -810,7 +842,7 @@ bool Actions::do_focus(Unique *id, Gtk::TreeViewColumn *col, bool edit) {
 		Gtk::TreeModel::Children chs = tm->children();
 		for (Gtk::TreeIter i = chs.begin(); i != chs.end(); ++i)
 			if ((*i)[cols.id] == id) {
-				tv->set_cursor(Gtk::TreePath(*i), *col, edit);
+				tv.set_cursor(Gtk::TreePath(*i), *col, edit);
 			}
 	}
 	return false;
@@ -818,7 +850,7 @@ bool Actions::do_focus(Unique *id, Gtk::TreeViewColumn *col, bool edit) {
 
 void Actions::focus(Unique *id, int col, bool edit) {
 	editing = false;
-	Glib::signal_idle().connect(sigc::bind(sigc::mem_fun(*this, &Actions::do_focus), id, tv->get_column(col), edit));
+	Glib::signal_idle().connect(sigc::bind(sigc::mem_fun(*this, &Actions::do_focus), id, tv.get_column(col), edit));
 }
 
 void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
@@ -889,7 +921,7 @@ void Actions::on_something_editing_started(Gtk::CellEditable* editable, const Gl
 }
 
 void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
-	tv->grab_focus();
+	tv.grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
 	if (from_name(row[cols.type]) != BUTTON)
 		return;

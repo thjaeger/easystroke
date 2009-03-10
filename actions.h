@@ -22,6 +22,17 @@ class Unique;
 class Win;
 class ActionListDiff;
 
+class TreeViewMulti : public Gtk::TreeView {
+	bool pending;
+	Gtk::TreePath path;
+	Gtk::TreeViewColumn *column;
+	virtual bool on_button_press_event(GdkEventButton* event);
+	virtual bool on_button_release_event(GdkEventButton* event);
+	virtual void on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context);
+public:
+	TreeViewMulti();
+};
+
 class Actions {
 public:
 	Actions();
@@ -99,7 +110,7 @@ private:
 		bool drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData& selection);
 	};
 	ModelColumns cols;
-	Gtk::TreeView *tv;
+	TreeViewMulti tv;
 	Glib::RefPtr<Store> tm;
 
 	Gtk::TreeView *apps_view;
