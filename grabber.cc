@@ -248,7 +248,6 @@ extern "C" {
 static int button_events_n = 3;
 
 bool Grabber::init_xi() {
-	xi_devs = 0;
 	if (no_xi)
 		return false;
 	int nFEV, nFER;
@@ -273,33 +272,29 @@ bool Grabber::init_xi() {
 	if (!update_device_list())
 		return false;
 
-	if (!xi_devs_n)
+	if (!xi_devs.size())
 		printf("Warning: No suitable XInput devices found\n");
 
-	xinput_v.set(xi_devs_n);
+	xinput_v.set(xi_devs.size());
 
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_pressure) {
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+		if (i->second->supports_pressure) {
 			supports_pressure.set(true);
 			break;
 		}
 
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->supports_proximity) {
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+		if (i->second->supports_proximity) {
 			supports_proximity.set(true);
 			break;
 		}
 	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
 
-	return xi_devs_n;
+	return true;
 }
 
 bool Grabber::update_device_list() {
-	if (xi_devs) {
-		for (int i = 0; i < xi_devs_n; i++)
-			XCloseDevice(dpy, xi_devs[i]->dev);
-		delete[] xi_devs;
-	}
+	xi_devs.clear();
 
 	int n;
 	XDeviceInfo *devs = XListInputDevices(dpy, &n);
@@ -310,86 +305,23 @@ bool Grabber::update_device_list() {
 
 	current_dev = NULL;
 
-	xi_devs = new XiDevice *[n];
-	xi_devs_n = 0;
-
 	for (int i = 0; i < n; i++) {
 		XDeviceInfo *dev = devs + i;
 
 		if (dev->use == IsXKeyboard || dev->use == IsXPointer)
 			continue;
 
-		XiDevice *xi_dev = new XiDevice;
-
-		xi_dev->num_buttons = 0;
-		xi_dev->supports_pressure = false;
 		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
-		for (int j = 0; j < dev->num_classes; j++) {
+		for (int j = 0; j < devs[i].num_classes; j++) {
 			if (any->c_class == ButtonClass) {
-				XButtonInfo *info = (XButtonInfo *)any;
-				xi_dev->num_buttons = info->num_buttons;
-			}
-			if (any->c_class == ValuatorClass) {
-				XValuatorInfo *info = (XValuatorInfo *)any;
-				if (info->num_axes >= 2) {
-					xi_dev->min_x = info->axes[0].min_value;
-					xi_dev->max_x = info->axes[0].max_value;
-					xi_dev->min_y = info->axes[1].min_value;
-					xi_dev->max_y = info->axes[1].max_value;
+				try {
+					xi_devs[dev->id].reset(new XiDevice(this, dev));
+				} catch (XiDevice::OpenException &e) {
+					// TODO
 				}
-				if (info->num_axes >= 3) {
-					xi_dev->supports_pressure = true;
-					xi_dev->pressure_min = info->axes[2].min_value;
-					xi_dev->pressure_max = info->axes[2].max_value;
-				}
-				xi_dev->absolute = info->mode == Absolute;
 			}
 			any = (XAnyClassPtr) ((char *) any + any->length);
 		}
-
-		if (!xi_dev->num_buttons) {
-			delete xi_dev;
-			continue;
-		}
-
-		xi_dev->dev = XOpenDevice(dpy, dev->id);
-		if (!xi_dev->dev) {
-			printf(_("Opening Device %s failed.\n"), dev->name);
-			delete xi_dev;
-			continue;
-		}
-		xi_dev->name = dev->name;
-
-		xi_dev->valuators[0] = 0;
-		xi_dev->valuators[1] = 0;
-
-		DeviceButtonPress(xi_dev->dev, event_type[DOWN], xi_dev->events[DOWN]);
-		DeviceButtonRelease(xi_dev->dev, event_type[UP], xi_dev->events[UP]);
-		DeviceButtonMotion(xi_dev->dev, event_type[BUTTON_MOTION], xi_dev->events[BUTTON_MOTION]);
-		DeviceMotionNotify(xi_dev->dev, event_type[MOTION], xi_dev->events[MOTION]);
-
-		int prox_in, prox_out;
-		ProximityIn(xi_dev->dev, prox_in, xi_dev->events[PROX_IN]);
-		ProximityOut(xi_dev->dev, prox_out, xi_dev->events[PROX_OUT]);
-		xi_dev->supports_proximity = xi_dev->events[PROX_IN] && xi_dev->events[PROX_OUT];
-		if (xi_dev->supports_proximity) {
-			event_type[PROX_IN] = prox_in;
-			event_type[PROX_OUT] = prox_out;
-		}
-		xi_dev->all_events_n = xi_dev->supports_proximity ? 6 : 4;
-
-		xi_devs[xi_devs_n++] = xi_dev;
-
-		XEventClass evs[0];
-		DeviceMappingNotify(xi_dev->dev, mapping_notify, evs[0]);
-		XSelectExtensionEvent(dpy, ROOT, evs, 1);
-
-		xi_dev->update_pointer_mapping();
-
-		if (verbosity >= 1)
-			printf("Opened Device \"%s\" (%s, %s proximity).\n", dev->name,
-					xi_dev->absolute ? "absolute" : "relative",
-					xi_dev->supports_proximity ? "supports" : "does not support");
 	}
 	XFreeDeviceList(devs);
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update_excluded)));
@@ -403,24 +335,90 @@ bool Grabber::update_device_list() {
 
 void Grabber::update_excluded() {
 	suspend();
-	for (int i = 0; i < xi_devs_n; i++)
-		xi_devs[i]->active = !prefs.excluded_devices.ref().count(xi_devs[i]->name);
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+		i->second->active = !prefs.excluded_devices.ref().count(i->second->name);
 	resume();
 }
 
+Grabber::XiDevice::OpenException::OpenException(const char *name) {
+	// TODO
+	if (asprintf(&msg, _("Opening Device %s failed.\n"), name) == -1)
+		msg = NULL;
+}
+
+Grabber::XiDevice::~XiDevice() { XCloseDevice(dpy, dev); }
+
+Grabber::XiDevice::XiDevice(Grabber *parent, XDeviceInfo *dev_info) : supports_pressure(false), num_buttons(0) {
+	XAnyClassPtr any = (XAnyClassPtr) (dev_info->inputclassinfo);
+	for (int j = 0; j < dev_info->num_classes; j++) {
+		if (any->c_class == ButtonClass) {
+			XButtonInfo *info = (XButtonInfo *)any;
+			num_buttons = info->num_buttons;
+		}
+		if (any->c_class == ValuatorClass) {
+			XValuatorInfo *info = (XValuatorInfo *)any;
+			if (info->num_axes >= 2) {
+				min_x = info->axes[0].min_value;
+				max_x = info->axes[0].max_value;
+				min_y = info->axes[1].min_value;
+				max_y = info->axes[1].max_value;
+			}
+			if (info->num_axes >= 3) {
+				supports_pressure = true;
+				pressure_min = info->axes[2].min_value;
+				pressure_max = info->axes[2].max_value;
+			}
+			absolute = info->mode == Absolute;
+		}
+		any = (XAnyClassPtr) ((char *) any + any->length);
+	}
+
+	dev = XOpenDevice(dpy, dev_info->id);
+	if (!dev)
+		throw OpenException(dev_info->name);
+	name = dev_info->name;
+
+	valuators[0] = 0;
+	valuators[1] = 0;
+
+	DeviceButtonPress(dev, parent->event_type[DOWN], events[DOWN]);
+	DeviceButtonRelease(dev, parent->event_type[UP], events[UP]);
+	DeviceButtonMotion(dev, parent->event_type[BUTTON_MOTION], events[BUTTON_MOTION]);
+	DeviceMotionNotify(dev, parent->event_type[MOTION], events[MOTION]);
+
+	int prox_in, prox_out;
+	ProximityIn(dev, prox_in, events[PROX_IN]);
+	ProximityOut(dev, prox_out, events[PROX_OUT]);
+	supports_proximity = events[PROX_IN] && events[PROX_OUT];
+	if (supports_proximity) {
+		parent->event_type[PROX_IN] = prox_in;
+		parent->event_type[PROX_OUT] = prox_out;
+	}
+	all_events_n = supports_proximity ? 6 : 4;
+
+	XEventClass evs[0];
+	DeviceMappingNotify(dev, parent->mapping_notify, evs[0]);
+	XSelectExtensionEvent(dpy, ROOT, evs, 1);
+
+	update_pointer_mapping();
+
+	if (verbosity >= 1)
+		printf("Opened Device \"%s\" (%s, %s proximity).\n", dev_info->name,
+				absolute ? "absolute" : "relative",
+				supports_proximity ? "supports" : "does not support");
+}
+
 Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->dev->device_id == id)
-			return xi_devs[i];
-	return 0;
+	DeviceMap::iterator i = xi_devs.find(id);
+	return i == xi_devs.end() ? NULL : i->second.get();
 }
 
 unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
 	unsigned int mask = 0;
-	for (int i = 0; i < xi_devs_n; i++) {
-		if (!xi_devs[i]->active)
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i) {
+		if (!i->second->active)
 			continue;
-		XDeviceState *state = XQueryDeviceState(dpy, xi_devs[i]->dev);
+		XDeviceState *state = XQueryDeviceState(dpy, i->second->dev);
 		if (!state)
 			continue;
 		XInputClass *c = state->data;
@@ -436,7 +434,7 @@ unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
 		}
 		XFreeDeviceState(state);
 		if (mask) {
-			dev = xi_devs[i];
+			dev = i->second.get();
 			return mask;
 		}
 	}
@@ -461,10 +459,10 @@ void Grabber::grab_xi(bool grab) {
 	if (!xi_grabbed == !grab)
 		return;
 	xi_grabbed = grab;
-	for (int i = 0; i < xi_devs_n; i++)
-		if (xi_devs[i]->active)
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+		if (i->second->active)
 			for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
-				xi_devs[i]->grab_button(*j, grab);
+				i->second->grab_button(*j, grab);
 }
 
 void Grabber::regrab_xi() {
@@ -497,8 +495,8 @@ void Grabber::grab_xi_devs(bool grab) {
 	if (!xi_devs_grabbed == !grab)
 		return;
 	xi_devs_grabbed = grab;
-	for (int i = 0; i < xi_devs_n; i++)
-		xi_devs[i]->grab_device(grab);
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+		i->second->grab_device(grab);
 }
 
 void Grabber::XiDevice::update_pointer_mapping() {
@@ -521,13 +519,13 @@ void Grabber::select_proximity() {
 		if (!proximity_selected)
 			in_proximity = false;
 	}
-	XEventClass evs[2*xi_devs_n+1];
+	XEventClass evs[2*xi_devs.size()+1];
 	int n = 0;
 	evs[n++] = presence_class;
-	for (int i = 0; i < xi_devs_n; i++) {
-		if (proximity_selected && xi_devs[i]->supports_proximity) {
-			evs[n++] = xi_devs[i]->events[PROX_IN];
-			evs[n++] = xi_devs[i]->events[PROX_OUT];
+	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i) {
+		if (proximity_selected && i->second->supports_proximity) {
+			evs[n++] = i->second->events[PROX_IN];
+			evs[n++] = i->second->events[PROX_OUT];
 		}
 	}
 	// NB: Unselecting doesn't actually work!
@@ -647,8 +645,8 @@ void Grabber::update() {
 
 void Grabber::release_all(int n) {
 	if (xi_15) {
-		for (int i = 0; i < xi_devs_n; i++)
-			xi_devs[i]->release_all();
+		for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+			i->second->release_all();
 	} else {
 		if (!n)
 			n = XGetPointerMapping(dpy, 0, 0);

@@ -19,7 +19,7 @@
 #include "main.h"
 #include "prefdb.h"
 #include <glibmm/i18n.h>
-#include "grabber.h" // TODO???
+#include "grabber.h"
 
 #include <typeinfo>
 

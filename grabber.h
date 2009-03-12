@@ -69,6 +69,13 @@ public:
 	void select_proximity();
 
 	struct XiDevice {
+		class OpenException : public std::exception {
+			char *msg;
+			public:
+			OpenException(const char *name);
+			virtual const char* what() const throw() { return msg ? msg : "Open Failed"; }
+			~OpenException() throw() { free(msg); }
+		};
 		std::string name;
 		std::map<guint, guint> inv_map;
 		XDevice *dev;
@@ -81,6 +88,8 @@ public:
 		bool absolute;
 		int valuators[2];
 		int num_buttons;
+		XiDevice(Grabber *, XDeviceInfo *);
+		~XiDevice();
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
@@ -99,8 +108,8 @@ public:
 	int event_presence;
 	XEventClass presence_class;
 
-	XiDevice **xi_devs;
-	int xi_devs_n;
+	typedef std::map<XID, boost::shared_ptr<XiDevice> > DeviceMap;
+	DeviceMap xi_devs;
 	int nMajor;
 private:
 	bool init_xi();
