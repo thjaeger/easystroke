@@ -8,14 +8,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-02-15 15:23-0500\n"
-"PO-Revision-Date: 2009-01-24 19:24-0500\n"
-"Last-Translator: Thomas Jaeger <ThJaeger@gmail.com>\n"
+"POT-Creation-Date: 2009-03-12 20:23-0400\n"
+"PO-Revision-Date: 2009-02-15 21:00+0000\n"
+"Last-Translator: Tom Jaeger <Unknown>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2009-03-13 00:20+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
 #, c-format
@@ -47,16 +49,16 @@ msgstr "Standard"
 msgid "Error: Couldn't read action database: %s.\n"
 msgstr "Fehler: Konnte Aktionendatenbank nicht laden: %s.\n"
 
-#: ../actiondb.cc:220
+#: ../actiondb.cc:221
 msgid "rename() failed"
 msgstr "rename() fehlgeschlagen"
 
-#: ../actiondb.cc:224
+#: ../actiondb.cc:225
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "Fehler: Konnte Aktionendatenbank nicht speichern: %s.\n"
 
-#: ../actiondb.cc:228 ../prefdb.cc:148
+#: ../actiondb.cc:229 ../prefdb.cc:151
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
 "directory and that you have write access to it.  You can change the "
@@ -67,7 +69,7 @@ msgstr ""
 "Konfigurationsverzeichnis mit den Kommandozeilenoptionen -c oder --config-"
 "dir verändern."
 
-#: ../actiondb.cc:231
+#: ../actiondb.cc:232
 msgid "actions"
 msgstr "Aktionen"
 
@@ -95,13 +97,13 @@ msgstr "Scrollen"
 msgid "Ignore"
 msgstr "Ignorieren"
 
-#: ../actions.cc:135 ../prefs.cc:309 ../prefs.cc:333
+#: ../actions.cc:135 ../prefs.cc:310 ../prefs.cc:334
 msgid "Button"
 msgstr "Maustaste"
 
 #: ../actions.cc:136
 msgid "Misc"
-msgstr "Verschiedene"
+msgstr "Sonstige"
 
 #: ../actions.cc:191 ../stats.cc:32 ../stats.cc:38
 msgid "Stroke"
@@ -211,7 +213,7 @@ msgstr ""
 msgid "Any Modifier"
 msgstr "Beliebiger Modfier"
 
-#: ../actions.cc:936 ../prefs.cc:450
+#: ../actions.cc:936 ../prefs.cc:451
 msgid "Button %1"
 msgstr "Maustaste %1"
 
@@ -228,41 +230,41 @@ msgstr "'composite' nicht verfügbar"
 msgid "Opening Device %s failed.\n"
 msgstr "Öffnen des Gerätes %s fehlgeschlagen.\n"
 
-#: ../main.cc:107 ../main.cc:270 ../main.cc:1827
+#: ../main.cc:107 ../main.cc:276 ../main.cc:1865
 #, c-format
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#: ../main.cc:271
+#: ../main.cc:277
 #, c-format
 msgid "Is easystroke already running?\n"
 msgstr "Ist easystroke bereits gestartet?\n"
 
-#: ../main.cc:273
+#: ../main.cc:279
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
-#: ../main.cc:294
+#: ../main.cc:300
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
 
-#: ../main.cc:730
+#: ../main.cc:748
 #, c-format
 msgid "Error: You need XInput to use advanced gestures\n"
 msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
 
-#: ../main.cc:1252
+#: ../main.cc:1275
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-#: ../main.cc:1266
+#: ../main.cc:1294
 msgid "Tray icon disabled"
 msgstr "Tray-Symbol deaktiviert"
 
-#: ../main.cc:1267
+#: ../main.cc:1295
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
@@ -270,36 +272,36 @@ msgstr ""
 "Um den Konfigurationsdialog wieder anzuzeigen, können Sie eine Aktion vom "
 "Typ Verschiedene..Anzeigen/Verstecken erstellen."
 
-#: ../main.cc:1325
+#: ../main.cc:1354
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Fehler bei der Initialisierung von D-BUS\n"
 
-#: ../main.cc:1363
+#: ../main.cc:1392
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
 
-#: ../main.cc:1528
+#: ../main.cc:1557
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Fehler: Konnte Konfigurationsverzeichnis nicht erstellen: \"%s\"\n"
 
-#: ../main.cc:1533
+#: ../main.cc:1562
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Fehler: \"%s\" ist kein Verzeichnis\n"
 
-#: ../prefdb.cc:144
+#: ../prefdb.cc:147
 #, c-format
 msgid "Error: Couldn't save preferences: %s.\n"
 msgstr "Fehler: Konnte Einstellungen nicht speichern: %s\n"
 
-#: ../prefdb.cc:151
+#: ../prefdb.cc:154
 msgid "preferences"
 msgstr "Einstellungen"
 
-#: ../prefdb.cc:217
+#: ../prefdb.cc:220
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Fehler: Konnte Einstellungen nicht laden.\n"
@@ -344,31 +346,31 @@ msgstr "Flick"
 msgid "Custom"
 msgstr "Benutzerdefiniert"
 
-#: ../prefs.cc:304
+#: ../prefs.cc:305
 msgid "Application (WM__CLASS)"
 msgstr "Anwendung (WM__CLASS)"
 
-#: ../prefs.cc:322
+#: ../prefs.cc:323
 msgid "Enabled"
 msgstr "Aktiv"
 
-#: ../prefs.cc:323
+#: ../prefs.cc:324
 msgid "Device"
 msgstr "Gerät"
 
-#: ../prefs.cc:347 ../prefs.cc:595
+#: ../prefs.cc:348 ../prefs.cc:596
 msgid "(window manager frame)"
 msgstr "(Rahmen des Window-Managers)"
 
-#: ../prefs.cc:348 ../prefs.cc:600 ../prefs.cc:623
+#: ../prefs.cc:349 ../prefs.cc:601 ../prefs.cc:624
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
-#: ../prefs.cc:430
+#: ../prefs.cc:431
 msgid "Select a Mouse or Pen Button"
 msgstr "Eine Maus- oder Stifttaste auswählen"
 
-#: ../prefs.cc:431
+#: ../prefs.cc:432
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
@@ -509,108 +511,112 @@ msgid "Scroll Speed"
 msgstr "Scrollgeschwindigkeit"
 
 #: ../gui.glade.h:31
+msgid "Show OSD"
+msgstr ""
+
+#: ../gui.glade.h:32
 msgid "Show deleted rows"
 msgstr "Zeige gelöschte Zeilen"
 
-#: ../gui.glade.h:32
+#: ../gui.glade.h:33
 msgid "Show last gesture in tray"
 msgstr "Zeige die letzte Geste im Tray"
 
-#: ../gui.glade.h:33
+#: ../gui.glade.h:34
 msgid "Show popups ("
 msgstr "Popus anzeigen ("
 
-#: ../gui.glade.h:34
+#: ../gui.glade.h:35
 msgid "Show popups on advanced gestures"
 msgstr "Popups bei Advanced Gestures anzeigen"
 
-#: ../gui.glade.h:35
+#: ../gui.glade.h:36
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
 
-#: ../gui.glade.h:36
+#: ../gui.glade.h:37
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Bleibe im 'Scrollen' oder 'Ignorieren' Modus solange der Stift in Reichweite "
 "ist"
 
-#: ../gui.glade.h:37
+#: ../gui.glade.h:38
 msgid "Timeout"
 msgstr "Timeout"
 
-#: ../gui.glade.h:38
+#: ../gui.glade.h:39
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
 
-#: ../gui.glade.h:39
+#: ../gui.glade.h:40
 msgid "Timeout profile"
 msgstr "Timeout-Profil"
 
-#: ../gui.glade.h:40
+#: ../gui.glade.h:41
 msgid "Width"
 msgstr "Breite"
 
-#: ../gui.glade.h:41
+#: ../gui.glade.h:42
 msgid "Work around timing issues on Wacom tablets and Tablet PCs"
 msgstr "Workaround für Timing-Problem auf Wacom Tablets und Tablet PCs"
 
-#: ../gui.glade.h:42
+#: ../gui.glade.h:43
 msgid "_Add Action"
 msgstr "Aktion hinzufügen"
 
-#: ../gui.glade.h:43
+#: ../gui.glade.h:44
 msgid "_Add Exception"
 msgstr "Ausnahme hinzufügen"
 
-#: ../gui.glade.h:44
+#: ../gui.glade.h:45
 msgid "_Alt"
 msgstr "Alt"
 
-#: ../gui.glade.h:45
+#: ../gui.glade.h:46
 msgid "_Control"
 msgstr "Strg"
 
-#: ../gui.glade.h:46
+#: ../gui.glade.h:47
 msgid "_Default"
 msgstr "Standard"
 
-#: ../gui.glade.h:47
+#: ../gui.glade.h:48
 msgid "_Delete Action(s)"
 msgstr "Aktion(en) löschen"
 
-#: ../gui.glade.h:48
+#: ../gui.glade.h:49
 msgid "_Delete Current"
 msgstr "Geste löschen"
 
-#: ../gui.glade.h:49
+#: ../gui.glade.h:50
 msgid "_Gesture Button"
 msgstr "Gesten-Maustaste"
 
-#: ../gui.glade.h:50
+#: ../gui.glade.h:51
 msgid "_Hide"
 msgstr "Verstecken"
 
-#: ../gui.glade.h:51
+#: ../gui.glade.h:52
 msgid "_History"
 msgstr "Verlauf"
 
-#: ../gui.glade.h:52
+#: ../gui.glade.h:53
 msgid "_Matrix"
 msgstr "Matrix"
 
-#: ../gui.glade.h:53
+#: ../gui.glade.h:54
 msgid "_Record Stroke"
 msgstr "Geste aufnehmen"
 
-#: ../gui.glade.h:54
+#: ../gui.glade.h:55
 msgid "_Remove Exception"
 msgstr "Ausnahme Entfernen"
 
-#: ../gui.glade.h:55
+#: ../gui.glade.h:56
 msgid "_Shift"
 msgstr "Umschalt"
 
-#: ../gui.glade.h:56
+#: ../gui.glade.h:57
 msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
 
