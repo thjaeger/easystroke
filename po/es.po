@@ -7,15 +7,15 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-03-12 20:23-0400\n"
-"PO-Revision-Date: 2009-02-15 21:00+0000\n"
+"POT-Creation-Date: 2009-03-09 15:55-0400\n"
+"PO-Revision-Date: 2009-03-13 06:27+0000\n"
 "Last-Translator: Paco Molinero <paco@byasl.com>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-03-13 00:20+0000\n"
+"X-Launchpad-Export-Date: 2009-03-15 07:20+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
@@ -201,7 +201,7 @@ msgstr "(Instante) "
 
 #: ../actions.cc:931
 msgid "(Click & Hold) "
-msgstr ""
+msgstr "(Pulsar y mantener) "
 
 #: ../actions.cc:933
 msgid "Any Modifier"
@@ -217,7 +217,7 @@ msgstr ""
 
 #: ../composite.cc:26
 msgid "'composite' not available"
-msgstr ""
+msgstr "«composición» no disponible"
 
 #: ../grabber.cc:357
 #, c-format
@@ -457,7 +457,7 @@ msgstr "Iniciar automáticamente easystroke"
 
 #: ../gui.glade.h:19
 msgid "Click & Hold"
-msgstr ""
+msgstr "Pulsar y mantener"
 
 #: ../gui.glade.h:20
 msgid "Color"
@@ -469,7 +469,7 @@ msgstr ""
 
 #: ../gui.glade.h:22
 msgid "Initial Timeout (ms)"
-msgstr ""
+msgstr "Pausa inicial (ms)"
 
 #: ../gui.glade.h:23
 msgid "Instant Gestures"
@@ -505,7 +505,7 @@ msgstr ""
 
 #: ../gui.glade.h:31
 msgid "Show OSD"
-msgstr ""
+msgstr "Mostrar OSD"
 
 #: ../gui.glade.h:32
 msgid "Show deleted rows"
