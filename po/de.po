@@ -207,7 +207,7 @@ msgstr "(Sofort) "
 
 #: ../actions.cc:931
 msgid "(Click & Hold) "
-msgstr ""
+msgstr "(Click & Hold) "
 
 #: ../actions.cc:933
 msgid "Any Modifier"
@@ -464,7 +464,7 @@ msgstr "Automatisch starten"
 
 #: ../gui.glade.h:19
 msgid "Click & Hold"
-msgstr ""
+msgstr "Click & Hold"
 
 #: ../gui.glade.h:20
 msgid "Color"
@@ -512,7 +512,7 @@ msgstr "Scrollgeschwindigkeit"
 
 #: ../gui.glade.h:31
 msgid "Show OSD"
-msgstr ""
+msgstr "OSD anzeigen"
 
 #: ../gui.glade.h:32
 msgid "Show deleted rows"
