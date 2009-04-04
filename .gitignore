@@ -14,6 +14,7 @@ po/el
 po/es
 po/fr
 po/it
+po/ja
 po/POTFILES.in
 po/*.pot
 easystroke.desktop
