@@ -72,6 +72,10 @@ void Composite::draw(Point p, Point q) {
 	int bw = (int)(width/2.0) + 2;
 	x1 -= bw; y1 -= bw;
 	x2 += bw; y2 += bw;
+	if (x1 < 0)
+		x1 = 0;
+	if (y1 < 0)
+		y1 = 0;
 	for (int i = x1/N; i<num_x && i<=x2/N; i++)
 		for (int j = y1/N; j<num_y && j<=y2/N; j++)
 			pieces[i][j]->invalidate(x1, y1, x2, y2);
