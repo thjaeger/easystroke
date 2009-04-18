@@ -274,7 +274,6 @@ static int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 			 e->minor_code == X_GrabDeviceButton)) {
 		if (!handler || Handler::idle()) {
 			printf(_("Error: %s\n"), e->request_code==X_GrabButton ? "A grab failed" : "An XInput grab failed");
-			printf(_("Is easystroke already running?\n"));
 		} else {
 			printf(_("Error: A grab failed.  Resetting...\n"));
 			bail_out();
@@ -1265,6 +1264,10 @@ static void do_run_by_name(RAction act) {
 }
 
 void run_by_name(const char *str) {
+	if (!strcmp(str, "")) {
+		win->show_hide();
+		return;
+	}
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
 			if (i->second.action)
@@ -1358,7 +1361,7 @@ static void send_dbus(char *str) {
 	dbus_g_proxy_call_no_reply(proxy, "send", G_TYPE_STRING, str, G_TYPE_INVALID);
 }
 
-bool start_dbus();
+int start_dbus();
 
 Main::Main() : kit(0) {
 	bindtextdomain("easystroke", is_dir("po") ? "po" : LOCALEDIR);
@@ -1392,6 +1395,11 @@ Main::Main() : kit(0) {
 		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
 	}
+	if (start_dbus() < 0) {
+		printf(_("Easystroke is already running, showing configuration window instead.\n"));
+		send_dbus("");
+		exit(EXIT_SUCCESS);
+	}
 	ROOT = DefaultRootWindow(dpy);
 
 	ping_window = XCreateSimpleWindow(dpy, ROOT, 0, 0, 1, 1, 0, 0, 0);
@@ -1417,7 +1425,6 @@ Main::Main() : kit(0) {
 	handler->init();
 	XTestGrabControl(dpy, True);
 
-	start_dbus();
 }
 
 extern const char *gui_buffer;

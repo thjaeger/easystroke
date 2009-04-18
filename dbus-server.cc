@@ -46,7 +46,7 @@ static void server_object_init(ServerObject *obj) {}
 
 G_DEFINE_TYPE(ServerObject, server_object, G_TYPE_OBJECT);
 
-bool start_dbus() {
+int start_dbus() {
 	DBusGConnection *connection;
 	DBusGProxy *proxy;
 	GError *error = NULL;
@@ -62,7 +62,7 @@ bool start_dbus() {
 		return false;
 
 	if (request_name_ret != DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER)
-		return false;
+		return -1;
 
 	g_object_unref(proxy);
 
