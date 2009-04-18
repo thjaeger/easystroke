@@ -389,9 +389,20 @@ bool Actions::AppsStore::drag_data_received_vfunc(const Gtk::TreeModel::Path &de
 	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
 	if (!actions || actions == parent->action_list)
 		return false;
-	RStrokeInfo si = parent->action_list->get_info(src_id);
-	parent->action_list->remove(src_id);
-	actions->add(*si);
+	Glib::RefPtr<Gtk::TreeSelection> sel = parent->tv.get_selection();
+	if (sel->count_selected_rows() <= 1) {
+		RStrokeInfo si = parent->action_list->get_info(src_id);
+		parent->action_list->remove(src_id);
+		actions->add(*si);
+	} else {
+		std::vector<Gtk::TreePath> paths = sel->get_selected_rows();
+		for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
+			Unique *id = (*parent->tm->get_iter(*i))[parent->cols.id];
+			RStrokeInfo si = parent->action_list->get_info(id);
+			parent->action_list->remove(id);
+			actions->add(*si);
+		}
+	}
 	parent->update_action_list();
 	update_actions();
 	return true;
@@ -405,8 +416,19 @@ bool Actions::Store::row_draggable_vfunc(const Gtk::TreeModel::Path &path) const
 		return false;
 	if (sort != Gtk::SORT_ASCENDING)
 		return false;
-	Unique *id = (*parent->tm->get_iter(path))[parent->cols.id];
-	return id->level == parent->action_list->level;
+	Glib::RefPtr<Gtk::TreeSelection> sel = parent->tv.get_selection();
+	if (sel->count_selected_rows() <= 1) {
+		Unique *id = (*parent->tm->get_iter(path))[parent->cols.id];
+		return id->level == parent->action_list->level;
+	} else {
+		std::vector<Gtk::TreePath> paths = sel->get_selected_rows();
+		for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
+			Unique *id = (*parent->tm->get_iter(*i))[parent->cols.id];
+			if (id->level != parent->action_list->level)
+				return false;
+		}
+		return true;
+	}
 }
 
 bool Actions::Store::row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) const {
@@ -445,9 +467,24 @@ bool Actions::Store::drag_data_received_vfunc(const Gtk::TreeModel::Path &dest, 
 	Unique *dest_id = dest_iter ? (*dest_iter)[parent->cols.id] : (Unique *)0;
 	if (dest_id && src_id->level != dest_id->level)
 		return false;
-	if (parent->action_list->move(src_id, dest_id)) {
-		(*parent->tm->get_iter(src))[parent->cols.id] = src_id;
-		update_actions();
+	Glib::RefPtr<Gtk::TreeSelection> sel = parent->tv.get_selection();
+	if (sel->count_selected_rows() <= 1) {
+		if (parent->action_list->move(src_id, dest_id)) {
+			(*parent->tm->get_iter(src))[parent->cols.id] = src_id;
+			update_actions();
+		}
+	} else {
+		std::vector<Gtk::TreePath> paths = sel->get_selected_rows();
+		bool updated = false;
+		for (std::vector<Gtk::TreePath>::iterator i = paths.begin(); i != paths.end(); ++i) {
+			Unique *id = (*parent->tm->get_iter(*i))[parent->cols.id];
+			if (parent->action_list->move(id, dest_id))
+				updated = true;
+		}
+		if (updated) {
+			parent->update_action_list();
+			update_actions();
+		}
 	}
 	return false;
 }
