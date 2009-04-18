@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-03-09 15:55-0400\n"
-"PO-Revision-Date: 2009-04-03 13:40+0000\n"
+"PO-Revision-Date: 2009-04-08 13:19+0000\n"
 "Last-Translator: kawaji <jiro.kawada@gmail.com>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2009-04-04 17:28+0000\n"
+"X-Launchpad-Export-Date: 2009-04-18 04:44+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
@@ -139,7 +139,7 @@ msgstr[0] "アクションを削除"
 
 #: ../actions.cc:552
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
-msgstr "%1 \"%2\" (%3 %4 を含んでいる) が削除されます。"
+msgstr "%1 \"%2\" (含有数 %3 %4 ) が削除されます"
 
 #: ../actions.cc:553
 msgid "The application"
@@ -194,7 +194,7 @@ msgstr "修飾キーなし"
 
 #: ../actions.cc:929
 msgid "(Instantly) "
-msgstr "(瞬時に適用) "
+msgstr "(インスタント) "
 
 #: ../actions.cc:931
 msgid "(Click & Hold) "
@@ -329,7 +329,7 @@ msgstr "短め"
 
 #: ../prefs.cc:174 ../prefs.cc:184
 msgid "Flick"
-msgstr "一瞬"
+msgstr "フリック"
 
 #: ../prefs.cc:185
 msgid "Custom"
@@ -459,7 +459,7 @@ msgstr "色"
 
 #: ../gui.glade.h:21
 msgid "Ignore strokes leading up to advanced gestures"
-msgstr "高度ジェスチャに至るまでのストロークを無視"
+msgstr "高度ジェスチャに至ったストロークを無視"
 
 #: ../gui.glade.h:22
 msgid "Initial Timeout (ms)"
@@ -467,7 +467,7 @@ msgstr "初期タイムアウト(ミリ秒)"
 
 #: ../gui.glade.h:23
 msgid "Instant Gestures"
-msgstr "瞬時ジェスチャ"
+msgstr "インスタント・ジェスチャ"
 
 #: ../gui.glade.h:24
 msgid "Invert Scroll Direction"
@@ -523,7 +523,7 @@ msgstr "トレイアイコンを表示"
 
 #: ../gui.glade.h:37
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr "ペンが範囲内にある限り「スクロール」や「無視」モードを保つ"
+msgstr "ペンが読取可能高さの範囲内にある限り「スクロール」や「無視」モードを保つ"
 
 #: ../gui.glade.h:38
 msgid "Timeout"
@@ -531,7 +531,7 @@ msgstr "タイムアウト"
 
 #: ../gui.glade.h:39
 msgid "Timeout Gestures"
-msgstr "タイムアウトもジェスチャとして認識"
+msgstr "タイムアウト・ジェスチャ"
 
 #: ../gui.glade.h:40
 msgid "Timeout profile"

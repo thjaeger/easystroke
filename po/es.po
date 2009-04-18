@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2009-03-09 15:55-0400\n"
-"PO-Revision-Date: 2009-03-13 06:27+0000\n"
-"Last-Translator: Paco Molinero <paco@byasl.com>\n"
+"PO-Revision-Date: 2009-04-10 18:10+0000\n"
+"Last-Translator: Marcos <Unknown>\n"
 "Language-Team: Spanish <es@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2009-03-15 07:20+0000\n"
+"X-Launchpad-Export-Date: 2009-04-18 04:48+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
@@ -360,7 +360,7 @@ msgstr "<Aplicación desactivada>"
 
 #: ../prefs.cc:431
 msgid "Select a Mouse or Pen Button"
-msgstr ""
+msgstr "Seleccione un ratón o puntero"
 
 #: ../prefs.cc:432
 msgid ""
@@ -477,7 +477,7 @@ msgstr "Gestos instantáneos"
 
 #: ../gui.glade.h:24
 msgid "Invert Scroll Direction"
-msgstr ""
+msgstr "Invertir dirección de scroll"
 
 #: ../gui.glade.h:25
 msgid "Method to show gestures"
@@ -513,7 +513,7 @@ msgstr "Mostrar filas borradas"
 
 #: ../gui.glade.h:33
 msgid "Show last gesture in tray"
-msgstr ""
+msgstr "Mostrar el último gesto en la barra de tareas"
 
 #: ../gui.glade.h:34
 msgid "Show popups ("
@@ -609,7 +609,7 @@ msgstr ""
 
 #: ../gui.glade.h:57
 msgid "optimize for left-handed operation )"
-msgstr ""
+msgstr "Optimizado para zurdos"
 
 #: ../easystroke.desktop.in.h:1
 msgid "Control your desktop using mouse gestures"
