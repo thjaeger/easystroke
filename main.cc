@@ -1350,7 +1350,7 @@ static void link_button_hook(Gtk::LinkButton *, const Glib::ustring& uri) { xdg_
 static void about_dialog_hook(Gtk::AboutDialog &, const Glib::ustring& url) { xdg_open(url); }
 
 // dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
-static void send_dbus(char *str) {
+static void send_dbus(const char *str) {
 	GError *error = 0;
 	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
 	if (!bus) {
