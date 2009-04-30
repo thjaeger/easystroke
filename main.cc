@@ -1575,42 +1575,39 @@ void Main::create_config_dir() {
 extern Window get_app_window(Window &w);
 
 void Grabber::XiDevice::translate_coords(int *axis_data, float &x, float &y) {
-	if (!absolute) {
+	if (absolute) {
+		valuators[0] = axis_data[0];
+		valuators[1] = axis_data[1];
+	} else {
 		valuators[0] += axis_data[0];
 		valuators[1] += axis_data[1];
-		x = valuators[0];
-		y = valuators[1];
-		// TODO: Sanity check
-		return;
 	}
-	valuators[0] = axis_data[0];
-	valuators[1] = axis_data[1];
 	int w = gdk_screen_width() - 1;
 	int h = gdk_screen_height() - 1;
-	x = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
-	y = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
+	x = rescaleValuatorAxis(valuators[0], min[0], max[0], 0, w, w);
+	y = rescaleValuatorAxis(valuators[1], min[1], max[1], 0, h, h);
 }
 
 bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y) {
 	sx += offset_x;
 	sy += offset_y;
+	int w = gdk_screen_width() - 1;
+	int h = gdk_screen_height() - 1;
 	if (!absolute) {
-		valuators[0] = sx;
-		valuators[1] = sy;
-		x = valuators[0];
-		y = valuators[1];
+		valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
+		valuators[1] = rescaleValuatorAxis(sy, 0, h, min[1], max[1], h) + axis_data[1];
+		x = sx;
+		y = sy;
 		return true;
 	}
 	valuators[0] = axis_data[0];
 	valuators[1] = axis_data[1];
-	int w = gdk_screen_width() - 1;
-	int h = gdk_screen_height() - 1;
-	x = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
-	y = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
+	x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
+	y = rescaleValuatorAxis(axis_data[1], min[1], max[1], 0, h, h);
 	if (hypot(x - sx, y - sy) > 2.0) {
 		update_axes();
-		x = rescaleValuatorAxis(axis_data[0], min_x, max_x, w);
-		y = rescaleValuatorAxis(axis_data[1], min_y, max_y, h);
+		x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
+		y = rescaleValuatorAxis(axis_data[1], min[1], max[1], 0, h, h);
 		if (hypot(x - sx, y - sy) > 2.0) {
 			x = sx;
 			y = sy;

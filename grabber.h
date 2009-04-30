@@ -45,7 +45,7 @@ public:
 class Grabber;
 extern Grabber *grabber;
 
-float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax);
+float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmin, int tmax, int defmax);
 bool has_wm_state(Window w);
 bool has_atom(Window w, Atom prop, Atom value);
 
@@ -84,7 +84,7 @@ public:
 		bool supports_proximity, supports_pressure;
 		bool active;
 		int pressure_min, pressure_max;
-		int min_x, max_x, min_y, max_y;
+		int min[2], max[2];
 		bool absolute;
 		int valuators[2];
 		int num_buttons;

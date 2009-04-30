@@ -227,10 +227,24 @@ Grabber::~Grabber() {
 	XFreeCursor(dpy, cursor_select);
 }
 
-float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmax) {
-	if (fmin >= fmax)
-		return coord;
-	return ((float)(coord - fmin)) * (tmax + 1) / (fmax - fmin + 1);
+float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmin, int tmax, int defmax) {
+	if (fmin >= fmax) {
+		fmin = 0;
+		fmax = defmax;
+	}
+
+	if (tmin >= tmax) {
+		tmin = 0;
+		tmax = defmax;
+	}
+
+	if (fmin == tmin && fmax == tmax)
+		return (float)coord;
+
+	if (fmax == fmin)
+		return 0.0;
+
+	return (float)(coord - fmin) * (float)(tmax - tmin) / (float)(fmax - fmin) + (float)tmin;
 }
 
 extern "C" {
@@ -358,10 +372,10 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XDeviceInfo *dev_info) : supports_p
 		if (any->c_class == ValuatorClass) {
 			XValuatorInfo *info = (XValuatorInfo *)any;
 			if (info->num_axes >= 2) {
-				min_x = info->axes[0].min_value;
-				max_x = info->axes[0].max_value;
-				min_y = info->axes[1].min_value;
-				max_y = info->axes[1].max_value;
+				for (int k = 0; k < 2; k++) {
+					min[k] = info->axes[k].min_value;
+					max[k] = info->axes[k].max_value;
+				}
 			}
 			if (info->num_axes >= 3) {
 				supports_pressure = true;
@@ -421,10 +435,10 @@ void Grabber::XiDevice::update_axes() {
 			if (any->c_class == ValuatorClass) {
 				XValuatorInfo *info = (XValuatorInfo *)any;
 				if (info->num_axes >= 2) {
-					min_x = info->axes[0].min_value;
-					max_x = info->axes[0].max_value;
-					min_y = info->axes[1].min_value;
-					max_y = info->axes[1].max_value;
+					for (int k = 0; k < 2; k++) {
+						min[k] = info->axes[k].min_value;
+						max[k] = info->axes[k].max_value;
+					}
 				}
 				absolute = info->mode == Absolute;
 			}
