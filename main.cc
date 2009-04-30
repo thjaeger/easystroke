@@ -1593,30 +1593,34 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 	sy += offset_y;
 	int w = gdk_screen_width() - 1;
 	int h = gdk_screen_height() - 1;
-	if (!absolute) {
-		valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
-		valuators[1] = rescaleValuatorAxis(sy, 0, h, min[1], max[1], h) + axis_data[1];
-		x = sx;
-		y = sy;
-		return true;
-	}
-	valuators[0] = axis_data[0];
-	valuators[1] = axis_data[1];
-	x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
-	y = rescaleValuatorAxis(axis_data[1], min[1], max[1], 0, h, h);
-	if (hypot(x - sx, y - sy) > 2.0) {
-		update_axes();
-		x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
-		y = rescaleValuatorAxis(axis_data[1], min[1], max[1], 0, h, h);
-		if (hypot(x - sx, y - sy) > 2.0) {
+
+	bool second_try = false;
+	while (true) {
+		if (absolute) {
+			valuators[0] = axis_data[0];
+			valuators[1] = axis_data[1];
+			x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
+			y = rescaleValuatorAxis(axis_data[1], min[1], max[1], 0, h, h);
+			if (hypot(x - sx, y - sy) < 2.0)
+				return true;
+		} else {
+			valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
+			valuators[1] = rescaleValuatorAxis(sy, 0, h, min[1], max[1], h) + axis_data[1];
+			x = sx;
+			y = sy;
+			return true;
+		}
+		if (second_try) {
 			x = sx;
 			y = sy;
 			printf("Warning: Reloading Axis information failed\n");
 			return false;
-		} else if (verbosity >= 1)
+		}
+		if (verbosity >= 1)
 			printf("Reloading Axis information\n");
+		update_axes();
+		second_try = true;
 	}
-	return true;
 }
 
 void Main::handle_enter_leave(XEvent &ev) {
