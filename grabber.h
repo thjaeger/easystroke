@@ -99,6 +99,7 @@ public:
 		void grab_button(ButtonInfo &bi, bool grab);
 		void update_pointer_mapping();
 		void translate_coords(int *axis_data, float &x, float &y);
+		void update_axes();
 		bool translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y);
 	};
 

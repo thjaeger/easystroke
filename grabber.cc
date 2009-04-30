@@ -408,6 +408,32 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XDeviceInfo *dev_info) : supports_p
 				supports_proximity ? "supports" : "does not support");
 }
 
+void Grabber::XiDevice::update_axes() {
+	int n;
+	XDeviceInfo *devs = XListInputDevices(dpy, &n);
+	if (!devs)
+		return;
+	for (int i = 0; i < n; i++) {
+		if (devs[i].id != dev->device_id)
+			continue;
+		XAnyClassPtr any = (XAnyClassPtr) (devs[i].inputclassinfo);
+		for (int j = 0; j < devs[i].num_classes; j++) {
+			if (any->c_class == ValuatorClass) {
+				XValuatorInfo *info = (XValuatorInfo *)any;
+				if (info->num_axes >= 2) {
+					min_x = info->axes[0].min_value;
+					max_x = info->axes[0].max_value;
+					min_y = info->axes[1].min_value;
+					max_y = info->axes[1].max_value;
+				}
+				absolute = info->mode == Absolute;
+			}
+			any = (XAnyClassPtr) ((char *) any + any->length);
+		}
+	}
+	XFreeDeviceList(devs);
+}
+
 Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
 	DeviceMap::iterator i = xi_devs.find(id);
 	return i == xi_devs.end() ? NULL : i->second.get();
