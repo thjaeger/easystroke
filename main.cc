@@ -1601,7 +1601,7 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 			valuators[1] = axis_data[1];
 			x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
 			y = rescaleValuatorAxis(axis_data[1], min[1], max[1], 0, h, h);
-			if (hypot(x - sx, y - sy) < 2.0)
+			if (hypot(x - sx, y - sy) < 50.0)
 				return true;
 		} else {
 			valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
