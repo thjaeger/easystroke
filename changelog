@@ -1,3 +1,10 @@
+2009-05-09 Released 0.4.3
+	* Improve DND behavior
+
+2009-05-09 Released 0.4.2
+	* XInput bugfixes
+	* French & Japanese translations and various translations updates
+
 2009-03-16 Released 0.4.1.1
 	* Allow button remapping when XInput is disabled
 	* Various bugfixes
