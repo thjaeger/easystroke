@@ -400,6 +400,7 @@ public:
 		std::map<std::string, ActionListDiff *>::const_iterator i = apps.find(wm_class);
 		return i == apps.end() ? &root : i->second;
 	}
+	ActionDB();
 };
 BOOST_CLASS_VERSION(ActionDB, 3)
 

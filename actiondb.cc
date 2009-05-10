@@ -154,6 +154,10 @@ template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsig
 	ar & order;
 }
 
+ActionDB::ActionDB() {
+	root.name = _("Default");
+}
+
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
 	if (version >= 2) {
 		ar & root;
