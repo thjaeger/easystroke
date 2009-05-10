@@ -130,8 +130,6 @@ private:
 	void grab_xi(bool);
 	void regrab_xi();
 	void grab_xi_devs(bool);
-	std::string get_wm_class(Window w);
-	std::string wm_class;
 
 	void update_excluded();
 
@@ -143,7 +141,7 @@ public:
 	Grabber();
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
-	std::string get_wm_class() { return wm_class; }
+	Out<std::string> *current_class;
 
 	void queue_suspend() { queue(sigc::mem_fun(*this, &Grabber::suspend)); }
 	void queue_resume() { queue(sigc::mem_fun(*this, &Grabber::resume)); }

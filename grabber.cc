@@ -182,6 +182,18 @@ void activate(Window w, Time t) {
 	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
 }
 
+std::string get_wm_class(Window w) {
+	if (!w)
+		return "";
+	XClassHint ch;
+	if (!XGetClassHint(dpy, w, &ch))
+		return "";
+	std::string ans = ch.res_name;
+	XFree(ch.res_name);
+	XFree(ch.res_class);
+	return ans;
+}
+
 class IdleNotifier : public Base {
 	sigc::slot<void> f;
 	void run() { f(); }
@@ -217,7 +229,8 @@ Grabber::Grabber() : children(ROOT) {
 	xinput = init_xi();
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	current_window.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
+	current_class = fun(&get_wm_class, current_window);
+	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	disabled.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::set)));
 	update();
 	resume();
@@ -651,8 +664,7 @@ int get_default_button() {
 extern bool disable_root();
 
 void Grabber::update() {
-	wm_class = get_wm_class(current_window.get());
-	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(wm_class);
+	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(current_class->get());
 	is_disabled = disabled.get();
 	active = true;
 	ButtonInfo bi = prefs.button.ref();
@@ -712,18 +724,6 @@ void Grabber::XiDevice::fake_button(int b, bool press) {
 		printf("fake xi %s: %d -> %d\n", press ? "press" : "release", b2, b);
 	if (!xi_15)
 		fake_core_button(b2, press);
-}
-
-std::string Grabber::get_wm_class(Window w) {
-	if (!w)
-		return "";
-	XClassHint ch;
-	if (!XGetClassHint(dpy, w, &ch))
-		return "";
-	std::string ans = ch.res_name;
-	XFree(ch.res_name);
-	XFree(ch.res_class);
-	return ans;
 }
 
 // Fuck Xlib

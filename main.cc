@@ -751,7 +751,7 @@ public:
 
 		std::map<guint, RAction> as;
 		std::map<guint, RRanking> rs;
-		actions.get_action_list(grabber->get_wm_class())->handle_advanced(s, as, rs, b1, b2);
+		actions.get_action_list(grabber->current_class->get())->handle_advanced(s, as, rs, b1, b2);
 		if (press_t) {
 			if (as.count(b2))
 				discard(press_t);
@@ -1122,7 +1122,7 @@ protected:
 			return parent->replace_child(NULL);
 		}
 		RRanking ranking;
-		RAction act = actions.get_action_list(grabber->get_wm_class())->handle(s, ranking);
+		RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
 		if (!IS_CLICK(act))
 			Ranking::queue_show(ranking, e);
 		if (!act) {
@@ -1889,7 +1889,7 @@ std::string select_window() {
 	queue(sigc::ptr_fun(&SelectHandler::create));
 	gtk_main();
 	win->get_window().raise();
-	return grabber->get_wm_class();
+	return grabber->current_class->get();
 }
 
 void Button::run() {
