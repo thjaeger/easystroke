@@ -13,6 +13,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+#include "actiondb.h" // TODO
 #include "grabber.h"
 #include "main.h"
 #include <X11/extensions/XTest.h>
@@ -23,6 +24,7 @@
 extern Window get_window(Window w, Atom prop);
 extern Source<bool> xinput_v, supports_pressure, supports_proximity, disabled;
 extern Source<Window> current_window;
+extern Source<ActionListDiff *> stroke_app;
 extern bool in_proximity;
 
 bool no_xi = false;
@@ -182,7 +184,9 @@ void activate(Window w, Time t) {
 	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
 }
 
-std::string get_wm_class(Window w) {
+std::string get_wm_class(Window w, ActionListDiff *actions) {
+	if (actions && actions->app)
+		return actions->name;
 	if (!w)
 		return "";
 	XClassHint ch;
@@ -229,7 +233,7 @@ Grabber::Grabber() : children(ROOT) {
 	xinput = init_xi();
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	current_class = fun(&get_wm_class, current_window);
+	current_class = fun2(&get_wm_class, current_window, stroke_app);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	disabled.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::set)));
 	update();
