@@ -121,8 +121,8 @@ public:
 	PrefSource<bool> proximity;
 	PrefSource<bool> feedback;
 	PrefSource<bool> left_handed;
-	PrefSource<int> init_timeout;
-	PrefSource<int> final_timeout;
+	Source<int> init_timeout;
+	Source<int> final_timeout;
 	PrefSource<TimeoutType> timeout_profile;
 	PrefSource<bool> timeout_gestures;
 	PrefSource<bool> tray_icon;

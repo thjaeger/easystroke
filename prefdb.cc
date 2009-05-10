@@ -228,7 +228,9 @@ void PrefDB::init() {
 		exceptions.unsafe_ref().erase(i);
 		exceptions.unsafe_ref()[""] = bi;
 	}
-	new TimeoutProfile(prefs.timeout_profile);
+	new TimeoutProfile(timeout_profile);
+	watch(init_timeout);
+	watch(final_timeout);
 }
 
 PrefDB prefs;
