@@ -8,14 +8,14 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-03-09 15:55-0400\n"
-"PO-Revision-Date: 2009-04-08 13:19+0000\n"
+"PO-Revision-Date: 2009-05-07 08:33+0000\n"
 "Last-Translator: kawaji <jiro.kawada@gmail.com>\n"
 "Language-Team: Japanese <ja@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2009-04-18 04:44+0000\n"
+"X-Launchpad-Export-Date: 2009-05-10 02:00+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
@@ -202,7 +202,7 @@ msgstr "(クリック & ホールド) "
 
 #: ../actions.cc:933
 msgid "Any Modifier"
-msgstr "あらゆる修飾キー"
+msgstr "任意の修飾キー"
 
 #: ../actions.cc:936 ../prefs.cc:451
 msgid "Button %1"
@@ -231,11 +231,6 @@ msgstr "エラー: %s\n"
 msgid "Is easystroke already running?\n"
 msgstr "easystroke がすでに実行されていませんか？\n"
 
-#: ../main.cc:279
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr ""
-
 #: ../main.cc:300
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
@@ -254,12 +249,6 @@ msgstr "警告: アクション \"%s\" は定義されていません\n"
 #: ../main.cc:1294
 msgid "Tray icon disabled"
 msgstr "トレイアイコン無効"
-
-#: ../main.cc:1295
-msgid ""
-"To bring the configuration dialog up again, you should define an action of "
-"type Misc...Show/Hide."
-msgstr ""
 
 #: ../main.cc:1354
 #, c-format
@@ -346,10 +335,6 @@ msgstr "有効"
 #: ../prefs.cc:324
 msgid "Device"
 msgstr "デバイス"
-
-#: ../prefs.cc:348 ../prefs.cc:596
-msgid "(window manager frame)"
-msgstr ""
 
 #: ../prefs.cc:349 ../prefs.cc:601 ../prefs.cc:624
 msgid "<App disabled>"
@@ -439,7 +424,7 @@ msgstr "代わりに、ボタンや修飾キーを下から選択することも
 
 #: ../gui.glade.h:16
 msgid "An_y Modifier"
-msgstr "あらゆる修飾キー(Y)"
+msgstr "任意の修飾キー(_Y)"
 
 #: ../gui.glade.h:17
 msgid "Applications"
@@ -612,3 +597,18 @@ msgstr "マウス・ジェスチャを使用してデスクトップを制御し
 #: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke ジェスチャ認識"
+
+#: ../main.cc:279
+#, c-format
+msgid "Error: A grab failed.  Resetting...\n"
+msgstr ""
+
+#: ../main.cc:1295
+msgid ""
+"To bring the configuration dialog up again, you should define an action of "
+"type Misc...Show/Hide."
+msgstr ""
+
+#: ../prefs.cc:348 ../prefs.cc:596
+msgid "(window manager frame)"
+msgstr ""
