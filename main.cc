@@ -1613,10 +1613,11 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 		if (second_try) {
 			x = sx;
 			y = sy;
-			printf("Warning: Reloading Axis information failed\n");
+			if (verbosity >= 1)
+				printf("Warning: Reloading Axis information failed\n");
 			return false;
 		}
-		if (verbosity >= 1)
+		if (verbosity >= 2)
 			printf("Reloading Axis information\n");
 		update_axes();
 		second_try = true;
