@@ -25,6 +25,7 @@
 
 bool TreeViewMulti::on_button_press_event(GdkEventButton* event) {
 	int cell_x, cell_y;
+	Gtk::TreeViewColumn *column;
 	pending = (get_path_at_pos(event->x, event->y, path, column, cell_x, cell_y))
 		&& (get_selection()->is_selected(path))
 		&& !(event->state & (GDK_CONTROL_MASK|GDK_SHIFT_MASK));
@@ -34,7 +35,8 @@ bool TreeViewMulti::on_button_press_event(GdkEventButton* event) {
 bool TreeViewMulti::on_button_release_event(GdkEventButton* event) {
 	if (pending) {
 		pending = false;
-		set_cursor(path, *column, false);
+		get_selection()->unselect_all();
+		get_selection()->select(path);
 	}
 	return Gtk::TreeView::on_button_release_event(event);
 }
