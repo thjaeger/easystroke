@@ -346,9 +346,11 @@ bool Grabber::update_device_list() {
 		for (int j = 0; j < devs[i].num_classes; j++) {
 			if (any->c_class == ButtonClass) {
 				try {
-					xi_devs[dev->id].reset(new XiDevice(this, dev));
+					XiDevice *xi_dev = new XiDevice(this, dev);
+					xi_devs[dev->id].reset(xi_dev);
+					break;
 				} catch (XiDevice::OpenException &e) {
-					// TODO
+					printf(_("Error: %s\n"), e.what());
 				}
 			}
 			any = (XAnyClassPtr) ((char *) any + any->length);
@@ -372,7 +374,6 @@ void Grabber::update_excluded() {
 }
 
 Grabber::XiDevice::OpenException::OpenException(const char *name) {
-	// TODO
 	if (asprintf(&msg, _("Opening Device %s failed.\n"), name) == -1)
 		msg = NULL;
 }
