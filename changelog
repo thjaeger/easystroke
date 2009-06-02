@@ -1,3 +1,8 @@
+2009-06-01 Released 0.4.5
+	* Fix bug that caused easystroke to crash on start up if
+	  there were devices that couldn't be opened
+	* Add Chinese translations
+
 2009-05-12 Released 0.4.4
 	* Fix bug that made it impossible to record gestures if there were no
 	  default actions
