@@ -1,0 +1,614 @@
+# Simplified Chinese translation for easystroke
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the easystroke package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: easystroke\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2009-05-11 02:55-0400\n"
+"PO-Revision-Date: 2009-06-01 15:17+0000\n"
+"Last-Translator: John Luk <Unknown>\n"
+"Language-Team: Simplified Chinese <zh_CN@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Launchpad-Export-Date: 2009-06-02 02:52+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../actiondb.cc:126
+#, c-format
+msgid "Error: can't execute command \"%s\": fork() failed\n"
+msgstr "错误：\"%s\"不能被执行\n"
+
+#: ../actiondb.cc:144 ../prefs.cc:159
+msgid "None"
+msgstr "无"
+
+#: ../actiondb.cc:144
+msgid "Show/Hide"
+msgstr "显示/隐藏"
+
+#: ../actiondb.cc:158 ../actiondb.cc:182 ../prefs.cc:160 ../prefs.cc:171
+#: ../prefs.cc:181
+msgid "Default"
+msgstr "默认"
+
+#: ../actiondb.cc:209
+#, c-format
+msgid "Error: Couldn't read action database: %s.\n"
+msgstr "错误：不能读取此操作的数据:%s\n"
+
+#: ../actiondb.cc:229
+#, c-format
+msgid "Error: Couldn't save action database: %s.\n"
+msgstr "错误：不能保存此操作的数据:%s\n"
+
+#: ../actions.cc:64
+msgid "Key combination..."
+msgstr "组合键..."
+
+#: ../actions.cc:160
+msgid "Command"
+msgstr "运行命令"
+
+#: ../actions.cc:161
+msgid "Key"
+msgstr "按键"
+
+#: ../actions.cc:162
+msgid "Text"
+msgstr "文本"
+
+#: ../actions.cc:166
+msgid "Misc"
+msgstr "其他"
+
+#: ../actions.cc:223 ../stats.cc:32 ../stats.cc:38
+msgid "Stroke"
+msgstr "手势"
+
+#: ../actions.cc:229 ../stats.cc:33 ../stats.cc:41
+msgid "Name"
+msgstr "名称"
+
+#: ../actions.cc:253
+msgid "Type"
+msgstr "类別"
+
+#: ../actions.cc:259
+msgid "Details"
+msgstr "详细信息"
+
+#: ../actions.cc:282
+msgid "Application"
+msgstr "应用"
+
+#: ../actions.cc:556
+msgid "Delete an Action"
+msgid_plural "Delete Actions"
+msgstr[0] "删除手势"
+
+#: ../actions.cc:656
+msgid "Group"
+msgstr "组"
+
+#: ../actions.cc:747
+msgid ""
+"You are about to bind an action to a single click.  This might make it "
+"difficult to use Button %1 in the future.  Are you sure you want to continue?"
+msgstr "你将要绑定某动作到一次鼠标单击上，这样可能导致鼠标按键%1变得难以使用。你确定要这样做吗？"
+
+#: ../actions.cc:780
+msgid "Record a New Stroke"
+msgstr "记录新手势"
+
+#: ../actions.cc:994
+msgid "No Modifiers"
+msgstr "无组合键"
+
+#: ../main.cc:106 ../main.cc:275 ../main.cc:1861
+#, c-format
+msgid "Error: %s\n"
+msgstr "错误： %s\n"
+
+#: ../main.cc:277
+#, c-format
+msgid "Error: A grab failed.  Resetting...\n"
+msgstr "错误:抓取失败，请重新设置...\n"
+
+#: ../main.cc:298
+#, c-format
+msgid "Fatal Error: Connection to X server lost, restarting...\n"
+msgstr "致命错误:同X server的联系断开，请重启此程序...\n"
+
+#: ../main.cc:746
+#, c-format
+msgid "Error: You need XInput to use advanced gestures\n"
+msgstr "错误:你需要安装XInput来使用高级手势\n"
+
+#: ../main.cc:1277
+#, c-format
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "警告:\"%s\"操作没有被定义\n"
+
+#: ../main.cc:1296
+msgid "Tray icon disabled"
+msgstr "托盘图标被禁止使用"
+
+#: ../main.cc:1356
+#, c-format
+msgid "Error initializing D-BUS\n"
+msgstr "初始化D-Bus错误\n"
+
+#: ../main.cc:1563
+#, c-format
+msgid "Error: Couldn't create configuration directory \"%s\"\n"
+msgstr "错误:不能创建配置目录 \"%s\"\n"
+
+#: ../main.cc:1568
+#, c-format
+msgid "Error: \"%s\" is not a directory\n"
+msgstr "错误：\"%s\"不是有效的路径\n"
+
+#: ../prefdb.cc:220
+#, c-format
+msgid "Error: Couldn't read preferences.\n"
+msgstr "错误:读取参数失败\n"
+
+#: ../prefs.cc:161
+msgid "XShape"
+msgstr "XShape"
+
+#: ../prefs.cc:162
+msgid "Annotate (compiz)"
+msgstr "Annotate (compiz)"
+
+#: ../prefs.cc:163
+msgid "Fire (compiz)"
+msgstr "Fire (compiz)"
+
+#: ../prefs.cc:164
+msgid "Water (compiz)"
+msgstr "Water (compiz)"
+
+#: ../prefs.cc:169 ../prefs.cc:179
+msgid "Timeout Off"
+msgstr "超时关闭"
+
+#: ../prefs.cc:185
+msgid "Custom"
+msgstr "定制"
+
+#: ../prefs.cc:323
+msgid "Enabled"
+msgstr "启用"
+
+#: ../prefs.cc:324
+msgid "Device"
+msgstr "设备"
+
+#: ../prefs.cc:349 ../prefs.cc:601 ../prefs.cc:624
+msgid "<App disabled>"
+msgstr "应用程序被关闭"
+
+#: ../prefs.cc:431
+msgid "Select a Mouse or Pen Button"
+msgstr "选择一个鼠标或手写笔按键"
+
+#: ../trace.h:23
+msgid "Connection to DBus failed"
+msgstr "连接至DBus失败"
+
+#: ../gui.glade.h:2
+msgid "(See Documentation)"
+msgstr "查看帮助文档"
+
+#: ../gui.glade.h:3
+msgid "<b>Appearance</b>"
+msgstr "<b>外观</b>"
+
+#: ../gui.glade.h:4
+msgid "<b>Behavior</b>"
+msgstr "<b>行为</b>"
+
+#: ../gui.glade.h:5
+msgid "<b>Devices</b>"
+msgstr "<b>设备</b>"
+
+#: ../gui.glade.h:6
+msgid "<b>Exceptions</b>"
+msgstr "<b>例外</b>"
+
+#: ../gui.glade.h:50
+msgid "_Gesture Button"
+msgstr "手势按钮(_G)"
+
+#: ../gui.glade.h:51
+msgid "_Hide"
+msgstr "隐藏(_H)"
+
+#: ../gui.glade.h:52
+msgid "_History"
+msgstr "历史(_H)"
+
+#: ../gui.glade.h:54
+msgid "_Record Stroke"
+msgstr "已记录的手势(_R)"
+
+#: ../actiondb.cc:144
+msgid "Unminimize"
+msgstr "恢复窗口"
+
+#: ../actiondb.cc:144
+msgid "Disable (Enable)"
+msgstr "禁用（启用）"
+
+#: ../actiondb.cc:225
+msgid "rename() failed"
+msgstr "重命名失败"
+
+#: ../actiondb.cc:233 ../prefdb.cc:151
+msgid ""
+"Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
+"directory and that you have write access to it.  You can change the "
+"configuration directory using the -c or --config-dir command line options."
+msgstr ""
+"无法保存%1。你当前所作的设置将会丢失。请确认\"%2\"是一个目录，并且你对这个目录具有写入权限。你可以通过命令行参数-c或--config-"
+"dir改变配置文件所在目录。"
+
+#: ../actiondb.cc:236
+msgid "actions"
+msgstr "鼠标手势"
+
+#: ../actions.cc:163 ../actions.cc:1016
+msgid "Scroll"
+msgstr "滚动"
+
+#: ../actions.cc:164 ../actions.cc:1023
+msgid "Ignore"
+msgstr "忽略"
+
+#: ../actions.cc:165 ../prefs.cc:310 ../prefs.cc:334
+msgid "Button"
+msgstr "鼠标点击"
+
+#: ../actions.cc:549
+msgid "Action \"%1\" is about to be deleted."
+msgstr "鼠标手势\"%1\"将被删除"
+
+#: ../actions.cc:551
+msgid "One action is about to be deleted."
+msgid_plural "%1 actions are about to be deleted"
+msgstr[0] "该动作将被删除"
+
+#: ../actions.cc:621
+msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
+msgstr "%1 \"%2\" (包括 %3 %4) 将被删除。"
+
+#: ../actions.cc:622
+msgid "The application"
+msgstr "应用程序"
+
+#: ../actions.cc:622
+msgid "The group"
+msgstr "程序组"
+
+#: ../actions.cc:625
+msgid "action"
+msgid_plural "actions"
+msgstr[0] "动作"
+
+#: ../actions.cc:626
+msgid "Delete an Application"
+msgstr "删除针对此应用程序的动作"
+
+#: ../actions.cc:626
+msgid "Delete an Application Group"
+msgstr "删除此应用程序组"
+
+#: ../actions.cc:781
+msgid ""
+"The next stroke will be associated with the action \"%1\".  You can draw it "
+"anywhere on the screen (except for the two buttons below)."
+msgstr "接下来的鼠标手势将会作为动作\"%1\"的手势。你可以在屏幕上的任意地方绘画你的鼠标手势（除了以下的两个按钮）"
+
+#: ../actions.cc:873
+msgid "Gesture %1"
+msgstr "手势 %1"
+
+#: ../actions.cc:1002
+msgid "(Instantly) "
+msgstr "立即 "
+
+#: ../actions.cc:1004
+msgid "(Click & Hold) "
+msgstr "点击并保持按下 "
+
+#: ../actions.cc:1006
+msgid "Any Modifier"
+msgstr "任意修饰符"
+
+#: ../actions.cc:1009 ../prefs.cc:451
+msgid "Button %1"
+msgstr "按键 %1"
+
+#: ../actions.cc:1014
+msgid " + Scroll"
+msgstr " + 滚动"
+
+#: ../composite.cc:26
+msgid "'composite' not available"
+msgstr "组合扩展('composite')暂时不可用"
+
+#. TODO
+#: ../grabber.cc:376
+#, c-format
+msgid "Opening Device %s failed.\n"
+msgstr "打开设备 %s 失败。\n"
+
+#: ../main.cc:1297
+msgid ""
+"To bring the configuration dialog up again, you should define an action of "
+"type Misc...Show/Hide."
+msgstr "要重新显示配置界面，你必须给“其他”选项中的“显示/隐藏“定义一个操作"
+
+#: ../main.cc:1394
+#, c-format
+msgid "Couldn't open display.\n"
+msgstr "X windows不能打开显示\n"
+
+#: ../main.cc:1398
+#, c-format
+msgid ""
+"Easystroke is already running, showing configuration window instead.\n"
+msgstr "Easystroke已经在运行, 请勿重复启动，现在显示配置窗口。\n"
+
+#: ../prefdb.cc:147
+#, c-format
+msgid "Error: Couldn't save preferences: %s.\n"
+msgstr "错误：不能保存偏好设置: %s。\n"
+
+#: ../prefdb.cc:154
+msgid "preferences"
+msgstr "偏好"
+
+#: ../prefs.cc:170 ../prefs.cc:180
+msgid "Conservative"
+msgstr "保持"
+
+#: ../prefs.cc:172 ../prefs.cc:182
+msgid "Medium"
+msgstr "中速"
+
+#: ../prefs.cc:173 ../prefs.cc:183
+msgid "Aggressive"
+msgstr "激进的"
+
+#: ../prefs.cc:174 ../prefs.cc:184
+msgid "Flick"
+msgstr "交换"
+
+#: ../prefs.cc:305
+msgid "Application (WM__CLASS)"
+msgstr "应用程序 （窗口类 WM_CLASS）"
+
+#: ../prefs.cc:348 ../prefs.cc:596
+msgid "(window manager frame)"
+msgstr "窗口管理器帧"
+
+#: ../prefs.cc:432
+msgid ""
+"Please place your mouse or pen in the box below and press the button that "
+"you want to select.  You can also hold down additional modifiers."
+msgstr "请把你的鼠标或触控笔放在以下的方框中，并按下你所需的按钮。你也可以同时按下更多的修饰键。"
+
+#: ../stats.cc:34 ../stats.cc:42
+msgid "Score"
+msgstr "相似度"
+
+#: ../win.cc:161
+msgid "D_isabled"
+msgstr "D_isabled"
+
+#: ../gui.glade.h:1
+msgid "     Timeout (ms)"
+msgstr "     超时 (ms)"
+
+#: ../gui.glade.h:7
+msgid "<b>Tablet Options</b>"
+msgstr "<b>平板电脑选项</b>"
+
+#: ../gui.glade.h:8
+msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
+msgstr "若压力超过左侧设定值（超过255）则取消鼠标手势"
+
+#: ../gui.glade.h:9
+msgid "Accept gestures when menus are shown (experimental)"
+msgstr "当菜单显示的时候也接受鼠标手势输入 (实验性质的)"
+
+#: ../gui.glade.h:10
+msgid "Actions"
+msgstr "动作"
+
+#: ../gui.glade.h:11
+msgid "Add Application"
+msgstr "添加应用程序"
+
+#: ../gui.glade.h:12
+msgid "Add Group"
+msgstr "添加应用程序组"
+
+#: ../gui.glade.h:13
+msgid "Additional Buttons"
+msgstr "额外按键"
+
+#: ../gui.glade.h:14
+msgid "Advanced"
+msgstr "高级"
+
+#: ../gui.glade.h:15
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "或者你也可以选择以下的按键和修饰符"
+
+#: ../gui.glade.h:16
+msgid "An_y Modifier"
+msgstr "任意修饰符"
+
+#: ../gui.glade.h:17
+msgid "Applications"
+msgstr "应用程序"
+
+#: ../gui.glade.h:18
+msgid "Autostart easystroke"
+msgstr "自动启动easystroke"
+
+#: ../gui.glade.h:19
+msgid "Click & Hold"
+msgstr "单击并按住"
+
+#: ../gui.glade.h:20
+msgid "Color"
+msgstr "颜色"
+
+#: ../gui.glade.h:21
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "忽略会触发高级动作的鼠标手势"
+
+#: ../gui.glade.h:22
+msgid "Initial Timeout (ms)"
+msgstr "初始的超时值（ms）"
+
+#: ../gui.glade.h:23
+msgid "Instant Gestures"
+msgstr "鼠标手势"
+
+#: ../gui.glade.h:24
+msgid "Invert Scroll Direction"
+msgstr "相反的滚动方向"
+
+#: ../gui.glade.h:25
+msgid "Method to show gestures"
+msgstr "显示鼠标手势的方式"
+
+#: ../gui.glade.h:26
+msgid "Preferences"
+msgstr "偏好设置"
+
+#: ../gui.glade.h:27
+msgid "Remove Application/Group"
+msgstr "移除程序或程序组"
+
+#: ../gui.glade.h:28
+msgid "Reset Action(s)"
+msgstr "恢复动作"
+
+#: ../gui.glade.h:29
+msgid "S_uper"
+msgstr "S_uper"
+
+#: ../gui.glade.h:30
+msgid "Scroll Speed"
+msgstr "滚动速度"
+
+#: ../gui.glade.h:31
+msgid "Show OSD"
+msgstr "显示OSD"
+
+#: ../gui.glade.h:32
+msgid "Show deleted rows"
+msgstr "显示删除行"
+
+#: ../gui.glade.h:33
+msgid "Show last gesture in tray"
+msgstr "在托盘栏显示上一个触发的鼠标手势"
+
+#: ../gui.glade.h:34
+msgid "Show popups ("
+msgstr "显示气球信息"
+
+#: ../gui.glade.h:35
+msgid "Show popups on advanced gestures"
+msgstr "显示高级手势的气球信息"
+
+#: ../gui.glade.h:36
+msgid "Show tray icon"
+msgstr "显示托盘图标"
+
+#: ../gui.glade.h:37
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr "只要触控笔在指定范围内即保持滚动和忽略模式"
+
+#: ../gui.glade.h:38
+msgid "Timeout"
+msgstr "超时"
+
+#: ../gui.glade.h:39
+msgid "Timeout Gestures"
+msgstr "鼠标手势超时"
+
+#: ../gui.glade.h:40
+msgid "Timeout profile"
+msgstr "超时档案"
+
+#: ../gui.glade.h:41
+msgid "Width"
+msgstr "宽度"
+
+#: ../gui.glade.h:42
+msgid "Work around timing issues on Wacom tablets and Tablet PCs"
+msgstr "在Wacom tablets 和 Tablet PCs上面解决timing问题"
+
+#: ../gui.glade.h:43
+msgid "_Add Action"
+msgstr "添加动作"
+
+#: ../gui.glade.h:44
+msgid "_Add Exception"
+msgstr "添加例外"
+
+#: ../gui.glade.h:45
+msgid "_Alt"
+msgstr "_Alt"
+
+#: ../gui.glade.h:46
+msgid "_Control"
+msgstr "_Control"
+
+#: ../gui.glade.h:47
+msgid "_Default"
+msgstr "默认"
+
+#: ../gui.glade.h:48
+msgid "_Delete Action(s)"
+msgstr "删除动作"
+
+#: ../gui.glade.h:49
+msgid "_Delete Current"
+msgstr "删除当前设定值"
+
+#: ../gui.glade.h:53
+msgid "_Matrix"
+msgstr "_Matrix"
+
+#: ../gui.glade.h:55
+msgid "_Remove Exception"
+msgstr "删除例外"
+
+#: ../gui.glade.h:56
+msgid "_Shift"
+msgstr "_Shift"
+
+#: ../gui.glade.h:57
+msgid "optimize for left-handed operation )"
+msgstr "为左手操作进行的优化"
+
+#: ../easystroke.desktop.in.h:1
+msgid "Control your desktop using mouse gestures"
+msgstr "通过鼠标手势控制你的桌面"
+
+#: ../easystroke.desktop.in.h:2
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke 鼠标手势辨认"

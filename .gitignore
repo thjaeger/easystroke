@@ -8,13 +8,7 @@ desktop.c
 dbus-server.h
 debug.mk
 *.gz
-po/de
-po/cs
-po/el
-po/es
-po/fr
-po/it
-po/ja
+po/??
 po/POTFILES.in
 po/*.pot
 easystroke.desktop
