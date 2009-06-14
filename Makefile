@@ -19,7 +19,7 @@ ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
 MENUDIR  = $(PREFIX)/share/applications
 LOCALEDIR= $(PREFIX)/share/locale
 DFLAGS   =
-OFLAGS   = -Os
+OFLAGS   = -O2
 AOFLAGS  = -O3
 STROKEFLAGS  = -Wall -std=c99 $(DFLAGS)
 CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
