@@ -114,7 +114,6 @@ public:
 	PrefSource<ButtonInfo> button;
 	PrefSource<TraceType> trace;
 	PrefSource<bool> advanced_ignore;
-	PrefSource<bool> timing_workaround;
 	PrefSource<bool> pressure_abort;
 	PrefSource<int> pressure_threshold;
 	PrefSource<bool> proximity;

@@ -522,7 +522,8 @@ public:
 		show_ranking(bb, e);
 		if (!as.count(bb)) {
 			sticky_mods.reset();
-			XTestFakeButtonEvent(dpy, b, true, CurrentTime);
+			if (current_dev->master)
+				XTestFakeButtonEvent(dpy, b, true, CurrentTime);
 			return;
 		}
 		RAction act = as[bb];
@@ -562,7 +563,8 @@ public:
 	virtual void motion(RTriple e) {
 		if (replay_button && hypot(replay_orig->x - e->x, replay_orig->y - e->y) > 16)
 			replay_button = 0;
-		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+		if (current_dev->master)
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 	}
 	virtual void release(guint b, RTriple e) {
 		if (remap_to) {
@@ -571,11 +573,11 @@ public:
 		guint bb = (b == button1) ? button2 : b;
 		if (!as.count(bb)) {
 			sticky_mods.reset();
-			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
+			if (current_dev->master)
+				XTestFakeButtonEvent(dpy, b, false, CurrentTime);
 		}
 		if (xinput_pressed.size() == 0) {
 			if (e->t < click_time + 250 && b == replay_button) {
-				printf("foo\n");
 				sticky_mods.reset();
 				mods.clear();
 				fake_click(b);
@@ -1224,28 +1226,6 @@ void Main::handle_enter_leave(XEvent &ev) {
 	} else printf("Error: Bogus Enter/Leave event\n");
 }
 
-static class PresenceWatcher : public Timeout {
-	virtual void timeout() {
-		/* TODO
-		if (handler->idle() || !current_dev) {
-			grabber->update_device_list();
-		} else {
-			XID device_id = current_dev->dev->device_id;
-			grabber->update_device_list();
-			current_dev = grabber->get_xi_dev(device_id);
-			if (!current_dev)
-				bail_out();
-		}
-		win->prefs_tab->update_device_list();
-		*/
-	}
-} presence_watcher;
-
-struct ButtonTime {
-	guint button;
-	Time time;
-};
-
 void Main::handle_event(XEvent &ev) {
 #define H (handler->top())
 
@@ -1291,13 +1271,15 @@ void Main::handle_event(XEvent &ev) {
 				printf("Press (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->detail, event->root_x, event->root_y,
 						event->valuators->values[0], event->valuators->values[1],
-						BitIsOn(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
+						XIMaskIsSet(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
 						event->time);
 			if (xinput_pressed.size()) {
 				if (!current_dev || current_dev->dev != event->deviceid)
 					break;
 			}
 			current_dev = grabber->get_xi_dev(event->deviceid);
+			if (current_dev->master)
+				XISetClientPointer(dpy, None, current_dev->master);
 			xinput_pressed.insert(event->detail);
 			H->press(event->detail, create_triple(event->root_x, event->root_y, event->time));
 		} else if (event->evtype == XI_ButtonRelease) {
@@ -1305,7 +1287,7 @@ void Main::handle_event(XEvent &ev) {
 				printf("Release (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->detail, event->root_x, event->root_y,
 						event->valuators->values[0], event->valuators->values[1],
-						BitIsOn(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
+						XIMaskIsSet(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
 						event->time);
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
@@ -1316,7 +1298,7 @@ void Main::handle_event(XEvent &ev) {
 				printf("Motion (XI2): (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->root_x, event->root_y,
 						event->valuators->values[0], event->valuators->values[1],
-						BitIsOn(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
+						XIMaskIsSet(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
 						event->time);
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
@@ -1336,7 +1318,7 @@ void Main::handle_event(XEvent &ev) {
 				printf("Proximity: Out\n");
 			H->proximity_out();
 		} else if (event->evtype == XI_HierarchyChanged) {
-			printf("Hierarchy\n");
+			grabber->hierarchy_changed((XIHierarchyEvent *)event);
 		}
 	}
 	if (ev.type == GenericEvent)
