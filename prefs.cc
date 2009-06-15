@@ -233,7 +233,6 @@ void remove_last_entry(const Glib::ustring & name) {
 
 Prefs::Prefs() {
 	new Check(prefs.advanced_ignore, "check_advanced_ignore");
-	new Check(prefs.timing_workaround, "check_timing_workaround");
 
 	new Check(prefs.pressure_abort, "check_pressure_abort");
 	new Adjustment<int>(prefs.pressure_threshold, "adjustment_pressure_threshold");

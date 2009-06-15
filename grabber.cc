@@ -253,29 +253,6 @@ bool Grabber::init_xi() {
 		exit(EXIT_FAILURE);
 	}
 
-	if (!update_device_list())
-		return false;
-
-	if (!xi_devs.size()) {
-		printf("Error: No suitable XInput devices found\n");
-		exit(EXIT_FAILURE);
-	}
-
-	// TODO: Proximity
-	device_mask.deviceid = XIAllDevices;
-	device_mask.mask_len = 2;
-	device_mask.mask = device_mask_data;
-	memset(device_mask.mask, 0, 2);
-	SetBit(device_mask.mask, XI_ButtonPress);
-	SetBit(device_mask.mask, XI_ButtonRelease);
-	SetBit(device_mask.mask, XI_Motion);
-
-	return true;
-}
-
-bool Grabber::update_device_list() {
-	xi_devs.clear();
-
 	int n;
 	XIDeviceInfo *info = XIQueryDevice(dpy, XIAllDevices, &n);
 	if (!info) {
@@ -285,30 +262,61 @@ bool Grabber::update_device_list() {
 
 	current_dev = NULL;
 
-	for (int i = 0; i < n; i++) {
-		XIDeviceInfo *dev = info + i;
-
-		if (dev->use == XIMasterPointer || dev->use == XIMasterKeyboard)
-			continue;
-
-		// TODO: Bug Peter about better way of checking for Xtst devices
-		if (!strcmp(dev->name, "Xtst pointer") || !strcmp(dev->name, "Virtual core Xtst pointer"))
-			continue;
-
-		for (int j = 0; j < dev->num_classes; j++) {
-			if (dev->classes[j]->type == ButtonClass) {
-				XiDevice *xi_dev = new XiDevice(this, dev);
-				xi_devs[dev->deviceid].reset(xi_dev);
-				break;
-			}
-		}
-	}
+	for (int i = 0; i < n; i++)
+		new_device(info + i);
 	XIFreeDeviceInfo(info);
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update_excluded)));
 	update_excluded();
 	xi_grabbed = false;
 	set();
+
+	if (!xi_devs.size()) {
+		printf("Error: No suitable XInput devices found\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// TODO: Proximity
+	device_mask.deviceid = XIAllDevices;
+	device_mask.mask = device_mask_data;
+	device_mask.mask_len = sizeof(device_mask_data);
+	memset(device_mask.mask, 0, device_mask.mask_len);
+	XISetMask(device_mask.mask, XI_ButtonPress);
+	XISetMask(device_mask.mask, XI_ButtonRelease);
+	XISetMask(device_mask.mask, XI_Motion);
+
+	XIEventMask global_mask;
+	unsigned char data[2] = { 0, 0 };
+	global_mask.deviceid = XIAllDevices;
+	global_mask.mask = data;
+	global_mask.mask_len = sizeof(global_mask.mask);
+	XISetMask(global_mask.mask, XI_HierarchyChanged);
+
+	XISelectEvents(dpy, ROOT, &global_mask, 1);
+
 	return true;
+}
+
+void Grabber::hierarchy_changed(XIHierarchyEvent *event) {
+	for (int i = 0; i < event->num_info; i++) {
+		XIHierarchyInfo *info = event->info + i;
+		if (info->flags & XISlaveAdded) {
+			int n;
+			XIDeviceInfo *dev_info = XIQueryDevice(dpy, info->deviceid, &n);
+			if (!dev_info)
+				return;
+			new_device(dev_info);
+			XIFreeDeviceInfo(dev_info);
+		} else if (info[i].flags & XISlaveRemoved) {
+			xi_devs.erase(info->deviceid);
+			if (current_dev->dev == info->deviceid)
+				current_dev = NULL;
+		} else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
+			DeviceMap::iterator i = xi_devs.find(info->deviceid);
+			if (i == xi_devs.end())
+				return;
+			i->second->master = info->attachment;
+		}
+	}
 }
 
 void Grabber::update_excluded() {
@@ -318,8 +326,28 @@ void Grabber::update_excluded() {
 	resume();
 }
 
+void Grabber::new_device(XIDeviceInfo *info) {
+	if (info->use == XIMasterPointer || info->use == XIMasterKeyboard)
+		return;
+
+	// TODO: Bug Peter about better way of checking for Xtst infoices
+	const char *xtest_pointer = "Xtst pointer";
+	int offset = strlen(info->name) - strlen(xtest_pointer);
+	if (offset >= 0 && !strcmp(info->name + offset, xtest_pointer))
+		return;
+
+	for (int j = 0; j < info->num_classes; j++)
+		if (info->classes[j]->type == ButtonClass) {
+			XiDevice *xi_dev = new XiDevice(this, info);
+			xi_devs[info->deviceid].reset(xi_dev);
+			return;
+		}
+}
+
 Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), num_buttons(0) {
 	dev = info->deviceid;
+	name = info->name;
+	master = info->attachment;
 	for (int j = 0; j < info->num_classes; j++) {
 		XIAnyClassInfo *dev_class = info->classes[j];
 		if (dev_class->type == ButtonClass) {
@@ -334,11 +362,9 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 			}
 		}
 	}
-	name = info->name;
 
 	if (verbosity >= 1)
-		printf("Opened Device %d (\"%s\") (%s proximity).\n", dev, info->name,
-				supports_proximity ? "supports" : "does not support");
+		printf("Opened Device %d (\"%s\").\n", dev, info->name);
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {
@@ -405,21 +431,11 @@ void Grabber::set() {
 	if (verbosity >= 2)
 		printf("grabbing: %s\n", state_name[grabbed]);
 
-	if (old == BUTTON) {
-		if (timing_workaround)
-			XUngrabButton(dpy, 1, AnyModifier, ROOT);
-	}
 	if (old == ALL_SYNC)
 		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (old == SELECT)
 		XUngrabPointer(dpy, CurrentTime);
 
-	if (grabbed == BUTTON) {
-		timing_workaround = !is_grabbed(1) && prefs.timing_workaround.get();
-		if (timing_workaround)
-			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonPressMask,
-					GrabModeSync, GrabModeAsync, None, None);
-	}
 	if (grabbed == ALL_SYNC)
 		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask,
 				GrabModeSync, GrabModeAsync, None, None);

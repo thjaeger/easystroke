@@ -22,9 +22,6 @@
 
 #define MAX_BUTTONS 256
 
-#define BitIsOn(ptr, bit) (((unsigned char *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
-#define SetBit(ptr, bit)  (((unsigned char *) (ptr))[(bit)>>3] |= (1 << ((bit) & 7)))
-
 class XAtom {
 	const char *name;
 	Atom atom;
@@ -68,10 +65,11 @@ public:
 	struct XiDevice {
 		int dev;
 		std::string name;
-		bool supports_proximity, supports_pressure;
+		bool supports_pressure;
 		bool active;
 		int pressure_min, pressure_max;
 		int num_buttons;
+		int master;
 		XiDevice(Grabber *, XIDeviceInfo *);
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
@@ -96,7 +94,6 @@ private:
 	Cursor cursor_select;
 	ButtonInfo grabbed_button;
 	std::vector<ButtonInfo> buttons;
-	bool timing_workaround;
 
 	void set();
 	void grab_xi(bool);
@@ -117,14 +114,14 @@ public:
 	void queue_suspend() { queue(sigc::mem_fun(*this, &Grabber::suspend)); }
 	void queue_resume() { queue(sigc::mem_fun(*this, &Grabber::resume)); }
 
-	bool update_device_list();
+	void new_device(XIDeviceInfo *);
 
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);
 	bool is_click_hold(guint b);
+	void hierarchy_changed(XIHierarchyEvent *);
 
 	int get_default_button() { return grabbed_button.button; }
-	bool get_timing_workaround() { return timing_workaround; }
 
 	void unminimize();
 };
