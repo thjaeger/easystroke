@@ -25,8 +25,7 @@ STROKEFLAGS  = -Wall -std=c99 $(DFLAGS)
 CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
 
-BOOSTLIB = $(shell echo 'int main(int, char**) {}' | g++ -lboost_serialization -o /dev/null -xc++ - 2>/dev/null && echo -lboost_serialization || echo -lboost_serialization-mt)
-LIBS     = $(DFLAGS) $(BOOSTLIB) -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lboost_serialization-mt -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
 
 BINARY   = easystroke
 ICON     = easystroke.svg
