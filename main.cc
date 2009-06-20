@@ -1574,18 +1574,18 @@ void Main::create_config_dir() {
 
 extern Window get_app_window(Window &w);
 
-void Grabber::XiDevice::translate_coords(int *axis_data, float &x, float &y) {
-	if (absolute) {
+void Grabber::XiDevice::translate_coords(int sx, int sy, int *axis_data, float &x, float &y) {
+	if (absolute || !xi_15) {
 		valuators[0] = axis_data[0];
 		valuators[1] = axis_data[1];
+		int w = gdk_screen_width() - 1;
+		int h = gdk_screen_height() - 1;
+		x = rescaleValuatorAxis(valuators[0], min[0], max[0], 0, w, w);
+		y = rescaleValuatorAxis(valuators[1], min[1], max[1], 0, h, h);
 	} else {
-		valuators[0] += axis_data[0];
-		valuators[1] += axis_data[1];
+		x = sx;
+		y = sy;
 	}
-	int w = gdk_screen_width() - 1;
-	int h = gdk_screen_height() - 1;
-	x = rescaleValuatorAxis(valuators[0], min[0], max[0], 0, w, w);
-	y = rescaleValuatorAxis(valuators[1], min[1], max[1], 0, h, h);
 }
 
 bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y) {
@@ -1596,7 +1596,7 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 
 	bool second_try = false;
 	while (true) {
-		if (absolute) {
+		if (absolute || !xi_15) {
 			valuators[0] = axis_data[0];
 			valuators[1] = axis_data[1];
 			x = rescaleValuatorAxis(axis_data[0], min[0], max[0], 0, w, w);
@@ -1604,8 +1604,6 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 			if (hypot(x - sx, y - sy) < 50.0)
 				return true;
 		} else {
-			valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
-			valuators[1] = rescaleValuatorAxis(sy, 0, h, min[1], max[1], h) + axis_data[1];
 			x = sx;
 			y = sy;
 			return true;
@@ -1773,8 +1771,8 @@ void Main::handle_event(XEvent &ev) {
 			return;
 		xinput_pressed.insert(bev->button);
 		float x, y;
-		if (xi_15 && xinput_pressed.size() > 1)
-			current_dev->translate_coords(bev->axis_data, x, y);
+		if (xinput_pressed.size() > 1)
+			current_dev->translate_coords(bev->x, bev->y, bev->axis_data, x, y);
 		else
 			current_dev->translate_known_coords(bev->x, bev->y, bev->axis_data, x, y);
 		H->press(bev->button, create_triple(x, y, bev->time));
@@ -1790,10 +1788,7 @@ void Main::handle_event(XEvent &ev) {
 			return;
 		xinput_pressed.erase(bev->button);
 		float x, y;
-		if (xi_15)
-			current_dev->translate_coords(bev->axis_data, x, y);
-		else
-			current_dev->translate_known_coords(bev->x, bev->y, bev->axis_data, x, y);
+		current_dev->translate_coords(bev->x, bev->y, bev->axis_data, x, y);
 
 		H->release(bev->button, create_triple(x, y, bev->time));
 		return;
@@ -1807,10 +1802,7 @@ void Main::handle_event(XEvent &ev) {
 		if (!current_dev || current_dev->dev->device_id != mev->deviceid)
 			return;
 		float x, y;
-		if (xi_15)
-			current_dev->translate_coords(mev->axis_data, x, y);
-		else
-			current_dev->translate_known_coords(mev->x, mev->y, mev->axis_data, x, y);
+		current_dev->translate_coords(mev->x, mev->y, mev->axis_data, x, y);
 		int z = 0;
 		if (current_dev->supports_pressure)
 			z = current_dev->normalize_pressure(mev->axis_data[2]);
