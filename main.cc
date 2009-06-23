@@ -1583,6 +1583,10 @@ void Grabber::XiDevice::translate_coords(int sx, int sy, int *axis_data, float &
 		x = rescaleValuatorAxis(valuators[0], min[0], max[0], 0, w, w);
 		y = rescaleValuatorAxis(valuators[1], min[1], max[1], 0, h, h);
 	} else {
+		int w = gdk_screen_width() - 1;
+		int h = gdk_screen_height() - 1;
+		valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
+		valuators[1] = rescaleValuatorAxis(sy, 0, h, min[1], max[1], h) + axis_data[1];
 		x = sx;
 		y = sy;
 	}
@@ -1604,6 +1608,8 @@ bool Grabber::XiDevice::translate_known_coords(int sx, int sy, int *axis_data, f
 			if (hypot(x - sx, y - sy) < 50.0)
 				return true;
 		} else {
+			valuators[0] = rescaleValuatorAxis(sx, 0, w, min[0], max[0], w) + axis_data[0];
+			valuators[1] = rescaleValuatorAxis(sy, 0, h, min[1], max[1], h) + axis_data[1];
 			x = sx;
 			y = sy;
 			return true;
