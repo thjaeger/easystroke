@@ -291,6 +291,9 @@ bool Grabber::init_xi() {
 		printf("Warning: XInput extension not available\n");
 		return false;
 	}
+	if (v->major_version >= 2) {
+		printf("Warning: This version of easystroke has not been tested on an XI2-enabled X server. Please upgrade to a later version of easystroke.\n");
+	}
 	xi_15 = v->major_version > XI_Add_DeviceProperties_Major ||
 		(v->major_version == XI_Add_DeviceProperties_Major && v->minor_version >= XI_Add_DeviceProperties_Minor);
 	XFree(v);
