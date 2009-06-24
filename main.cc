@@ -594,15 +594,13 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
-XAtom ATOM("ATOM");
-
 Atom get_atom(Window w, Atom prop) {
 	Atom actual_type;
 	int actual_format;
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *ATOM, &actual_type, &actual_format,
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -618,7 +616,7 @@ bool has_atom(Window w, Atom prop, Atom value) {
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *ATOM, &actual_type, &actual_format,
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -637,9 +635,8 @@ Window get_window(Window w, Atom prop) {
 	int actual_format;
 	unsigned long nitems, bytes_after;
 	unsigned char *prop_return = NULL;
-	static XAtom WINDOW("WINDOW");
 
-	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, *WINDOW, &actual_type, &actual_format,
+	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, XA_WINDOW, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
 		return None;
 	if (!prop_return)
@@ -1236,8 +1233,7 @@ void Main::handle_event(XEvent &ev) {
 		return;
 
 	case PropertyNotify:
-		static XAtom WM_CLASS("WM_CLASS");
-		if (current_window.get() == ev.xproperty.window && ev.xproperty.atom == *WM_CLASS)
+		if (current_window.get() == ev.xproperty.window && ev.xproperty.atom == XA_WM_CLASS)
 			current_window.notify();
 		return;
 
