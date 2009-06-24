@@ -19,6 +19,7 @@
 #include <string>
 #include <map>
 #include <X11/extensions/XInput2.h>
+#include <X11/Xatom.h>
 
 #define MAX_BUTTONS 256
 

@@ -326,14 +326,25 @@ void Grabber::update_excluded() {
 	resume();
 }
 
+bool is_xtst_device(int dev) {
+	static XAtom XTEST("Xtst Device");
+	Atom type;
+	int format;
+	unsigned long num_items, bytes_after;
+	unsigned char *data;
+	if (Success != XIGetProperty(dpy, dev, *XTEST, 0, 1, False, XA_INTEGER,
+				&type, &format, &num_items, &bytes_after, &data))
+		return false;
+	bool ret = num_items && format == 8 && *((int8_t*)data);
+	XFree(data);
+	return ret;
+}
+
 void Grabber::new_device(XIDeviceInfo *info) {
 	if (info->use == XIMasterPointer || info->use == XIMasterKeyboard)
 		return;
 
-	// TODO: Bug Peter about better way of checking for Xtst infoices
-	const char *xtest_pointer = "Xtst pointer";
-	int offset = strlen(info->name) - strlen(xtest_pointer);
-	if (offset >= 0 && !strcmp(info->name + offset, xtest_pointer))
+	if (is_xtst_device(info->deviceid))
 		return;
 
 	for (int j = 0; j < info->num_classes; j++)
