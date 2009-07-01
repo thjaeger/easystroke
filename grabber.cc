@@ -308,7 +308,7 @@ void Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 			XIFreeDeviceInfo(dev_info);
 		} else if (info[i].flags & XISlaveRemoved) {
 			xi_devs.erase(info->deviceid);
-			if (current_dev->dev == info->deviceid)
+			if (current_dev && current_dev->dev == info->deviceid)
 				current_dev = NULL;
 		} else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
 			DeviceMap::iterator i = xi_devs.find(info->deviceid);
