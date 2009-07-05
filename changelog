@@ -1,6 +1,10 @@
+2009-07-05 Released 0.4.7
+	* Work around an X server bug causing problems with vertical gestures
+	* Update Russian translations
+
 2009-06-16 Released 0.4.6
 	* Switch from -Os to -O2 to work around gcc bug
-	* Add Russion translations
+	* Add Russian translations
 	* Build fix for karmic
 
 2009-06-01 Released 0.4.5
