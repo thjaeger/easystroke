@@ -1274,6 +1274,10 @@ void Main::handle_event(XEvent &ev) {
 					break;
 			}
 			current_dev = grabber->get_xi_dev(event->deviceid);
+			if (!current_dev) {
+				printf("Warning: Spurious device event\n");
+				break;
+			}
 			if (current_dev->master)
 				XISetClientPointer(dpy, None, current_dev->master);
 			xinput_pressed.insert(event->detail);
