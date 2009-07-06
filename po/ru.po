@@ -8,22 +8,21 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-05-11 02:55-0400\n"
-"PO-Revision-Date: 2009-07-05 21:32+0000\n"
-"Last-Translator: Tom Jaeger <Unknown>\n"
+"PO-Revision-Date: 2009-07-06 06:32+0000\n"
+"Last-Translator: Claque <Unknown>\n"
 "Language-Team: Russian <ru@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-07-05 21:36+0000\n"
+"X-Launchpad-Export-Date: 2009-07-06 19:20+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
-msgstr ""
-"Ошибка! Не могу выполнить команду \"%s\": создать форк() не удалось.\n"
+msgstr "Ошибка! Не могу выполнить команду \"%s\": форк() не удался.\n"
 
 #: ../actiondb.cc:144 ../prefs.cc:159
 msgid "None"
@@ -44,7 +43,7 @@ msgstr "Отключить (включить)"
 #: ../actiondb.cc:158 ../actiondb.cc:182 ../prefs.cc:160 ../prefs.cc:171
 #: ../prefs.cc:181
 msgid "Default"
-msgstr "По умолчанию"
+msgstr "Настройки по умолчанию"
 
 #: ../actiondb.cc:209
 #, c-format
@@ -97,7 +96,7 @@ msgstr "Прокрутка"
 
 #: ../actions.cc:164 ../actions.cc:1023
 msgid "Ignore"
-msgstr "Игнорировать"
+msgstr "Пропустить"
 
 #: ../actions.cc:165 ../prefs.cc:310 ../prefs.cc:334
 msgid "Button"
@@ -105,7 +104,7 @@ msgstr "Кнопка"
 
 #: ../actions.cc:166
 msgid "Misc"
-msgstr "Разное"
+msgstr "Прочее"
 
 #: ../actions.cc:223 ../stats.cc:32 ../stats.cc:38
 msgid "Stroke"
@@ -248,7 +247,7 @@ msgstr "Ошибка: захват не удался. Повторный зах�
 #: ../main.cc:298
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Серьезная ошибка: подключение к X-серверу потеряно, рестарт...\n"
+msgstr "Серьезная ошибка: соединение с X-сервером потеряно. Рестарт...\n"
 
 #: ../main.cc:746
 #, c-format
@@ -334,7 +333,7 @@ msgstr "Тайм-аут отключен"
 
 #: ../prefs.cc:170 ../prefs.cc:180
 msgid "Conservative"
-msgstr "Умеренно"
+msgstr "Умеренный"
 
 #: ../prefs.cc:172 ../prefs.cc:182
 msgid "Medium"
@@ -374,7 +373,7 @@ msgstr "<Прил. отключено>"
 
 #: ../prefs.cc:431
 msgid "Select a Mouse or Pen Button"
-msgstr "Выберите клавишу мыши или стилуса"
+msgstr "Выберите клавишу мыши или пера"
 
 #: ../prefs.cc:432
 msgid ""
@@ -386,7 +385,7 @@ msgstr ""
 
 #: ../stats.cc:34 ../stats.cc:42
 msgid "Score"
-msgstr "Удача"
+msgstr "Точность"
 
 #: ../win.cc:161
 msgid "D_isabled"
@@ -394,7 +393,7 @@ msgstr "О_тключено"
 
 #: ../trace.h:23
 msgid "Connection to DBus failed"
-msgstr "Подключение к D-Bus прошло неудачно"
+msgstr "Подключиться к D-Bus не удалось"
 
 #: ../gui.glade.h:1
 msgid "     Timeout (ms)"
@@ -510,7 +509,7 @@ msgstr "Сбросить действие(я)"
 
 #: ../gui.glade.h:29
 msgid "S_uper"
-msgstr "S_uper"
+msgstr "С_упер"
 
 #: ../gui.glade.h:30
 msgid "Scroll Speed"
@@ -543,7 +542,7 @@ msgstr "Показывать иконку в трее"
 #: ../gui.glade.h:37
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
-"Пребывать в режиме прокрутки или игнора до тех пор, пока стилус находится в "
+"Пребывать в режиме прокрутки или игнора до тех пор, пока перо находится в "
 "диапазоне"
 
 #: ../gui.glade.h:38
@@ -632,4 +631,4 @@ msgstr "Управлять вашим рабочим столом, исполь�
 
 #: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
-msgstr "Опознание жеста Easystroke"
+msgstr "Распознавание жестов Easystroke"
