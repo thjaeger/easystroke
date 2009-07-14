@@ -959,6 +959,7 @@ public:
 	bool handle(Glib::IOCondition);
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
+	void handle_xi2_event(XIDeviceEvent *event);
 	~Main();
 };
 
@@ -1223,8 +1224,8 @@ void Main::handle_enter_leave(XEvent &ev) {
 	} else printf("Error: Bogus Enter/Leave event\n");
 }
 
-void Main::handle_event(XEvent &ev) {
 #define H (handler->top())
+void Main::handle_event(XEvent &ev) {
 
 	switch(ev.type) {
 	case EnterNotify:
@@ -1259,12 +1260,16 @@ void Main::handle_event(XEvent &ev) {
 		update_core_mapping();
 		return;
 	case GenericEvent:
-		if (ev.xcookie.extension != grabber->opcode)
-			return;
-		if (!XGetEventData(dpy, &ev.xcookie))
-			return;
-		XIDeviceEvent *event = (XIDeviceEvent *)ev.xcookie.data;
-		if (event->evtype == XI_ButtonPress) {
+		if (ev.xcookie.extension == grabber->opcode && XGetEventData(dpy, &ev.xcookie)) {
+			handle_xi2_event((XIDeviceEvent *)ev.xcookie.data);
+			XFreeEventData(dpy, &ev.xcookie);
+		}
+	}
+}
+
+void Main::handle_xi2_event(XIDeviceEvent *event) {
+	switch (event->evtype) {
+		case XI_ButtonPress:
 			if (verbosity >= 3)
 				printf("Press (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->detail, event->root_x, event->root_y,
@@ -1284,7 +1289,8 @@ void Main::handle_event(XEvent &ev) {
 				XISetClientPointer(dpy, None, current_dev->master);
 			xinput_pressed.insert(event->detail);
 			H->press(event->detail, create_triple(event->root_x, event->root_y, event->time));
-		} else if (event->evtype == XI_ButtonRelease) {
+			break;
+		case XI_ButtonRelease:
 			if (verbosity >= 3)
 				printf("Release (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->detail, event->root_x, event->root_y,
@@ -1295,7 +1301,8 @@ void Main::handle_event(XEvent &ev) {
 				break;
 			xinput_pressed.erase(event->detail);
 			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
-		} else if (event->evtype == XI_Motion) {
+			break;
+		case XI_Motion:
 			if (verbosity >= 5)
 				printf("Motion (XI2): (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->root_x, event->root_y,
@@ -1304,28 +1311,18 @@ void Main::handle_event(XEvent &ev) {
 						event->time);
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
-			int z = 0;
-			if (current_dev->supports_pressure)
-				z = current_dev->normalize_pressure(event->valuators.values[2]);
-			if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
-				H->pressure();
+			if (current_dev->supports_pressure) {
+				int z = current_dev->normalize_pressure(event->valuators.values[2]);
+				if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
+					H->pressure();
+			}
 			H->motion(create_triple(event->root_x, event->root_y, event->time));
-		} else if (false) {
-			in_proximity = true;
-			if (verbosity >= 3)
-				printf("Proximity: In\n");
-		} else if (false) {
-			in_proximity = false;
-			if (verbosity >= 3)
-				printf("Proximity: Out\n");
-			H->proximity_out();
-		} else if (event->evtype == XI_HierarchyChanged) {
+			break;
+		case XI_HierarchyChanged:
 			grabber->hierarchy_changed((XIHierarchyEvent *)event);
-		}
-		XFreeEventData(dpy, &ev.xcookie);
 	}
-#undef H
 }
+#undef H
 
 bool Main::handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
