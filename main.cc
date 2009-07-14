@@ -1259,15 +1259,17 @@ void Main::handle_event(XEvent &ev) {
 		update_core_mapping();
 		return;
 	case GenericEvent:
-		XIDeviceEvent *event = (XIDeviceEvent*)&ev;
-		if (event->extension != grabber->opcode)
+		if (ev.xcookie.extension != grabber->opcode)
 			return;
+		if (!XGetEventData(dpy, &ev.xcookie))
+			return;
+		XIDeviceEvent *event = (XIDeviceEvent *)ev.xcookie.data;
 		if (event->evtype == XI_ButtonPress) {
 			if (verbosity >= 3)
 				printf("Press (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->detail, event->root_x, event->root_y,
-						event->valuators->values[0], event->valuators->values[1],
-						XIMaskIsSet(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
+						event->valuators.values[0], event->valuators.values[1],
+						XIMaskIsSet(event->valuators.mask, 2) ? event->valuators.values[2] : -1.0,
 						event->time);
 			if (xinput_pressed.size()) {
 				if (!current_dev || current_dev->dev != event->deviceid)
@@ -1286,8 +1288,8 @@ void Main::handle_event(XEvent &ev) {
 			if (verbosity >= 3)
 				printf("Release (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->detail, event->root_x, event->root_y,
-						event->valuators->values[0], event->valuators->values[1],
-						XIMaskIsSet(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
+						event->valuators.values[0], event->valuators.values[1],
+						XIMaskIsSet(event->valuators.mask, 2) ? event->valuators.values[2] : -1.0,
 						event->time);
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
@@ -1297,14 +1299,14 @@ void Main::handle_event(XEvent &ev) {
 			if (verbosity >= 5)
 				printf("Motion (XI2): (%f, %f, %f, %f, %f) at t = %ld\n",
 						event->root_x, event->root_y,
-						event->valuators->values[0], event->valuators->values[1],
-						XIMaskIsSet(event->valuators->mask, 2) ? event->valuators->values[2] : -1.0,
+						event->valuators.values[0], event->valuators.values[1],
+						XIMaskIsSet(event->valuators.mask, 2) ? event->valuators.values[2] : -1.0,
 						event->time);
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
 			int z = 0;
 			if (current_dev->supports_pressure)
-				z = current_dev->normalize_pressure(event->valuators->values[2]);
+				z = current_dev->normalize_pressure(event->valuators.values[2]);
 			if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
 				H->pressure();
 			H->motion(create_triple(event->root_x, event->root_y, event->time));
@@ -1320,9 +1322,8 @@ void Main::handle_event(XEvent &ev) {
 		} else if (event->evtype == XI_HierarchyChanged) {
 			grabber->hierarchy_changed((XIHierarchyEvent *)event);
 		}
+		XFreeEventData(dpy, &ev.xcookie);
 	}
-	if (ev.type == GenericEvent)
-		XIFreeEventData((XIEvent *)&ev);
 #undef H
 }
 
