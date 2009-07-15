@@ -30,6 +30,7 @@
 
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
+#include <X11/extensions/Xfixes.h>
 #include <X11/Xproto.h>
 // From #include <X11/extensions/XIproto.h>
 // which is not C++-safe
@@ -682,6 +683,21 @@ static void activate_window(Window w, Time t) {
 		icccm_client_message(w, *WM_TAKE_FOCUS, t);
 	else
 		XSetInputFocus(dpy, w, RevertToParent, t);
+}
+
+void Trace::start(Trace::Point p) {
+	last = p;
+	active = true;
+	XFixesHideCursor(dpy, ROOT);
+	start_();
+}
+
+void Trace::end() {
+	if (!active)
+		return;
+	active = false;
+	XFixesShowCursor(dpy, ROOT);
+	end_();
 }
 
 class StrokeHandler : public Handler, public sigc::trackable {
