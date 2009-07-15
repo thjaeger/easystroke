@@ -60,8 +60,8 @@ class Grabber {
 	friend class Prefs;
 public:
 	Children children;
-	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
-	static const char *state_name[4];
+	enum State { NONE, BUTTON, SELECT };
+	static const char *state_name[3];
 
 	struct XiDevice {
 		int dev;
