@@ -433,7 +433,7 @@ void Grabber::grab_xi_devs(bool grab) {
 
 void Grabber::set() {
 	bool act = !suspended && ((active && !is_disabled) || (current != NONE && current != BUTTON));
-	grab_xi(act && current != ALL_SYNC);
+	grab_xi(act && current != SELECT);
 	grab_xi_devs(act && current == NONE);
 	State old = grabbed;
 	grabbed = act ? current : NONE;
