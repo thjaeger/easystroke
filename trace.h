@@ -35,9 +35,9 @@ protected:
 	virtual void end_() = 0;
 public:
 	Trace() : active(false) {}
-	void start(Point p) { last = p; active = true; start_(); }
-	void end() { if (!active) return; active = false; end_(); }
 	void draw(Point p) { draw(last, p); last = p; }
+	void start(Point p);
+	void end();
 	virtual void timeout() {}
 	virtual ~Trace() {}
 };
