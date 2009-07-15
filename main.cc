@@ -107,9 +107,6 @@ static Trace *init_trace() {
 
 }
 
-static void replay(Time t) { XAllowEvents(dpy, ReplayPointer, t); }
-static void discard(Time t) { XAllowEvents(dpy, AsyncPointer, t); }
-
 void fake_core_button(guint b, bool press) {
 	if (core_inv_map.count(b))
 		b = core_inv_map[b];
@@ -140,9 +137,7 @@ public:
 	virtual void motion(RTriple e) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
-	// Note: We need to make sure that this calls replay/discard otherwise
-	// we could leave X in an unpleasant state.
-	virtual void press_master(guint b, Time t) { replay(t); }
+	virtual void press_master(guint b, Time t) {}
 	virtual void pressure() {}
 	virtual void proximity_out() {}
 	virtual void pong() {}
@@ -225,23 +220,29 @@ class IgnoreHandler : public Handler {
 	RModifiers mods;
 public:
 	IgnoreHandler(RModifiers mods_) : mods(mods_) {}
-	virtual void press_master(guint b, Time t) {
-		replay(t);
-		if (!in_proximity)
-			proximity_out();
+	virtual void press(guint b, RTriple e) {
+		if (current_dev->master)
+			XTestFakeButtonEvent(dpy, b, true, CurrentTime);
 	}
-	virtual void proximity_out() {
-		parent->replace_child(0);
+	virtual void motion(RTriple e) {
+		if (current_dev->master)
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+	}
+	// TODO: Handle Proximity
+	virtual void release(guint b, RTriple e) {
+		if (current_dev->master)
+			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
+		if (!xinput_pressed.size())
+			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "Ignore"; }
-	virtual Grabber::State grab_mode() { return Grabber::ALL_SYNC; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
 static void bail_out();
 
 static void bail_out() {
 	handler->replace_child(NULL);
-	replay(CurrentTime);
 	xinput_pressed.clear();
 	XFlush(dpy);
 }
@@ -403,7 +404,6 @@ public:
 			AbstractScrollHandler::motion(e);
 	}
 	virtual void press_master(guint b, Time t) {
-		replay(t);
 		fake_core_button(b, false);
 	}
 	virtual void release(guint b, RTriple e) {
@@ -449,8 +449,7 @@ static bool mods_equal(RModifiers m1, RModifiers m2);
 class AdvancedStrokeActionHandler : public Handler {
 	RStroke s;
 public:
-	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(s_) { discard(e->t); }
-	virtual void press_master(guint b, Time t) { discard(t); }
+	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(s_) {}
 	virtual void press(guint b, RTriple e) {
 		if (stroke_action) {
 			s->button = b;
@@ -894,7 +893,6 @@ public:
 
 class SelectHandler : public Handler {
 	virtual void press_master(guint b, Time t) {
-		discard(t);
 		parent->replace_child(new WaitForPongHandler);
 		ping();
 		queue(sigc::ptr_fun(&gtk_main_quit));

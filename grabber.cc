@@ -215,7 +215,7 @@ void Grabber::unminimize() {
 	activate(w, CurrentTime);
 }
 
-const char *Grabber::state_name[4] = { "None", "Button", "All (Sync)", "Select" };
+const char *Grabber::state_name[3] = { "None", "Button", "Select" };
 
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
@@ -442,14 +442,9 @@ void Grabber::set() {
 	if (verbosity >= 2)
 		printf("grabbing: %s\n", state_name[grabbed]);
 
-	if (old == ALL_SYNC)
-		XUngrabButton(dpy, AnyButton, AnyModifier, ROOT);
 	if (old == SELECT)
 		XUngrabPointer(dpy, CurrentTime);
 
-	if (grabbed == ALL_SYNC)
-		XGrabButton(dpy, AnyButton, AnyModifier, ROOT, False, ButtonPressMask,
-				GrabModeSync, GrabModeAsync, None, None);
 	if (grabbed == SELECT) {
 		int code = XGrabPointer(dpy, ROOT, False, ButtonPressMask,
 				GrabModeAsync, GrabModeAsync, ROOT, cursor_select, CurrentTime);
