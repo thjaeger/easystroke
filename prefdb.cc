@@ -37,7 +37,6 @@ PrefDB::PrefDB() :
 	button(default_button),
 	trace(TraceDefault),
 	advanced_ignore(false),
-	ignore_grab(false),
 	timing_workaround(false),
 	pressure_abort(false),
 	pressure_threshold(default_pressure_threshold),
@@ -93,7 +92,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	int radius = 16;
 	ar & radius;
 	if (version < 4) return;
-	ar & ignore_grab.unsafe_ref();
+	bool ignore_grab = false;
+	ar & ignore_grab;
 	ar & timing_workaround.unsafe_ref();
 	bool show_clicks = false;
 	ar & show_clicks;

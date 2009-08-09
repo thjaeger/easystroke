@@ -22,10 +22,6 @@
 #include <set>
 #include <iostream>
 
-Source<bool> xinput_v(false);
-Source<bool> supports_pressure(false);
-Source<bool> supports_proximity(false);
-
 class Check : private Base {
 	IO<bool> &io;
 	Gtk::CheckButton *check;
@@ -151,7 +147,6 @@ public:
 	}
 };
 
-static bool and_(bool x, bool y) { return x && y; }
 static bool is_custom(TimeoutType profile) { return profile == TimeoutCustom; }
 static bool draw_trace(TraceType t) { return t == TraceDefault || t == TraceShape; }
 
@@ -238,7 +233,6 @@ void remove_last_entry(const Glib::ustring & name) {
 
 Prefs::Prefs() {
 	new Check(prefs.advanced_ignore, "check_advanced_ignore");
-	new Check(prefs.ignore_grab, "check_ignore_grab");
 	new Check(prefs.timing_workaround, "check_timing_workaround");
 
 	new Check(prefs.pressure_abort, "check_pressure_abort");
@@ -290,13 +284,11 @@ Prefs::Prefs() {
 	widgets->get_widget("treeview_devices", dtv);
 	widgets->get_widget("treeview_extra", etv);
 
-	new Sensitive(xinput_v, "hbox_timeout_profile");
-	new Sensitive(xinput_v, "frame_advanced1");
-	new Sensitive(xinput_v, "frame_advanced2");
-	new Sensitive(xinput_v, "frame_advanced3");
-	new Sensitive(*fun2(&and_, xinput_v, *fun(&is_custom, prefs.timeout_profile)), "hbox_timeout");
+	new Sensitive(*fun(&is_custom, prefs.timeout_profile), "hbox_timeout");
+	/*
 	new Sensitive(supports_pressure, "hbox_pressure");
 	new Sensitive(supports_proximity, "check_proximity");
+	*/
 	new Sensitive(*fun(&draw_trace, prefs.trace), "button_color");
 	new Sensitive(*fun(&draw_trace, prefs.trace), "spin_trace_width");
 
@@ -351,8 +343,6 @@ Prefs::Prefs() {
 }
 
 void Prefs::update_device_list() {
-	if (!grabber->xinput)
-		return;
 	ignore_device_toggled = true;
 	dtm->clear();
 	std::set<std::string> names;
