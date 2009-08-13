@@ -91,7 +91,6 @@ private:
 	bool xi_devs_grabbed;
 	int suspended;
 	bool active;
-	bool is_disabled;
 	Cursor cursor_select;
 	ButtonInfo grabbed_button;
 	std::vector<ButtonInfo> buttons;
