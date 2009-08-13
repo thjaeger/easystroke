@@ -355,8 +355,12 @@ void Prefs::update_device_list() {
 		return;
 	ignore_device_toggled = true;
 	dtm->clear();
+	std::set<std::string> names;
 	for (Grabber::DeviceMap::iterator i = grabber->xi_devs.begin(); i != grabber->xi_devs.end(); ++i) {
 		std::string name = i->second->name;
+		if (names.count(name))
+			continue;
+		names.insert(name);
 		Gtk::TreeModel::Row row = *(dtm->append());
 		row[dcs.enabled] = !prefs.excluded_devices.get().count(name);
 		row[dcs.name] = name;
