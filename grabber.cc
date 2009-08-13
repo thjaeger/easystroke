@@ -16,6 +16,8 @@
 #include "actiondb.h" // TODO
 #include "grabber.h"
 #include "main.h"
+#include "win.h" // TODO
+#include "prefs.h" // TODO
 #include <X11/extensions/XTest.h>
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
@@ -306,10 +308,13 @@ void Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 				return;
 			new_device(dev_info);
 			XIFreeDeviceInfo(dev_info);
+			update_excluded();
+			win->prefs_tab->update_device_list();
 		} else if (info->flags & XISlaveRemoved) {
 			if (verbosity >= 1)
 				printf("Device %d removed.\n", info->deviceid);
 			xi_devs.erase(info->deviceid);
+			win->prefs_tab->update_device_list();
 			if (current_dev && current_dev->dev == info->deviceid)
 				current_dev = NULL;
 		} else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
