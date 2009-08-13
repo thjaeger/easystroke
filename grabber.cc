@@ -397,7 +397,7 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
 	if (grab)
 		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
 	else {
-		XIUngrabButton(dpy, dev, 1, ROOT, nmods, modifiers);
+		XIUngrabButton(dpy, dev, bi.button, ROOT, nmods, modifiers);
 		if (current_dev && current_dev->dev == dev)
 			xinput_pressed.clear();
 	}
