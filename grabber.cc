@@ -306,7 +306,9 @@ void Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 				return;
 			new_device(dev_info);
 			XIFreeDeviceInfo(dev_info);
-		} else if (info[i].flags & XISlaveRemoved) {
+		} else if (info->flags & XISlaveRemoved) {
+			if (verbosity >= 1)
+				printf("Device %d removed.\n", info->deviceid);
 			xi_devs.erase(info->deviceid);
 			if (current_dev && current_dev->dev == info->deviceid)
 				current_dev = NULL;
