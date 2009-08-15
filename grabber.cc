@@ -677,7 +677,10 @@ void Grabber::update() {
 		else
 			active = false;
 	}
-	if (active && actions.get_root()->size_rec() && !actions.get_action_list(current_class->get())->count_actions())
+	const ActionListDiff *a = stroke_app.get();
+	if (!a)
+		a = actions.get_action_list(current_class->get());
+	if (active && actions.get_root()->size_rec() && !a->count_actions())
 		active = false;
 	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
 	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
