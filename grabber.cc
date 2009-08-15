@@ -666,23 +666,19 @@ int get_default_button() {
 		return prefs.button.get().button;
 }
 
-extern bool disable_root();
-
 void Grabber::update() {
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(current_class->get());
 	is_disabled = disabled.get();
 	active = true;
 	ButtonInfo bi = prefs.button.ref();
 	if (i != prefs.exceptions.ref().end()) {
-		if (i->second) {
+		if (i->second)
 			bi = *i->second;
-		} else {
-			active = false;
-		}
-	} else {
-		if (disable_root())
+		else
 			active = false;
 	}
+	if (active && actions.get_root()->size_rec() && !actions.get_action_list(current_class->get())->count_actions())
+		active = false;
 	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
 	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
 			std::equal(extra.begin(), extra.end(), ++buttons.begin())) {

@@ -369,6 +369,9 @@ public:
 
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
 	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
+	int count_actions() const {
+		return (parent ? parent->count_actions() : 0) + added.size() - deleted.size();
+	}
 	void all_strokes(std::list<RStroke> &strokes) const;
 	RAction handle(RStroke s, RRanking &r) const;
 	// b1 is always reported as b2
