@@ -270,14 +270,14 @@ public:
 	iterator end() { return children.end(); }
 
 	RStrokeInfo get_info(Unique *id, bool *deleted = 0, bool *stroke = 0, bool *name = 0, bool *action = 0) const;
-	int order_size() { return order.size(); }
-	int size_rec() {
+	int order_size() const { return order.size(); }
+	int size_rec() const {
 		int size = added.size();
-		for (std::list<ActionListDiff>::iterator i = children.begin(); i != children.end(); i++)
+		for (std::list<ActionListDiff>::const_iterator i = children.begin(); i != children.end(); i++)
 			size += i->size_rec();
 		return size;
 	}
-	bool resettable(Unique *id) {
+	bool resettable(Unique *id) const {
 		return parent && (added.count(id) || deleted.count(id)) && parent->contains(id);
 	}
 
@@ -296,7 +296,7 @@ public:
 	void set_action(Unique *id, RAction action) { added[id].action = action; }
 	void set_strokes(Unique *id, StrokeSet strokes) { added[id].strokes = strokes; }
 	void set_name(Unique *id, std::string name) { added[id].name = name; }
-	bool contains(Unique *id) {
+	bool contains(Unique *id) const {
 		if (deleted.count(id))
 			return false;
 		if (added.count(id))
