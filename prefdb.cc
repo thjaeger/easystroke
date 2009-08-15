@@ -50,7 +50,7 @@ PrefDB::PrefDB() :
 	timeout_gestures(false),
 	tray_icon(true),
 	color(Gdk::Color("#980101")),
-	trace_width(5),
+	trace_width(3),
 	advanced_popups(true),
 	scroll_invert(true),
 	scroll_speed(2.0),
