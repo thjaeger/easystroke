@@ -1437,8 +1437,6 @@ void Main::run() {
 	win = new Win;
 	if (show_gui)
 		win->get_window().show();
-	else
-		win->get_window().hide();
 	Gtk::Main::run();
 	delete win;
 }
