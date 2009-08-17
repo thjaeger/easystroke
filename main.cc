@@ -57,8 +57,6 @@ Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed; // TODO get rid of
 
 static bool show_gui = false;
-static int offset_x = 0;
-static int offset_y = 0;
 
 static int argc;
 static char **argv;
@@ -1109,8 +1107,6 @@ void Main::usage(char *me, bool good) {
 	printf("  -x  --no-xi            Don't use the Xinput extension\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
 	printf("  -g, --show-gui         Show the configuration dialog on startup\n");
-	printf("      --offset-x         XInput workaround\n");
-	printf("      --offset-y         XInput workaround\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
 	printf("  -h, --help             Display this help and exit\n");
 	printf("      --version          Output version information and exit\n");
@@ -1139,8 +1135,6 @@ std::string Main::parse_args_and_init_gtk() {
 		{"experimental",0,0,'e'},
 		{"show-gui",0,0,'g'},
 		{"verbose",0,0,'v'},
-		{"offset-x",1,0,'X'},
-		{"offset-y",1,0,'Y'},
 		{0,0,0,0}
 	};
 	std::string display;
@@ -1182,12 +1176,6 @@ std::string Main::parse_args_and_init_gtk() {
 			case 'd':
 			case 'n':
 			case 'g':
-				break;
-			case 'X':
-				offset_x = atoi(optarg);
-				break;
-			case 'Y':
-				offset_y = atoi(optarg);
 				break;
 			default:
 				usage(argv[0], false);
