@@ -1400,14 +1400,6 @@ void Button::run() {
 	grabber->resume();
 }
 
-void SendKey::run() {
-	if (!key)
-		return;
-	guint code = XKeysymToKeycode(dpy, key);
-	XTestFakeKeyEvent(dpy, code, true, 0);
-	XTestFakeKeyEvent(dpy, code, false, 0);
-}
-
 void fake_unicode(gunichar c) {
 	static const KeySym numcode[10] = { XK_0, XK_1, XK_2, XK_3, XK_4, XK_5, XK_6, XK_7, XK_8, XK_9 };
 	static const KeySym hexcode[6] = { XK_a, XK_b, XK_c, XK_d, XK_e, XK_f };
@@ -1493,7 +1485,6 @@ static int n_modkeys = 10;
 class Modifiers : Timeout {
 	static std::set<Modifiers *> all;
 	static void update_mods() {
-		static guint mod_state = 0;
 		guint new_state = 0;
 		for (std::set<Modifiers *>::iterator i = all.begin(); i != all.end(); i++)
 			new_state |= (*i)->mods;
@@ -1508,6 +1499,8 @@ class Modifiers : Timeout {
 	guint mods;
 	Glib::ustring str;
 	OSD *osd;
+	static guint mod_state;
+	static char others[32];
 public:
 	Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_), osd(NULL) {
 		if (prefs.show_osd.get())
@@ -1526,8 +1519,38 @@ public:
 		update_mods();
 		delete osd;
 	}
+	static void release_others() {
+		XQueryKeymap(dpy, others);
+		for (int i = 0; i < n_modkeys; i++)
+			if (mod_state & modkeys[i].mask) {
+				int code = XKeysymToKeycode(dpy, modkeys[i].sym);
+				others[code/8] &= ~(1 << (code%8));
+			}
+
+		for (int code = 0; code < 256; code++)
+			if (others[code/8] & (1 << (code%8)))
+				XTestFakeKeyEvent(dpy, code, false, 0);
+	}
+	static void press_others() {
+		for (int code = 0; code < 256; code++)
+			if (others[code/8] & (1 << (code%8)))
+				XTestFakeKeyEvent(dpy, code, true, 0);
+	}
 };
+
 std::set<Modifiers *> Modifiers::all;
+guint Modifiers::mod_state = 0;
+char Modifiers::others[32];
+
+void SendKey::run() {
+	if (!key)
+		return;
+	guint code = XKeysymToKeycode(dpy, key);
+	Modifiers::release_others();
+	XTestFakeKeyEvent(dpy, code, true, 0);
+	XTestFakeKeyEvent(dpy, code, false, 0);
+	Modifiers::press_others();
+}
 
 RModifiers ModAction::prepare() {
 	return RModifiers(new Modifiers(mods, get_label()));
