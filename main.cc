@@ -972,6 +972,7 @@ public:
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	void handle_xi2_event(XIDeviceEvent *event);
+	void report_xi2_event(XIDeviceEvent *event, const char *type);
 	~Main();
 };
 
@@ -1269,15 +1270,39 @@ void Main::handle_event(XEvent &ev) {
 	}
 }
 
+void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
+	printf("%s (XI2): ", type);
+	if (event->detail)
+		printf("%d ", event->detail);
+	printf("(%.3f, %.3f) - (", event->root_x, event->root_y);
+
+	int n = 0;
+	for (int i = event->valuators.mask_len - 1; i >= 0; i--)
+		if (XIMaskIsSet(event->valuators.mask, i)) {
+			n = i+1;
+			break;
+		}
+	bool first = true;
+	int elt = 0;
+	for (int i = 0; i < n; i++) {
+		if (first)
+			first = false;
+		else
+			printf(", ");
+		if (XIMaskIsSet(event->valuators.mask, i))
+			printf("%.3f", event->valuators.values[elt++]);
+		else
+			printf("*");
+
+	}
+	printf(") at t = %ld\n", event->time);
+}
+
 void Main::handle_xi2_event(XIDeviceEvent *event) {
 	switch (event->evtype) {
 		case XI_ButtonPress:
 			if (verbosity >= 3)
-				printf("Press (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
-						event->detail, event->root_x, event->root_y,
-						event->valuators.values[0], event->valuators.values[1],
-						XIMaskIsSet(event->valuators.mask, 2) ? event->valuators.values[2] : -1.0,
-						event->time);
+				report_xi2_event(event, "Press");
 			if (xinput_pressed.size()) {
 				if (!current_dev || current_dev->dev != event->deviceid)
 					break;
@@ -1294,11 +1319,7 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			break;
 		case XI_ButtonRelease:
 			if (verbosity >= 3)
-				printf("Release (XI2): %d (%f, %f, %f, %f, %f) at t = %ld\n",
-						event->detail, event->root_x, event->root_y,
-						event->valuators.values[0], event->valuators.values[1],
-						XIMaskIsSet(event->valuators.mask, 2) ? event->valuators.values[2] : -1.0,
-						event->time);
+				report_xi2_event(event, "Release");
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
 			xinput_pressed.erase(event->detail);
@@ -1306,15 +1327,16 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			break;
 		case XI_Motion:
 			if (verbosity >= 5)
-				printf("Motion (XI2): (%f, %f, %f, %f, %f) at t = %ld\n",
-						event->root_x, event->root_y,
-						event->valuators.values[0], event->valuators.values[1],
-						XIMaskIsSet(event->valuators.mask, 2) ? event->valuators.values[2] : -1.0,
-						event->time);
+				report_xi2_event(event, "Motion");
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
-			if (current_dev->supports_pressure) {
-				int z = current_dev->normalize_pressure(event->valuators.values[2]);
+			if (current_dev->supports_pressure && XIMaskIsSet(event->valuators.mask, 2)) {
+				int i = 0;
+				if (XIMaskIsSet(event->valuators.mask, 0))
+				       i++;
+				if (XIMaskIsSet(event->valuators.mask, 1))
+				       i++;
+				int z = current_dev->normalize_pressure(event->valuators.values[i]);
 				if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
 					H->pressure();
 			}
