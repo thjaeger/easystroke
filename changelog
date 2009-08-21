@@ -1,3 +1,7 @@
+2009-08-19 Released 0.4.9
+	* Fix a bug regarding application groups
+	* Add Polish translations
+
 2009-08-15 Released 0.4.8
 	* Fix the use-case where only application-dependent gestures are defined
 	* Set default gesture trail width to 3
