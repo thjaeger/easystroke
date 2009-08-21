@@ -22,16 +22,16 @@
 #include <glibmm/i18n.h>
 
 extern Window get_window(Window w, Atom prop);
-extern Source<bool> xinput_v, supports_pressure, supports_proximity, disabled;
+extern Source<bool> disabled;
 extern Source<Window> current_window;
 extern Source<ActionListDiff *> stroke_app;
 extern bool in_proximity;
 
-bool no_xi = false;
-bool xi_15 = false;
 Grabber *grabber = 0;
 
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
+static unsigned char device_mask_data[2];
+static XIEventMask device_mask;
 
 template <class X1, class X2> class BiMap {
 	std::map<X1, X2> map1;
@@ -226,11 +226,10 @@ Grabber::Grabber() : children(ROOT) {
 	grabbed = NONE;
 	xi_grabbed = false;
 	xi_devs_grabbed = false;
-	proximity_selected = false;
 	grabbed_button.button = 0;
 	grabbed_button.state = 0;
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
-	xinput = init_xi();
+	init_xi();
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	current_class = fun2(&get_wm_class, current_window, stroke_app);
@@ -244,85 +243,32 @@ Grabber::~Grabber() {
 	XFreeCursor(dpy, cursor_select);
 }
 
-float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmin, int tmax, int defmax) {
-	if (fmin >= fmax) {
-		fmin = 0;
-		fmax = defmax;
-	}
-
-	if (tmin >= tmax) {
-		tmin = 0;
-		tmax = defmax;
-	}
-
-	if (fmin == tmin && fmax == tmax)
-		return (float)coord;
-
-	if (fmax == fmin)
-		return 0.0;
-
-	return (float)(coord - fmin) * (float)(tmax - tmin) / (float)(fmax - fmin) + (float)tmin;
-}
-
-extern "C" {
-	extern int _XiGetDevicePresenceNotifyEvent(Display *);
-}
-
-#ifndef XI_Add_DeviceProperties_Major
-#define XI_Add_DeviceProperties_Major 1
-#endif
-
-#ifndef XI_Add_DeviceProperties_Minor
-#define XI_Add_DeviceProperties_Minor 5
-#endif
-
-static int button_events_n = 3;
-
 bool Grabber::init_xi() {
-	if (no_xi)
-		return false;
-	int nFEV, nFER;
-	if (!XQueryExtension(dpy,INAME,&nMajor,&nFEV,&nFER)) {
-		printf("Warning: XInput extension not available\n");
-		return false;
+	/* XInput Extension available? */
+	int major = 2, minor = 0;
+	if (!XQueryExtension(dpy, "XInputExtension", &opcode, &event, &error) ||
+			XIQueryVersion(dpy, &major, &minor) == BadRequest ||
+			major < 2) {
+		printf("Error: This version of easystroke needs an XInput 2.0-aware X server\n");
+		exit(EXIT_FAILURE);
 	}
-	XExtensionVersion *v = XGetExtensionVersion(dpy, INAME);
-	if (!v->present) {
-		printf("Warning: XInput extension not available\n");
-		return false;
-	}
-	if (v->major_version >= 2) {
-		printf("Warning: This version of easystroke has not been tested on an XI2-enabled X server. Please upgrade to a later version of easystroke.\n");
-	}
-	xi_15 = v->major_version > XI_Add_DeviceProperties_Major ||
-		(v->major_version == XI_Add_DeviceProperties_Major && v->minor_version >= XI_Add_DeviceProperties_Minor);
-	XFree(v);
-
-	// Macro not c++-safe
-	// DevicePresence(dpy, event_presence, presence_class);
-	event_presence = _XiGetDevicePresenceNotifyEvent(dpy);
-	presence_class =  (0x10000 | _devicePresence);
 
 	if (!update_device_list())
 		return false;
 
-	if (!xi_devs.size())
-		printf("Warning: No suitable XInput devices found\n");
+	if (!xi_devs.size()) {
+		printf("Error: No suitable XInput devices found\n");
+		exit(EXIT_FAILURE);
+	}
 
-	xinput_v.set(xi_devs.size());
-
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
-		if (i->second->supports_pressure) {
-			supports_pressure.set(true);
-			break;
-		}
-
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
-		if (i->second->supports_proximity) {
-			supports_proximity.set(true);
-			break;
-		}
-	prefs.proximity.connect(new Notifier(sigc::mem_fun(*this, &Grabber::select_proximity)));
+	// TODO: Proximity
+	device_mask.deviceid = XIAllDevices;
+	device_mask.mask_len = 2;
+	device_mask.mask = device_mask_data;
+	memset(device_mask.mask, 0, 2);
+	SetBit(device_mask.mask, XI_ButtonPress);
+	SetBit(device_mask.mask, XI_ButtonRelease);
+	SetBit(device_mask.mask, XI_Motion);
 
 	return true;
 }
@@ -331,8 +277,8 @@ bool Grabber::update_device_list() {
 	xi_devs.clear();
 
 	int n;
-	XDeviceInfo *devs = XListInputDevices(dpy, &n);
-	if (!devs) {
+	XIDeviceInfo *info = XIQueryDevice(dpy, XIAllDevices, &n);
+	if (!info) {
 		printf("Warning: No XInput devices available\n");
 		return false;
 	}
@@ -340,30 +286,26 @@ bool Grabber::update_device_list() {
 	current_dev = NULL;
 
 	for (int i = 0; i < n; i++) {
-		XDeviceInfo *dev = devs + i;
+		XIDeviceInfo *dev = info + i;
 
-		if (dev->use == IsXKeyboard || dev->use == IsXPointer)
+		if (dev->use == XIMasterPointer || dev->use == XIMasterKeyboard)
 			continue;
 
-		XAnyClassPtr any = (XAnyClassPtr) (dev->inputclassinfo);
-		for (int j = 0; j < devs[i].num_classes; j++) {
-			if (any->c_class == ButtonClass) {
-				try {
-					XiDevice *xi_dev = new XiDevice(this, dev);
-					xi_devs[dev->id].reset(xi_dev);
-					break;
-				} catch (XiDevice::OpenException &e) {
-					printf(_("Error: %s\n"), e.what());
-				}
+		// TODO: Bug Peter about better way of checking for Xtst devices
+		if (!strcmp(dev->name, "Xtst pointer") || !strcmp(dev->name, "Virtual core Xtst pointer"))
+			continue;
+
+		for (int j = 0; j < dev->num_classes; j++) {
+			if (dev->classes[j]->type == ButtonClass) {
+				XiDevice *xi_dev = new XiDevice(this, dev);
+				xi_devs[dev->deviceid].reset(xi_dev);
+				break;
 			}
-			any = (XAnyClassPtr) ((char *) any + any->length);
 		}
 	}
-	XFreeDeviceList(devs);
+	XIFreeDeviceInfo(info);
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update_excluded)));
 	update_excluded();
-	proximity_selected = false;
-	select_proximity();
 	xi_grabbed = false;
 	set();
 	return true;
@@ -376,147 +318,55 @@ void Grabber::update_excluded() {
 	resume();
 }
 
-Grabber::XiDevice::OpenException::OpenException(const char *name) {
-	if (asprintf(&msg, _("Opening Device %s failed.\n"), name) == -1)
-		msg = NULL;
-}
-
-Grabber::XiDevice::~XiDevice() { XCloseDevice(dpy, dev); }
-
-Grabber::XiDevice::XiDevice(Grabber *parent, XDeviceInfo *dev_info) : supports_pressure(false), num_buttons(0) {
-	XAnyClassPtr any = (XAnyClassPtr) (dev_info->inputclassinfo);
-	for (int j = 0; j < dev_info->num_classes; j++) {
-		if (any->c_class == ButtonClass) {
-			XButtonInfo *info = (XButtonInfo *)any;
-			num_buttons = info->num_buttons;
-		}
-		if (any->c_class == ValuatorClass) {
-			XValuatorInfo *info = (XValuatorInfo *)any;
-			if (info->num_axes >= 2) {
-				for (int k = 0; k < 2; k++) {
-					min[k] = info->axes[k].min_value;
-					max[k] = info->axes[k].max_value;
-				}
-			}
-			if (info->num_axes >= 3) {
+Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), num_buttons(0) {
+	dev = info->deviceid;
+	for (int j = 0; j < info->num_classes; j++) {
+		XIAnyClassInfo *dev_class = info->classes[j];
+		if (dev_class->type == ButtonClass) {
+			XIButtonClassInfo *b = (XIButtonClassInfo*)dev_class;
+			num_buttons = b->num_buttons;
+		} else if (dev_class->type == ValuatorClass) {
+			XIValuatorClassInfo *v = (XIValuatorClassInfo*)dev_class;
+			if (v->number == 2) {
 				supports_pressure = true;
-				pressure_min = info->axes[2].min_value;
-				pressure_max = info->axes[2].max_value;
+				pressure_min = v->min;
+				pressure_max = v->max;
 			}
-			absolute = info->mode == Absolute;
 		}
-		any = (XAnyClassPtr) ((char *) any + any->length);
 	}
-
-	dev = XOpenDevice(dpy, dev_info->id);
-	if (!dev)
-		throw OpenException(dev_info->name);
-	name = dev_info->name;
-
-	valuators[0] = 0;
-	valuators[1] = 0;
-
-	DeviceButtonPress(dev, parent->event_type[DOWN], events[DOWN]);
-	DeviceButtonRelease(dev, parent->event_type[UP], events[UP]);
-	DeviceButtonMotion(dev, parent->event_type[BUTTON_MOTION], events[BUTTON_MOTION]);
-	DeviceMotionNotify(dev, parent->event_type[MOTION], events[MOTION]);
-
-	int prox_in, prox_out;
-	ProximityIn(dev, prox_in, events[PROX_IN]);
-	ProximityOut(dev, prox_out, events[PROX_OUT]);
-	supports_proximity = events[PROX_IN] && events[PROX_OUT];
-	if (supports_proximity) {
-		parent->event_type[PROX_IN] = prox_in;
-		parent->event_type[PROX_OUT] = prox_out;
-	}
-	all_events_n = supports_proximity ? 6 : 4;
-
-	XEventClass evs[0];
-	DeviceMappingNotify(dev, parent->mapping_notify, evs[0]);
-	XSelectExtensionEvent(dpy, ROOT, evs, 1);
-
-	update_pointer_mapping();
+	name = info->name;
 
 	if (verbosity >= 1)
-		printf("Opened Device \"%s\" (%s, %s proximity).\n", dev_info->name,
-				absolute ? "absolute" : "relative",
+		printf("Opened Device %d (\"%s\") (%s proximity).\n", dev, info->name,
 				supports_proximity ? "supports" : "does not support");
 }
 
-void Grabber::XiDevice::update_axes() {
-	int n;
-	XDeviceInfo *devs = XListInputDevices(dpy, &n);
-	if (!devs)
-		return;
-	for (int i = 0; i < n; i++) {
-		if (devs[i].id != dev->device_id)
-			continue;
-		XAnyClassPtr any = (XAnyClassPtr) (devs[i].inputclassinfo);
-		for (int j = 0; j < devs[i].num_classes; j++) {
-			if (any->c_class == ValuatorClass) {
-				XValuatorInfo *info = (XValuatorInfo *)any;
-				if (info->num_axes >= 2) {
-					for (int k = 0; k < 2; k++) {
-						min[k] = info->axes[k].min_value;
-						max[k] = info->axes[k].max_value;
-					}
-				}
-				absolute = info->mode == Absolute;
-			}
-			any = (XAnyClassPtr) ((char *) any + any->length);
-		}
-	}
-	XFreeDeviceList(devs);
-}
-
-Grabber::XiDevice *Grabber::get_xi_dev(XID id) {
+Grabber::XiDevice *Grabber::get_xi_dev(int id) {
 	DeviceMap::iterator i = xi_devs.find(id);
 	return i == xi_devs.end() ? NULL : i->second.get();
 }
 
-unsigned int Grabber::get_device_button_state(XiDevice *&dev) {
-	unsigned int mask = 0;
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i) {
-		if (!i->second->active)
-			continue;
-		XDeviceState *state = XQueryDeviceState(dpy, i->second->dev);
-		if (!state)
-			continue;
-		XInputClass *c = state->data;
-		for (int j = 0; j < state->num_classes; j++) {
-			if (c->c_class == ButtonClass) {
-				XButtonState *b = (XButtonState *)c;
-				mask |= b->buttons[0];
-				mask |= ((unsigned int)b->buttons[1]) << 8;
-				mask |= ((unsigned int)b->buttons[2]) << 16;
-				mask |= ((unsigned int)b->buttons[3]) << 24;
-			}
-			c = (XInputClass *)((char *)c + c->length);
-		}
-		XFreeDeviceState(state);
-		if (mask) {
-			dev = i->second.get();
-			return mask;
-		}
-	}
-	return 0;
-}
-
 void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
-	for (int i = 0; i < (bi.button == AnyModifier ? 1 : 4); i++)
-		if (grab)
-			XGrabDeviceButton(dpy, dev, bi.button, bi.state ^ ignore_mods[i], NULL, ROOT, False,
-					button_events_n, events, GrabModeAsync, GrabModeAsync);
-		else {
-			XUngrabDeviceButton(dpy, dev, bi.button, bi.state ^ ignore_mods[i], NULL, ROOT);
-			if (current_dev && current_dev->dev->device_id == dev->device_id)
-				xinput_pressed.clear();
-		}
+	XIGrabModifiers modifiers[4] = {{0,0},{0,0},{0,0},{0,0}};
+	int nmods = 0;
+	if (bi.button == AnyModifier) {
+		nmods = 1;
+		modifiers[0].modifiers = XIAnyModifier;
+	} else {
+		nmods = 4;
+		for (int i = 0; i < 4; i++)
+			modifiers[i].modifiers = bi.state ^ ignore_mods[i];
+	}
+	if (grab)
+		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
+	else {
+		XIUngrabButton(dpy, dev, 1, ROOT, nmods, modifiers);
+		if (current_dev && current_dev->dev == dev)
+			xinput_pressed.clear();
+	}
 }
 
 void Grabber::grab_xi(bool grab) {
-	if (!xinput)
-		return;
 	if (!xi_grabbed == !grab)
 		return;
 	xi_grabbed = grab;
@@ -526,30 +376,14 @@ void Grabber::grab_xi(bool grab) {
 				i->second->grab_button(*j, grab);
 }
 
-void Grabber::regrab_xi() {
-	if (!xi_grabbed)
-		return;
-	grab_xi(false);
-	grab_xi(true);
-}
-
 void Grabber::XiDevice::grab_device(bool grab) {
 	if (!grab) {
-		XUngrabDevice(dpy, dev, CurrentTime);
-		if (current_dev && current_dev->dev->device_id == dev->device_id)
+		XIUngrabDevice(dpy, dev, CurrentTime);
+		if (current_dev && current_dev->dev == dev)
 			xinput_pressed.clear();
 		return;
 	}
-	int tries = 0;
-	while (true) {
-		int code = XGrabDevice(dpy, dev, ROOT, False, all_events_n, events,
-				GrabModeAsync, GrabModeAsync, CurrentTime);
-		if (!code)
-			return;
-		if (code && (code != GrabFrozen || ++tries > 9))
-			throw GrabFailedException(code);
-		usleep(tries*1000);
-	};
+	XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False, &device_mask);
 }
 
 void Grabber::grab_xi_devs(bool grab) {
@@ -558,39 +392,6 @@ void Grabber::grab_xi_devs(bool grab) {
 	xi_devs_grabbed = grab;
 	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
 		i->second->grab_device(grab);
-}
-
-void Grabber::XiDevice::update_pointer_mapping() {
-	if (!xi_15)
-		return;
-	unsigned char map[MAX_BUTTONS];
-	int n = XGetDeviceButtonMapping(dpy, dev, map, MAX_BUTTONS);
-	inv_map.clear();
-	for (int i = n-1; i; i--)
-		if (map[i] == i+1)
-			inv_map.erase(i+1);
-		else
-			inv_map[map[i]] = i+1;
-}
-
-void Grabber::select_proximity() {
-	bool select = prefs.proximity.get();
-	if (!select != !proximity_selected) {
-		proximity_selected = !proximity_selected;
-		if (!proximity_selected)
-			in_proximity = false;
-	}
-	XEventClass evs[2*xi_devs.size()+1];
-	int n = 0;
-	evs[n++] = presence_class;
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i) {
-		if (proximity_selected && i->second->supports_proximity) {
-			evs[n++] = i->second->events[PROX_IN];
-			evs[n++] = i->second->events[PROX_OUT];
-		}
-	}
-	// NB: Unselecting doesn't actually work!
-	XSelectExtensionEvent(dpy, ROOT, evs, n);
 }
 
 void Grabber::set() {
@@ -605,9 +406,6 @@ void Grabber::set() {
 		printf("grabbing: %s\n", state_name[grabbed]);
 
 	if (old == BUTTON) {
-		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
-			for (int i = 0; i < (j->button == AnyModifier ? 1 : 4); i++)
-				XUngrabButton(dpy, j->button, j->state ^ ignore_mods[i], ROOT);
 		if (timing_workaround)
 			XUngrabButton(dpy, 1, AnyModifier, ROOT);
 	}
@@ -617,15 +415,7 @@ void Grabber::set() {
 		XUngrabPointer(dpy, CurrentTime);
 
 	if (grabbed == BUTTON) {
-		unsigned int core_mask = xinput ? ButtonPressMask : ButtonMotionMask | ButtonPressMask | ButtonReleaseMask;
-		for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++) {
-			if (!xinput && is_instant(j->button))
-				continue;
-			for (int i = 0; i < (j->button == AnyModifier ? 1 : 4); i++)
-				XGrabButton(dpy, j->button, j->state ^ ignore_mods[i], ROOT, False, core_mask,
-						xinput ? GrabModeSync : GrabModeAsync, GrabModeAsync, None, None);
-		}
-		timing_workaround = xinput && !is_grabbed(1) && prefs.timing_workaround.get();
+		timing_workaround = !is_grabbed(1) && prefs.timing_workaround.get();
 		if (timing_workaround)
 			XGrabButton(dpy, 1, AnyModifier, ROOT, False, ButtonPressMask,
 					GrabModeSync, GrabModeAsync, None, None);
@@ -700,37 +490,6 @@ void Grabber::update() {
 		if (!i->overlap(bi))
 			buttons.push_back(*i);
 	resume();
-}
-
-void Grabber::release_all(int n) {
-	if (xi_15) {
-		for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
-			i->second->release_all();
-	} else {
-		if (!n)
-			n = XGetPointerMapping(dpy, 0, 0);
-		for (int i = 1; i <= n; i++)
-			XTestFakeButtonEvent(dpy, i, False, CurrentTime);
-	}
-
-}
-
-void Grabber::XiDevice::release_all() {
-	for (int i = 1; i <= num_buttons; i++)
-		XTestFakeDeviceButtonEvent(dpy, dev, i, False, valuators, 2, 0);
-}
-
-void Grabber::XiDevice::fake_button(int b, bool press) {
-	guint b2 = b;
-	std::map<guint, guint>::iterator i = inv_map.find(b);
-	if (i != inv_map.end())
-		b2 = i->second;
-	// we actually do need to pass valuators here, otherwise all hell will break lose
-	XTestFakeDeviceButtonEvent(dpy, dev, b2, press, valuators, 2, 0);
-	if (verbosity >= 3)
-		printf("fake xi %s: %d -> %d\n", press ? "press" : "release", b2, b);
-	if (!xi_15)
-		fake_core_button(b2, press);
 }
 
 // Fuck Xlib

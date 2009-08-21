@@ -18,9 +18,12 @@
 #include "prefdb.h"
 #include <string>
 #include <map>
-#include <X11/extensions/XInput.h>
+#include <X11/extensions/XInput2.h>
 
 #define MAX_BUTTONS 256
+
+#define BitIsOn(ptr, bit) (((unsigned char *) (ptr))[(bit)>>3] & (1 << ((bit) & 7)))
+#define SetBit(ptr, bit)  (((unsigned char *) (ptr))[(bit)>>3] |= (1 << ((bit) & 7)))
 
 class XAtom {
 	const char *name;
@@ -45,7 +48,6 @@ public:
 class Grabber;
 extern Grabber *grabber;
 
-float rescaleValuatorAxis(int coord, int fmin, int fmax, int tmin, int tmax, int defmax);
 bool has_wm_state(Window w);
 bool has_atom(Window w, Atom prop, Atom value);
 
@@ -57,64 +59,34 @@ class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
 	friend class Button;
+	friend class Prefs;
 public:
 	Children children;
 	enum State { NONE, BUTTON, ALL_SYNC, SELECT };
 	static const char *state_name[4];
-	enum EventType { DOWN = 0, UP = 1, MOTION = 2, BUTTON_MOTION = 3, PROX_IN = 4, PROX_OUT = 5 };
-	bool xinput;
-	bool proximity_selected;
-	int event_type[6];
-	bool is_event(int type, EventType et) { return xinput && type == event_type[et]; }
-	void select_proximity();
 
 	struct XiDevice {
-		class OpenException : public std::exception {
-			char *msg;
-			public:
-			OpenException(const char *name);
-			virtual const char* what() const throw() { return msg ? msg : "Open Failed"; }
-			~OpenException() throw() { free(msg); }
-		};
+		int dev;
 		std::string name;
-		std::map<guint, guint> inv_map;
-		XDevice *dev;
-		XEventClass events[6];
-		int all_events_n;
 		bool supports_proximity, supports_pressure;
 		bool active;
 		int pressure_min, pressure_max;
-		int min[2], max[2];
-		bool absolute;
-		int valuators[2];
 		int num_buttons;
-		XiDevice(Grabber *, XDeviceInfo *);
-		~XiDevice();
+		XiDevice(Grabber *, XIDeviceInfo *);
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
-		void fake_button(int b, bool press);
-		void release_all();
 		void grab_device(bool grab);
 		void grab_button(ButtonInfo &bi, bool grab);
-		void update_pointer_mapping();
-		void update_axes();
-		void translate_coords(int sx, int sy, int *axis_data, float &x, float &y);
-		bool translate_known_coords(int sx, int sy, int *axis_data, float &x, float &y);
 	};
 
-	unsigned int get_device_button_state(XiDevice *&dev);
-	XiDevice *get_xi_dev(XID id);
-	int mapping_notify;
-	int event_presence;
-	XEventClass presence_class;
-
 	typedef std::map<XID, boost::shared_ptr<XiDevice> > DeviceMap;
-	DeviceMap xi_devs;
-	int nMajor;
+	int opcode, event, error;
+	XiDevice *get_xi_dev(int id);
 private:
 	bool init_xi();
 
+	DeviceMap xi_devs;
 	State current, grabbed;
 	bool xi_grabbed;
 	bool xi_devs_grabbed;
@@ -128,7 +100,6 @@ private:
 
 	void set();
 	void grab_xi(bool);
-	void regrab_xi();
 	void grab_xi_devs(bool);
 
 	void update_excluded();
@@ -151,7 +122,6 @@ public:
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);
 	bool is_click_hold(guint b);
-	void release_all(int n = 0);
 
 	int get_default_button() { return grabbed_button.button; }
 	bool get_timing_workaround() { return timing_workaround; }
