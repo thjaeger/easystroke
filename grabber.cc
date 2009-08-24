@@ -19,6 +19,7 @@
 #include "win.h" // TODO
 #include "prefs.h" // TODO
 #include <X11/extensions/XTest.h>
+#include <xorg/xserver-properties.h>
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
 #include <glibmm/i18n.h>
@@ -333,8 +334,8 @@ void Grabber::update_excluded() {
 	resume();
 }
 
-bool is_xtst_device(int dev) {
-	static XAtom XTEST("Xtst Device");
+bool is_xtest_device(int dev) {
+	static XAtom XTEST(XI_PROP_XTST_DEVICE);
 	Atom type;
 	int format;
 	unsigned long num_items, bytes_after;
@@ -351,7 +352,7 @@ void Grabber::new_device(XIDeviceInfo *info) {
 	if (info->use == XIMasterPointer || info->use == XIMasterKeyboard)
 		return;
 
-	if (is_xtst_device(info->deviceid))
+	if (is_xtest_device(info->deviceid))
 		return;
 
 	for (int j = 0; j < info->num_classes; j++)
