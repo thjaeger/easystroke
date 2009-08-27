@@ -335,7 +335,7 @@ void Grabber::update_excluded() {
 }
 
 bool is_xtest_device(int dev) {
-	static XAtom XTEST(XI_PROP_XTST_DEVICE);
+	static XAtom XTEST(XI_PROP_XTEST_DEVICE);
 	Atom type;
 	int format;
 	unsigned long num_items, bytes_after;
