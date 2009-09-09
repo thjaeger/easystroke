@@ -291,7 +291,7 @@ bool Grabber::init_xi() {
 	unsigned char data[2] = { 0, 0 };
 	global_mask.deviceid = XIAllDevices;
 	global_mask.mask = data;
-	global_mask.mask_len = sizeof(global_mask.mask);
+	global_mask.mask_len = sizeof(data);
 	XISetMask(global_mask.mask, XI_HierarchyChanged);
 
 	XISelectEvents(dpy, ROOT, &global_mask, 1);
