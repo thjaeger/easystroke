@@ -71,6 +71,8 @@ private:
 	void on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void update_action_list();
 	void update_row(const Gtk::TreeRow &row);
+	bool count_app_actions(const Gtk::TreeIter &i);
+	void update_counts();
 	void on_reset_actions();
 	void on_remove_app();
 
@@ -125,9 +127,10 @@ private:
 
 	class Apps : public Gtk::TreeModel::ColumnRecord {
 	public:
-		Apps() { add(app); add(actions); }
+		Apps() { add(app); add(actions); add(count); }
 		Gtk::TreeModelColumn<Glib::ustring> app;
 		Gtk::TreeModelColumn<ActionListDiff *> actions;
+		Gtk::TreeModelColumn<int> count;
 	};
 	Apps ca;
 

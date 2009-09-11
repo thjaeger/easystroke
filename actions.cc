@@ -282,13 +282,16 @@ Actions::Actions() :
 	apps_model = AppsStore::create(ca, this);
 
 	load_app_list(apps_model->children(), actions.get_root());
+	update_counts();
 
 	apps_view->append_column_editable(_("Application"), ca.app);
+	apps_view->get_column(0)->set_expand(true);
 	apps_view->get_column(0)->set_cell_data_func(
 			*apps_view->get_column_cell_renderer(0), sigc::mem_fun(*this, &Actions::on_cell_data_apps));
 	Gtk::CellRendererText *app_name_renderer =
 		dynamic_cast<Gtk::CellRendererText *>(apps_view->get_column_cell_renderer(0));
 	app_name_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_group_name_edited));
+	apps_view->append_column(_("Actions"), ca.count);
 
 	apps_view->set_model(apps_model);
 	apps_view->enable_model_drag_dest();
@@ -576,6 +579,7 @@ void Actions::on_button_delete() {
 	}
 	update_action_list();
 	update_actions();
+	update_counts();
 }
 
 void Actions::on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
@@ -694,6 +698,15 @@ void Actions::on_apps_selection_changed() {
 		update_action_list();
 		on_selection_changed();
 	}
+}
+
+bool Actions::count_app_actions(const Gtk::TreeIter &i) {
+	(*i)[ca.count] = ((ActionListDiff*)(*i)[ca.actions])->count_actions();
+	return false;
+}
+
+void Actions::update_counts() {
+	apps_model->foreach_iter(sigc::mem_fun(*this, &Actions::count_app_actions));
 }
 
 void Actions::update_action_list() {
@@ -880,6 +893,7 @@ void Actions::on_button_new() {
 	update_row(row);
 	focus(id, 1, true);
 	update_actions();
+	update_counts();
 }
 
 bool Actions::do_focus(Unique *id, Gtk::TreeViewColumn *col, bool edit) {
