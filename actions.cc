@@ -238,6 +238,7 @@ Actions::Actions() :
 	col_name->set_sort_column(cols.name);
 //	col_name->add_attribute(name_renderer->property_text(), cols.name);
 	col_name->set_cell_data_func(*name_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_name));
+	col_name->set_resizable();
 
 	type_store = Gtk::ListStore::create(type);
 	for (TypeInfo *i = all_types; i->name; i++)
@@ -262,6 +263,7 @@ Actions::Actions() :
 	Gtk::TreeView::Column *col_arg = tv.get_column(n-1);
 	col_arg->add_attribute(arg_renderer->property_text(), cols.arg);
 	col_arg->set_cell_data_func(*arg_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_arg));
+	col_arg->set_resizable();
 	arg_renderer->property_editable() = true;
 	arg_renderer->signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
 	arg_renderer->signal_combo_edited().connect(sigc::mem_fun(*this, &Actions::on_combo_edited));
