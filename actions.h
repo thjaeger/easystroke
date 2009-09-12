@@ -54,7 +54,6 @@ private:
 	void on_cell_data_name(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
-	bool on_row_separator(const Glib::RefPtr<Gtk::TreeModel> &model, const Gtk::TreeModel::iterator &iter);
 	int compare_ids(const Gtk::TreeModel::iterator &a, const Gtk::TreeModel::iterator &b);
 	class OnStroke;
 	Gtk::TreeRow get_selected_row();

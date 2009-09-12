@@ -219,7 +219,6 @@ Actions::Actions() :
 	tm = Store::create(cols, this);
 
 	tv.get_selection()->set_mode(Gtk::SELECTION_MULTIPLE);
-	tv.set_row_separator_func(sigc::mem_fun(*this, &Actions::on_row_separator));
 
 	int n;
 	n = tv.append_column(_("Stroke"), cols.stroke);
@@ -236,7 +235,6 @@ Actions::Actions() :
 	name_renderer->signal_editing_canceled().connect(sigc::mem_fun(*this, &Actions::on_something_editing_canceled));
 	Gtk::TreeView::Column *col_name = tv.get_column(n-1);
 	col_name->set_sort_column(cols.name);
-//	col_name->add_attribute(name_renderer->property_text(), cols.name);
 	col_name->set_cell_data_func(*name_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_name));
 	col_name->set_resizable();
 
@@ -335,10 +333,6 @@ void Actions::on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::it
 
 	Glib::ustring str = (*iter)[cols.type];
 	renderer->mode = all_types[from_name(str)].mode;
-}
-
-bool Actions::on_row_separator(const Glib::RefPtr<Gtk::TreeModel> &model, const Gtk::TreeModel::iterator &iter) {
-	return false; //(*iter)[cols.separator];
 }
 
 int Actions::compare_ids(const Gtk::TreeModel::iterator &a, const Gtk::TreeModel::iterator &b) {
