@@ -499,10 +499,14 @@ public:
 	}
 	virtual void init() {
 		if (replay && replay->size()) {
+			bool replay_first = !as.count(button2);
 			PreStroke::iterator i = replay->begin();
-			press(button2 ? button2 : button1, *i);
+			if (replay_first)
+				press(button2 ? button2 : button1, *i);
 			while (i != replay->end())
 				motion(*i++);
+			if (!replay_first)
+				press(button2 ? button2 : button1, e);
 		} else {
 			press(button2 ? button2 : button1, e);
 		}
