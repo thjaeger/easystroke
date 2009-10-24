@@ -200,7 +200,7 @@ public:
 		dir += "/.config/autostart";
 		filename = dir + "/easystroke.desktop";
 
-		if (!is_dir(dir)) {
+		if (!is_dir(dir) && mkdir(dir.c_str(), 0777)) {
 			autostart_ok.set(false);
 			return;
 		}
