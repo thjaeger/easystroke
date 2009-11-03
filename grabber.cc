@@ -399,9 +399,10 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XDeviceInfo *dev_info) : supports_p
 				}
 			}
 			if (info->num_axes >= 3) {
-				supports_pressure = true;
 				pressure_min = info->axes[2].min_value;
 				pressure_max = info->axes[2].max_value;
+				if (pressure_min < pressure_max)
+					supports_pressure = true;
 			}
 			absolute = info->mode == Absolute;
 		}
