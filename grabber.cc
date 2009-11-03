@@ -376,9 +376,10 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 		} else if (dev_class->type == ValuatorClass) {
 			XIValuatorClassInfo *v = (XIValuatorClassInfo*)dev_class;
 			if (v->number == 2) {
-				supports_pressure = true;
 				pressure_min = v->min;
 				pressure_max = v->max;
+				if (pressure_min < pressure_max)
+					supports_pressure = true;
 			}
 		}
 	}
