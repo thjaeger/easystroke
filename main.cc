@@ -1401,6 +1401,7 @@ void Button::run() {
 }
 
 void SendKey::run() {
+	compute_code();
 	XTestFakeKeyEvent(dpy, code, true, 0);
 	XTestFakeKeyEvent(dpy, code, false, 0);
 }
