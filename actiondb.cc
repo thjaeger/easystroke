@@ -63,7 +63,6 @@ template<class Archive> void SendKey::load(Archive & ar, const unsigned int vers
 		bool xtest;
 		ar & xtest;
 	}
-	compute_code();
 }
 
 template<class Archive> void SendKey::save(Archive & ar, const unsigned int version) const {

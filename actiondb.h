@@ -93,7 +93,7 @@ class SendKey : public ModAction {
 	template<class Archive> void load(Archive & ar, const unsigned int version);
 	template<class Archive> void save(Archive & ar, const unsigned int version) const;
 	SendKey(guint key_, Gdk::ModifierType mods, guint code_) :
-		ModAction(mods), key(key_), code(code_) { compute_code(); }
+		ModAction(mods), key(key_), code(code_) {}
 
 	void compute_code();
 public:
