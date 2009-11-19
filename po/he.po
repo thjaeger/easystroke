@@ -1,0 +1,622 @@
+# Hebrew translation for easystroke
+# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# This file is distributed under the same license as the easystroke package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: easystroke\n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
+"POT-Creation-Date: 2009-05-11 02:55-0400\n"
+"PO-Revision-Date: 2009-10-18 05:38+0000\n"
+"Last-Translator: Yaron <sh.yaron@gmail.com>\n"
+"Language-Team: Hebrew <he@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Launchpad-Export-Date: 2009-11-19 07:44+0000\n"
+"X-Generator: Launchpad (build Unknown)\n"
+
+#: ../actiondb.cc:126
+#, c-format
+msgid "Error: can't execute command \"%s\": fork() failed\n"
+msgstr "שגיאה: לא ניתן להפעיל את הפקודה \"%s\": fork() כשל\n"
+
+#: ../actiondb.cc:144 ../prefs.cc:159
+msgid "None"
+msgstr "ללא"
+
+#: ../actiondb.cc:144
+msgid "Unminimize"
+msgstr "ביטול המזעור"
+
+#: ../actiondb.cc:144
+msgid "Show/Hide"
+msgstr "הצגה/הסתרה"
+
+#: ../actiondb.cc:144
+msgid "Disable (Enable)"
+msgstr "נטרול (הפעלה)"
+
+#: ../actiondb.cc:158 ../actiondb.cc:182 ../prefs.cc:160 ../prefs.cc:171
+#: ../prefs.cc:181
+msgid "Default"
+msgstr "ברירת מחדל"
+
+#: ../actiondb.cc:209
+#, c-format
+msgid "Error: Couldn't read action database: %s.\n"
+msgstr "שגיאה: לא ניתן לקרוא את מסד נתוני הפעילות: %s.\n"
+
+#: ../actiondb.cc:225
+msgid "rename() failed"
+msgstr "rename() כשל"
+
+#: ../actiondb.cc:229
+#, c-format
+msgid "Error: Couldn't save action database: %s.\n"
+msgstr "שגיאה: לא ניתן לשמור את מסד נתוני הפעילות: %s.\n"
+
+#: ../actiondb.cc:233 ../prefdb.cc:151
+msgid ""
+"Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
+"directory and that you have write access to it.  You can change the "
+"configuration directory using the -c or --config-dir command line options."
+msgstr ""
+
+#: ../actiondb.cc:236
+msgid "actions"
+msgstr "פעולות"
+
+#: ../actions.cc:64
+msgid "Key combination..."
+msgstr "צירוף מקשים"
+
+#: ../actions.cc:160
+msgid "Command"
+msgstr "פקודה"
+
+#: ../actions.cc:161
+msgid "Key"
+msgstr "מקש"
+
+#: ../actions.cc:162
+msgid "Text"
+msgstr "טקסט"
+
+#: ../actions.cc:163 ../actions.cc:1016
+msgid "Scroll"
+msgstr "גלילה"
+
+#: ../actions.cc:164 ../actions.cc:1023
+msgid "Ignore"
+msgstr "התעלמות"
+
+#: ../actions.cc:165 ../prefs.cc:310 ../prefs.cc:334
+msgid "Button"
+msgstr "לחצן"
+
+#: ../actions.cc:166
+msgid "Misc"
+msgstr "שונות"
+
+#: ../actions.cc:223 ../stats.cc:32 ../stats.cc:38
+msgid "Stroke"
+msgstr "לחיצה"
+
+#: ../actions.cc:229 ../stats.cc:33 ../stats.cc:41
+msgid "Name"
+msgstr "שם"
+
+#: ../actions.cc:253
+msgid "Type"
+msgstr "סוג"
+
+#: ../actions.cc:259
+msgid "Details"
+msgstr "פרטים"
+
+#: ../actions.cc:282
+msgid "Application"
+msgstr "יישום"
+
+#: ../actions.cc:549
+msgid "Action \"%1\" is about to be deleted."
+msgstr "הפעולה \"%1\" עומדת להמחק."
+
+#: ../actions.cc:551
+msgid "One action is about to be deleted."
+msgid_plural "%1 actions are about to be deleted"
+msgstr[0] "פעולה אחת עומדת להמחק."
+msgstr[1] "%1 פעולות עומדות להמחק."
+
+#: ../actions.cc:556
+msgid "Delete an Action"
+msgid_plural "Delete Actions"
+msgstr[0] "מחיקת פעולה"
+msgstr[1] "מחיקת פעולות"
+
+#: ../actions.cc:621
+msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
+msgstr "%1 \"%2\" (המכיל %3 %4) עומד להמחק."
+
+#: ../actions.cc:622
+msgid "The application"
+msgstr "היישום"
+
+#: ../actions.cc:622
+msgid "The group"
+msgstr "הקבוצה"
+
+#: ../actions.cc:625
+msgid "action"
+msgid_plural "actions"
+msgstr[0] "פעולה"
+msgstr[1] "פעולות"
+
+#: ../actions.cc:626
+msgid "Delete an Application"
+msgstr "מחיקת יישום"
+
+#: ../actions.cc:626
+msgid "Delete an Application Group"
+msgstr "מחיקת קבוצת יישומים"
+
+#: ../actions.cc:656
+msgid "Group"
+msgstr "קבוצה"
+
+#: ../actions.cc:747
+msgid ""
+"You are about to bind an action to a single click.  This might make it "
+"difficult to use Button %1 in the future.  Are you sure you want to continue?"
+msgstr ""
+"אתה עומד לאגד פעולה ללחיצה בודדת. פעולה זו תקשה על שימוש בלחצן %1 בעתיד. האם "
+"אתה בטוח שברצונך להמשיך?"
+
+#: ../actions.cc:780
+msgid "Record a New Stroke"
+msgstr "הקלדת לחיצה חדשה"
+
+#: ../actions.cc:781
+msgid ""
+"The next stroke will be associated with the action \"%1\".  You can draw it "
+"anywhere on the screen (except for the two buttons below)."
+msgstr ""
+"הלחיצה הבאה תהיה משוייכת עם הפעולה \"%1\". ניתן לצייר אותה בכל מקום במסך "
+"(מלבד שני הלחצנים שלהלן)."
+
+#: ../actions.cc:873
+msgid "Gesture %1"
+msgstr "מחווה %1"
+
+#: ../actions.cc:994
+msgid "No Modifiers"
+msgstr "אין מקשי החלפה"
+
+#: ../actions.cc:1002
+msgid "(Instantly) "
+msgstr "(באופן מיידי) "
+
+#: ../actions.cc:1004
+msgid "(Click & Hold) "
+msgstr "(לחיצה והחזקה) "
+
+#: ../actions.cc:1006
+msgid "Any Modifier"
+msgstr "כל מקש החלפה שהוא"
+
+#: ../actions.cc:1009 ../prefs.cc:451
+msgid "Button %1"
+msgstr "לחצן %1"
+
+#: ../actions.cc:1014
+msgid " + Scroll"
+msgstr " + גלילה"
+
+#: ../composite.cc:26
+msgid "'composite' not available"
+msgstr "'חיבור' אינו זמין"
+
+#. TODO
+#: ../grabber.cc:376
+#, c-format
+msgid "Opening Device %s failed.\n"
+msgstr "פתיחת ההתקן %s נכשלה.\n"
+
+#: ../main.cc:106 ../main.cc:275 ../main.cc:1861
+#, c-format
+msgid "Error: %s\n"
+msgstr "שגיאה: %s\n"
+
+#: ../main.cc:277
+#, c-format
+msgid "Error: A grab failed.  Resetting...\n"
+msgstr "שגיאה: הלכידה נכשלה. מתבצע איפוס...\n"
+
+#: ../main.cc:298
+#, c-format
+msgid "Fatal Error: Connection to X server lost, restarting...\n"
+msgstr "שגיאה קריטית: החיבור לשרת ה־X נכשל, מתבצעת הפעלה מחדש...\n"
+
+#: ../main.cc:746
+#, c-format
+msgid "Error: You need XInput to use advanced gestures\n"
+msgstr "שגיאה: יש צורך ב־ XInput כדי להשתמש במחוות המתקדמות\n"
+
+#: ../main.cc:1277
+#, c-format
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "אזהרה: לא הוגדרה פעולה \"%s\"\n"
+
+#: ../main.cc:1296
+msgid "Tray icon disabled"
+msgstr "סמל הדיווח מנוטרל"
+
+#: ../main.cc:1297
+msgid ""
+"To bring the configuration dialog up again, you should define an action of "
+"type Misc...Show/Hide."
+msgstr ""
+"כדי להעלות את דו־שיח התצורה שוב, עליך להגדיר פעולה מסוג שונות...הצגה/הסתרה."
+
+#: ../main.cc:1356
+#, c-format
+msgid "Error initializing D-BUS\n"
+msgstr "ארעה שגיאה בהפעלת D-BUS\n"
+
+#: ../main.cc:1394
+#, c-format
+msgid "Couldn't open display.\n"
+msgstr "לא ניתן לפתוח את התצוגה.\n"
+
+#: ../main.cc:1398
+#, c-format
+msgid ""
+"Easystroke is already running, showing configuration window instead.\n"
+msgstr "Easystroke כבר פעיל, חלון התצורה יופיע במקום.\n"
+
+#: ../main.cc:1563
+#, c-format
+msgid "Error: Couldn't create configuration directory \"%s\"\n"
+msgstr "שגיאה: לא ניתן ליצור את תיקיית התצורה \"%s\"\n"
+
+#: ../main.cc:1568
+#, c-format
+msgid "Error: \"%s\" is not a directory\n"
+msgstr "שגיאה: \"%s\" איננה תיקייה\n"
+
+#: ../prefdb.cc:147
+#, c-format
+msgid "Error: Couldn't save preferences: %s.\n"
+msgstr "שגיאה: לא ניתן לשמור את ההעדפות: %s.\n"
+
+#: ../prefdb.cc:154
+msgid "preferences"
+msgstr "העדפות"
+
+#: ../prefdb.cc:220
+#, c-format
+msgid "Error: Couldn't read preferences.\n"
+msgstr "שגיאה: לא ניתן לקרוא את ההעדפות.\n"
+
+#: ../prefs.cc:161
+msgid "XShape"
+msgstr "XShape"
+
+#: ../prefs.cc:162
+msgid "Annotate (compiz)"
+msgstr "ציור הערות (compiz)"
+
+#: ../prefs.cc:163
+msgid "Fire (compiz)"
+msgstr "אש (compiz)"
+
+#: ../prefs.cc:164
+msgid "Water (compiz)"
+msgstr "מים (compiz)"
+
+#: ../prefs.cc:169 ../prefs.cc:179
+msgid "Timeout Off"
+msgstr "פסק זמן כבוי"
+
+#: ../prefs.cc:170 ../prefs.cc:180
+msgid "Conservative"
+msgstr "שמרני"
+
+#: ../prefs.cc:172 ../prefs.cc:182
+msgid "Medium"
+msgstr "בינוני"
+
+#: ../prefs.cc:173 ../prefs.cc:183
+msgid "Aggressive"
+msgstr "תוקפני"
+
+#: ../prefs.cc:174 ../prefs.cc:184
+msgid "Flick"
+msgstr "הצלפה"
+
+#: ../prefs.cc:185
+msgid "Custom"
+msgstr "מותאם אישית"
+
+#: ../prefs.cc:305
+msgid "Application (WM__CLASS)"
+msgstr "יישום (WM__CLASS)"
+
+#: ../prefs.cc:323
+msgid "Enabled"
+msgstr "פעיל"
+
+#: ../prefs.cc:324
+msgid "Device"
+msgstr "התקן"
+
+#: ../prefs.cc:348 ../prefs.cc:596
+msgid "(window manager frame)"
+msgstr "(מסגרת מנהל החלונות)"
+
+#: ../prefs.cc:349 ../prefs.cc:601 ../prefs.cc:624
+msgid "<App disabled>"
+msgstr "<היישום מנוטרל>"
+
+#: ../prefs.cc:431
+msgid "Select a Mouse or Pen Button"
+msgstr "בחירה בעכבר או בלחצן עט"
+
+#: ../prefs.cc:432
+msgid ""
+"Please place your mouse or pen in the box below and press the button that "
+"you want to select.  You can also hold down additional modifiers."
+msgstr ""
+"נא לשים את העכבר או את העט שלך להלן וללחוץ על הלחצן שברצונך לבחור. ניתן "
+"להחזיק מקשי החלפה נוספים."
+
+#: ../stats.cc:34 ../stats.cc:42
+msgid "Score"
+msgstr "ניקוד"
+
+#: ../win.cc:161
+msgid "D_isabled"
+msgstr "מ_נוטרל"
+
+#: ../trace.h:23
+msgid "Connection to DBus failed"
+msgstr "החיבור אל DBus נכשל"
+
+#: ../gui.glade.h:1
+msgid "     Timeout (ms)"
+msgstr "     תום הזמן (מילישניות)"
+
+#: ../gui.glade.h:2
+msgid "(See Documentation)"
+msgstr "(יש לעיין בתיעוד)"
+
+#: ../gui.glade.h:3
+msgid "<b>Appearance</b>"
+msgstr "<b>מראה</b>"
+
+#: ../gui.glade.h:4
+msgid "<b>Behavior</b>"
+msgstr "<b>התנהגות</b>"
+
+#: ../gui.glade.h:5
+msgid "<b>Devices</b>"
+msgstr "<b>התקנים</b>"
+
+#: ../gui.glade.h:6
+msgid "<b>Exceptions</b>"
+msgstr "<b>חריגות</b>"
+
+#: ../gui.glade.h:7
+msgid "<b>Tablet Options</b>"
+msgstr "<b>אפשרויות מחשב הלוח</b>"
+
+#: ../gui.glade.h:8
+msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
+msgstr "ביטול התנועה אם הלחץ חורג מהמספר שמשמאל (מתוך 255)"
+
+#: ../gui.glade.h:9
+msgid "Accept gestures when menus are shown (experimental)"
+msgstr "קבלת מחוות כאשר התפריטים מופיעים (נסיוני)"
+
+#: ../gui.glade.h:10
+msgid "Actions"
+msgstr "פעולות"
+
+#: ../gui.glade.h:11
+msgid "Add Application"
+msgstr "הוספת יישום"
+
+#: ../gui.glade.h:12
+msgid "Add Group"
+msgstr "הוספת קבוצה"
+
+#: ../gui.glade.h:13
+msgid "Additional Buttons"
+msgstr "לחצנים נוספים"
+
+#: ../gui.glade.h:14
+msgid "Advanced"
+msgstr "מתקדם"
+
+#: ../gui.glade.h:15
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "לחילופין, ניתן לבחור לחצנים ומקשי החלפה להלן."
+
+#: ../gui.glade.h:16
+msgid "An_y Modifier"
+msgstr "מקש ה_חלפה כלשהו"
+
+#: ../gui.glade.h:17
+msgid "Applications"
+msgstr "יישומים"
+
+#: ../gui.glade.h:18
+msgid "Autostart easystroke"
+msgstr "הפעלה אוטומטית של easystroke"
+
+#: ../gui.glade.h:19
+msgid "Click & Hold"
+msgstr "לחיצה והחזקה"
+
+#: ../gui.glade.h:20
+msgid "Color"
+msgstr "צבע"
+
+#: ../gui.glade.h:21
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "התעלמות מתנועות המובילות למחוות מתקדמות"
+
+#: ../gui.glade.h:22
+msgid "Initial Timeout (ms)"
+msgstr "תום זמן התחלתי (מילישניות)"
+
+#: ../gui.glade.h:23
+msgid "Instant Gestures"
+msgstr "מחווה מיידית"
+
+#: ../gui.glade.h:24
+msgid "Invert Scroll Direction"
+msgstr "הפיכת כיוון הגלילה"
+
+#: ../gui.glade.h:25
+msgid "Method to show gestures"
+msgstr "השיטה להצגת המחוות"
+
+#: ../gui.glade.h:26
+msgid "Preferences"
+msgstr "העדפות"
+
+#: ../gui.glade.h:27
+msgid "Remove Application/Group"
+msgstr "הסרת יישום/קבוצה"
+
+#: ../gui.glade.h:28
+msgid "Reset Action(s)"
+msgstr "איפוס הפעולה/ות"
+
+#: ../gui.glade.h:29
+msgid "S_uper"
+msgstr "_סופר"
+
+#: ../gui.glade.h:30
+msgid "Scroll Speed"
+msgstr "מהירות הגלילה"
+
+#: ../gui.glade.h:31
+msgid "Show OSD"
+msgstr "הצגת תצוגה על המסך"
+
+#: ../gui.glade.h:32
+msgid "Show deleted rows"
+msgstr "הצגת שורות שנמחקו"
+
+#: ../gui.glade.h:33
+msgid "Show last gesture in tray"
+msgstr "הצגת המחוהה האחרונה במגשית"
+
+#: ../gui.glade.h:34
+msgid "Show popups ("
+msgstr "הצגת חלוניות מוקפצות ("
+
+#: ../gui.glade.h:35
+msgid "Show popups on advanced gestures"
+msgstr "הצגת חלוניות מוקפצות עבור מחוות מתקדמות"
+
+#: ../gui.glade.h:36
+msgid "Show tray icon"
+msgstr "הצגת סמל באזור הדיווחים"
+
+#: ../gui.glade.h:37
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr ""
+
+#: ../gui.glade.h:38
+msgid "Timeout"
+msgstr "תום הזמן"
+
+#: ../gui.glade.h:39
+msgid "Timeout Gestures"
+msgstr ""
+
+#: ../gui.glade.h:40
+msgid "Timeout profile"
+msgstr ""
+
+#: ../gui.glade.h:41
+msgid "Width"
+msgstr "רוחב"
+
+#: ../gui.glade.h:42
+msgid "Work around timing issues on Wacom tablets and Tablet PCs"
+msgstr "פתרון עקיפי לבעיות התזמון ללוחות Wacom ומחשבי לוח"
+
+#: ../gui.glade.h:43
+msgid "_Add Action"
+msgstr "הוספת _פעולה"
+
+#: ../gui.glade.h:44
+msgid "_Add Exception"
+msgstr "הוספת _חריגה"
+
+#: ../gui.glade.h:45
+msgid "_Alt"
+msgstr "_Alt"
+
+#: ../gui.glade.h:46
+msgid "_Control"
+msgstr "_Control"
+
+#: ../gui.glade.h:47
+msgid "_Default"
+msgstr "_ברירת מחדל"
+
+#: ../gui.glade.h:48
+msgid "_Delete Action(s)"
+msgstr "מחיקת _פעולה"
+
+#: ../gui.glade.h:49
+msgid "_Delete Current"
+msgstr "מחיקת ה_נוכחית"
+
+#: ../gui.glade.h:50
+msgid "_Gesture Button"
+msgstr "לחצן ה_מחווה"
+
+#: ../gui.glade.h:51
+msgid "_Hide"
+msgstr "ה_סתרה"
+
+#: ../gui.glade.h:52
+msgid "_History"
+msgstr "היס_טוריה"
+
+#: ../gui.glade.h:53
+msgid "_Matrix"
+msgstr "_מטריצה"
+
+#: ../gui.glade.h:54
+msgid "_Record Stroke"
+msgstr "ה_קלטת התנועה"
+
+#: ../gui.glade.h:55
+msgid "_Remove Exception"
+msgstr "הסרת ה_חריגה"
+
+#: ../gui.glade.h:56
+msgid "_Shift"
+msgstr "_Shift"
+
+#: ../gui.glade.h:57
+msgid "optimize for left-handed operation )"
+msgstr "התאמה לתפעול על ידי שמאליים ("
+
+#: ../easystroke.desktop.in.h:1
+msgid "Control your desktop using mouse gestures"
+msgstr "ניתן לשלוט בשולחן העבודה באמצעות תנועות העכבר"
+
+#: ../easystroke.desktop.in.h:2
+msgid "Easystroke Gesture Recognition"
+msgstr "זיהוי תנועות עכבר של Easystroke"
