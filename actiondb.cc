@@ -56,6 +56,7 @@ template<class Archive> void ModAction::serialize(Archive & ar, const unsigned i
 }
 
 template<class Archive> void SendKey::load(Archive & ar, const unsigned int version) {
+	guint code;
 	ar & boost::serialization::base_object<ModAction>(*this);
 	ar & key;
 	ar & code;
@@ -66,6 +67,7 @@ template<class Archive> void SendKey::load(Archive & ar, const unsigned int vers
 }
 
 template<class Archive> void SendKey::save(Archive & ar, const unsigned int version) const {
+	guint code = 0;
 	ar & boost::serialization::base_object<ModAction>(*this);
 	ar & key;
 	ar & code;

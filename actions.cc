@@ -511,7 +511,7 @@ void Actions::on_type_edited(const Glib::ustring &path, const Glib::ustring &new
 			row[cols.cmd_save] = (Glib::ustring)row[cols.arg];
 		}
 		if (new_type == KEY) {
-			new_action = SendKey::create(0, (Gdk::ModifierType)0, 0);
+			new_action = SendKey::create(0, (Gdk::ModifierType)0);
 			edit = true;
 		}
 		if (new_type == TEXT) {
@@ -930,7 +930,7 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 	Gtk::TreeRow row(*tm->get_iter(path_string));
 	Type type = from_name(row[cols.type]);
 	if (type == KEY) {
-		RSendKey send_key = SendKey::create(accel_key, accel_mods, hardware_keycode);
+		RSendKey send_key = SendKey::create(accel_key, accel_mods);
 		Glib::ustring str = send_key->get_label();
 		if (row[cols.arg] == str)
 			return;
@@ -992,13 +992,7 @@ void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::us
 }
 
 const Glib::ustring SendKey::get_label() const {
-	Glib::ustring str = Gtk::AccelGroup::get_label(key, mods);
-	if (key == 0) {
-		char buf[10];
-		snprintf(buf, 9, "0x%x", code);
-		str += buf;
-	}
-	return str;
+	return Gtk::AccelGroup::get_label(key, mods);
 }
 
 const Glib::ustring ModAction::get_label() const {

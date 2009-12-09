@@ -88,18 +88,15 @@ public:
 class SendKey : public ModAction {
 	friend class boost::serialization::access;
 	guint key;
-	guint code;
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
 	template<class Archive> void load(Archive & ar, const unsigned int version);
 	template<class Archive> void save(Archive & ar, const unsigned int version) const;
-	SendKey(guint key_, Gdk::ModifierType mods, guint code_) :
-		ModAction(mods), key(key_), code(code_) {}
-
-	void compute_code();
+	SendKey(guint key_, Gdk::ModifierType mods) :
+		ModAction(mods), key(key_) {}
 public:
 	SendKey() {}
-	static RSendKey create(guint key, Gdk::ModifierType mods, guint code) {
-		return RSendKey(new SendKey(key, mods, code));
+	static RSendKey create(guint key, Gdk::ModifierType mods) {
+		return RSendKey(new SendKey(key, mods));
 	}
 
 	virtual void run();

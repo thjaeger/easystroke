@@ -1401,14 +1401,11 @@ void Button::run() {
 }
 
 void SendKey::run() {
-	compute_code();
+	if (!key)
+		return;
+	guint code = XKeysymToKeycode(dpy, key);
 	XTestFakeKeyEvent(dpy, code, true, 0);
 	XTestFakeKeyEvent(dpy, code, false, 0);
-}
-
-void SendKey::compute_code() {
-	if (key)
-		code = XKeysymToKeycode(dpy, key);
 }
 
 void fake_unicode(gunichar c) {
