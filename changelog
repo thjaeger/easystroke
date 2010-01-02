@@ -1,3 +1,8 @@
+2010-01-02 Released 0.5.2
+	* Add Hebrew Translations
+	* Fix crasher bug for devices with relative 3rd axis
+	* Improve keycode handling
+
 2009-10-27 Released 0.5.0
 	* Port easystroke to XI2, simplifying much of the code.  Note that
 	  this version of easystroke will not work on X servers < 1.7.
