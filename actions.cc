@@ -90,6 +90,8 @@ protected:
 		}
 		guint key = gdk_keyval_to_lower(event->keyval);
 		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
+		if (key == event->keyval)
+			mods &= ~GDK_Shift_L & ~GDK_Shift_R;
 
 		editing_done();
 		remove_widget();
