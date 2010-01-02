@@ -133,6 +133,10 @@ double stroke_angle_difference(const stroke_t *a, const stroke_t *b, int i, int 
 	return fabs(angle_difference(stroke_get_angle(a, i), stroke_get_angle(b, j)));
 }
 
+/* To compare two gestures, we use dynamic programming to minimize (an
+ * approximation) of the integral over the absolute value of the angle
+ * difference among (roughly) all reparametrizations whose slope is always
+ * between 1/2 and 2. */
 double stroke_compare(const stroke_t *a, const stroke_t *b, int *path_x, int *path_y) {
 	int m = a->n - 1;
 	int n = b->n - 1;
