@@ -1,3 +1,7 @@
+2009-01-09 Released 0.4.11
+	* Fix a bug that would cause the wrong key to be emitted under certain
+	  circumstances
+
 2009-11-19 Released 0.4.10
 	* Several bugfixes, including one crasher
 	* Add Hebrew translations
