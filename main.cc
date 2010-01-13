@@ -491,7 +491,7 @@ class AdvancedHandler : public Handler {
 		}
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, RPreStroke replay) {
-		if (stroke_action)
+		if (stroke_action && s)
 			return new AdvancedStrokeActionHandler(s, e);
 		else
 			return new AdvancedHandler(s, e, b1, b2, replay);
