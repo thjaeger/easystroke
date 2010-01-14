@@ -345,7 +345,7 @@ Prefs::Prefs() {
 	for (std::map<std::string, RButtonInfo>::const_iterator i = exceptions.begin(); i!=exceptions.end(); i++) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = i->first;
-		row[cols.user_app] = i->first == "" ? _("(window manager frame)") : i->first;
+		row[cols.user_app] = app_name_hr(i->first);
 		row[cols.button] = i->second ? i->second->get_button_text() : _("<App disabled>");
 	}
 }
@@ -597,11 +597,10 @@ void Prefs::on_add() {
 		is_new = prefs.exceptions.write_ref(a).insert(
 				std::pair<std::string, RButtonInfo>(str, RButtonInfo())).second;
 	}
-	Glib::ustring user_str = str == "" ? _("(window manager frame)") : str;
 	if (is_new) {
 		Gtk::TreeModel::Row row = *(tm->append());
 		row[cols.app] = str;
-		row[cols.user_app] = user_str;
+		row[cols.user_app] = app_name_hr(str);
 		row[cols.button] = _("<App disabled>");
 		Gtk::TreePath path = tm->get_path(row);
 		tv->set_cursor(path);

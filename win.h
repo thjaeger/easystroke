@@ -122,4 +122,5 @@ private:
 };
 
 void error_dialog(const Glib::ustring &);
+Glib::ustring app_name_hr(Glib::ustring);
 #endif
