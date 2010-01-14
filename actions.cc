@@ -300,7 +300,7 @@ Actions::Actions() :
 
 void Actions::load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions) {
 	Gtk::TreeRow row = *(apps_model->append(ch));
-	row[ca.app] = actions->name;
+	row[ca.app] = app_name_hr(actions->name);
 	row[ca.actions] = actions;
 	for (ActionListDiff::iterator i = actions->begin(); i != actions->end(); i++)
 		load_app_list(row.children(), &(*i));
@@ -606,7 +606,7 @@ void Actions::on_add_app() {
 		apps_model->children().begin()->children() :
 		apps_view->get_selection()->get_selected()->children();
 	Gtk::TreeRow row = *(apps_model->append(ch));
-	row[ca.app] = name;
+	row[ca.app] = app_name_hr(name);
 	row[ca.actions] = child;
 	actions.apps[name] = child;
 	Gtk::TreePath path = apps_model->get_path(row);

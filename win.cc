@@ -267,3 +267,7 @@ void error_dialog(const Glib::ustring &text) {
 	dialog.show();
 	dialog.run();
 }
+
+Glib::ustring app_name_hr(Glib::ustring src) {
+	return src == "" ? _("(window manager frame)") : src;
+}
