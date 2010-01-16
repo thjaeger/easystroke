@@ -167,13 +167,28 @@ double stroke_compare(const stroke_t *a, const stroke_t *b, int *path_x, int *pa
 					return;
 				k++;
 
-				inline double ad(int i, int j) {return sqr(angle_difference(a->p[i].alpha, b->p[j].alpha));}
-				double d = (a->p[x].dt + b->p[y].dt) * ad(x,y);
-				for (int x_ = x+1; x_ < x2; x_++)
-					d += a->p[x_].dt * ad(x_,y);
-				for (int y_ = y+1; y_ < y2; y_++)
-					d += b->p[y_].dt * ad(x, y_);
-				double new_dist = dist[x][y] + d;
+				double d = 0.0;
+				int i = x, j = y;
+				double next_tx = (a->p[i+1].t - tx) / dtx;
+				double next_ty = (b->p[j+1].t - ty) / dty;
+				double cur_t = 0.0;
+
+				for (;;) {
+					double ad = sqr(angle_difference(a->p[i].alpha, b->p[j].alpha));
+					double next_t = next_tx < next_ty ? next_tx : next_ty;
+					bool done = next_t >= 1.0 - EPS;
+					if (done)
+						next_t = 1.0;
+					d += (next_t - cur_t)*ad;
+					if (done)
+						break;
+					cur_t = next_t;
+					if (next_tx < next_ty)
+						next_tx = (a->p[++i+1].t - tx) / dtx;
+					else
+						next_ty = (b->p[++j+1].t - ty) / dty;
+				}
+				double new_dist = dist[x][y] + d * (dtx + dty);
 				if (new_dist != new_dist) abort();
 
 				if (new_dist >= dist[x2][y2])
