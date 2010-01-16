@@ -18,6 +18,7 @@
 #include "main.h"
 #include <iomanip>
 #include <glibmm/i18n.h>
+#include <sys/time.h>
 
 Stats::Stats() {
 	Gtk::Button *button_matrix;
@@ -205,8 +206,9 @@ bool Stats::on_stroke(RRanking r) {
 }
 
 void Stats::on_pdf() {
+	struct timeval tv1, tv2;
 	if (verbosity >= 1)
-		show_us("Creating table: ");
+		gettimeofday(&tv1, 0);
 	const int S = 32;
 	const int B = 1;
 	std::list<RStroke> strokes;
@@ -247,8 +249,10 @@ void Stats::on_pdf() {
 			ctx->show_text(str);
 		}
 	}
-	if (verbosity >= 1)
-		show_us("Table completed: ");
+	if (verbosity >= 1) {
+		gettimeofday(&tv2, 0);
+		printf("creating table took %ld us\n", (tv2.tv_sec - tv1.tv_sec)*1000000 + tv2.tv_usec - tv1.tv_usec);
+	}
 	if (!fork()) {
 		execlp("xdg-open", "xdg-open", "/tmp/strokes.pdf", NULL);
 		exit(EXIT_FAILURE);
