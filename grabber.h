@@ -67,6 +67,7 @@ public:
 		int dev;
 		std::string name;
 		bool supports_pressure;
+		bool absolute;
 		bool active;
 		int pressure_min, pressure_max;
 		int num_buttons;

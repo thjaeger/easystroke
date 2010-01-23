@@ -364,7 +364,7 @@ void Grabber::new_device(XIDeviceInfo *info) {
 		}
 }
 
-Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), num_buttons(0) {
+Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), absolute(false), num_buttons(0) {
 	dev = info->deviceid;
 	name = info->name;
 	master = info->attachment;
@@ -375,6 +375,8 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 			num_buttons = b->num_buttons;
 		} else if (dev_class->type == ValuatorClass) {
 			XIValuatorClassInfo *v = (XIValuatorClassInfo*)dev_class;
+			if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative)
+				absolute = true;
 			if (v->number == 2) {
 				pressure_min = v->min;
 				pressure_max = v->max;
@@ -385,7 +387,10 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 	}
 
 	if (verbosity >= 1)
-		printf("Opened Device %d (\"%s\").\n", dev, info->name);
+		printf("Opened Device %d ('%s'%s).\n", dev, info->name,
+				absolute ?
+					supports_pressure ? ": absolute, pressure" : ": absolute" :
+					supports_pressure ? ": pressure" : "");
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {
