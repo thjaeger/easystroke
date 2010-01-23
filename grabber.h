@@ -78,6 +78,7 @@ public:
 		}
 		void grab_device(bool grab);
 		void grab_button(ButtonInfo &bi, bool grab);
+		void fake_motion(int x, int y);
 	};
 
 	typedef std::map<XID, boost::shared_ptr<XiDevice> > DeviceMap;

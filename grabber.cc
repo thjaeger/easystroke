@@ -418,6 +418,13 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
 	}
 }
 
+void Grabber::XiDevice::fake_motion(int x, int y) {
+	XDevice fake_dev;
+	fake_dev.device_id = dev;
+	int axes[2] = { x, y };
+	XTestFakeDeviceMotionEvent(dpy, &fake_dev, False, 0, axes, 2, 0);
+}
+
 void Grabber::grab_xi(bool grab) {
 	if (!xi_grabbed == !grab)
 		return;
