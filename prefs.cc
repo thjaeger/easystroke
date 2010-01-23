@@ -269,6 +269,8 @@ Prefs::Prefs() {
 	new Check(prefs.scroll_invert, "check_scroll_invert");
 	new Adjustment<double>(prefs.scroll_speed, "adjustment_scroll_speed");
 
+	new Check(prefs.move_back, "check_move_back");
+
 	new Check(prefs.show_osd, "check_osd");
 
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *add_extra, *edit_extra, *remove_extra;

@@ -811,6 +811,9 @@ protected:
 	virtual void release(guint b, RTriple e) {
 		RStroke s = finish(0);
 
+		if (prefs.move_back.get() && !current_dev->absolute)
+			current_dev->fake_motion(orig->x, orig->y);
+
 		if (stroke_action) {
 			(*stroke_action)(s);
 			return parent->replace_child(NULL);
