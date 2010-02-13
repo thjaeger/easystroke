@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2009-05-11 02:55-0400\n"
-"PO-Revision-Date: 2009-08-28 17:47+0000\n"
+"PO-Revision-Date: 2010-01-30 22:32+0000\n"
 "Last-Translator: neo <Unknown>\n"
 "Language-Team: Polish <pl@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
 "|| n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2009-09-16 04:00+0000\n"
+"X-Launchpad-Export-Date: 2010-02-13 23:28+0000\n"
 "X-Generator: Launchpad (build Unknown)\n"
 
 #: ../actiondb.cc:126
@@ -387,7 +387,7 @@ msgstr "Wynik"
 
 #: ../win.cc:161
 msgid "D_isabled"
-msgstr "W_yłączone"
+msgstr "W_yłącz"
 
 #: ../trace.h:23
 msgid "Connection to DBus failed"
