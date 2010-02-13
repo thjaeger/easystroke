@@ -1,3 +1,9 @@
+2010-02-13 Released 0.5.3
+	* Fix a crash when recording gestures
+	* Report window manager frames as such in the application list
+	* Improve the recognition algorithm
+	* Add an option to move the cursor back to the original position
+
 2010-01-02 Released 0.5.2
 	* Add Hebrew Translations
 	* Fix crasher bug for devices with relative 3rd axis
