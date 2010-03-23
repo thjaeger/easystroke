@@ -941,10 +941,9 @@ void icon_warning() {
 		if (m && m->type == Misc::SHOWHIDE)
 			return;
 	}
-	if (!win) {
-		show_gui = true;
+	if (!win)
 		return;
-	}
+
 	Gtk::MessageDialog *md;
 	widgets->get_widget("dialog_icon", md);
 	md->set_message(_("Tray icon disabled"));
