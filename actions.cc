@@ -88,10 +88,15 @@ protected:
 			case GDK_Hyper_R:
 				return true;
 		}
-		guint key = gdk_keyval_to_lower(event->keyval);
 		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
-		if (key == event->keyval)
-			mods &= ~GDK_Shift_L & ~GDK_Shift_R;
+		guint key;
+		if (mods & ~GDK_SHIFT_MASK) {
+			key = XKeycodeToKeysym(dpy, event->hardware_keycode, 0);
+		} else {
+			key = gdk_keyval_to_lower(event->keyval);
+			if (key == event->keyval)
+				mods = 0;
+		}
 
 		editing_done();
 		remove_widget();
