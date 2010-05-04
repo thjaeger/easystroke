@@ -62,9 +62,10 @@ public:
 		int w,h;
 		if (s) {
 			icon.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
+			icon->set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
+			icon->set_name("gtk-tooltip");
 			WIDGET(Gtk::Image, image, s->draw(STROKE_SIZE));
 			icon->set_accept_focus(false);
-			icon->modify_bg(Gtk::STATE_NORMAL, Gdk::Color("LemonChiffon"));
 			icon->add(image);
 			image.show();
 			icon->get_size(w,h);
@@ -74,10 +75,11 @@ public:
 
 		if (t != "") {
 			text.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
+			text->set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
+			text->set_name("gtk-tooltip");
 			text->set_accept_focus(false);
 			text->set_border_width(2);
 			WIDGET(Gtk::Label, label, t);
-			text->modify_bg(Gtk::STATE_NORMAL, Gdk::Color("LemonChiffon"));
 			text->add(label);
 			label.show();
 			text->get_size(w,h);
