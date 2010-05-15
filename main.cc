@@ -1145,7 +1145,7 @@ std::string Main::parse_args_and_init_gtk() {
 		{0,0,0,0}
 	};
 	std::string display;
-	char opt;
+	int opt;
 	// parse --display here, before Gtk::Main(...) takes it away from us
 	opterr = 0;
 	while ((opt = getopt_long(argc, argv, "gh", long_opts1, 0)) != -1)
