@@ -812,7 +812,9 @@ protected:
 		RStroke s = finish(0);
 
 		if (prefs.move_back.get() && !current_dev->absolute)
-			current_dev->fake_motion(orig->x, orig->y);
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
+		else
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 
 		if (stroke_action) {
 			(*stroke_action)(s);
