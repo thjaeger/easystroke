@@ -219,8 +219,10 @@ class IgnoreHandler : public Handler {
 public:
 	IgnoreHandler(RModifiers mods_) : mods(mods_) {}
 	virtual void press(guint b, RTriple e) {
-		if (current_dev->master)
+		if (current_dev->master) {
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(dpy, b, true, CurrentTime);
+		}
 	}
 	virtual void motion(RTriple e) {
 		if (current_dev->master)
@@ -228,8 +230,10 @@ public:
 	}
 	// TODO: Handle Proximity
 	virtual void release(guint b, RTriple e) {
-		if (current_dev->master)
+		if (current_dev->master) {
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
+		}
 		if (!xinput_pressed.size())
 			parent->replace_child(NULL);
 	}
@@ -513,6 +517,8 @@ public:
 		replay.reset();
 	}
 	virtual void press(guint b, RTriple e) {
+		if (current_dev->master)
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 		click_time = 0;
 		if (remap_to) {
 			fake_core_button(remap_to, false);
@@ -569,6 +575,8 @@ public:
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 	}
 	virtual void release(guint b, RTriple e) {
+		if (current_dev->master)
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 		if (remap_to) {
 			fake_core_button(remap_to, false);
 		}
