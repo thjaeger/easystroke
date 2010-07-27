@@ -1,3 +1,9 @@
+2010-07-27 Released 0.5.4
+	* Don't start with the config dialog unless -g is passed on the
+	  command line
+	* Key action and cursor position fixes
+	* Update Russian translations
+
 2010-02-13 Released 0.5.3
 	* Fix a crash when recording gestures
 	* Report window manager frames as such in the application list
