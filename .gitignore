@@ -9,6 +9,7 @@ dbus-server.h
 debug.mk
 *.gz
 po/??
+po/??_??
 po/POTFILES.in
 po/*.pot
 easystroke.desktop

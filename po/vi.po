@@ -1,62 +1,62 @@
-# Italian translation for easystroke
-# Copyright (c) 2009 Rosetta Contributors and Canonical Ltd 2009
+# Vietnamese translation for easystroke
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
 # This file is distributed under the same license as the easystroke package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2009.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
-"Report-Msgid-Bugs-To: \n"
+"Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-02-13 18:30-0500\n"
-"PO-Revision-Date: 2010-05-16 03:08+0000\n"
-"Last-Translator: Modernday <Unknown>\n"
-"Language-Team: Italian <it@li.org>\n"
+"PO-Revision-Date: 2010-09-04 14:46+0000\n"
+"Last-Translator: Van Diep Duong <Unknown>\n"
+"Language-Team: Vietnamese <vi@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
 "X-Generator: Launchpad (build 12532)\n"
 
 #: ../actiondb.cc:127
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
-msgstr "Errore: impossibile eseguire il comando \"%s\" fork() fallita\n"
+msgstr "Lỗi: \"%s\" không thể thực hiện\n"
 
 #: ../actiondb.cc:145 ../prefs.cc:154
 msgid "None"
-msgstr "Nessuno"
+msgstr "Không chọn"
 
 #: ../actiondb.cc:145
 msgid "Unminimize"
-msgstr "ripristina"
+msgstr "Phóng to"
 
 #: ../actiondb.cc:145
 msgid "Show/Hide"
-msgstr "Mostra/nascondi"
+msgstr "Hiện/Ẩn"
 
 #: ../actiondb.cc:145
 msgid "Disable (Enable)"
-msgstr "Disabilita (abilita)"
+msgstr "Tắt (Bật)"
 
 #: ../actiondb.cc:159 ../actiondb.cc:183 ../prefs.cc:155 ../prefs.cc:166
 #: ../prefs.cc:176
 msgid "Default"
-msgstr "Predefinito"
+msgstr "Mặc định"
 
 #: ../actiondb.cc:210
 #, c-format
 msgid "Error: Couldn't read action database: %s.\n"
-msgstr "Errore: impossibile leggere il database delle azioni: %s\n"
+msgstr "Lỗi: Không thể đọc cơ sở dữ liệu thao tác: %s\n"
 
 #: ../actiondb.cc:226
 msgid "rename() failed"
-msgstr "rename() fallita"
+msgstr "Đổi tên() thất bại"
 
 #: ../actiondb.cc:230
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
-msgstr "Errore: impossibile salvare il database delle azioni: %s\n"
+msgstr "Lỗi: Không thể lưu cơ sở dữ liệu thao tác: %s\n"
 
 #: ../actiondb.cc:234 ../prefdb.cc:154
 msgid ""
@@ -64,242 +64,237 @@ msgid ""
 "directory and that you have write access to it.  You can change the "
 "configuration directory using the -c or --config-dir command line options."
 msgstr ""
-"Impossibile salvare %1. Le modifiche andranno perdute. Assicurarsi che "
-"\"%2\" sia una directory e di possedere i diritti di scrittura su di essa. È "
-"possibile cambiare la cartella della configurazione utilizzando i parametri -"
-"c o --config-dir nella riga di comando."
+"Không thể lưu được 1%. Thay đổi của bạn sẽ bị mất. Hãy chắc chắn rằng \"%2\" "
+"là một thư mục và bạn đã viết truy cập vào nó. Bạn có thể thay đổi thư mục "
+"cấu hình bằng cách sử dụng các tùy chọn dòng lệnh -c hay --config-dir."
 
 #: ../actiondb.cc:237
 msgid "actions"
-msgstr "azioni"
+msgstr "thao tác"
 
 #: ../actions.cc:66
 msgid "Key combination..."
-msgstr "Combinazione di tasti..."
+msgstr "Phím kết hợp..."
 
 #: ../actions.cc:164
 msgid "Command"
-msgstr "Comando"
+msgstr "Câu lệnh"
 
 #: ../actions.cc:165
 msgid "Key"
-msgstr "Tasto"
+msgstr "Phím"
 
 #: ../actions.cc:166
 msgid "Text"
-msgstr "Testo"
+msgstr "Văn bản"
 
 #: ../actions.cc:167 ../actions.cc:1024
 msgid "Scroll"
-msgstr "Scorri"
+msgstr "Cuộn"
 
 #: ../actions.cc:168 ../actions.cc:1031
 msgid "Ignore"
-msgstr "Ignora"
+msgstr "Bỏ qua"
 
 #: ../actions.cc:169 ../prefs.cc:303 ../prefs.cc:327
 msgid "Button"
-msgstr "Tasto"
+msgstr "Nút bấm"
 
 #: ../actions.cc:170
 msgid "Misc"
-msgstr "Varie"
+msgstr "Lặt vặt"
 
 #: ../actions.cc:226 ../stats.cc:33 ../stats.cc:39
 msgid "Stroke"
-msgstr "Tratto"
+msgstr "Nét vẽ"
 
 #: ../actions.cc:232 ../stats.cc:34 ../stats.cc:42
 msgid "Name"
-msgstr "Nome"
+msgstr "Tên"
 
 #: ../actions.cc:256
 msgid "Type"
-msgstr "Tipo"
+msgstr "Kiểu"
 
 #: ../actions.cc:262
 msgid "Details"
-msgstr "Dettagli"
+msgstr "Chi tiết"
 
 #: ../actions.cc:287
 msgid "Application"
-msgstr "Applicazione"
+msgstr "Ứng dụng"
 
 #: ../actions.cc:294 ../gui.glade.h:9
 msgid "Actions"
-msgstr "Azioni"
+msgstr "Thao tác"
 
 #: ../actions.cc:552
 msgid "Action \"%1\" is about to be deleted."
-msgstr "l'azione \"%1\" sta per essere cancellata."
+msgstr "Thao tác \"%1\" sắp được xóa"
 
 #: ../actions.cc:554
 msgid "One action is about to be deleted."
 msgid_plural "%1 actions are about to be deleted"
-msgstr[0] "Un azione sta per essere cancellata."
-msgstr[1] "%1 azoni stanno per essere cancellate"
+msgstr[0] "Một thao tác sắp được xóa"
 
 #: ../actions.cc:559
 msgid "Delete an Action"
 msgid_plural "Delete Actions"
-msgstr[0] "Cancella un Azione"
-msgstr[1] "Cancella Azioni"
+msgstr[0] "Xóa một thao tác"
 
 #: ../actions.cc:625
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
-msgstr "%1 \"%2\" (contententi %3 %4) sta per essere cancellata."
+msgstr "%1 \"%2\" (bao gồm %3 %4) sắp được xóa"
 
 #: ../actions.cc:626
 msgid "The application"
-msgstr "L'applicazione"
+msgstr "Ứng dụng"
 
 #: ../actions.cc:626
 msgid "The group"
-msgstr "Il gruppo"
+msgstr "Nhóm"
 
 #: ../actions.cc:629
 msgid "action"
 msgid_plural "actions"
-msgstr[0] "azione"
-msgstr[1] "azioni"
+msgstr[0] "Thao tác"
 
 #: ../actions.cc:630
 msgid "Delete an Application"
-msgstr "Cancella un applicazione"
+msgstr "Xóa một ứng dụng"
 
 #: ../actions.cc:630
 msgid "Delete an Application Group"
-msgstr "Cancella un gruppo di applicazioni"
+msgstr "Xóa một nhóm ứng dụng"
 
 #: ../actions.cc:660
 msgid "Group"
-msgstr "Gruppo"
+msgstr "Nhóm"
 
 #: ../actions.cc:760
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
 msgstr ""
-"Si sta assegnando un azione ad un singolo click. Ciò può rendere difficile "
-"in futuro l'utilizzo del pulsante %1. Si è sicuri di voler continuare?"
+"Bạn sắp chấp nhận một thao tác cho một nhấp chuột duy nhất. Điều này có thể "
+"làm cho nó khó sử dụng Nút 1% trong tương lai. Bạn có chắc bạn muốn tiếp tục "
+"không?"
 
 #: ../actions.cc:793
 msgid "Record a New Stroke"
-msgstr "Registra un nuovo Gesto"
+msgstr "Ghi lại một nét vẽ mới"
 
 #: ../actions.cc:794
 msgid ""
 "The next stroke will be associated with the action \"%1\".  You can draw it "
 "anywhere on the screen (except for the two buttons below)."
 msgstr ""
-"Il prossimo gesto sarà associato con l'azione \"%1\". È possibile disegnarlo "
-"ovunque nello schermo (eccetto nei due pulsanti sottostanti)."
+"Nét vẽ tiếp theo sẽ được kết hợp với thao tác \"%1\". Bạn có thể vẽ nó bất "
+"kỳ vị trí nào trên màn hình (ngoại trừ hai nút dưới đây)"
 
 #: ../actions.cc:886
 msgid "Gesture %1"
-msgstr "Gesto %1"
+msgstr "Cử chỉ %1"
 
 #: ../actions.cc:1002
 msgid "No Modifiers"
-msgstr "Nessun modificatore"
+msgstr "Không bổ trợ"
 
 #: ../actions.cc:1010
 msgid "(Instantly) "
-msgstr "(instantaneamente) "
+msgstr "(Ngay lập tức) "
 
 #: ../actions.cc:1012
 msgid "(Click & Hold) "
-msgstr "(clicca e tieni premuto) "
+msgstr "(Nhắp & Giữ) "
 
 #: ../actions.cc:1014
 msgid "Any Modifier"
-msgstr "Qualsiasi modificatore"
+msgstr "Tùy ý"
 
 #: ../actions.cc:1017 ../prefs.cc:446
 msgid "Button %1"
-msgstr "Pulsante %1"
+msgstr "Nút %1"
 
 #: ../actions.cc:1022
 msgid " + Scroll"
-msgstr " + scorrimento"
+msgstr " +Cuộn"
 
 #: ../composite.cc:26
 msgid "'composite' not available"
-msgstr "'composite' non disponibile"
+msgstr "'kết hợp' không có sẵn"
 
 #: ../main.cc:102 ../main.cc:263 ../main.cc:1366
 #, c-format
 msgid "Error: %s\n"
-msgstr "Errore: %s\n"
+msgstr "Lỗi: %s\n"
 
 #: ../main.cc:265
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Errore: acquisizione fallita. Resetto...\n"
+msgstr "Lỗi: Lấy A  thất bại. Làm lại ...\n"
 
 #: ../main.cc:286
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Errore Fatale: Connessione con X server perdura, riavvio...\n"
+msgstr "Lỗi nghiêm trọng : Kết nối với X server bị mất, khởi động lại...\n"
 
 #: ../main.cc:935
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
-msgstr "Attenzione: Nessuna azione \"%s\" definita\n"
+msgstr "Cảnh báo: Thao tác \"%s\" không xác định\n"
 
 #: ../main.cc:950
 msgid "Tray icon disabled"
-msgstr "icona nel vassoio disabilitata"
+msgstr "Tắt biểu tượng trên khay hệ thống"
 
 #: ../main.cc:951
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
 msgstr ""
-"Per mostrare nuovamente la finestra di configurazione, si dovrebbe definire "
-"un azione del tipo \"Varie->Mostra/nascondi\"."
+"Để đem lại hộp thoại cấu hình lên một lần nữa, bạn nên xác định một hành "
+"động của loại Lặt vặt...Hiện/Ẩn."
 
 #: ../main.cc:1012
 #, c-format
 msgid "Error initializing D-BUS\n"
-msgstr "Errore inizializzando D-BUS\n"
+msgstr "Lỗi khởi tạo D-BUS\n"
 
 #: ../main.cc:1050
 #, c-format
 msgid "Couldn't open display.\n"
-msgstr "Impossibile aprire il display.\n"
+msgstr "Không thể mở sự hiển thị.\n"
 
 #: ../main.cc:1054
 #, c-format
 msgid ""
 "Easystroke is already running, showing configuration window instead.\n"
-msgstr ""
-"Easystroke è già in esecuzione, sarà mostrata la finestra di "
-"configurazione.\n"
+msgstr "Easystroke vẫn chạy khi cửa sổ cấu hình không hiển thị.\n"
 
 #: ../main.cc:1203
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
-msgstr "Errore: Impossibile creare la cartella di configurazione \"%s\"\n"
+msgstr "Lỗi: Không thể tạo thư mục cấu hình \"%s\"\n"
 
 #: ../main.cc:1208
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
-msgstr "Errore: \"%s\" non è una cartella\n"
+msgstr "Lỗi: \"%s\" không là một đường dẫn\n"
 
 #: ../prefdb.cc:150
 #, c-format
 msgid "Error: Couldn't save preferences: %s.\n"
-msgstr "Errore: Impossibile salvare le preferenze: %s.\n"
+msgstr "Lỗi: Không thể lưu các tùy chọn: %s.\n"
 
 #: ../prefdb.cc:157
 msgid "preferences"
-msgstr "preferenze"
+msgstr "tuỳ chọn"
 
 #: ../prefdb.cc:223
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
-msgstr "Errore: impossibile leggere le preferenze.\n"
+msgstr "Lỗi: Không thể đọc các tùy chọn\n"
 
 #: ../prefs.cc:156
 msgid "XShape"
@@ -307,84 +302,83 @@ msgstr "XShape"
 
 #: ../prefs.cc:157
 msgid "Annotate (compiz)"
-msgstr "Annotazione (compiz)"
+msgstr "Annotate (compiz)"
 
 #: ../prefs.cc:158
 msgid "Fire (compiz)"
-msgstr "Fuoco (compiz)"
+msgstr "Fire (compiz)"
 
 #: ../prefs.cc:159
 msgid "Water (compiz)"
-msgstr "Acqua (compiz)"
+msgstr "Water (compiz)"
 
 #: ../prefs.cc:164 ../prefs.cc:174
 msgid "Timeout Off"
-msgstr "Fine timeout"
+msgstr "Tắt"
 
 #: ../prefs.cc:165 ../prefs.cc:175
 msgid "Conservative"
-msgstr "Conservativo"
+msgstr "Vừa phải"
 
 #: ../prefs.cc:167 ../prefs.cc:177
 msgid "Medium"
-msgstr "Dispositivo"
+msgstr "Trung bình"
 
 #: ../prefs.cc:168 ../prefs.cc:178
 msgid "Aggressive"
-msgstr "Aggressivo"
+msgstr "Năng nổ"
 
 #: ../prefs.cc:169 ../prefs.cc:179
 msgid "Flick"
-msgstr "Flick"
+msgstr "Vút nhẹ"
 
 #: ../prefs.cc:180
 msgid "Custom"
-msgstr "Personalizzato"
+msgstr "Tuỳ chọn"
 
 #: ../prefs.cc:298
 msgid "Application (WM__CLASS)"
-msgstr "Applicazione (WM__CLASS)"
+msgstr "Ứng dụng (WM_CLASS)"
 
 #: ../prefs.cc:316
 msgid "Enabled"
-msgstr "Attivo"
+msgstr "Bật"
 
 #: ../prefs.cc:317
 msgid "Device"
-msgstr "Dispositivo"
+msgstr "Thiết bị"
 
 #: ../prefs.cc:342 ../prefs.cc:595 ../prefs.cc:618
 msgid "<App disabled>"
-msgstr "<App disabilitato>"
+msgstr "<Tắt>"
 
 #: ../prefs.cc:426
 msgid "Select a Mouse or Pen Button"
-msgstr "Selezionare un pulsante del mouse o della penna"
+msgstr "Chọn nút bấm chuột hoặc bút"
 
 #: ../prefs.cc:427
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
 msgstr ""
-"Posizionare il mouse o la penna nel riquadro sottostante e premere il "
-"pulsante che si vuole selezionare. È anche possibile premere modificatori "
-"addizionali."
+"Xin hãy đặt bút hay chuột của bạn vào hộp dưới đây và bấm vào nút mà bạn "
+"muốn chọn. Bạn cũng có thể giữ thêm phím bổ trợ."
 
 #: ../stats.cc:35 ../stats.cc:43
 msgid "Score"
-msgstr "Punteggio"
+msgstr "Thành công"
 
 #: ../win.cc:161
 msgid "D_isabled"
-msgstr "D_isabilitato"
+msgstr "Tắ_t"
 
 #: ../win.cc:272
 msgid "(window manager frame)"
-msgstr "cornice del gestore finestre"
+msgstr "Quản lý cửa sổ khung"
 
 #: ../trace.h:23
 msgid "Connection to DBus failed"
-msgstr "Connessione a DBus fallita"
+msgstr "Kết nối với DBUS thất bại"
 
 #: ../gui.glade.h:1
 msgid "     Timeout (ms)"
@@ -392,111 +386,107 @@ msgstr "     Timeout (ms)"
 
 #: ../gui.glade.h:2
 msgid "(See Documentation)"
-msgstr "(vedi la documentazione)"
+msgstr "(Xem tài liệu)"
 
 #: ../gui.glade.h:3
 msgid "<b>Appearance</b>"
-msgstr "<b>Aspetto</b>"
+msgstr "<b>Diện mạo</b>"
 
 #: ../gui.glade.h:4
 msgid "<b>Behavior</b>"
-msgstr "<b>Comportamento</b>"
+msgstr "<b>Chế độ</b>"
 
 #: ../gui.glade.h:5
 msgid "<b>Devices</b>"
-msgstr "<b>Dispositivi</b>"
+msgstr "<b>Thiết bị</b>"
 
 #: ../gui.glade.h:6
 msgid "<b>Exceptions</b>"
-msgstr "<b>Eccezioni</b>"
+msgstr "<b>Ngoại lệ</b>"
 
 #: ../gui.glade.h:7
 msgid "<b>Tablet Options</b>"
-msgstr "<b>Opzioni Tablet</b>"
+msgstr "<b>Tùy chọn Tablet PC</b>"
 
 #: ../gui.glade.h:8
 msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr ""
-"Annulla gesto se la pressione eccede il numero sulla sinistra (fuori di 255)"
+msgstr "Hủy bỏ nét vẽ nếu độ nén vượt quá số trên bên trái (tối đa 255)"
 
 #: ../gui.glade.h:10
 msgid "Add Application"
-msgstr "Aggiungi applicazione"
+msgstr "Thêm ứng dụng"
 
 #: ../gui.glade.h:11
 msgid "Add Group"
-msgstr "Aggiungi gruppo"
+msgstr "Thêm nhóm"
 
 #: ../gui.glade.h:12
 msgid "Additional Buttons"
-msgstr "Pulsanti aggiuntivi"
+msgstr "Thêm nút bấm"
 
 #: ../gui.glade.h:13
 msgid "Advanced"
-msgstr "Avanzato"
+msgstr "Nâng cao"
 
 #: ../gui.glade.h:14
 msgid "Alternatively, you may select button and modifiers below."
-msgstr ""
-"Alternativamente, è possibile selezionare i pulsanti e modificatori "
-"sottostanti."
+msgstr "Ngoài ra, bạn có thể chọn nút bấm và nút bổ trợ dưới đây."
 
 #: ../gui.glade.h:15
 msgid "An_y Modifier"
-msgstr "Qualsiasi Modificatore (_y)"
+msgstr "Tùy ý"
 
 #: ../gui.glade.h:16
 msgid "Applications"
-msgstr "Applicazioni"
+msgstr "Ứng dụng"
 
 #: ../gui.glade.h:17
 msgid "Autostart easystroke"
-msgstr "esegui automaticamente easystroke"
+msgstr "Easystroke tự khởi động"
 
 #: ../gui.glade.h:18
 msgid "Click & Hold"
-msgstr "clicca e tieni premuto"
+msgstr "Nhắp & Giữ"
 
 #: ../gui.glade.h:19
 msgid "Color"
-msgstr "Colore"
+msgstr "Màu"
 
 #: ../gui.glade.h:20
 msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Ignora i gesti che portano ai \"gesti avanzati\""
+msgstr "Bỏ qua các nét vẽ dẫn đến cử chỉ cao cấp"
 
 #: ../gui.glade.h:21
 msgid "Initial Timeout (ms)"
-msgstr "Timeout iniziale (ms)"
+msgstr "Thời gian trễ ban đầu (ms)"
 
 #: ../gui.glade.h:22
 msgid "Instant Gestures"
-msgstr "Gesti istantanei"
+msgstr "Cử chỉ tức thời"
 
 #: ../gui.glade.h:23
 msgid "Invert Scroll Direction"
-msgstr "Invertire direzione di scorrimento"
+msgstr "Đảo ngược hướng cuộn"
 
 #: ../gui.glade.h:24
 msgid "Method to show gestures"
-msgstr "Metodi per mostrari i gesti"
+msgstr "Cách thể hiện cử chỉ"
 
 #: ../gui.glade.h:25
 msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
-"Rimetti il cursore nella posizione di partenza al termine di ogni gesture"
+msgstr "Di chuyển con trỏ trở lại vị trí ban đầu sau mỗi cử chỉ"
 
 #: ../gui.glade.h:26
 msgid "Preferences"
-msgstr "Preferenze"
+msgstr "Tùy chỉnh"
 
 #: ../gui.glade.h:27
 msgid "Remove Application/Group"
-msgstr "Rimuovi Applicazione/Gruppo"
+msgstr "Hủy bỏ Ứng dụng/Nhóm"
 
 #: ../gui.glade.h:28
 msgid "Reset Action(s)"
-msgstr "Azzera Azione/i"
+msgstr "Thiết lập lại thao tác"
 
 #: ../gui.glade.h:29
 msgid "S_uper"
@@ -504,37 +494,35 @@ msgstr "S_uper"
 
 #: ../gui.glade.h:30
 msgid "Scroll Speed"
-msgstr "Velocità di scorrimento"
+msgstr "Tốc độ cuộn"
 
 #: ../gui.glade.h:31
 msgid "Show OSD"
-msgstr "Mostra OSD"
+msgstr "Hiện OSD"
 
 #: ../gui.glade.h:32
 msgid "Show deleted rows"
-msgstr "Mostra righe cancellate"
+msgstr "Hiện hàng đã xóa"
 
 #: ../gui.glade.h:33
 msgid "Show last gesture in tray"
-msgstr "Mostra l'ultimo gesto nel vassoio"
+msgstr "Hiện cử chỉ mới nhất trong khay"
 
 #: ../gui.glade.h:34
 msgid "Show popups ("
-msgstr "Mostra popup ("
+msgstr "Hiển thị popup"
 
 #: ../gui.glade.h:35
 msgid "Show popups on advanced gestures"
-msgstr "Mostra popup nei \"gesti avanzati\""
+msgstr "Hiển thì popup trong các cử chỉ nâng cao"
 
 #: ../gui.glade.h:36
 msgid "Show tray icon"
-msgstr "Mostrare l'icona nell'area di notifica"
+msgstr "Hiện biểu tượng trên khay"
 
 #: ../gui.glade.h:37
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr ""
-"Rimani nella modalità 'scorri' e 'ignora' fintanto che la penna è "
-"all'interno del range"
+msgstr "Trong chế độ  'cuộn' và 'bỏ qua' miễn là bút vẽ ở trong phạm vi"
 
 #: ../gui.glade.h:38
 msgid "Timeout"
@@ -542,23 +530,23 @@ msgstr "Timeout"
 
 #: ../gui.glade.h:39
 msgid "Timeout Gestures"
-msgstr "Timeout gesti"
+msgstr "Timeout Gestures"
 
 #: ../gui.glade.h:40
 msgid "Timeout profile"
-msgstr "Timeout profilo"
+msgstr "Mô tả timeout"
 
 #: ../gui.glade.h:41
 msgid "Width"
-msgstr "Larghezza"
+msgstr "Độ rộng"
 
 #: ../gui.glade.h:42
 msgid "_Add Action"
-msgstr "_Aggiungi Azione"
+msgstr "_Thêm thao tác"
 
 #: ../gui.glade.h:43
 msgid "_Add Exception"
-msgstr "_Aggiungi Eccezione"
+msgstr "_Thêm ngoại lệ"
 
 #: ../gui.glade.h:44
 msgid "_Alt"
@@ -566,43 +554,43 @@ msgstr "_Alt"
 
 #: ../gui.glade.h:45
 msgid "_Control"
-msgstr "_Controllo"
+msgstr "_Control"
 
 #: ../gui.glade.h:46
 msgid "_Default"
-msgstr "Pre_definito"
+msgstr "_Mặc định"
 
 #: ../gui.glade.h:47
 msgid "_Delete Action(s)"
-msgstr "Cancella Azione/i (_d)"
+msgstr "_Xóa thao tác"
 
 #: ../gui.glade.h:48
 msgid "_Delete Current"
-msgstr "Cancella Corrente"
+msgstr "_Xóa sự hiện hành"
 
 #: ../gui.glade.h:49
 msgid "_Gesture Button"
-msgstr "Pulsante _Gesto"
+msgstr "_Nút bấm"
 
 #: ../gui.glade.h:50
 msgid "_Hide"
-msgstr "_Nascondi"
+msgstr "Ẩ_n"
 
 #: ../gui.glade.h:51
 msgid "_History"
-msgstr "Cronologia (_H)"
+msgstr "_Lược sử"
 
 #: ../gui.glade.h:52
 msgid "_Matrix"
-msgstr "_Matrice"
+msgstr "_Bảng"
 
 #: ../gui.glade.h:53
 msgid "_Record Stroke"
-msgstr "_Registra Gesto"
+msgstr "_Ghi nét vẽ"
 
 #: ../gui.glade.h:54
 msgid "_Remove Exception"
-msgstr "_Rimuovi Eccezione"
+msgstr "_Xóa ngoại trừ"
 
 #: ../gui.glade.h:55
 msgid "_Shift"
@@ -610,31 +598,12 @@ msgstr "_Shift"
 
 #: ../gui.glade.h:56
 msgid "optimize for left-handed operation )"
-msgstr "ottimizza operazioni per mancini )"
+msgstr "tối ưu cho hoạt động thuận tay trái)"
 
 #: ../easystroke.desktop.in.h:1
 msgid "Control your desktop using mouse gestures"
-msgstr "Controlla la scrivania utilizzando i gesti del muse"
+msgstr "Điều khiển máy tính bằng những hành vi của chuột"
 
 #: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke riconoscimento gesti"
-
-#, c-format
-#~ msgid "Opening Device %s failed.\n"
-#~ msgstr "Apertura del dispositivo %s fallita.\n"
-
-#~ msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-#~ msgstr ""
-#~ "Raggira i problemi di temporizzazione sulla Wacom tablets e sui Tablet PC"
-
-#, c-format
-#~ msgid "Is easystroke already running?\n"
-#~ msgstr "Easystroke è già in esecuzione?\n"
-
-#, c-format
-#~ msgid "Error: You need XInput to use advanced gestures\n"
-#~ msgstr "Errore: è necessario XInput per utilizzare i gesti avanzati\n"
-
-#~ msgid "Accept gestures when menus are shown (experimental)"
-#~ msgstr "Accetta i gesti con menu aperti (sperimentale)"
+msgstr "Trình nhận dạng hành vi Easystroke"
