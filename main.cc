@@ -1213,7 +1213,10 @@ void Main::create_config_dir() {
 		config_dir += "/.easystroke";
 	}
 	struct stat st;
-	if (lstat(config_dir.c_str(), &st) == -1) {
+	char *name = canonicalize_file_name(config_dir.c_str());
+
+	// check if the directory does not exist
+	if (lstat(name, &st) == -1) {
 		if (mkdir(config_dir.c_str(), 0777) == -1) {
 			printf(_("Error: Couldn't create configuration directory \"%s\"\n"), config_dir.c_str());
 			exit(EXIT_FAILURE);
@@ -1223,7 +1226,10 @@ void Main::create_config_dir() {
 			printf(_("Error: \"%s\" is not a directory\n"), config_dir.c_str());
 			exit(EXIT_FAILURE);
 		}
+
+
 	}
+	free (name);
 	config_dir += "/";
 }
 
