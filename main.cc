@@ -350,13 +350,19 @@ protected:
 		return v * exp(log(abs(v))/3);
 	}
 public:
-	virtual void motion(RTriple e) {
-		if (!last_t || abs(e->x-last_x) > 100 || abs(e->y-last_y) > 100) {
+	virtual void motion(RTriple e, int force_x = 0, int force_y = 0 ) {
+		if (!last_t) {
 			last_x = e->x;
 			last_y = e->y;
 			last_t = e->t;
 			return;
 		}
+
+		if (force_x || force_y) {
+			last_x = force_x;
+			last_y = force_y;
+		}
+
 		if (e->t == last_t)
 			return;
 		double factor = (prefs.scroll_invert.get() ? 1.0 : -1.0) * prefs.scroll_speed.get();
@@ -401,9 +407,11 @@ public:
 		// If you want to use buttons > 9, you're on your own..
 		map[1] = 0; map[2] = 0; map[3] = 0; map[8] = 0; map[9] = 0;
 	}
+
 	virtual void motion(RTriple e) {
-		if (xinput_pressed.size())
+		if (xinput_pressed.size()) {
 			AbstractScrollHandler::motion(e);
+		}
 	}
 	virtual void press_master(guint b, Time t) {
 		fake_core_button(b, false);
@@ -422,16 +430,45 @@ public:
 class ScrollAdvancedHandler : public AbstractScrollHandler {
 	RModifiers m;
 	guint &rb;
+	RTriple orig;
+	int width, height, orig_x, orig_y, border;
+	bool performEvent;
 public:
-	ScrollAdvancedHandler(RModifiers m_, guint &rb_) : m(m_), rb(rb_) {}
+	ScrollAdvancedHandler(RModifiers m_, guint &rb_, RTriple e) : m(m_), rb(rb_), orig(e) { 
+		border = 100;
+		width = WidthOfScreen(ScreenOfDisplay(dpy, DefaultScreen(dpy)));
+  		height = HeightOfScreen(ScreenOfDisplay(dpy, DefaultScreen(dpy)));
+		orig_x = width / 2;
+		orig_y = height / 2;
+		width -= border;
+		height -= border;
+		XFixesHideCursor(dpy, ROOT);
+		reset_position(true);
+	}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
 		rb = 0;
 	}
+	void reset_position(bool perform=false) {
+		XIWarpPointer(dpy, current_dev->dev, None, ROOT, 0,0,0,0,orig_x, orig_y);
+		performEvent=perform;
+	}
 	virtual void motion(RTriple e) {
-		AbstractScrollHandler::motion(e);
+		if (performEvent) {
+			AbstractScrollHandler::motion(e);
+		} else {
+			performEvent=true;
+			AbstractScrollHandler::motion(e,orig_x,orig_y);
+		}
+		if (e->y < border || e->y > height) {
+			reset_position();
+		} 
+		if (e->x < border || e->x > width) {
+			reset_position();
+		}
 	}
 	virtual void release(guint b, RTriple e) {
+		XFixesShowCursor(dpy, ROOT);
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->release(b, e);
@@ -469,7 +506,7 @@ public:
 };
 
 class AdvancedHandler : public Handler {
-	RTriple e;
+	RTriple e, orig;
 	guint remap_from, remap_to;
 	Time click_time;
 	guint replay_button;
@@ -488,7 +525,7 @@ class AdvancedHandler : public Handler {
 		rs.erase(b);
 	}
 	AdvancedHandler(RStroke s, RTriple e_, guint b1, guint b2, RPreStroke replay_) :
-		e(e_), remap_from(0), remap_to(0), click_time(0), replay_button(0),
+		e(e_), orig(e), remap_from(0), remap_to(0), click_time(0), replay_button(0),
 		button1(b1), button2(b2), replay(replay_) {
 			if (s)
 				actions.get_action_list(grabber->current_class->get())->handle_advanced(s, as, rs, b1, b2);
@@ -519,6 +556,7 @@ public:
 	virtual void press(guint b, RTriple e) {
 		if (current_dev->master)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+
 		click_time = 0;
 		if (remap_to) {
 			fake_core_button(remap_to, false);
@@ -541,7 +579,7 @@ public:
 			replay_orig = e;
 			RModifiers m = act->prepare();
 			sticky_mods.reset();
-			return replace_child(new ScrollAdvancedHandler(m, replay_button));
+			return replace_child(new ScrollAdvancedHandler(m, replay_button, e));
 		}
 		if (IS_IGNORE(act)) {
 			click_time = e->t;
@@ -571,11 +609,15 @@ public:
 	virtual void motion(RTriple e) {
 		if (replay_button && hypot(replay_orig->x - e->x, replay_orig->y - e->y) > 16)
 			replay_button = 0;
-		if (current_dev->master)
+		if (current_dev->master) {
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+		}
 	}
 	virtual void release(guint b, RTriple e) {
-		if (current_dev->master)
+
+		if (prefs.move_back.get() && !current_dev->absolute)
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
+		else if (current_dev->master)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 		if (remap_to) {
 			fake_core_button(remap_to, false);
@@ -775,6 +817,7 @@ protected:
 	}
 	virtual void motion(RTriple e) {
 		cur->add(e);
+		
 		float dist = hypot(e->x-orig->x, e->y-orig->y);
 		if (!is_gesture && dist > 16) {
 			if (use_timeout && !final_timeout)
