@@ -442,7 +442,6 @@ public:
 		orig_y = height / 2;
 		width -= border;
 		height -= border;
-		XFixesHideCursor(dpy, ROOT);
 		reset_position(true);
 	}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
@@ -468,7 +467,6 @@ public:
 		}
 	}
 	virtual void release(guint b, RTriple e) {
-		XFixesShowCursor(dpy, ROOT);
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->release(b, e);
