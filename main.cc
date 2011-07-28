@@ -1242,10 +1242,10 @@ void Main::handle_enter_leave(XEvent &ev) {
 		return;
 	Window w = ev.xcrossing.window;
 	if (ev.type == EnterNotify) {
-		current_window.set(w);
-		current_app = get_app_window(w);
 		if (verbosity >= 3)
 			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
+		current_window.set(w);
+		current_app = get_app_window(w);
 	} else if (ev.type == LeaveNotify) {
 		if (ev.xcrossing.window != current_window.get())
 			return;
