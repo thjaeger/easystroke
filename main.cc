@@ -134,6 +134,7 @@ public:
 	static bool idle() { return !handler->child; }
 
 	virtual void motion(RTriple e) {}
+	virtual void raw_motion(RTriple e, bool, bool) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_master(guint b, Time t) {}
@@ -334,13 +335,22 @@ static void update_core_mapping() {
 static inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
+	bool have_x, have_y;
 	float last_x, last_y;
 	Time last_t;
 	float offset_x, offset_y;
 	Glib::ustring str;
+	int orig_x, orig_y;
 
 protected:
-	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {}
+	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {
+		if (!prefs.move_back.get() || current_dev->absolute)
+			return;
+		Window dummy1, dummy2;
+		int dummy3, dummy4;
+		unsigned int dummy5;
+		XQueryPointer(dpy, ROOT, &dummy1, &dummy2, &orig_x, &orig_y, &dummy3, &dummy4, &dummy5);
+	}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		for (int i = 0; i<n1; i++)
 			fake_click(b1);
@@ -350,22 +360,41 @@ protected:
 	static float curve(float v) {
 		return v * exp(log(abs(v))/3);
 	}
+protected:
+	void move_back() {
+		if (!prefs.move_back.get() || current_dev->absolute)
+			return;
+		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig_x, orig_y, 0);
+	}
 public:
-	virtual void motion(RTriple e) {
-		if (!last_t || abs(e->x-last_x) > 100 || abs(e->y-last_y) > 100) {
+	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
+		float dx = abs_x ? (have_x ? e->x - last_x : 0) : e->x;
+		float dy = abs_y ? (have_y ? e->y - last_y : 0) : e->y;
+
+		if (abs_x) {
 			last_x = e->x;
+			have_x = true;
+		}
+
+		if (abs_y) {
 			last_y = e->y;
+			have_y = true;
+		}
+
+		if (!last_t) {
 			last_t = e->t;
 			return;
 		}
+
 		if (e->t == last_t)
 			return;
-		double factor = (prefs.scroll_invert.get() ? 1.0 : -1.0) * prefs.scroll_speed.get();
-		offset_x += factor * curve((e->x-last_x)/(e->t-last_t))*(e->t-last_t)/20.0;
-		offset_y += factor * curve((e->y-last_y)/(e->t-last_t))*(e->t-last_t)/10.0;
-		last_x = e->x;
-		last_y = e->y;
+
+		int dt = e->t - last_t;
 		last_t = e->t;
+
+		double factor = (prefs.scroll_invert.get() ? 1.0 : -1.0) * prefs.scroll_speed.get();
+		offset_x += factor * curve(dx/dt)*dt/20.0;
+		offset_y += factor * curve(dy/dt)*dt/10.0;
 		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
 		if (abs(offset_x) > 1.0) {
 			n1 = (int)floor(abs(offset_x));
@@ -397,27 +426,31 @@ public:
 class ScrollHandler : public AbstractScrollHandler {
 	RModifiers mods;
 	std::map<guint, guint> map;
+	int orig_x, orig_y;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
 		// If you want to use buttons > 9, you're on your own..
 		map[1] = 0; map[2] = 0; map[3] = 0; map[8] = 0; map[9] = 0;
 	}
-	virtual void motion(RTriple e) {
+	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
 		if (xinput_pressed.size())
-			AbstractScrollHandler::motion(e);
+			AbstractScrollHandler::raw_motion(e, abs_x, abs_y);
 	}
 	virtual void press_master(guint b, Time t) {
 		fake_core_button(b, false);
 	}
 	virtual void release(guint b, RTriple e) {
-		if (!in_proximity && !xinput_pressed.size())
-			parent->replace_child(0);
+		if (in_proximity || xinput_pressed.size())
+			return;
+		parent->replace_child(0);
+		move_back();
 	}
 	virtual void proximity_out() {
 		parent->replace_child(0);
+		move_back();
 	}
 	virtual std::string name() { return "Scroll"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::RAW; }
 };
 
 class ScrollAdvancedHandler : public AbstractScrollHandler {
@@ -429,21 +462,20 @@ public:
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
 		rb = 0;
 	}
-	virtual void motion(RTriple e) {
-		AbstractScrollHandler::motion(e);
-	}
 	virtual void release(guint b, RTriple e) {
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->release(b, e);
+		move_back();
 	}
 	virtual void press(guint b, RTriple e) {
 		Handler *p = parent;
 		p->replace_child(NULL);
 		p->press(b, e);
+		move_back();
 	}
 	virtual std::string name() { return "ScrollAdvanced"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::RAW; }
 };
 
 // Hack so that we don't have to move stuff around so much
@@ -998,6 +1030,7 @@ public:
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	void handle_xi2_event(XIDeviceEvent *event);
+	void handle_raw_motion(XIRawEvent *event);
 	void report_xi2_event(XIDeviceEvent *event, const char *type);
 	~Main();
 };
@@ -1307,15 +1340,10 @@ void Main::handle_event(XEvent &ev) {
 	}
 }
 
-void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
-	printf("%s (XI2): ", type);
-	if (event->detail)
-		printf("%d ", event->detail);
-	printf("(%.3f, %.3f) - (", event->root_x, event->root_y);
-
+static void print_coordinates(XIValuatorState *valuators, double *values) {
 	int n = 0;
-	for (int i = event->valuators.mask_len - 1; i >= 0; i--)
-		if (XIMaskIsSet(event->valuators.mask, i)) {
+	for (int i = valuators->mask_len - 1; i >= 0; i--)
+		if (XIMaskIsSet(valuators->mask, i)) {
 			n = i+1;
 			break;
 		}
@@ -1326,12 +1354,19 @@ void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
 			first = false;
 		else
 			printf(", ");
-		if (XIMaskIsSet(event->valuators.mask, i))
-			printf("%.3f", event->valuators.values[elt++]);
+		if (XIMaskIsSet(valuators->mask, i))
+			printf("%.3f", values[elt++]);
 		else
 			printf("*");
-
 	}
+}
+
+void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
+	printf("%s (XI2): ", type);
+	if (event->detail)
+		printf("%d ", event->detail);
+	printf("(%.3f, %.3f) - (", event->root_x, event->root_y);
+	print_coordinates(&event->valuators, event->valuators.values);
 	printf(") at t = %ld\n", event->time);
 }
 
@@ -1379,10 +1414,41 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			}
 			H->motion(create_triple(event->root_x, event->root_y, event->time));
 			break;
+		case XI_RawMotion:
+			handle_raw_motion((XIRawEvent *)event);
+			break;
 		case XI_HierarchyChanged:
 			grabber->hierarchy_changed((XIHierarchyEvent *)event);
 	}
 }
+
+void Main::handle_raw_motion(XIRawEvent *event) {
+	if (!current_dev || current_dev->dev != event->deviceid)
+		return;
+	double x = 0.0, y = 0.0;
+	bool abs_x = current_dev->absolute;
+	bool abs_y = current_dev->absolute;
+	int i = 0;
+
+	if (XIMaskIsSet(event->valuators.mask, 0))
+		x = event->raw_values[i++];
+	else
+		abs_x = false;
+
+	if (XIMaskIsSet(event->valuators.mask, 1))
+		y = event->raw_values[i++];
+	else
+		abs_y = false;
+
+	if (verbosity >= 5) {
+		printf("Raw motion (XI2): (");
+		print_coordinates(&event->valuators, event->raw_values);
+		printf(") at t = %ld\n", event->time);
+	}
+
+	H->raw_motion(create_triple(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
+}
+
 #undef H
 
 bool Main::handle(Glib::IOCondition) {

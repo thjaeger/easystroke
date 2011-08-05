@@ -35,6 +35,8 @@ Grabber *grabber = 0;
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
 static unsigned char device_mask_data[2];
 static XIEventMask device_mask;
+static unsigned char raw_mask_data[3];
+static XIEventMask raw_mask;
 
 template <class X1, class X2> class BiMap {
 	std::map<X1, X2> map1;
@@ -218,7 +220,7 @@ void Grabber::unminimize() {
 	activate(w, CurrentTime);
 }
 
-const char *Grabber::state_name[3] = { "None", "Button", "Select" };
+const char *Grabber::state_name[4] = { "None", "Button", "Select", "Raw" };
 
 Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
@@ -228,7 +230,7 @@ Grabber::Grabber() : children(ROOT) {
 	active = true;
 	grabbed = NONE;
 	xi_grabbed = false;
-	xi_devs_grabbed = false;
+	xi_devs_grabbed = GrabNo;
 	grabbed_button.button = 0;
 	grabbed_button.state = 0;
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
@@ -287,6 +289,14 @@ bool Grabber::init_xi() {
 	XISetMask(device_mask.mask, XI_ButtonPress);
 	XISetMask(device_mask.mask, XI_ButtonRelease);
 	XISetMask(device_mask.mask, XI_Motion);
+
+	raw_mask.deviceid = XIAllDevices;
+	raw_mask.mask = raw_mask_data;
+	raw_mask.mask_len = sizeof(raw_mask_data);
+	memset(raw_mask.mask, 0, raw_mask.mask_len);
+	XISetMask(raw_mask.mask, XI_ButtonPress);
+	XISetMask(raw_mask.mask, XI_ButtonRelease);
+	XISetMask(raw_mask.mask, XI_RawMotion);
 
 	XIEventMask global_mask;
 	unsigned char data[2] = { 0, 0 };
@@ -364,7 +374,7 @@ void Grabber::new_device(XIDeviceInfo *info) {
 		}
 }
 
-Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), absolute(false), num_buttons(0) {
+Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), absolute(false), scale_x(1.0), scale_y(1.0), num_buttons(0) {
 	dev = info->deviceid;
 	name = info->name;
 	master = info->attachment;
@@ -375,8 +385,14 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 			num_buttons = b->num_buttons;
 		} else if (dev_class->type == ValuatorClass) {
 			XIValuatorClassInfo *v = (XIValuatorClassInfo*)dev_class;
-			if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative)
+			if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative) {
 				absolute = true;
+				if (v-> number == 0)
+					scale_x = (double)DisplayWidth(dpy, DefaultScreen(dpy)) / (double)(v->max - v->min);
+				else
+					scale_y = (double)DisplayHeight(dpy, DefaultScreen(dpy)) / (double)(v->max - v->min);
+
+			}
 			if (v->number == 2) {
 				pressure_min = v->min;
 				pressure_max = v->max;
@@ -428,18 +444,19 @@ void Grabber::grab_xi(bool grab) {
 				i->second->grab_button(*j, grab);
 }
 
-void Grabber::XiDevice::grab_device(bool grab) {
-	if (!grab) {
+void Grabber::XiDevice::grab_device(GrabState grab) {
+	if (grab == GrabNo) {
 		XIUngrabDevice(dpy, dev, CurrentTime);
 		if (current_dev && current_dev->dev == dev)
 			xinput_pressed.clear();
 		return;
 	}
-	XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False, &device_mask);
+	XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
+			grab == GrabYes ? &device_mask : &raw_mask);
 }
 
-void Grabber::grab_xi_devs(bool grab) {
-	if (!xi_devs_grabbed == !grab)
+void Grabber::grab_xi_devs(GrabState grab) {
+	if (xi_devs_grabbed == grab)
 		return;
 	xi_devs_grabbed = grab;
 	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
@@ -449,7 +466,14 @@ void Grabber::grab_xi_devs(bool grab) {
 void Grabber::set() {
 	bool act = !suspended && ((active && !disabled.get()) || (current != NONE && current != BUTTON));
 	grab_xi(act && current != SELECT);
-	grab_xi_devs(act && current == NONE);
+	if (!act)
+		grab_xi_devs(GrabNo);
+	else if (current == NONE)
+		grab_xi_devs(GrabYes);
+	else if (current == RAW)
+		grab_xi_devs(GrabRaw);
+	else
+		grab_xi_devs(GrabNo);
 	State old = grabbed;
 	grabbed = act ? current : NONE;
 	if (old == grabbed)

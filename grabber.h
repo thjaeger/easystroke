@@ -60,8 +60,9 @@ class Grabber {
 	friend class Prefs;
 public:
 	Children children;
-	enum State { NONE, BUTTON, SELECT };
-	static const char *state_name[3];
+	enum State { NONE, BUTTON, SELECT, RAW };
+	enum GrabState { GrabNo, GrabYes, GrabRaw };
+	static const char *state_name[4];
 
 	struct XiDevice {
 		int dev;
@@ -69,6 +70,7 @@ public:
 		bool supports_pressure;
 		bool absolute;
 		bool active;
+		double scale_x, scale_y;
 		int pressure_min, pressure_max;
 		int num_buttons;
 		int master;
@@ -76,7 +78,7 @@ public:
 		int normalize_pressure(int pressure) {
 			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
 		}
-		void grab_device(bool grab);
+		void grab_device(GrabState grab);
 		void grab_button(ButtonInfo &bi, bool grab);
 	};
 
@@ -89,7 +91,7 @@ private:
 	DeviceMap xi_devs;
 	State current, grabbed;
 	bool xi_grabbed;
-	bool xi_devs_grabbed;
+	GrabState xi_devs_grabbed;
 	int suspended;
 	bool active;
 	Cursor cursor_select;
@@ -98,7 +100,7 @@ private:
 
 	void set();
 	void grab_xi(bool);
-	void grab_xi_devs(bool);
+	void grab_xi_devs(GrabState);
 
 	void update_excluded();
 
