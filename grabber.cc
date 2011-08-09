@@ -607,7 +607,7 @@ Window get_app_window(Window w) {
 		frame_child.add(w, w2);
 		if (w2 != w) {
 			w = w2;
-			XSelectInput(dpy, w2, EnterWindowMask | LeaveWindowMask | StructureNotifyMask | PropertyChangeMask);
+			XSelectInput(dpy, w2, StructureNotifyMask | PropertyChangeMask);
 		}
 		return w2;
 	}

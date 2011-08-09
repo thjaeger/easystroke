@@ -1287,12 +1287,6 @@ void Main::handle_enter_leave(XEvent &ev) {
 		current_app_window.set(get_app_window(w));
 		if (verbosity >= 3)
 			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app_window.get());
-	} else if (ev.type == LeaveNotify) {
-		if (ev.xcrossing.window != current_app_window.get())
-			return;
-		if (verbosity >= 3)
-			printf("Left window 0x%lx\n", w);
-		current_app_window.set(None);
 	} else printf("Error: Bogus Enter/Leave event\n");
 }
 
