@@ -682,6 +682,7 @@ static void activate_window(Window w, Time t) {
 	Atom window_type = get_atom(w, *_NET_WM_WINDOW_TYPE);
 	if (window_type == *_NET_WM_WINDOW_TYPE_DOCK)
 		return;
+
 	XWMHints *wm_hints = XGetWMHints(dpy, w);
 	if (wm_hints) {
 		bool input = wm_hints->input;
@@ -689,14 +690,18 @@ static void activate_window(Window w, Time t) {
 		if (!input)
 			return;
 	}
+
+	if (!has_atom(w, *WM_PROTOCOLS, *WM_TAKE_FOCUS))
+		return;
+
+	XWindowAttributes attr;
+	if (XGetWindowAttributes(dpy, w, &attr) && attr.override_redirect)
+		return;
+
 	if (verbosity >= 3)
 		printf("Giving focus to window 0x%lx\n", w);
 
-	bool take_focus = has_atom(w, *WM_PROTOCOLS, *WM_TAKE_FOCUS);
-	if (take_focus)
-		icccm_client_message(w, *WM_TAKE_FOCUS, t);
-	else
-		XSetInputFocus(dpy, w, RevertToParent, t);
+	icccm_client_message(w, *WM_TAKE_FOCUS, t);
 }
 
 void Trace::start(Trace::Point p) {
