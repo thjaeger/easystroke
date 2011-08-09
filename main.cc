@@ -1233,7 +1233,7 @@ void Main::create_config_dir() {
 	config_dir += "/";
 }
 
-extern Window get_app_window(Window &w);
+extern Window get_app_window(Window w);
 
 void Main::handle_enter_leave(XEvent &ev) {
 	if (ev.xcrossing.mode == NotifyGrab)
@@ -1242,10 +1242,10 @@ void Main::handle_enter_leave(XEvent &ev) {
 		return;
 	Window w = ev.xcrossing.window;
 	if (ev.type == EnterNotify) {
-		if (verbosity >= 3)
-			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
 		current_window.set(w);
 		current_app = get_app_window(w);
+		if (verbosity >= 3)
+			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
 	} else if (ev.type == LeaveNotify) {
 		if (ev.xcrossing.window != current_window.get())
 			return;

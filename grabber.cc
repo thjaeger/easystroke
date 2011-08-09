@@ -568,21 +568,16 @@ Window find_wm_state(Window w) {
 	return found;
 }
 
-// sets w to 0 if the window is a frame
-Window get_app_window(Window &w) {
+Window get_app_window(Window w) {
 	if (!w)
 		return w;
-	if (frame_win.contains1(w)) {
-		Window w2 = frame_win.find1(w);
-		w = 0;
-		return w2;
-	}
-	if (frame_child.contains1(w)) {
-		Window w2 = frame_child.find1(w);
-		if (w != w2)
-			w = 0;
-		return w2;
-	}
+
+	if (frame_win.contains1(w))
+		return frame_win.find1(w);
+
+	if (frame_child.contains1(w))
+		return frame_child.find1(w);
+
 	Window w2 = find_wm_state(w);
 	if (w2) {
 		frame_child.add(w, w2);
