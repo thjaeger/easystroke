@@ -670,10 +670,14 @@ static void icccm_client_message(Window w, Atom a, Time t) {
 }
 
 static void activate_window(Window w, Time t) {
+	static XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
 	static XAtom _NET_WM_WINDOW_TYPE("_NET_WM_WINDOW_TYPE");
 	static XAtom _NET_WM_WINDOW_TYPE_DOCK("_NET_WM_WINDOW_TYPE_DOCK");
 	static XAtom WM_PROTOCOLS("WM_PROTOCOLS");
 	static XAtom WM_TAKE_FOCUS("WM_TAKE_FOCUS");
+
+	if (w == get_window(ROOT, *_NET_ACTIVE_WINDOW))
+		return;
 
 	Atom window_type = get_atom(w, *_NET_WM_WINDOW_TYPE);
 	if (window_type == *_NET_WM_WINDOW_TYPE_DOCK)
