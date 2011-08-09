@@ -46,7 +46,7 @@ extern Source<bool> disabled;
 bool experimental = false;
 int verbosity = 0;
 const char *versions[] = { "-0.4.1", "-0.4.0", "", NULL };
-Source<Window> current_window(None);
+Source<Window> current_app_window(None);
 std::string config_dir;
 Win *win = NULL;
 Display *dpy;
@@ -62,7 +62,7 @@ static bool no_dbus = false;
 static int argc;
 static char **argv;
 
-static Window current_app = 0, ping_window = 0;
+static Window ping_window = 0;
 static boost::shared_ptr<Trace> trace;
 static std::map<guint, guint> core_inv_map;
 
@@ -936,8 +936,8 @@ protected:
 		update_core_mapping();
 	}
 	virtual void press(guint b, RTriple e) {
-		if (current_app)
-			activate_window(current_app, e->t);
+		if (current_app_window.get())
+			activate_window(current_app_window.get(), e->t);
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
@@ -1284,16 +1284,15 @@ void Main::handle_enter_leave(XEvent &ev) {
 		return;
 	Window w = ev.xcrossing.window;
 	if (ev.type == EnterNotify) {
-		current_window.set(w);
-		current_app = get_app_window(w);
+		current_app_window.set(get_app_window(w));
 		if (verbosity >= 3)
-			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app);
+			printf("Entered window 0x%lx -> 0x%lx\n", w, current_app_window.get());
 	} else if (ev.type == LeaveNotify) {
-		if (ev.xcrossing.window != current_window.get())
+		if (ev.xcrossing.window != current_app_window.get())
 			return;
 		if (verbosity >= 3)
 			printf("Left window 0x%lx\n", w);
-		current_window.set(None);
+		current_app_window.set(None);
 	} else printf("Error: Bogus Enter/Leave event\n");
 }
 
@@ -1307,8 +1306,8 @@ void Main::handle_event(XEvent &ev) {
 		return;
 
 	case PropertyNotify:
-		if (current_window.get() == ev.xproperty.window && ev.xproperty.atom == XA_WM_CLASS)
-			current_window.notify();
+		if (current_app_window.get() == ev.xproperty.window && ev.xproperty.atom == XA_WM_CLASS)
+			current_app_window.notify();
 		return;
 
 	case ButtonPress:

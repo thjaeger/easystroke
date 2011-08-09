@@ -26,7 +26,7 @@
 
 extern Window get_window(Window w, Atom prop);
 extern Source<bool> disabled;
-extern Source<Window> current_window;
+extern Source<Window> current_app_window;
 extern Source<ActionListDiff *> stroke_app;
 extern bool in_proximity;
 
@@ -237,7 +237,7 @@ Grabber::Grabber() : children(ROOT) {
 	init_xi();
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	current_class = fun2(&get_wm_class, current_window, stroke_app);
+	current_class = fun2(&get_wm_class, current_app_window, stroke_app);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	disabled.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::set)));
 	update();
