@@ -752,6 +752,36 @@ void Trace::end() {
 	end_();
 }
 
+static void get_timeouts(TimeoutType type, int *init, int *final) {
+	switch (type) {
+		case TimeoutOff:
+			*init = 0;
+			*final = 0;
+			break;
+		case TimeoutConservative:
+			*init = 750;
+			*final = 750;
+			break;
+		case TimeoutDefault:
+			*init = 250;
+			*final = 250;
+			break;
+		case TimeoutMedium:
+			*init = 100;
+			*final = 100;
+			break;
+		case TimeoutAggressive:
+			*init = 50;
+			*final = 75;
+			break;
+		case TimeoutFlick:
+			*init = 30;
+			*final = 50;
+			break;
+		default:;
+	}
+}
+
 class StrokeHandler : public Handler, public sigc::trackable {
 	guint button;
 	RPreStroke cur;
@@ -905,8 +935,15 @@ protected:
 	}
 public:
 	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e), orig(e),
-	use_timeout(prefs.init_timeout.get()),
-	init_timeout(prefs.init_timeout.get()), final_timeout(prefs.final_timeout.get()), radius(16) {}
+	init_timeout(prefs.init_timeout.get()), final_timeout(prefs.final_timeout.get()), radius(16) {
+		const std::map<std::string, TimeoutType> &dt = prefs.device_timeout.ref();
+		std::map<std::string, TimeoutType>::const_iterator j = dt.find(current_dev->name);
+		if (j != dt.end())
+			get_timeouts(j->second, &init_timeout, &final_timeout);
+		else
+			get_timeouts(prefs.timeout_profile.get(), &init_timeout, &final_timeout);
+		use_timeout = init_timeout;
+	}
 	virtual void init() {
 		if (grabber->is_instant(button))
 			return do_instant();

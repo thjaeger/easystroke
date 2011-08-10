@@ -131,6 +131,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & show_osd.unsafe_ref();
 	if (version < 16) return;
 	ar & move_back.unsafe_ref();
+	if (version < 17) return;
+	ar & device_timeout.unsafe_ref();
 }
 
 void PrefDB::timeout() {
@@ -167,45 +169,6 @@ bool ButtonInfo::overlap(const ButtonInfo &bi) const {
 	return !((state ^ bi.state) & ~LockMask & ~Mod2Mask);
 }
 
-class TimeoutProfile : private Base {
-	Out<TimeoutType> &in;
-public:
-	virtual void notify() {
-		switch (in.get()) {
-			case TimeoutOff:
-				prefs.init_timeout.set(0);
-				prefs.final_timeout.set(0);
-				break;
-			case TimeoutConservative:
-				prefs.init_timeout.set(750);
-				prefs.final_timeout.set(750);
-				break;
-			case TimeoutDefault:
-				prefs.init_timeout.set(250);
-				prefs.final_timeout.set(250);
-				break;
-			case TimeoutMedium:
-				prefs.init_timeout.set(100);
-				prefs.final_timeout.set(100);
-				break;
-			case TimeoutAggressive:
-				prefs.init_timeout.set(50);
-				prefs.final_timeout.set(75);
-				break;
-			case TimeoutFlick:
-				prefs.init_timeout.set(30);
-				prefs.final_timeout.set(50);
-				break;
-			case TimeoutCustom:
-				break;
-		}
-	}
-	TimeoutProfile(Out<TimeoutType> &in_) : in(in_) {
-		in.connect(this);
-		notify();
-	}
-};
-
 void PrefDB::init() {
 	std::string filename = config_dir+"preferences";
 	for (const char **v = prefs_versions; *v; v++) {
@@ -231,9 +194,6 @@ void PrefDB::init() {
 		exceptions.unsafe_ref().erase(i);
 		exceptions.unsafe_ref()[""] = bi;
 	}
-	new TimeoutProfile(timeout_profile);
-	watch(init_timeout);
-	watch(final_timeout);
 }
 
 PrefDB prefs;

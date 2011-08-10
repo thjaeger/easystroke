@@ -314,7 +314,30 @@ Prefs::Prefs() {
 	dtm = Gtk::ListStore::create(dcs);
 	dtv->set_model(dtm);
 	dtv->append_column_editable(_("Enabled"), dcs.enabled);
-	dtv->append_column(_("Device"), dcs.name);
+	int n = dtv->append_column(_("Device"), dcs.name);
+	Gtk::TreeView::Column *col_device = dtv->get_column(n-1);
+	col_device->set_expand();
+
+	Glib::RefPtr<Gtk::ListStore> timeout_model = Gtk::ListStore::create(timeout_columns);
+	{
+		Gtk::TreeModel::Row row = *(timeout_model->append());
+		row[timeout_columns.name] = _("<unchanged>");
+	}
+	for (const Combo<TimeoutType>::Info *i = timeout_info; i->name; i++) {
+		Gtk::TreeModel::Row row = *(timeout_model->append());
+		row[timeout_columns.name] = i->name;
+	}
+
+	Gtk::CellRendererCombo *timeout_renderer = Gtk::manage(new Gtk::CellRendererCombo);
+	timeout_renderer->property_model() = timeout_model;
+	timeout_renderer->property_editable() = true;
+	timeout_renderer->property_text_column() = 0;
+	timeout_renderer->property_has_entry() = false;
+        timeout_renderer->signal_edited().connect(sigc::mem_fun(*this, &Prefs::on_device_timeout_changed));
+	n = dtv->append_column(_("Timeout profile"), *timeout_renderer);
+	Gtk::TreeView::Column *col_timeout = dtv->get_column(n-1);
+	col_timeout->add_attribute(timeout_renderer->property_text(), dcs.timeout);
+
 	dtm->signal_row_changed().connect(sigc::mem_fun(*this, &Prefs::on_device_toggled));
 	update_device_list();
 
@@ -355,6 +378,14 @@ void Prefs::update_device_list() {
 		Gtk::TreeModel::Row row = *(dtm->append());
 		row[dcs.enabled] = !prefs.excluded_devices.get().count(name);
 		row[dcs.name] = name;
+		row[dcs.timeout] = _("<unchanged>");
+
+		const std::map<std::string, TimeoutType> &dt = prefs.device_timeout.ref();
+		std::map<std::string, TimeoutType>::const_iterator j = dt.find(name);
+		if (j != dt.end())
+			for (const Combo<TimeoutType>::Info *i = timeout_info; i->name; i++)
+				if (j->second == i->value)
+					row[dcs.timeout] = i->name;
 	}
 	ignore_device_toggled = false;
 }
@@ -643,6 +674,24 @@ void Prefs::on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeM
 		ex.erase(device);
 	else
 		ex.insert(device);
+}
+
+void Prefs::on_device_timeout_changed(const Glib::ustring& path, const Glib::ustring& new_text) {
+	Gtk::TreeRow row(*dtm->get_iter(path));
+	row[dcs.timeout] = new_text;
+	Glib::ustring device = row[dcs.name];
+	Atomic a;
+
+	for (const Combo<TimeoutType>::Info *i = timeout_info; i->name; i++) {
+		if (Glib::ustring(i->name) == new_text) {
+			std::map<std::string, TimeoutType> &dt = prefs.device_timeout.write_ref(a);
+			dt[device] = i->value;
+			return;
+		}
+	}
+
+	std::map<std::string, TimeoutType> &dt = prefs.device_timeout.write_ref(a);
+	dt.erase(device);
 }
 
 void Prefs::set_button_label() {

@@ -119,8 +119,8 @@ public:
 	PrefSource<bool> proximity;
 	PrefSource<bool> feedback;
 	PrefSource<bool> left_handed;
-	Source<int> init_timeout;
-	Source<int> final_timeout;
+	PrefSource<int> init_timeout;
+	PrefSource<int> final_timeout;
 	PrefSource<TimeoutType> timeout_profile;
 	PrefSource<bool> timeout_gestures;
 	PrefSource<bool> tray_icon;
@@ -134,12 +134,13 @@ public:
 	PrefSource<bool> tray_feedback;
 	PrefSource<bool> show_osd;
 	PrefSource<bool> move_back;
+	PrefSource<std::map<std::string, TimeoutType> > device_timeout;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 16)
+BOOST_CLASS_VERSION(PrefDB, 17)
 
 extern PrefDB prefs;
 

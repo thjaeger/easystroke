@@ -36,6 +36,7 @@ private:
 	void on_select_button();
 	void on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
 	void on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
+	void on_device_timeout_changed(const Glib::ustring& path, const Glib::ustring& new_text);
 	bool select_row(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, std::string name);
 
 	class ExceptionColumns : public Gtk::TreeModel::ColumnRecord {
@@ -48,11 +49,19 @@ private:
 	Glib::RefPtr<Gtk::ListStore> tm;
 	Gtk::TreeView* tv;
 
+	class Single : public Gtk::TreeModel::ColumnRecord {
+	public:
+		Single() { add(name); }
+		Gtk::TreeModelColumn<Glib::ustring> name;
+	};
+	Single timeout_columns;
+
 	class DeviceColumns : public Gtk::TreeModel::ColumnRecord {
 	public:
-		DeviceColumns() { add(enabled); add(name); }
+		DeviceColumns() { add(enabled); add(name); add(timeout); }
 		Gtk::TreeModelColumn<bool> enabled;
 		Gtk::TreeModelColumn<Glib::ustring> name;
+		Gtk::TreeModelColumn<Glib::ustring> timeout;
 	};
 	DeviceColumns dcs;
 	Gtk::TreeView* dtv;
