@@ -14,6 +14,7 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "fire.h"
+#include <X11/Xlib.h>
 #include <math.h>
 
 Fire::Fire() {
@@ -24,8 +25,13 @@ Fire::Fire() {
 		g_error_free(error);
 		throw DBusException();
 	}
-	point_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/firepaint/allscreens/add_particle", ofc);
-	clear_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/firepaint/allscreens/clear_key", ofc);
+	char add[256];
+	char clear[256];
+	snprintf(add, sizeof(add), "/org/freedesktop/compiz/firepaint/screen%d/add_particle", DefaultScreen(dpy));
+	snprintf(clear, sizeof(clear), "/org/freedesktop/compiz/firepaint/screen%d/clear_key", DefaultScreen(dpy));
+
+	point_proxy = dbus_g_proxy_new_for_name(bus, ofc, add, ofc);
+	clear_proxy = dbus_g_proxy_new_for_name(bus, ofc, clear, ofc);
 }
 
 void Fire::add_point(float x, float y) {

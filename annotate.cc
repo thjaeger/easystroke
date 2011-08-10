@@ -14,6 +14,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "annotate.h"
+#include <stdio.h>
+#include <X11/Xlib.h>
 
 Annotate::Annotate() {
 	const char *ofc = "org.freedesktop.compiz";
@@ -23,8 +25,14 @@ Annotate::Annotate() {
 		g_error_free(error);
 		throw DBusException();
 	}
-	draw_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/annotate/allscreens/draw", ofc);
-	clear_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/annotate/allscreens/clear_key", ofc);
+
+	char draw[256];
+	char clear[256];
+	snprintf(draw, sizeof(draw), "/org/freedesktop/compiz/annotate/screen%d/draw", DefaultScreen(dpy));
+	snprintf(clear, sizeof(clear), "/org/freedesktop/compiz/annotate/screen%d/clear_key", DefaultScreen(dpy));
+
+	draw_proxy = dbus_g_proxy_new_for_name(bus, ofc, draw, ofc);
+	clear_proxy = dbus_g_proxy_new_for_name(bus, ofc, clear, ofc);
 }
 
 void Annotate::draw(Point p, Point q) {

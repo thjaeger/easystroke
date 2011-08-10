@@ -14,6 +14,8 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "water.h"
+#include <X11/Xlib.h>
+#include <stdio.h>
 
 Water::Water() {
 	const char *ofc = "org.freedesktop.compiz";
@@ -23,7 +25,9 @@ Water::Water() {
 		g_error_free(error);
 		throw DBusException();
 	}
-	line_proxy = dbus_g_proxy_new_for_name(bus, ofc, "/org/freedesktop/compiz/water/allscreens/line", ofc);
+	char line[256];
+	snprintf(line, sizeof(line), "/org/freedesktop/compiz/water/screen%d/line", DefaultScreen(dpy));
+	line_proxy = dbus_g_proxy_new_for_name(bus, ofc, line, ofc);
 }
 
 void Water::draw(Point p, Point q) {
