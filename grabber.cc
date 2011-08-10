@@ -226,7 +226,6 @@ Grabber::Grabber() : children(ROOT) {
 	current = BUTTON;
 	suspended = 0;
 	suspend();
-	disabled = false;
 	active = true;
 	grabbed = NONE;
 	xi_grabbed = false;

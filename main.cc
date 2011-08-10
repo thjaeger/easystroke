@@ -1240,6 +1240,7 @@ void Main::usage(char *me, bool good) {
 	printf("  -D  --no-dbus          Don't try to register as a DBus service\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
 	printf("  -g, --show-gui         Show the configuration dialog on startup\n");
+	printf("  -x  --disable          Start disabled\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
 	printf("  -h, --help             Display this help and exit\n");
 	printf("      --version          Output version information and exit\n");
@@ -1260,7 +1261,6 @@ std::string Main::parse_args_and_init_gtk() {
 		{"help",0,0,'h'},
 		{"version",0,0,'V'},
 		{"show-gui",0,0,'g'},
-		{"no-dbus",0,0,'D'},
 		{0,0,0,0}
 	};
 	static struct option long_opts2[] = {
@@ -1270,6 +1270,7 @@ std::string Main::parse_args_and_init_gtk() {
 		{"show-gui",0,0,'g'},
 		{"verbose",0,0,'v'},
 		{"no-dbus",0,0,'D'},
+		{"disabled",0,0,'x'},
 		{0,0,0,0}
 	};
 	std::string display;
@@ -1297,7 +1298,7 @@ std::string Main::parse_args_and_init_gtk() {
 	oldHandler = XSetErrorHandler(xErrorHandler);
 	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 
-	while ((opt = getopt_long(argc, argv, "c:egvD", long_opts2, 0)) != -1) {
+	while ((opt = getopt_long(argc, argv, "c:egvDx", long_opts2, 0)) != -1) {
 		switch (opt) {
 			case 'c':
 				config_dir = optarg;
@@ -1310,6 +1311,9 @@ std::string Main::parse_args_and_init_gtk() {
 				break;
 			case 'D':
 				no_dbus = true;
+				break;
+			case 'x':
+				disabled.set(true);
 				break;
 			case 'd':
 			case 'n':

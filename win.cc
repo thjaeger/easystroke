@@ -132,7 +132,7 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty_(int size) {
 	return pb;
 }
 
-Source<bool> disabled;
+Source<bool> disabled(false);
 
 class MenuCheck : private Base {
 	IO<bool> &io;
