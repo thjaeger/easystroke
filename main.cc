@@ -244,6 +244,40 @@ public:
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
+class ButtonHandler : public Handler {
+	RModifiers mods;
+	guint button, real_button;
+public:
+	ButtonHandler(RModifiers mods_, guint button_) : mods(mods_), button(button_), real_button(0) {}
+	virtual void press(guint b, RTriple e) {
+		if (current_dev->master) {
+			if (!real_button)
+				real_button = b;
+			if (real_button == b)
+				b = button;
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+			XTestFakeButtonEvent(dpy, b, true, CurrentTime);
+		}
+	}
+	virtual void motion(RTriple e) {
+		if (current_dev->master)
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+	}
+	// TODO: Handle Proximity
+	virtual void release(guint b, RTriple e) {
+		if (current_dev->master) {
+			if (real_button == b)
+				b = button;
+			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
+		}
+		if (!xinput_pressed.size())
+			parent->replace_child(NULL);
+	}
+	virtual std::string name() { return "Button"; }
+	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+};
+
 static void bail_out();
 
 static void bail_out() {
@@ -910,9 +944,10 @@ protected:
 			return parent->replace_child(NULL);
 		}
 		RModifiers mods = act->prepare();
-		if (IS_CLICK(act)) {
+		if (IS_CLICK(act))
 			act = Button::create((Gdk::ModifierType)0, b);
-		}
+		else IF_BUTTON(act, b)
+			return parent->replace_child(new ButtonHandler(mods, b));
 		if (IS_IGNORE(act))
 			return parent->replace_child(new IgnoreHandler(mods));
 		if (IS_SCROLL(act))
