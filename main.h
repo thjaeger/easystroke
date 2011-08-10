@@ -23,7 +23,8 @@ bool is_file(std::string filename);
 bool is_dir(std::string dirname);
 
 extern std::string config_dir;
-extern const char *versions[];
+extern const char *prefs_versions[];
+extern const char *actions_versions[];
 extern int verbosity;
 extern bool experimental;
 

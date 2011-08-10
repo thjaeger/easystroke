@@ -45,7 +45,8 @@ extern Source<bool> disabled;
 
 bool experimental = false;
 int verbosity = 0;
-const char *versions[] = { "-0.4.1", "-0.4.0", "", NULL };
+const char *prefs_versions[] = { "-0.5.5", "-0.4.1", "-0.4.0", "", NULL };
+const char *actions_versions[] = { "-0.4.1", "-0.4.0", "", NULL };
 Source<Window> current_app_window(None);
 std::string config_dir;
 Win *win = NULL;

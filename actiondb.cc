@@ -195,7 +195,7 @@ void update_actions() {
 
 void ActionDBWatcher::init() {
 	std::string filename = config_dir+"actions";
-	for (const char **v = versions; *v; v++)
+	for (const char **v = actions_versions; *v; v++)
 		if (is_file(filename + *v)) {
 			filename += *v;
 			try {
@@ -215,7 +215,7 @@ void ActionDBWatcher::init() {
 }
 
 void ActionDBWatcher::timeout() {
-	std::string filename = config_dir+"actions"+versions[0];
+	std::string filename = config_dir+"actions"+actions_versions[0];
 	std::string tmp = filename + ".tmp";
 	try {
 		ofstream ofs(tmp.c_str());

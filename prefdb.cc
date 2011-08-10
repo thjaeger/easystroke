@@ -134,7 +134,7 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 }
 
 void PrefDB::timeout() {
-	std::string filename = config_dir+"preferences"+versions[0];
+	std::string filename = config_dir+"preferences"+prefs_versions[0];
 	std::string tmp = filename + ".tmp";
 	try {
 		std::ofstream ofs(tmp.c_str());
@@ -208,7 +208,7 @@ public:
 
 void PrefDB::init() {
 	std::string filename = config_dir+"preferences";
-	for (const char **v = versions; *v; v++) {
+	for (const char **v = prefs_versions; *v; v++) {
 		if (is_file(filename + *v)) {
 			filename += *v;
 			try {
