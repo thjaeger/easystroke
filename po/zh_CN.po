@@ -8,15 +8,15 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2010-02-13 18:30-0500\n"
-"PO-Revision-Date: 2009-06-02 03:45+0000\n"
-"Last-Translator: Tom Jaeger <Unknown>\n"
+"PO-Revision-Date: 2011-04-27 16:53+0000\n"
+"Last-Translator: snowdream <yanghui1986527@gmail.com>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
-"X-Generator: Launchpad (build 12532)\n"
+"X-Launchpad-Export-Date: 2011-08-15 08:04+0000\n"
+"X-Generator: Launchpad (build 13674)\n"
 
 #: ../actiondb.cc:127
 #, c-format
@@ -464,7 +464,7 @@ msgstr "显示鼠标手势的方式"
 
 #: ../gui.glade.h:25
 msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
+msgstr "每次作出手势后将光标移回至原来位置"
 
 #: ../gui.glade.h:26
 msgid "Preferences"
@@ -597,21 +597,3 @@ msgstr "通过鼠标手势控制你的桌面"
 #: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke 鼠标手势辨认"
-
-#, c-format
-#~ msgid "Is easystroke already running?\n"
-#~ msgstr "easystroke正在运行吗？\n"
-
-#, c-format
-#~ msgid "Error: You need XInput to use advanced gestures\n"
-#~ msgstr "错误:你需要安装XInput来使用高级手势\n"
-
-#, c-format
-#~ msgid "Opening Device %s failed.\n"
-#~ msgstr "打开设备 %s 失败。\n"
-
-#~ msgid "Accept gestures when menus are shown (experimental)"
-#~ msgstr "当菜单显示的时候也接受鼠标手势输入 (实验性质的)"
-
-#~ msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-#~ msgstr "在Wacom tablets 和 Tablet PCs上面解决timing问题"
