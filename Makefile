@@ -45,13 +45,12 @@ GZFILES  = $(wildcard *.gz)
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
 GIT      = $(wildcard .git/index version)
 DIST     = easystroke-$(VERSION)
-ARCH     = $(shell uname -m)
 
 -include debug.mk
 
 all: $(BINARY) $(MOFILES)
 
-.PHONY: all clean snapshot release translate update-translations compile-translations
+.PHONY: all clean translate update-translations compile-translations
 
 clean:
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES) po/*.pot
@@ -130,12 +129,7 @@ uninstall:
 		$(RM) `echo $$f | sed "s|^po/|$(DESTDIR)$(LOCALEDIR)/|"`; \
 	done
 
-snapshot: $(DIST)_$(ARCH).tar.gz
-
 tarball: $(DIST).tar.gz
-
-release: $(DIST).tar.gz
-	rsync -avP $(DIST).tar.gz thjaeger@frs.sourceforge.net:uploads/
 
 tmp/$(DIST): $(GIT)
 	$(RM) -r tmp
@@ -143,12 +137,6 @@ tmp/$(DIST): $(GIT)
 	git archive --format=tar --prefix=$(DIST)/ HEAD | (cd tmp && tar x)
 	echo $(VERSION) > $@/version
 	$(RM) $@/.gitignore $@/release
-
-$(DIST)_$(ARCH).tar.gz: tmp/$(DIST)
-	$(MAKE) -j2 -C $<
-	strip -s $</easystroke
-	tar -czf $@ -C $< easystroke
-	$(RM) -r tmp
 
 $(DIST).tar.gz: tmp/$(DIST)
 	tar -czf $@ -C tmp/ $(DIST)
