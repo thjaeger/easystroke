@@ -16,6 +16,7 @@
 #include "fire.h"
 #include <X11/Xlib.h>
 #include <math.h>
+#include <stdio.h>
 
 Fire::Fire() {
 	const char *ofc = "org.freedesktop.compiz";
