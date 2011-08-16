@@ -1,3 +1,13 @@
+2011-08-16 Released 0.5.5
+	* Different timeout settings for individual devices
+	* Change the way button action work to make them more touchscreen
+	  friendly
+	* Improve Application detection
+	* Use raw events for scrolling
+	* Add Catalan, Finnish, Korean and Traditional Chinese translations
+	* Make fire and water work with compiz 0.9
+	* Add options to not use dbus and to start easystroke disabled
+
 2010-07-27 Released 0.5.4
 	* Don't start with the config dialog unless -g is passed on the
 	  command line
