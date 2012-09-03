@@ -81,9 +81,15 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 		ctx->set_source_rgba(0.0, 1.0, 1.0, 0.8);
 	else
 		ctx->set_source_rgba(1.0, 0.0, 0.0, 0.8);
-	ctx->set_font_size(h*0.5);
+	float font_size = h*0.5;
 	Cairo::TextExtents te;
-	ctx->get_text_extents(str, te);
+	for (;;) {
+		ctx->set_font_size(font_size);
+		ctx->get_text_extents(str, te);
+		if (te.width < w)
+			break;
+		font_size *= 0.9;
+	}
 	ctx->move_to(x+w/2 - te.x_bearing - te.width/2, y+h/2 - te.y_bearing - te.height/2);
 	ctx->show_text(str);
 }
