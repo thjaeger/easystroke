@@ -1398,9 +1398,10 @@ void Main::handle_event(XEvent &ev) {
 		return;
 
 	case MappingNotify:
-		if (ev.xmapping.request != MappingPointer)
-			return;
-		update_core_mapping();
+		if (ev.xmapping.request == MappingPointer)
+			update_core_mapping();
+		if (ev.xmapping.request == MappingKeyboard || ev.xmapping.request == MappingModifier)
+			XRefreshKeyboardMapping(&ev.xmapping);
 		return;
 	case GenericEvent:
 		if (ev.xcookie.extension == grabber->opcode && XGetEventData(dpy, &ev.xcookie)) {
