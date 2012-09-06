@@ -46,7 +46,7 @@ PrefDB::PrefDB() :
 	final_timeout(250),
 	timeout_profile(TimeoutDefault),
 	timeout_gestures(false),
-	tray_icon(true),
+	tray_icon(false),
 	color(Gdk::Color("#980101")),
 	trace_width(3),
 	advanced_popups(true),
