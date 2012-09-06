@@ -1616,17 +1616,20 @@ bool fake_char(gunichar c) {
 	if (!keycode)
 		return false;
 	KeyCode modifier = 0;
-	if (XKeycodeToKeysym(dpy, keycode, 0) != keysym) {
+	int n;
+	KeySym *mapping = XGetKeyboardMapping(dpy, keycode, 1, &n);
+	if (mapping[0] != keysym) {
 		int i;
-		for (i = 1; i < 8; i++)
-			if (XKeycodeToKeysym(dpy, keycode, i) == keysym)
+		for (i = 1; i < n; i++)
+			if (mapping[i] == keysym)
 				break;
-		if (i == 8)
+		if (i == n)
 			return false;
 		XModifierKeymap *keymap = XGetModifierMapping(dpy);
 		modifier = keymap->modifiermap[i];
 		XFreeModifiermap(keymap);
 	}
+	XFree(mapping);
 	if (modifier)
 		XTestFakeKeyEvent(dpy, modifier, true, 0);
 	XTestFakeKeyEvent(dpy, keycode, true, 0);
