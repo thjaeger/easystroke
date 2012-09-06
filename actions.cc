@@ -19,6 +19,7 @@
 #include "main.h"
 #include "prefdb.h"
 #include <glibmm/i18n.h>
+#include <X11/XKBlib.h>
 #include "grabber.h"
 
 #include <typeinfo>
@@ -89,14 +90,7 @@ protected:
 				return true;
 		}
 		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
-		guint key;
-		if (mods & ~GDK_SHIFT_MASK) {
-			key = XKeycodeToKeysym(dpy, event->hardware_keycode, 0);
-		} else {
-			key = gdk_keyval_to_lower(event->keyval);
-			if (key == event->keyval)
-				mods = 0;
-		}
+		guint key = XkbKeycodeToKeysym(dpy, event->hardware_keycode, 0, 0);
 
 		editing_done();
 		remove_widget();
