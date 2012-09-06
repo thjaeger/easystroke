@@ -5,6 +5,9 @@
 		<method name="send">
 			<arg type="s" name="action" direction="in" />
 		</method>
+		<method name="enable" />
+		<method name="about" />
+		<method name="quit" />
 	</interface>
 </node>
 

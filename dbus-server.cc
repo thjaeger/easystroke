@@ -18,6 +18,7 @@
 #include <dbus/dbus-glib-bindings.h>
 
 #include <stdio.h>
+#include "win.h"
 
 #define SERVER_OBJECT_TYPE (server_object_get_type())
 
@@ -33,6 +34,23 @@ void run_by_name(const char *str);
 
 static gboolean server_send(ServerObject *obj, const char *str, GError **error) {
 	run_by_name(str);
+	return TRUE;
+}
+
+extern Source<bool> disabled;
+static gboolean server_enable(ServerObject *obj, GError **error) {
+	disabled.set(!disabled.get());
+	return TRUE;
+}
+
+static gboolean server_about(ServerObject *obj, GError **error) {
+	win->show_about();
+	return TRUE;
+}
+
+extern void quit();
+static gboolean server_quit(ServerObject *obj, GError **error) {
+	quit();
 	return TRUE;
 }
 

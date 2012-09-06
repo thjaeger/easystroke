@@ -1130,7 +1130,7 @@ static void link_button_hook(Gtk::LinkButton *, const Glib::ustring& uri) { xdg_
 static void about_dialog_hook(Gtk::AboutDialog &, const Glib::ustring& url) { xdg_open(url); }
 
 // dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
-static void send_dbus(const char *str) {
+static void send_dbus(bool action, const char *str) {
 	GError *error = 0;
 	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
 	if (!bus) {
@@ -1138,7 +1138,10 @@ static void send_dbus(const char *str) {
 		exit(EXIT_FAILURE);
 	}
 	DBusGProxy *proxy = dbus_g_proxy_new_for_name(bus, "org.easystroke", "/org/easystroke", "org.easystroke");
-	dbus_g_proxy_call_no_reply(proxy, "send", G_TYPE_STRING, str, G_TYPE_INVALID);
+	if (action)
+		dbus_g_proxy_call_no_reply(proxy, "send", G_TYPE_STRING, str, G_TYPE_INVALID);
+	else
+		dbus_g_proxy_call_no_reply(proxy, str, G_TYPE_INVALID);
 }
 
 int start_dbus();
@@ -1156,7 +1159,13 @@ Main::Main() : kit(0) {
 		if (argc == 2)
 			usage(argv[0], false);
 		gtk_init(&argc, &argv);
-		send_dbus(argv[2]);
+		send_dbus(true, argv[2]);
+		exit(EXIT_SUCCESS);
+	}
+
+	if (argc > 1 && (!strcmp(argv[1], "enable") || !strcmp(argv[1], "about") || !strcmp(argv[1], "quit"))) {
+		gtk_init(&argc, &argv);
+		send_dbus(false, argv[1]);
 		exit(EXIT_SUCCESS);
 	}
 
@@ -1177,7 +1186,7 @@ Main::Main() : kit(0) {
 	}
 	if (!no_dbus && start_dbus() < 0) {
 		printf(_("Easystroke is already running, showing configuration window instead.\n"));
-		send_dbus("");
+		send_dbus(true, "");
 		exit(EXIT_SUCCESS);
 	}
 	ROOT = DefaultRootWindow(dpy);
@@ -1233,6 +1242,9 @@ void Main::usage(char *me, bool good) {
 	printf("\n");
 	printf("Usage: %s [OPTION]...\n", me);
 	printf("or:    %s send <action_name>\n", me);
+	printf("       %s enable\n", me);
+	printf("       %s about\n", me);
+	printf("       %s quit\n", me);
 	printf("\n");
 	printf("Options:\n");
 	printf("  -c, --config-dir       Directory for config files\n");

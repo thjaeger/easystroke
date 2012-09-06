@@ -170,7 +170,7 @@ Win::Win() : actions(new Actions), prefs_tab(new Prefs), stats(new Stats) {
 
 	WIDGET(Gtk::ImageMenuItem, menu_about, Gtk::Stock::ABOUT);
 	menu.append(menu_about);
-	menu_about.signal_activate().connect(sigc::mem_fun(*this, &Win::on_about));
+	menu_about.signal_activate().connect(sigc::mem_fun(*this, &Win::show_about));
 
 	WIDGET(Gtk::SeparatorMenuItem, menu_sep);
 	menu.append(menu_sep);
@@ -229,7 +229,7 @@ void Win::show_popup(guint button, guint32 activate_time) {
 }
 
 extern const char *version_string;
-void Win::on_about() {
+void Win::show_about() {
 	Gtk::AboutDialog *about;
 	widgets->get_widget("aboutdialog", about);
 	about->set_logo(Stroke::trefoil()->draw(96, 4.0));

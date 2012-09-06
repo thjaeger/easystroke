@@ -59,13 +59,13 @@ public:
 	boost::shared_ptr<Stats> stats;
 	void show_hide();
 	void set_icon(RStroke stroke, bool invert);
+	void show_about();
 private:
 	bool on_icon_size_changed(int);
 	virtual void timeout();
 	void on_help_toggled();
 	void show_popup(guint, guint32);
 	void show_hide_icon();
-	void on_about();
 
 	Gtk::Window *win;
 
