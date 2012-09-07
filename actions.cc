@@ -213,7 +213,6 @@ Actions::Actions() :
 	button_remove_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_remove_app));
 	button_reset_actions->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_reset_actions));
 
-	tv.signal_cursor_changed().connect(sigc::mem_fun(*this, &Actions::on_cursor_changed));
 	tv.signal_row_activated().connect(sigc::mem_fun(*this, &Actions::on_row_activated));
 	tv.get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_selection_changed));
 
@@ -831,13 +830,6 @@ void Actions::on_button_record() {
 	Gtk::TreeViewColumn *col;
 	tv.get_cursor(path, col);
 	on_row_activated(path, col);
-}
-
-void Actions::on_cursor_changed() {
-	Gtk::TreeModel::Path path;
-	Gtk::TreeViewColumn *col;
-	tv.get_cursor(path, col);
-	Gtk::TreeRow row(*tm->get_iter(path));
 }
 
 Gtk::TreeRow Actions::get_selected_row() {

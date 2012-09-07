@@ -41,7 +41,6 @@ private:
 	void on_button_new();
 	void on_button_record();
 	void on_selection_changed();
-	void on_cursor_changed();
 	void on_name_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_text_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_type_edited(const Glib::ustring& path, const Glib::ustring& new_text);
