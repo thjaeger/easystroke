@@ -21,6 +21,7 @@
 
 bool is_file(std::string filename);
 bool is_dir(std::string dirname);
+void quit();
 
 extern std::string config_dir;
 extern const char *prefs_versions[];

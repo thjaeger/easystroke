@@ -164,8 +164,6 @@ public:
 	}
 };
 
-extern void quit();
-
 Win::Win() : actions(new Actions), prefs_tab(new Prefs), stats(new Stats) {
 	show_hide_icon();
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
@@ -248,10 +246,14 @@ void Win::show_about() {
 }
 
 void Win::show_hide() {
-	if (win->is_mapped())
+	if (win->get_mapped())
 		win->hide();
 	else
 		win->show();
+}
+
+void Win::show() {
+	win->show();
 }
 
 void Win::hide() {

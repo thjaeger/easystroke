@@ -22,10 +22,10 @@ DFLAGS   =
 OFLAGS   = -O2
 AOFLAGS  = -O3
 STROKEFLAGS  = -Wall -std=c99 $(DFLAGS)
-CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-2.4 dbus-glib-1 --cflags`
+CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-3.0 dbus-glib-1 --cflags`
 LDFLAGS  = $(DFLAGS)
 
-LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst `pkg-config gtkmm-2.4 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst `pkg-config gtkmm-3.0 dbus-glib-1 --libs`
 
 BINARY   = easystroke
 ICON     = easystroke.svg
@@ -39,7 +39,7 @@ POFILES  = $(wildcard po/*.po)
 MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
 MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
 DEPFILES = $(wildcard *.Po)
-GENFILES = gui.c desktop.c dbus-server.h po/POTFILES.in easystroke.desktop
+GENFILES = gui.c desktop.c po/POTFILES.in easystroke.desktop
 GZFILES  = $(wildcard *.gz)
 
 VERSION  = $(shell test -e debian/changelog && grep '(.*)' debian/changelog | sed 's/.*(//' | sed 's/).*//' | head -n1 || (test -e version && cat version || git describe))
@@ -82,11 +82,6 @@ desktop.c: easystroke.desktop
 	echo "const char *desktop_file = \"\\" > $@
 	sed 's/Exec=easystroke/Exec=%s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
 	echo "\";" >> $@
-
-dbus-server.cc: dbus-server.h
-
-dbus-server.h: dbus.xml
-	dbus-binding-tool --prefix=server --mode=glib-server --output=$@ $<
 
 po/POTFILES.in: $(CCFILES) $(HFILES)
 	$(RM) $@

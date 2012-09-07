@@ -17,7 +17,7 @@
 #define __GESTURE_H__
 
 #include "stroke.h"
-#include <gdkmm/pixbuf.h>
+#include <gdkmm.h>
 #include <vector>
 #include <boost/shared_ptr.hpp>
 #include <boost/serialization/access.hpp>

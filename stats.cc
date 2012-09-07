@@ -63,10 +63,14 @@ public:
 		if (s) {
 			icon.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
 			icon->set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
-			icon->set_name("gtk-tooltip");
+			icon->get_style_context()->add_class(GTK_STYLE_CLASS_TOOLTIP);
+			Glib::RefPtr<Gdk::Visual> visual = icon->get_screen()->get_rgba_visual();
+			gtk_widget_set_visual((GtkWidget *)icon->gobj(), visual->gobj());
+
 			WIDGET(Gtk::Image, image, s->draw(STROKE_SIZE));
 			icon->set_accept_focus(false);
 			icon->add(image);
+			image.set_padding(2,2);
 			image.show();
 			icon->get_size(w,h);
 			icon->move(x - w/2, y - h/2);
@@ -76,22 +80,25 @@ public:
 		if (t != "") {
 			text.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
 			text->set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
-			text->set_name("gtk-tooltip");
+			text->get_style_context()->add_class(GTK_STYLE_CLASS_TOOLTIP);
+			Glib::RefPtr<Gdk::Visual> visual = text->get_screen()->get_rgba_visual();
+			gtk_widget_set_visual((GtkWidget *)text->gobj(), visual->gobj());
+
 			text->set_accept_focus(false);
-			text->set_border_width(2);
 			WIDGET(Gtk::Label, label, t);
 			text->add(label);
+			label.set_padding(4,4);
 			label.show();
 			text->get_size(w,h);
 			text->move(x - w/2, y + h/2);
 		}
 		if (text) {
 			text->show();
-			text->get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
+			text->get_window()->input_shape_combine_region(Cairo::Region::create(), 0, 0);
 		}
 		if (icon) {
 			icon->show();
-			icon->get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
+			icon->get_window()->input_shape_combine_region(Cairo::Region::create(), 0, 0);
 		}
 	}
 };

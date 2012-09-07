@@ -116,7 +116,7 @@ public:
 		combo = Gtk::manage(new Gtk::ComboBoxText);
 		parent->add(*combo);
 		for (const Info *i = info; i->name; i++)
-			combo->append_text(_(i->name));
+			combo->append(_(i->name));
 		notify();
 		combo->signal_changed().connect(sigc::mem_fun(*this, &Combo::on_changed));
 		combo->show();
@@ -468,7 +468,7 @@ SelectButton::SelectButton(ButtonInfo bi, bool def, bool any) {
 		select_button = Gtk::manage(new Gtk::ComboBoxText);
 		box_button->add(*select_button);
 		for (int i = 1; i <= 12; i++)
-			select_button->append_text(Glib::ustring::compose(_("Button %1"), i));
+			select_button->append(Glib::ustring::compose(_("Button %1"), i));
 		select_button->show();
 	}
 	select_button->set_active(bi.button-1);

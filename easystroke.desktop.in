@@ -6,6 +6,7 @@ Terminal=false
 Exec=easystroke
 Icon=easystroke
 Categories=GTK;Utility;Accessibility;
+Actions=About;Enable;Disable;Quit
 _Comment=Control your desktop using mouse gestures
 
 [Desktop Action About]
@@ -13,8 +14,12 @@ _Name=About
 Exec=easystroke about
 
 [Desktop Action Enable]
-_Name=Enable/Disable
+_Name=Enable
 Exec=easystroke enable
+
+[Desktop Action Disable]
+_Name=Disable
+Exec=easystroke disable
 
 [Desktop Action Quit]
 _Name=Quit

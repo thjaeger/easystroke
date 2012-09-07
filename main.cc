@@ -59,12 +59,6 @@ Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed; // TODO get rid of
 guint modifiers;
 
-static bool show_gui = false;
-static bool no_dbus = false;
-
-static int argc;
-static char **argv;
-
 static Window ping_window = 0;
 static boost::shared_ptr<Trace> trace;
 static std::map<guint, guint> core_inv_map;
@@ -192,8 +186,8 @@ public:
 		set_border_width(15);
 		WIDGET(Gtk::Label, label, "<big><b>" + txt + "</b></big>");
 		label.set_use_markup();
-		label.modify_fg(Gtk::STATE_NORMAL, Gdk::Color("White"));
-		modify_bg(Gtk::STATE_NORMAL, Gdk::Color("RoyalBlue3"));
+		label.override_color(Gdk::RGBA("White"), Gtk::STATE_FLAG_NORMAL);
+		override_background_color(Gdk::RGBA("RoyalBlue3"), Gtk::STATE_FLAG_NORMAL);
 		set_opacity(0.75);
 		add(label);
 		label.show();
@@ -201,7 +195,7 @@ public:
 		get_size(w,h);
 		do_move();
 		show();
-		get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
+		get_window()->input_shape_combine_region(Cairo::Region::create(), 0, 0);
 	}
 	static void do_move() {
 		int left = gdk_screen_width() - 10;
@@ -325,12 +319,8 @@ static int xErrorHandler(Display *dpy2, XErrorEvent *e) {
 static int xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return oldIOHandler(dpy2);
-	printf(_("Fatal Error: Connection to X server lost, restarting...\n"));
-	char *args[argc+1];
-	for (int i = 0; i<argc; i++)
-		args[i] = argv[i];
-	args[argc] = NULL;
-	execv(argv[0], args);
+	printf("Fatal Error: Connection to X server lost\n");
+	quit();
 	return 0;
 }
 
@@ -1050,11 +1040,7 @@ static void do_run_by_name(RAction act) {
 	act->run();
 }
 
-void run_by_name(const char *str) {
-	if (!strcmp(str, "")) {
-		win->show_hide();
-		return;
-	}
+static void run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationCommandLine> &cmd_line) {
 	for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
 		if (i->second.name == std::string(str)) {
 			if (i->second.action)
@@ -1062,7 +1048,10 @@ void run_by_name(const char *str) {
 			return;
 		}
 	}
-	printf(_("Warning: No action \"%s\" defined\n"), str);
+	char *msg;
+	asprintf(&msg, _("Warning: No action \"%s\" defined\n"), str);
+	cmd_line->print(msg);
+	free(msg);
 }
 
 void icon_warning() {
@@ -1091,27 +1080,28 @@ void quit() {
 	queue(sigc::ptr_fun(&Gtk::Main::quit));
 }
 
-static void quit(int) { quit(); }
+class App : public Gtk::Application {
+public:
+	App(int& argc, char**& argv, const Glib::ustring& application_id, Gio::ApplicationFlags flags=Gio::APPLICATION_FLAGS_NONE) :
+		Gtk::Application(argc, argv, application_id, flags), remote(false) {}
+	~App();
+private:
+	void on_activate();
+	virtual bool local_command_line_vfunc (char**& arguments, int& exit_status);
+	int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &);
 
-class Main {
-	std::string parse_args_and_init_gtk();
-	void create_config_dir();
-	char* next_event();
-	void usage(char *me, bool good);
+	void usage(const char *me);
 	void version();
 
-	std::string display;
-	Gtk::Main *kit;
-public:
-	Main();
-	void run();
+	void create_config_dir();
 	bool handle(Glib::IOCondition);
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	void handle_xi2_event(XIDeviceEvent *event);
 	void handle_raw_motion(XIRawEvent *event);
 	void report_xi2_event(XIDeviceEvent *event, const char *type);
-	~Main();
+
+	bool remote;
 };
 
 class ReloadTrace : public Timeout {
@@ -1125,76 +1115,139 @@ class ReloadTrace : public Timeout {
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
-static void xdg_open(const Glib::ustring str) {
-	if (!fork()) {
-		execlp("xdg-open", "xdg-open", str.c_str(), NULL);
-		exit(EXIT_FAILURE);
+extern const char *gui_buffer;
+
+bool App::local_command_line_vfunc (char**& arg, int& exit_status) {
+	int i = 1;
+	while (arg[i] && arg[i][0] == '-') {
+		if (arg[i][1] == '-') {
+			if (!strcmp(arg[i], "--experimental")) {
+				experimental = true;
+			} else if (!strcmp(arg[i], "--verbose")) {
+				verbosity++;
+			} else if (!strcmp(arg[i], "--help")) {
+				usage(arg[0]);
+				exit_status = EXIT_SUCCESS;
+				return true;
+			} else if (!strcmp(arg[i], "--version")) {
+				version();
+				exit_status = EXIT_SUCCESS;
+				return true;
+			} else if (!strcmp(arg[i], "--config-dir")) {
+				if (!arg[++i]) {
+					printf("Error: Option --config-dir requires an argument.\n");
+					exit_status = EXIT_FAILURE;
+					return true;
+				}
+				config_dir = arg[i];
+			} else {
+				printf("Error: Unknown option %s\n", arg[i]);
+				exit_status = EXIT_FAILURE;
+				return true;
+			}
+		} else {
+			for (int j = 1; arg[i][j]; j++)
+				switch (arg[i][j]) {
+					case 'c':
+						if (arg[i][j+1] || !arg[i+1]) {
+							printf("Error: Option -c requires an argument.\n");
+							exit_status = EXIT_FAILURE;
+							return true;
+						}
+						config_dir = arg[++i];
+						break;
+					case 'e':
+						experimental = true;
+						break;
+					case 'v':
+						verbosity++;
+						break;
+					case 'h':
+						usage(arg[0]);
+						exit_status = EXIT_SUCCESS;
+						return true;
+					default:
+						printf("Error: Unknown option -%c\n", arg[i][j]);
+						exit_status = EXIT_FAILURE;
+						return true;
+				}
+		}
+		i++;
 	}
+
+	if (i > 1) {
+		for (int j = 1; j < i; j++) {
+			g_free(arg[j]);
+			arg[j] = 0;
+		}
+		for (int j = 0; arg[j+i]; j++) {
+			arg[j+1] = arg[j+i];
+			arg[j+i] = 0;
+		}
+	}
+
+	if (!register_application()) {
+		printf("Failed to register the application\n");
+		exit_status = EXIT_FAILURE;
+		return true;
+	}
+	activate();
+	return false;
 }
 
-static void link_button_hook(Gtk::LinkButton *, const Glib::ustring& uri) { xdg_open(uri); }
-static void about_dialog_hook(Gtk::AboutDialog &, const Glib::ustring& url) { xdg_open(url); }
 
-// dbus-send --type=method_call --dest=org.easystroke /org/easystroke org.easystroke.send string:"foo"
-static void send_dbus(bool action, const char *str) {
-	GError *error = 0;
-	DBusGConnection *bus = dbus_g_bus_get(DBUS_BUS_SESSION, &error);
-	if (!bus) {
-		printf(_("Error initializing D-BUS\n"));
-		exit(EXIT_FAILURE);
-	}
-	DBusGProxy *proxy = dbus_g_proxy_new_for_name(bus, "org.easystroke", "/org/easystroke", "org.easystroke");
-	if (action)
-		dbus_g_proxy_call_no_reply(proxy, "send", G_TYPE_STRING, str, G_TYPE_INVALID);
-	else
-		dbus_g_proxy_call_no_reply(proxy, str, G_TYPE_INVALID);
+int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &command_line) {
+	int argc;
+	char **arg = command_line->get_arguments(argc);
+	for (int i = 1; arg[i]; i++)
+		if (!strcmp(arg[i], "send")) {
+			if (!arg[++i])
+				printf("Warning: Send requires an argument\n");
+			else
+				run_by_name(arg[i], command_line);
+		} else if (!strcmp(arg[i], "show")) {
+			win->show();
+		} else if (!strcmp(arg[i], "hide")) {
+			win->hide();
+		} else if (!strcmp(arg[i], "disable")) {
+			disabled.set(true);
+		} else if (!strcmp(arg[i], "enable")) {
+			disabled.set(false);
+		} else if (!strcmp(arg[i], "about")) {
+			win->show_about();
+		} else if (!strcmp(arg[i], "quit")) {
+			quit();
+		} else {
+			char *msg;
+			asprintf(&msg, "Warning: Unknown command \"%s\".\n", arg[i]);
+			command_line->print(msg);
+			free(msg);
+		}
+	if (!arg[1] && remote)
+		win->show_hide();
+	remote = true;
+	return true;
 }
 
-int start_dbus();
+void App::on_activate() {
+	if (win)
+		return;
 
-Main::Main() : kit(0) {
 	bindtextdomain("easystroke", is_dir("po") ? "po" : LOCALEDIR);
 	bind_textdomain_codeset("easystroke", "UTF-8");
 	textdomain("easystroke");
-	if (0) {
-		RStroke trefoil = Stroke::trefoil();
-		trefoil->draw_svg("easystroke.svg");
-		exit(EXIT_SUCCESS);
-	}
-	if (argc > 1 && !strcmp(argv[1], "send")) {
-		if (argc == 2)
-			usage(argv[0], false);
-		gtk_init(&argc, &argv);
-		send_dbus(true, argv[2]);
-		exit(EXIT_SUCCESS);
-	}
 
-	if (argc > 1 && (!strcmp(argv[1], "enable") || !strcmp(argv[1], "about") || !strcmp(argv[1], "quit"))) {
-		gtk_init(&argc, &argv);
-		send_dbus(false, argv[1]);
-		exit(EXIT_SUCCESS);
-	}
+	oldHandler = XSetErrorHandler(xErrorHandler);
+	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 
-	display = parse_args_and_init_gtk();
 	create_config_dir();
 	unsetenv("DESKTOP_AUTOSTART_ID");
-
-	signal(SIGINT, &quit);
-	signal(SIGCHLD, SIG_IGN);
-
-	Gtk::LinkButton::set_uri_hook(sigc::ptr_fun(&link_button_hook));
-	Gtk::AboutDialog::set_url_hook(sigc::ptr_fun(&about_dialog_hook));
-
-	dpy = XOpenDisplay(display.c_str());
+	dpy = XOpenDisplay(NULL);
 	if (!dpy) {
 		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
 	}
-	if (!no_dbus && start_dbus() < 0) {
-		printf(_("Easystroke is already running, showing configuration window instead.\n"));
-		send_dbus(true, "");
-		exit(EXIT_SUCCESS);
-	}
+
 	ROOT = DefaultRootWindow(dpy);
 
 	ping_window = XCreateSimpleWindow(dpy, ROOT, 0, 0, 1, 1, 0, 0, 0);
@@ -1220,13 +1273,8 @@ Main::Main() : kit(0) {
 	handler->init();
 	XTestGrabControl(dpy, True);
 
-}
-
-extern const char *gui_buffer;
-
-void Main::run() {
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
-	io->connect(sigc::mem_fun(*this, &Main::handle));
+	io->connect(sigc::mem_fun(*this, &App::handle));
 	io->attach();
 	try {
 		widgets = Gtk::Builder::create_from_string(gui_buffer);
@@ -1235,116 +1283,45 @@ void Main::run() {
 		exit(EXIT_FAILURE);
 	}
 	win = new Win;
-	if (show_gui || !actions.get_root()->size_rec())
+	add_window(win->get_window());
+	if (!actions.get_root()->size_rec())
 		win->get_window().show();
-	Gtk::Main::run();
-	delete win;
+	hold();
 }
 
-void Main::usage(char *me, bool good) {
+void App::usage(const char *me) {
 	printf("The full easystroke documentation is available at the following address:\n");
 	printf("\n");
 	printf("http://easystroke.wiki.sourceforge.net/Documentation#content\n");
 	printf("\n");
-	printf("Usage: %s [OPTION]...\n", me);
-	printf("or:    %s send <action_name>\n", me);
-	printf("       %s enable\n", me);
-	printf("       %s about\n", me);
-	printf("       %s quit\n", me);
+	printf("Usage: %s [OPTION]... [COMMAND]...\n", me);
+	printf("\n");
+	printf("Commands:\n");
+	printf("  send <action_name>     Execute action <action_name>\n");
+	printf("  show                   Show configuration window\n");
+	printf("  hide                   Hide configuration window\n");
+	printf("  disable                Disable easystroke\n");
+	printf("  enable                 Enable easystroke\n");
+	printf("  about                  Show about dialog\n");
+	printf("  quit                   Quit easystroke\n");
 	printf("\n");
 	printf("Options:\n");
-	printf("  -c, --config-dir       Directory for config files\n");
-	printf("      --display          X Server to contact\n");
-	printf("  -D  --no-dbus          Don't try to register as a DBus service\n");
+	printf("  -c, --config-dir <dir> Directory for config files\n");
 	printf("  -e  --experimental     Start in experimental mode\n");
-	printf("  -g, --show-gui         Show the configuration dialog on startup\n");
-	printf("  -x  --disable          Start disabled\n");
 	printf("  -v, --verbose          Increase verbosity level\n");
 	printf("  -h, --help             Display this help and exit\n");
 	printf("      --version          Output version information and exit\n");
-	exit(good ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 extern const char *version_string;
-void Main::version() {
+void App::version() {
 	printf("easystroke %s\n", version_string);
 	printf("\n");
 	printf("Written by Thomas Jaeger <ThJaeger@gmail.com>.\n");
 	exit(EXIT_SUCCESS);
 }
 
-std::string Main::parse_args_and_init_gtk() {
-	static struct option long_opts1[] = {
-		{"display",1,0,'d'},
-		{"help",0,0,'h'},
-		{"version",0,0,'V'},
-		{"show-gui",0,0,'g'},
-		{0,0,0,0}
-	};
-	static struct option long_opts2[] = {
-		{"config-dir",1,0,'c'},
-		{"display",1,0,'d'},
-		{"experimental",0,0,'e'},
-		{"show-gui",0,0,'g'},
-		{"verbose",0,0,'v'},
-		{"no-dbus",0,0,'D'},
-		{"disabled",0,0,'x'},
-		{0,0,0,0}
-	};
-	std::string display;
-	int opt;
-	// parse --display here, before Gtk::Main(...) takes it away from us
-	opterr = 0;
-	while ((opt = getopt_long(argc, argv, "gh", long_opts1, 0)) != -1)
-		switch (opt) {
-			case 'd':
-				display = optarg;
-				break;
-			case 'g':
-				show_gui = true;
-				break;
-			case 'h':
-				usage(argv[0], true);
-				break;
-			case 'V':
-				version();
-				break;
-		}
-	optind = 1;
-	opterr = 1;
-	kit = new Gtk::Main(argc, argv);
-	oldHandler = XSetErrorHandler(xErrorHandler);
-	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
-
-	while ((opt = getopt_long(argc, argv, "c:egvDx", long_opts2, 0)) != -1) {
-		switch (opt) {
-			case 'c':
-				config_dir = optarg;
-				break;
-			case 'e':
-				experimental = true;
-				break;
-			case 'v':
-				verbosity++;
-				break;
-			case 'D':
-				no_dbus = true;
-				break;
-			case 'x':
-				disabled.set(true);
-				break;
-			case 'd':
-			case 'n':
-			case 'g':
-				break;
-			default:
-				usage(argv[0], false);
-		}
-	}
-	return display;
-}
-
-void Main::create_config_dir() {
+void App::create_config_dir() {
 	if (config_dir == "") {
 		config_dir = getenv("HOME");
 		config_dir += "/.easystroke";
@@ -1372,7 +1349,7 @@ void Main::create_config_dir() {
 
 extern Window get_app_window(Window w);
 
-void Main::handle_enter_leave(XEvent &ev) {
+void App::handle_enter_leave(XEvent &ev) {
 	if (ev.xcrossing.mode == NotifyGrab)
 		return;
 	if (ev.xcrossing.detail == NotifyInferior)
@@ -1386,7 +1363,7 @@ void Main::handle_enter_leave(XEvent &ev) {
 }
 
 #define H (handler->top())
-void Main::handle_event(XEvent &ev) {
+void App::handle_event(XEvent &ev) {
 
 	switch(ev.type) {
 	case EnterNotify:
@@ -1450,7 +1427,7 @@ static void print_coordinates(XIValuatorState *valuators, double *values) {
 	}
 }
 
-void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
+void App::report_xi2_event(XIDeviceEvent *event, const char *type) {
 	printf("%s (XI2): ", type);
 	if (event->detail)
 		printf("%d ", event->detail);
@@ -1459,7 +1436,7 @@ void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
 	printf(") at t = %ld\n", event->time);
 }
 
-void Main::handle_xi2_event(XIDeviceEvent *event) {
+void App::handle_xi2_event(XIDeviceEvent *event) {
 	switch (event->evtype) {
 		case XI_ButtonPress:
 			if (verbosity >= 3)
@@ -1513,7 +1490,7 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 	}
 }
 
-void Main::handle_raw_motion(XIRawEvent *event) {
+void App::handle_raw_motion(XIRawEvent *event) {
 	if (!current_dev || current_dev->dev != event->deviceid)
 		return;
 	double x = 0.0, y = 0.0;
@@ -1542,7 +1519,7 @@ void Main::handle_raw_motion(XIRawEvent *event) {
 
 #undef H
 
-bool Main::handle(Glib::IOCondition) {
+bool App::handle(Glib::IOCondition) {
 	while (XPending(dpy)) {
 		try {
 			XEvent ev;
@@ -1557,24 +1534,26 @@ bool Main::handle(Glib::IOCondition) {
 	return true;
 }
 
-Main::~Main() {
-	trace->end();
-	trace.reset();
-	delete grabber;
-	delete kit;
-	XCloseDisplay(dpy);
-	prefs.execute_now();
-	action_watcher->execute_now();
+App::~App() {
+	if (win) {
+		delete win;
+		trace->end();
+		trace.reset();
+		delete grabber;
+		XCloseDisplay(dpy);
+		prefs.execute_now();
+		action_watcher->execute_now();
+	}
 }
 
-int main(int argc_, char **argv_) {
-	argc = argc_;
-	argv = argv_;
-	Main mn;
-	mn.run();
-	if (verbosity >= 2)
-		printf("Exiting...\n");
-	return EXIT_SUCCESS;
+int main(int argc, char **argv) {
+	if (0) {
+		RStroke trefoil = Stroke::trefoil();
+		trefoil->draw_svg("easystroke.svg");
+		exit(EXIT_SUCCESS);
+	}
+	App app(argc, argv, "org.easystroke.easystroke", Gio::APPLICATION_HANDLES_COMMAND_LINE);
+	return app.run(argc, argv);
 }
 
 std::string select_window() {

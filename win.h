@@ -57,10 +57,11 @@ public:
 	boost::shared_ptr<Actions> actions;
 	boost::shared_ptr<Prefs> prefs_tab;
 	boost::shared_ptr<Stats> stats;
+	void show();
+	void hide();
 	void show_hide();
 	void set_icon(RStroke stroke, bool invert);
 	void show_about();
-	void hide();
 private:
 	bool on_icon_size_changed(int);
 	virtual void timeout();

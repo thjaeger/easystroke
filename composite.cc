@@ -25,20 +25,19 @@ Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), r
 	if (!is_composited())
 		throw std::runtime_error(_("'composite' not available"));
 
-	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_rgba_colormap();
-	if (colormap)
-		set_colormap(colormap);
-	signal_expose_event().connect(sigc::mem_fun(*this, &Popup::on_expose));
+	Glib::RefPtr<Gdk::Visual> visual = get_screen()->get_rgba_visual();
+	gtk_widget_set_visual(Widget::gobj(), visual->gobj());
+	signal_draw().connect(sigc::mem_fun(*this, &Popup::on_draw));
 	realize();
 	move(x1, y1);
 	resize(x2-x1, y2-y1);
-	get_window()->input_shape_combine_region(Gdk::Region(), 0, 0);
+	get_window()->input_shape_combine_region(Cairo::Region::create(), 0, 0);
 	// tell compiz to leave this window the hell alone
 	get_window()->set_type_hint(Gdk::WINDOW_TYPE_HINT_DESKTOP);
 }
 
 void Popup::invalidate(int x1, int y1, int x2, int y2) {
-	if (is_mapped()) {
+	if (get_mapped()) {
 		Gdk::Rectangle inv(x1 - rect.get_x(), y1 - rect.get_y(), x2-x1, y2-y1);
 		get_window()->invalidate_rect(inv, false);
 	} else
@@ -109,17 +108,10 @@ void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 
 }
 
-bool Popup::on_expose(GdkEventExpose* event) {
-	Cairo::RefPtr<Cairo::Context> ctx = get_window()->create_cairo_context();
+bool Popup::on_draw(const ::Cairo::RefPtr< ::Cairo::Context>& ctx) {
 	ctx->set_operator(Cairo::OPERATOR_SOURCE);
-
-	Gdk::Region region(event->region, true);
-	Gdk::Cairo::add_region_to_path(ctx, region);
-	ctx->clip();
-
-	Gdk::Cairo::add_region_to_path(ctx, region);
 	ctx->set_source_rgba(0.0, 0.0, 0.0, 0.0);
-	ctx->fill();
+	ctx->paint();
 
 	ctx->translate(-rect.get_x(), -rect.get_y());
 	draw_line(ctx);

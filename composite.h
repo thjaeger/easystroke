@@ -21,7 +21,7 @@
 #include <list>
 
 class Popup : public Gtk::Window {
-	bool on_expose(GdkEventExpose* event);
+	bool on_draw(const ::Cairo::RefPtr< ::Cairo::Context>& ctx);
 	void draw_line(Cairo::RefPtr<Cairo::Context> ctx);
 	Gdk::Rectangle rect;
 public:

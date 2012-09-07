@@ -46,7 +46,7 @@ void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context)
 	pending = false;
 	if (get_selection()->count_selected_rows() <= 1)
 		return Gtk::TreeView::on_drag_begin(context);
-	Glib::RefPtr<Gdk::Pixbuf> pb = render_icon(Gtk::Stock::DND_MULTIPLE, Gtk::ICON_SIZE_DND);
+	Glib::RefPtr<Gdk::Pixbuf> pb = render_icon_pixbuf(Gtk::Stock::DND_MULTIPLE, Gtk::ICON_SIZE_DND);
 	context->set_icon(pb, pb->get_width(), pb->get_height());
 }
 
@@ -67,15 +67,18 @@ public:
 		WIDGET(Gtk::Label, label, _("Key combination..."));
 		label.set_alignment(0.0, 0.5);
 		add(label);
-		modify_bg(Gtk::STATE_NORMAL, widget.get_style()->get_bg(Gtk::STATE_SELECTED));
-		label.modify_fg(Gtk::STATE_NORMAL, widget.get_style()->get_fg(Gtk::STATE_SELECTED));
+		override_background_color(widget.get_style_context()->get_background_color(Gtk::STATE_FLAG_SELECTED), Gtk::STATE_FLAG_NORMAL);
+		label.override_color(widget.get_style_context()->get_color(Gtk::STATE_FLAG_SELECTED), Gtk::STATE_FLAG_NORMAL);
 		show_all();
 	}
 protected:
 
 	virtual void start_editing_vfunc(GdkEvent *event) {
 		add_modal_grab();
-		get_window()->keyboard_grab(false, gdk_event_get_time(event));
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		gdk_keyboard_grab(get_window()->gobj(), false, gdk_event_get_time(event));
+#pragma GCC diagnostic pop
 		signal_key_press_event().connect(sigc::mem_fun(*this, &CellEditableAccel::on_key));
 	}
 
@@ -83,10 +86,10 @@ protected:
 		if (event->is_modifier)
 			return true;
 		switch (event->keyval) {
-			case GDK_Super_L:
-			case GDK_Super_R:
-			case GDK_Hyper_L:
-			case GDK_Hyper_R:
+			case GDK_KEY_Super_L:
+			case GDK_KEY_Super_R:
+			case GDK_KEY_Hyper_L:
+			case GDK_KEY_Hyper_R:
 				return true;
 		}
 		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
@@ -101,12 +104,15 @@ protected:
 
 	virtual void on_editing_done() {
 		remove_modal_grab();
-		get_window()->keyboard_ungrab(CurrentTime);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+		gdk_keyboard_ungrab(CurrentTime);
+#pragma GCC diagnostic pop
 		Gtk::CellEditable::on_editing_done();
 	}
 };
 
-class CellEditableCombo : public Gtk::ComboBoxText, public Gtk::CellEditable {
+class CellEditableCombo : public Gtk::ComboBoxText {
 	CellRendererTextish *parent;
 	Glib::ustring path;
 public:
@@ -115,7 +121,7 @@ public:
 		parent(parent_), path(path_)
 	{
 		while (*items)
-			append_text(_(*(items++)));
+			append(_(*(items++)));
 	}
 protected:
 	virtual void on_changed() {
@@ -362,7 +368,7 @@ bool Actions::AppsStore::row_drop_possible_vfunc(const Gtk::TreeModel::Path &des
 	if (expecting && expected != dest)
 		expecting = false;
 	if (!expecting) {
-		if (dest.get_depth() < 2 || dest.back() != 0)
+		if (gtk_tree_path_get_depth((GtkTreePath *)dest.gobj()) < 2 || dest.back() != 0)
 			return false;
 		expected = dest;
 		expected.up();
@@ -437,7 +443,7 @@ bool Actions::Store::row_draggable_vfunc(const Gtk::TreeModel::Path &path) const
 
 bool Actions::Store::row_drop_possible_vfunc(const Gtk::TreeModel::Path &dest, const Gtk::SelectionData &selection) const {
 	static bool ignore_next = false;
-	if (dest.get_depth() > 1) {
+	if (gtk_tree_path_get_depth((GtkTreePath *)dest.gobj()) > 1) {
 		ignore_next = true;
 		return false;
 	}
