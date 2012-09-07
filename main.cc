@@ -1082,6 +1082,7 @@ void quit() {
 	if (dead)
 		bail_out();
 	dead = true;
+	win->hide();
 	queue(sigc::ptr_fun(&Gtk::Main::quit));
 }
 

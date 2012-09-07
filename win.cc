@@ -247,6 +247,10 @@ void Win::show_hide() {
 		win->show();
 }
 
+void Win::hide() {
+	win->hide();
+}
+
 bool Win::on_icon_size_changed(int size) {
 	icon_pb[0] = Stroke::trefoil()->draw(size);
 	icon_pb[1] = Stroke::trefoil()->draw(size);

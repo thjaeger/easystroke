@@ -60,6 +60,7 @@ public:
 	void show_hide();
 	void set_icon(RStroke stroke, bool invert);
 	void show_about();
+	void hide();
 private:
 	bool on_icon_size_changed(int);
 	virtual void timeout();
