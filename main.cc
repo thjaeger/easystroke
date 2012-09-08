@@ -32,6 +32,7 @@
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xfixes.h>
 #include <X11/Xproto.h>
+#include <X11/XKBlib.h>
 // From #include <X11/extensions/XIproto.h>
 // which is not C++-safe
 #define X_GrabDeviceButton              17
@@ -940,7 +941,7 @@ protected:
 		if (!IS_CLICK(act))
 			Ranking::queue_show(ranking, e);
 		if (!act) {
-			XBell(dpy, 0);
+			XkbBell(dpy, None, 0, None);
 			return parent->replace_child(NULL);
 		}
 		RModifiers mods = act->prepare();
