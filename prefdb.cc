@@ -29,7 +29,6 @@
 #include <boost/serialization/export.hpp>
 
 const ButtonInfo default_button(Button2);
-const int default_pressure_threshold = 192;
 
 PrefDB::PrefDB() :
 	TimeoutWatcher(5000),
@@ -37,8 +36,6 @@ PrefDB::PrefDB() :
 	button(default_button),
 	trace(TraceDefault),
 	advanced_ignore(false),
-	pressure_abort(false),
-	pressure_threshold(default_pressure_threshold),
 	proximity(false),
 	feedback(true),
 	left_handed(false),
@@ -98,8 +95,10 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & timing_workaround;
 	bool show_clicks = false;
 	ar & show_clicks;
-	ar & pressure_abort.unsafe_ref();
-	ar & pressure_threshold.unsafe_ref();
+	bool pressure_abort = false;
+	ar & pressure_abort;
+	int pressure_threshold = 192;
+	ar & pressure_threshold;
 	ar & proximity.unsafe_ref();
 	if (version < 5) return;
 	ar & feedback.unsafe_ref();

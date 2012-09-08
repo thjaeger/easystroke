@@ -96,7 +96,6 @@ struct RGBA {
 };
 
 extern const ButtonInfo default_button;
-extern const int default_pressure_threshold;
 
 class PrefDB : public TimeoutWatcher {
 	friend class boost::serialization::access;
@@ -114,8 +113,6 @@ public:
 	PrefSource<ButtonInfo> button;
 	PrefSource<TraceType> trace;
 	PrefSource<bool> advanced_ignore;
-	PrefSource<bool> pressure_abort;
-	PrefSource<int> pressure_threshold;
 	PrefSource<bool> proximity;
 	PrefSource<bool> feedback;
 	PrefSource<bool> left_handed;

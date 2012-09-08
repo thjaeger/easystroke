@@ -373,7 +373,7 @@ void Grabber::new_device(XIDeviceInfo *info) {
 		}
 }
 
-Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pressure(false), absolute(false), scale_x(1.0), scale_y(1.0), num_buttons(0) {
+Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(false), scale_x(1.0), scale_y(1.0), num_buttons(0) {
 	dev = info->deviceid;
 	name = info->name;
 	master = info->attachment;
@@ -392,20 +392,11 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 					scale_y = (double)DisplayHeight(dpy, DefaultScreen(dpy)) / (double)(v->max - v->min);
 
 			}
-			if (v->number == 2) {
-				pressure_min = v->min;
-				pressure_max = v->max;
-				if (pressure_min < pressure_max)
-					supports_pressure = true;
-			}
 		}
 	}
 
 	if (verbosity >= 1)
-		printf("Opened Device %d ('%s'%s).\n", dev, info->name,
-				absolute ?
-					supports_pressure ? ": absolute, pressure" : ": absolute" :
-					supports_pressure ? ": pressure" : "");
+		printf("Opened Device %d ('%s'%s).\n", dev, info->name, absolute ? ": absolute" : "");
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {

@@ -234,11 +234,6 @@ void remove_last_entry(const Glib::ustring & name) {
 Prefs::Prefs() {
 	new Check(prefs.advanced_ignore, "check_advanced_ignore");
 
-	new Check(prefs.pressure_abort, "check_pressure_abort");
-	new Adjustment<int>(prefs.pressure_threshold, "adjustment_pressure_threshold");
-	new Sensitive(prefs.pressure_abort, "spin_pressure_threshold");
-	new Sensitive(prefs.pressure_abort, "button_default_pressure_threshold");
-
 	new Check(prefs.proximity, "check_proximity");
 
 	new Check(prefs.feedback, "check_feedback");
@@ -256,8 +251,6 @@ Prefs::Prefs() {
 
 	new Adjustment<int>(prefs.init_timeout, "adjustment_init_timeout");
 	new Adjustment<int>(prefs.final_timeout, "adjustment_final_timeout");
-
-	new ButtonSet<int>(prefs.pressure_threshold, "button_default_pressure_threshold", default_pressure_threshold);
 
 	new Combo<TraceType>(prefs.trace, "box_trace", trace_info);
 	new Color(prefs.color, "button_color");
@@ -286,10 +279,6 @@ Prefs::Prefs() {
 	widgets->get_widget("treeview_extra", etv);
 
 	new Sensitive(*fun(&is_custom, prefs.timeout_profile), "hbox_timeout");
-	/*
-	new Sensitive(supports_pressure, "hbox_pressure");
-	new Sensitive(supports_proximity, "check_proximity");
-	*/
 	new Sensitive(*fun(&draw_trace, prefs.trace), "button_color");
 	new Sensitive(*fun(&draw_trace, prefs.trace), "spin_trace_width");
 

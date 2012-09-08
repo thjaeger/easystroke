@@ -140,7 +140,6 @@ public:
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_master(guint b, Time t) {}
-	virtual void pressure() {}
 	virtual void proximity_out() {}
 	virtual void pong() {}
 	void replace_child(Handler *c) {
@@ -877,10 +876,6 @@ protected:
 	void abort_stroke() {
 		parent->replace_child(AdvancedHandler::create(RStroke(), last, button, 0, cur));
 	}
-	virtual void pressure() {
-		abort_stroke();
-		timeout();
-	}
 	virtual void motion(RTriple e) {
 		cur->add(e);
 		float dist = hypot(e->x-orig->x, e->y-orig->y);
@@ -1487,16 +1482,6 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 				report_xi2_event(event, "Motion");
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
-			if (current_dev->supports_pressure && XIMaskIsSet(event->valuators.mask, 2)) {
-				int i = 0;
-				if (XIMaskIsSet(event->valuators.mask, 0))
-				       i++;
-				if (XIMaskIsSet(event->valuators.mask, 1))
-				       i++;
-				int z = current_dev->normalize_pressure(event->valuators.values[i]);
-				if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
-					H->pressure();
-			}
 			H->motion(create_triple(event->root_x, event->root_y, event->time));
 			break;
 		case XI_RawMotion:

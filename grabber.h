@@ -67,17 +67,12 @@ public:
 	struct XiDevice {
 		int dev;
 		std::string name;
-		bool supports_pressure;
 		bool absolute;
 		bool active;
 		double scale_x, scale_y;
-		int pressure_min, pressure_max;
 		int num_buttons;
 		int master;
 		XiDevice(Grabber *, XIDeviceInfo *);
-		int normalize_pressure(int pressure) {
-			return 255 * (pressure - pressure_min) / (pressure_max - pressure_min);
-		}
 		void grab_device(GrabState grab);
 		void grab_button(ButtonInfo &bi, bool grab);
 	};
