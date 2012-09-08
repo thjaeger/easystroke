@@ -355,6 +355,10 @@ Prefs::Prefs() {
 		widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
 	}
+	Gtk::Frame *tablet_frame;
+	widgets->get_widget("frame_advanced2", tablet_frame);
+	tablet_frame->hide();
+
 	set_button_label();
 
 	const std::map<std::string, RButtonInfo> &exceptions = prefs.exceptions.ref();
