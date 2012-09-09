@@ -1080,13 +1080,15 @@ void quit() {
 	queue(sigc::ptr_fun(&Gtk::Main::quit));
 }
 
-class App : public Gtk::Application {
+class App : public Gtk::Application, Base {
 public:
 	App(int& argc, char**& argv, const Glib::ustring& application_id, Gio::ApplicationFlags flags=Gio::APPLICATION_FLAGS_NONE) :
 		Gtk::Application(argc, argv, application_id, flags), remote(false) {}
 	~App();
+protected:
+	virtual void on_startup();
+	virtual void on_activate();
 private:
-	void on_activate();
 	virtual bool local_command_line_vfunc (char**& arguments, int& exit_status);
 	int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &);
 
@@ -1101,7 +1103,15 @@ private:
 	void handle_raw_motion(XIRawEvent *event);
 	void report_xi2_event(XIDeviceEvent *event, const char *type);
 
+	void on_about(const Glib::VariantBase &) { win->show_about(); }
+	void on_quit(const Glib::VariantBase &) { quit(); }
+
+	virtual void notify() {
+		g_simple_action_set_state(enabled, g_variant_new("b", !disabled.get()));
+	}
+
 	bool remote;
+	GSimpleAction *enabled;
 };
 
 class ReloadTrace : public Timeout {
@@ -1227,6 +1237,36 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
 		win->show_hide();
 	remote = true;
 	return true;
+}
+
+static void enabled_activated(GSimpleAction *simple, GVariant *parameter, gpointer user_data) {
+	disabled.set(!disabled.get());
+}
+
+void App::on_startup() {
+	Gtk::Application::on_startup();
+
+	Glib::RefPtr<Gio::SimpleAction> action;
+        action = Gio::SimpleAction::create("about");
+	action->signal_activate().connect(sigc::mem_fun(*this, &App::on_about));
+	add_action(action);
+
+        action = Gio::SimpleAction::create("quit");
+	action->signal_activate().connect(sigc::mem_fun(*this, &App::on_quit));
+	add_action(action);
+
+	enabled = g_simple_action_new_stateful("enabled", 0, g_variant_new_boolean(false));
+	g_signal_connect(G_OBJECT(enabled), "activate", G_CALLBACK(enabled_activated), this);
+	g_action_map_add_action(G_ACTION_MAP(gobj()), G_ACTION(enabled));
+
+	Glib::RefPtr<Gio::Menu> menu = Gio::Menu::create();
+	menu->append(_("Enabled"), "app.enabled");
+	menu->append(_("About"), "app.about");
+	menu->append(_("Quit"), "app.quit");
+	set_app_menu(menu);
+
+	disabled.connect(this);
+	notify();
 }
 
 void App::on_activate() {
