@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
 "PO-Revision-Date: 2010-08-02 16:19+0000\n"
 "Last-Translator: Pavel Nosovsky <Unknown>\n"
 "Language-Team: Russian <ru@li.org>\n"
@@ -16,8 +16,8 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
-"X-Generator: Launchpad (build 12532)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -281,6 +281,12 @@ msgstr "Включено"
 msgid "Device"
 msgstr "Устройство"
 
+msgid "<unchanged>"
+msgstr ""
+
+msgid "Timeout profile"
+msgstr "Настройка задержки"
+
 msgid "<App disabled>"
 msgstr "<Прил. отключено>"
 
@@ -422,9 +428,6 @@ msgstr "Задержка"
 msgid "Timeout Gestures"
 msgstr "Жесты с задержкой"
 
-msgid "Timeout profile"
-msgstr "Настройка задержки"
-
 msgid "Width"
 msgstr "Ширина"
 
@@ -478,17 +481,3 @@ msgstr "Управление рабочим столом с помощью же�
 
 msgid "Easystroke Gesture Recognition"
 msgstr "Распознавание жестов мыши Easystroke"
-
-#, c-format
-#~ msgid "Opening Device %s failed.\n"
-#~ msgstr "Устройство %s открыть не удалось\n"
-
-#~ msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-#~ msgstr "Work around timing issues on Wacom tablets and Tablet PCs"
-
-#~ msgid "Accept gestures when menus are shown (experimental)"
-#~ msgstr "Принимать жесты при открытом меню (экспериментально)"
-
-#, c-format
-#~ msgid "Error: You need XInput to use advanced gestures\n"
-#~ msgstr "Ошибка: вам необходим XInput для использования продвинутых жестов.\n"

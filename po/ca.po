@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
 "PO-Revision-Date: 2011-08-07 17:13+0000\n"
 "Last-Translator: jordis <Unknown>\n"
 "Language-Team: Catalan <ca@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-08-15 08:04+0000\n"
-"X-Generator: Launchpad (build 13674)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -280,6 +280,12 @@ msgstr "Habilitat"
 msgid "Device"
 msgstr "Dispositiu"
 
+msgid "<unchanged>"
+msgstr ""
+
+msgid "Timeout profile"
+msgstr ""
+
 msgid "<App disabled>"
 msgstr "<Aplicació inhabilitada>"
 
@@ -417,9 +423,6 @@ msgid "Timeout"
 msgstr "Temps d'espera"
 
 msgid "Timeout Gestures"
-msgstr ""
-
-msgid "Timeout profile"
 msgstr ""
 
 msgid "Width"

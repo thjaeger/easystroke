@@ -8,16 +8,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
-"PO-Revision-Date: 2010-03-24 19:58+0000\n"
-"Last-Translator: Jens Böning <jensboening@gmx.de>\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"PO-Revision-Date: 2011-10-26 12:56+0000\n"
+"Last-Translator: Hendrik Knackstedt <Unknown>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
-"X-Generator: Launchpad (build 12532)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -283,6 +283,12 @@ msgstr "Aktiv"
 msgid "Device"
 msgstr "Gerät"
 
+msgid "<unchanged>"
+msgstr "<unverändert>"
+
+msgid "Timeout profile"
+msgstr "Timeout-Profil"
+
 msgid "<App disabled>"
 msgstr "<Anwendung deaktiviert>"
 
@@ -426,9 +432,6 @@ msgstr "Timeout"
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
 
-msgid "Timeout profile"
-msgstr "Timeout-Profil"
-
 msgid "Width"
 msgstr "Breite"
 
@@ -478,25 +481,7 @@ msgid "optimize for left-handed operation )"
 msgstr "für linkshändige Bedienung optimieren )"
 
 msgid "Control your desktop using mouse gestures"
-msgstr "Den Computer mit Mausgesten bedienen"
+msgstr "Den Rechner mit Mausgesten bedienen"
 
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke Gestenerkennung"
-
-#, c-format
-#~ msgid "Opening Device %s failed.\n"
-#~ msgstr "Öffnen des Gerätes %s fehlgeschlagen.\n"
-
-#, c-format
-#~ msgid "Error: You need XInput to use advanced gestures\n"
-#~ msgstr "Fehler: Sie benötigen XInput for Advanced Gestures\n"
-
-#~ msgid "Accept gestures when menus are shown (experimental)"
-#~ msgstr "Akzeptiere Gesten während Menüs angezeigt werden (experimentell)"
-
-#~ msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-#~ msgstr "Workaround für Timing-Problem auf Wacom Tablets und Tablet PCs"
-
-#, c-format
-#~ msgid "Is easystroke already running?\n"
-#~ msgstr "Ist easystroke bereits gestartet?\n"

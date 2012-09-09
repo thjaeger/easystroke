@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
 "PO-Revision-Date: 2009-11-19 08:54+0000\n"
 "Last-Translator: Yaron <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <he@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
-"X-Generator: Launchpad (build 12532)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -272,6 +272,12 @@ msgstr "פעיל"
 msgid "Device"
 msgstr "התקן"
 
+msgid "<unchanged>"
+msgstr ""
+
+msgid "Timeout profile"
+msgstr ""
+
 msgid "<App disabled>"
 msgstr "<היישום מנוטרל>"
 
@@ -411,9 +417,6 @@ msgstr "תום הזמן"
 msgid "Timeout Gestures"
 msgstr ""
 
-msgid "Timeout profile"
-msgstr ""
-
 msgid "Width"
 msgstr "רוחב"
 
@@ -467,17 +470,3 @@ msgstr "ניתן לשלוט בשולחן העבודה באמצעות תנועו�
 
 msgid "Easystroke Gesture Recognition"
 msgstr "זיהוי תנועות עכבר של Easystroke"
-
-#, c-format
-#~ msgid "Opening Device %s failed.\n"
-#~ msgstr "פתיחת ההתקן %s נכשלה.\n"
-
-#, c-format
-#~ msgid "Error: You need XInput to use advanced gestures\n"
-#~ msgstr "שגיאה: יש צורך ב־ XInput כדי להשתמש במחוות המתקדמות\n"
-
-#~ msgid "Accept gestures when menus are shown (experimental)"
-#~ msgstr "קבלת מחוות כאשר התפריטים מופיעים (נסיוני)"
-
-#~ msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-#~ msgstr "פתרון עקיפי לבעיות התזמון ללוחות Wacom ומחשבי לוח"

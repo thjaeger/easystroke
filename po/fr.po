@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
-"PO-Revision-Date: 2010-11-16 16:18+0000\n"
-"Last-Translator: Loïc Guégant <Unknown>\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"PO-Revision-Date: 2012-01-11 11:16+0000\n"
+"Last-Translator: demonipuch <Unknown>\n"
 "Language-Team: French <fr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
-"X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
-"X-Generator: Launchpad (build 12532)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -281,6 +281,12 @@ msgstr "Activé"
 msgid "Device"
 msgstr "Périphérique"
 
+msgid "<unchanged>"
+msgstr "<inchangé>"
+
+msgid "Timeout profile"
+msgstr "Profil du temps mort"
+
 msgid "<App disabled>"
 msgstr "<Application désactivée>"
 
@@ -426,9 +432,6 @@ msgstr "Temps mort"
 msgid "Timeout Gestures"
 msgstr "Gestes de temps mort"
 
-msgid "Timeout profile"
-msgstr "Profil du temps mort"
-
 msgid "Width"
 msgstr "Largeur"
 
@@ -482,22 +485,3 @@ msgstr "Contrôler votre bureau à l'aide de gestes de souris"
 
 msgid "Easystroke Gesture Recognition"
 msgstr "Reconnaissance gestuelle Easystroke"
-
-#, c-format
-#~ msgid "Opening Device %s failed.\n"
-#~ msgstr "L'ouverture de l'équipement %s échouée.\n"
-
-#, c-format
-#~ msgid "Is easystroke already running?\n"
-#~ msgstr "Est-ce que easystroke tourne déjà?\n"
-
-#, c-format
-#~ msgid "Error: You need XInput to use advanced gestures\n"
-#~ msgstr ""
-#~ "Erreur : Vous avez besoin de XInput pour utiliser les gestes avancés.\n"
-
-#~ msgid "Accept gestures when menus are shown (experimental)"
-#~ msgstr "Accepter les gestes quand les menus sont affichés (expérimental)"
-
-#~ msgid "Work around timing issues on Wacom tablets and Tablet PCs"
-#~ msgstr "Régler les problèmes de timing sur les tablettes Wacom et Tablet PCs"

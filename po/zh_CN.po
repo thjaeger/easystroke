@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
 "PO-Revision-Date: 2011-04-27 16:53+0000\n"
 "Last-Translator: snowdream <yanghui1986527@gmail.com>\n"
 "Language-Team: Simplified Chinese <zh_CN@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2011-08-15 08:04+0000\n"
-"X-Generator: Launchpad (build 13674)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -266,6 +266,12 @@ msgstr "启用"
 msgid "Device"
 msgstr "设备"
 
+msgid "<unchanged>"
+msgstr ""
+
+msgid "Timeout profile"
+msgstr "超时档案"
+
 msgid "<App disabled>"
 msgstr "应用程序被关闭"
 
@@ -402,9 +408,6 @@ msgstr "超时"
 
 msgid "Timeout Gestures"
 msgstr "鼠标手势超时"
-
-msgid "Timeout profile"
-msgstr "超时档案"
 
 msgid "Width"
 msgstr "宽度"

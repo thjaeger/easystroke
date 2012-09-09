@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2010-02-13 18:30-0500\n"
+"POT-Creation-Date: 2011-08-15 03:59-0400\n"
 "PO-Revision-Date: 2010-09-04 14:46+0000\n"
 "Last-Translator: Van Diep Duong <Unknown>\n"
 "Language-Team: Vietnamese <vi@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
-"X-Generator: Launchpad (build 12532)\n"
+"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
+"X-Generator: Launchpad (build 15914)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -274,6 +274,12 @@ msgstr "Bật"
 msgid "Device"
 msgstr "Thiết bị"
 
+msgid "<unchanged>"
+msgstr ""
+
+msgid "Timeout profile"
+msgstr "Mô tả timeout"
+
 msgid "<App disabled>"
 msgstr "<Tắt>"
 
@@ -412,9 +418,6 @@ msgstr "Timeout"
 
 msgid "Timeout Gestures"
 msgstr "Timeout Gestures"
-
-msgid "Timeout profile"
-msgstr "Mô tả timeout"
 
 msgid "Width"
 msgstr "Độ rộng"
