@@ -18,48 +18,37 @@ msgstr ""
 "X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
 "X-Generator: Launchpad (build 12532)\n"
 
-#: ../actiondb.cc:127
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
 msgstr ""
 "Σφάλμα: δεν μπόρεσε να εκτελεστεί η εντολή \"%s\": η fork() απέτυχε\n"
 
-#: ../actiondb.cc:145 ../prefs.cc:154
 msgid "None"
 msgstr "Κανένα"
 
-#: ../actiondb.cc:145
 msgid "Unminimize"
 msgstr "Αποελαχιστοποίησε"
 
-#: ../actiondb.cc:145
 msgid "Show/Hide"
 msgstr "Εμφάνιση/Απόκρυψη"
 
-#: ../actiondb.cc:145
 msgid "Disable (Enable)"
 msgstr "Απενεργοποίηση (Ενεργοποίηση)"
 
-#: ../actiondb.cc:159 ../actiondb.cc:183 ../prefs.cc:155 ../prefs.cc:166
-#: ../prefs.cc:176
 msgid "Default"
 msgstr "Προεπιλογή"
 
-#: ../actiondb.cc:210
 #, c-format
 msgid "Error: Couldn't read action database: %s.\n"
 msgstr "Σφάλμα: Δεν ήταν δυνατή η ανάγνωση της βάσης δράσεων: %s.\n"
 
-#: ../actiondb.cc:226
 msgid "rename() failed"
 msgstr "Η μετονομασία() απέτυχε"
 
-#: ../actiondb.cc:230
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "Σφάλμα: Δεν ήταν δυνατή η αποθήκευση της βάσης δράσεων: %s.\n"
 
-#: ../actiondb.cc:234 ../prefdb.cc:154
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
 "directory and that you have write access to it.  You can change the "
@@ -70,113 +59,87 @@ msgstr ""
 "αλλάξετε τον κατάλογο διαμόρφωσης χρησιμοποιώντας τις επιλογές κελύφους -c ή "
 "--config-dir."
 
-#: ../actiondb.cc:237
 msgid "actions"
 msgstr "ενέργειες"
 
-#: ../actions.cc:66
 msgid "Key combination..."
 msgstr "Συνδυασμός πλήκτρων..."
 
-#: ../actions.cc:164
 msgid "Command"
 msgstr "Εντολή"
 
-#: ../actions.cc:165
 msgid "Key"
 msgstr "Πλήκτρο"
 
-#: ../actions.cc:166
 msgid "Text"
 msgstr "Κείμενο"
 
-#: ../actions.cc:167 ../actions.cc:1024
 msgid "Scroll"
 msgstr "Κύλιση"
 
-#: ../actions.cc:168 ../actions.cc:1031
 msgid "Ignore"
 msgstr "Παράβλεψη"
 
-#: ../actions.cc:169 ../prefs.cc:303 ../prefs.cc:327
 msgid "Button"
 msgstr "Κουμπί"
 
-#: ../actions.cc:170
 msgid "Misc"
 msgstr "Διάφορα"
 
-#: ../actions.cc:226 ../stats.cc:33 ../stats.cc:39
 msgid "Stroke"
 msgstr "Κτύπημα"
 
-#: ../actions.cc:232 ../stats.cc:34 ../stats.cc:42
 msgid "Name"
 msgstr "Όνομα"
 
-#: ../actions.cc:256
 msgid "Type"
 msgstr "Τύπος"
 
-#: ../actions.cc:262
 msgid "Details"
 msgstr "Λεπτομέρειες"
 
-#: ../actions.cc:287
 msgid "Application"
 msgstr "Εφαρμογή"
 
-#: ../actions.cc:294 ../gui.glade.h:9
 msgid "Actions"
 msgstr "Ενέργειες"
 
-#: ../actions.cc:552
 msgid "Action \"%1\" is about to be deleted."
 msgstr "Η δράση \"%1\" πρόκειται να διαγραφεί"
 
-#: ../actions.cc:554
 msgid "One action is about to be deleted."
 msgid_plural "%1 actions are about to be deleted"
 msgstr[0] "Μία δράση πρόκειται να διαγραφεί"
 msgstr[1] "%1 δράσεις πρόκειται να διαγραφούν"
 
-#: ../actions.cc:559
 msgid "Delete an Action"
 msgid_plural "Delete Actions"
 msgstr[0] "Διαγραφή μιας Δράσης"
 msgstr[1] "Διαγραφή Δράσεων"
 
-#: ../actions.cc:625
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
 msgstr "%1 \"%2\" (που περιέχει %3 %4) πρόκειται να διαγραφεί."
 
-#: ../actions.cc:626
 msgid "The application"
 msgstr "Η εφαρμογή"
 
-#: ../actions.cc:626
 msgid "The group"
 msgstr "Η ομάδα"
 
-#: ../actions.cc:629
 msgid "action"
 msgid_plural "actions"
 msgstr[0] "δράση"
 msgstr[1] "δράσεις"
 
-#: ../actions.cc:630
 msgid "Delete an Application"
 msgstr "Διαγραφή μιας Εφαρμογής"
 
-#: ../actions.cc:630
 msgid "Delete an Application Group"
 msgstr "Διαγραφή μιας Ομάδας Εφαρμογών"
 
-#: ../actions.cc:660
 msgid "Group"
 msgstr "Ομάδα"
 
-#: ../actions.cc:760
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
@@ -185,11 +148,9 @@ msgstr ""
 "την χρήση του Κουμπιού %1 στο μέλλον. Είστε σίγουρος ότι θέλετε να "
 "συνεχίσετε;"
 
-#: ../actions.cc:793
 msgid "Record a New Stroke"
 msgstr "Καταχωρήστε ένα Νέο Κτύπημα"
 
-#: ../actions.cc:794
 msgid ""
 "The next stroke will be associated with the action \"%1\".  You can draw it "
 "anywhere on the screen (except for the two buttons below)."
@@ -197,63 +158,49 @@ msgstr ""
 "Το επόμενο κτύπημα θα συσχετισθεί με την δράση \"%1\". Μπορείτε να "
 "σχεδιάσετε οπουδήποτε στην οθόνη (εκτός από τα δύο κουμπιά παρακάτω)."
 
-#: ../actions.cc:886
 msgid "Gesture %1"
 msgstr "Χειρονομία %1"
 
-#: ../actions.cc:1002
 msgid "No Modifiers"
 msgstr "Όχι Τροποποιητές"
 
-#: ../actions.cc:1010
 msgid "(Instantly) "
 msgstr "(Άμεσα) "
 
-#: ../actions.cc:1012
 msgid "(Click & Hold) "
 msgstr "(Κλικ & Κράτημα) Ε "
 
-#: ../actions.cc:1014
 msgid "Any Modifier"
 msgstr "Κάθε Τροποποιητή"
 
-#: ../actions.cc:1017 ../prefs.cc:446
 msgid "Button %1"
 msgstr "Κουμπί %1"
 
-#: ../actions.cc:1022
 msgid " + Scroll"
 msgstr " + Κύλιση"
 
-#: ../composite.cc:26
 msgid "'composite' not available"
 msgstr "Δεν είναι διαθέσιμο το 'composite'"
 
-#: ../main.cc:102 ../main.cc:263 ../main.cc:1366
 #, c-format
 msgid "Error: %s\n"
 msgstr "Σφάλμα: %s\n"
 
-#: ../main.cc:265
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Σφάλμα: Η σύλληψη απέτυχε. Επαναφορά...\n"
 
-#: ../main.cc:286
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "Μοιραίο Σφάλμα: Η σύνδεση στον X server χάθηκε, επανεκκίνηση...\n"
 
-#: ../main.cc:935
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Προειδοποίηση: Καμία δράση \"%s\" δεν έχει ορισθεί\n"
 
-#: ../main.cc:950
 msgid "Tray icon disabled"
 msgstr "Το εικονίδιο συστήματος απενργοποιήθηκε"
 
-#: ../main.cc:951
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
@@ -261,108 +208,84 @@ msgstr ""
 "Για να επαναφέρετε το παράθυρο διαμόρφωσης, θα πρέπει να ορίσετε μία δράση "
 "τύπου Διάφορα...Εμφάνιση/Απόκρυψη."
 
-#: ../main.cc:1012
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "Σφάλμα αρχικοποίησης D-BUS\n"
 
-#: ../main.cc:1050
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Δεν μπόρεσε να ανοιχθεί display.\n"
 
-#: ../main.cc:1054
 #, c-format
 msgid ""
 "Easystroke is already running, showing configuration window instead.\n"
 msgstr ""
 "Το easystroke τρέχει ήδη, προβολή παραθύρου παραμετροποίησης αντ'αυτού\n"
 
-#: ../main.cc:1203
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "Σφάλμα: Δεν μπόρεσε να δημιουργηθεί ο κατάλογος διαμόρφωσης \"%s\"\n"
 
-#: ../main.cc:1208
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "Σφάλμα: \"%s\" δεν είναι κατάλογος\n"
 
-#: ../prefdb.cc:150
 #, c-format
 msgid "Error: Couldn't save preferences: %s.\n"
 msgstr "Σφάλμα: Δεν σώθηκαν οι προτιμήσεις:%s.\n"
 
-#: ../prefdb.cc:157
 msgid "preferences"
 msgstr "προτιμήσεις"
 
-#: ../prefdb.cc:223
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "Σφάλμα: Δεν διαβάστηκαν οι προτιμήσεις.\n"
 
-#: ../prefs.cc:156
 msgid "XShape"
 msgstr "XShape"
 
-#: ../prefs.cc:157
 msgid "Annotate (compiz)"
 msgstr "Σχολιασμός (compiz)"
 
-#: ../prefs.cc:158
 msgid "Fire (compiz)"
 msgstr "Φλόγα (compiz)"
 
-#: ../prefs.cc:159
 msgid "Water (compiz)"
 msgstr "Νερό (compiz)"
 
-#: ../prefs.cc:164 ../prefs.cc:174
 msgid "Timeout Off"
 msgstr "Απενεργοποίηση Timeout"
 
-#: ../prefs.cc:165 ../prefs.cc:175
 msgid "Conservative"
 msgstr "Συντηρητικό"
 
-#: ../prefs.cc:167 ../prefs.cc:177
 msgid "Medium"
 msgstr "Μεσαίο"
 
-#: ../prefs.cc:168 ../prefs.cc:178
 msgid "Aggressive"
 msgstr "Επιθετικό"
 
-#: ../prefs.cc:169 ../prefs.cc:179
 msgid "Flick"
 msgstr "Flick"
 
-#: ../prefs.cc:180
 msgid "Custom"
 msgstr "Προσαρμοσμένo"
 
-#: ../prefs.cc:298
 msgid "Application (WM__CLASS)"
 msgstr "Εφαρμογή (WM__CLASS)"
 
-#: ../prefs.cc:316
 msgid "Enabled"
 msgstr "Ενεργοποιήθηκε"
 
-#: ../prefs.cc:317
 msgid "Device"
 msgstr "Συσκευή"
 
-#: ../prefs.cc:342 ../prefs.cc:595 ../prefs.cc:618
 msgid "<App disabled>"
 msgstr "<Απενεργοποίηση Εφαρμογής>"
 
-#: ../prefs.cc:426
 msgid "Select a Mouse or Pen Button"
 msgstr "Επιλέξτε ένα κουμπί Ποντικιού ή Πένας"
 
-#: ../prefs.cc:427
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
@@ -371,252 +294,191 @@ msgstr ""
 "το πλήκτρο που θέλετε να επιλέξετε. Μπορείτε επίσης να κρατήσετε πατημένους "
 "επιπλέον τροποποιητές."
 
-#: ../stats.cc:35 ../stats.cc:43
 msgid "Score"
 msgstr "Σκορ"
 
-#: ../win.cc:161
 msgid "D_isabled"
 msgstr "_Απενεργοποίηση"
 
-#: ../win.cc:272
 msgid "(window manager frame)"
 msgstr "(πλαίσιο διαχειρηστή παραθύρων)"
 
-#: ../trace.h:23
 msgid "Connection to DBus failed"
 msgstr "Η σύνδεση στο DBus απέτυχε"
 
-#: ../gui.glade.h:1
 msgid "     Timeout (ms)"
 msgstr "     Timeout (ms)"
 
-#: ../gui.glade.h:2
 msgid "(See Documentation)"
 msgstr "(Βλέπε Τεκμηρίωση)"
 
-#: ../gui.glade.h:3
 msgid "<b>Appearance</b>"
 msgstr "<b>Εμφάνιση</b>"
 
-#: ../gui.glade.h:4
 msgid "<b>Behavior</b>"
 msgstr "<b>Συμπεριφορά</b>"
 
-#: ../gui.glade.h:5
 msgid "<b>Devices</b>"
 msgstr "<b>Συσκευές</b>"
 
-#: ../gui.glade.h:6
 msgid "<b>Exceptions</b>"
 msgstr "<b>Εξαιρέσεις</b>"
 
-#: ../gui.glade.h:7
 msgid "<b>Tablet Options</b>"
 msgstr "<b>Επιλογές Πινακίδας</b>"
 
-#: ../gui.glade.h:8
 msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
 msgstr ""
 "Διακοπή κτυπήματος αν η πίεση υπερβεί τον αριθμό στα αριστερά (μέχρι το 255)"
 
-#: ../gui.glade.h:10
 msgid "Add Application"
 msgstr "Προσθήκη Εφαρμογής"
 
-#: ../gui.glade.h:11
 msgid "Add Group"
 msgstr "Προσθήκη Ομάδας"
 
-#: ../gui.glade.h:12
 msgid "Additional Buttons"
 msgstr "Πρόσθετα Κουμπιά"
 
-#: ../gui.glade.h:13
 msgid "Advanced"
 msgstr "Για προχωρημένους"
 
-#: ../gui.glade.h:14
 msgid "Alternatively, you may select button and modifiers below."
 msgstr ""
 "Εναλλακτικά, μπορείτε  να επιλέξετε κουμπί και τροποποιητές παρακάτω."
 
-#: ../gui.glade.h:15
 msgid "An_y Modifier"
 msgstr "Κάθ_ε Τροποποιητής"
 
-#: ../gui.glade.h:16
 msgid "Applications"
 msgstr "Εφαρμογές"
 
-#: ../gui.glade.h:17
 msgid "Autostart easystroke"
 msgstr "Αυτόματη έναρξη easystroke"
 
-#: ../gui.glade.h:18
 msgid "Click & Hold"
 msgstr "Κλικ & Κράτημα"
 
-#: ../gui.glade.h:19
 msgid "Color"
 msgstr "Χρώμα"
 
-#: ../gui.glade.h:20
 msgid "Ignore strokes leading up to advanced gestures"
 msgstr "Αγνοήστε κτυπήματε που οδηγούν σε προχωρημένες χειρονομίες"
 
-#: ../gui.glade.h:21
 msgid "Initial Timeout (ms)"
 msgstr "Αρχικό Όριο Χρόνου (ms)"
 
-#: ../gui.glade.h:22
 msgid "Instant Gestures"
 msgstr "Στιγμιαίες Χειρονομίες"
 
-#: ../gui.glade.h:23
 msgid "Invert Scroll Direction"
 msgstr "Αντιστροφή Διεύθυνσης Κύλισης"
 
-#: ../gui.glade.h:24
 msgid "Method to show gestures"
 msgstr "Μέθοδος εμφάνισης χειρονομιών"
 
-#: ../gui.glade.h:25
 msgid "Move the cursor back to the original position after each gesture"
 msgstr ""
 "Μετακινήστε τον κέρσορα πίσω στην αρχική του θέση ύστερα από κάθε χειρονομία"
 
-#: ../gui.glade.h:26
 msgid "Preferences"
 msgstr "Προτιμήσεις"
 
-#: ../gui.glade.h:27
 msgid "Remove Application/Group"
 msgstr "Αφαίρεση Εφαρμογής/Ομάδας"
 
-#: ../gui.glade.h:28
 msgid "Reset Action(s)"
 msgstr "Επαναφορά Δράσεων"
 
-#: ../gui.glade.h:29
 msgid "S_uper"
 msgstr "S_uper"
 
-#: ../gui.glade.h:30
 msgid "Scroll Speed"
 msgstr "Ταχύτητα Κύλισης"
 
-#: ../gui.glade.h:31
 msgid "Show OSD"
 msgstr "Εμφάνιση OSD"
 
-#: ../gui.glade.h:32
 msgid "Show deleted rows"
 msgstr "Εμφάνιση διεγραμμένων γραμμών"
 
-#: ../gui.glade.h:33
 msgid "Show last gesture in tray"
 msgstr "Εμφάνιση τελευταία χειρονομίας στην περιοχή ειδοποιήσεων"
 
-#: ../gui.glade.h:34
 msgid "Show popups ("
 msgstr "Εμφάνιση popups ("
 
-#: ../gui.glade.h:35
 msgid "Show popups on advanced gestures"
 msgstr "Εμφάνιση popups σε προχωρημένες χειρονομίες"
 
-#: ../gui.glade.h:36
 msgid "Show tray icon"
 msgstr "Εμφάνιση εικονιδίου συστήματος"
 
-#: ../gui.glade.h:37
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Μείνετε σε κατάσταση 'κύλιση' και 'άγνοια' μέχρι η πένα να είναι μεταξύ του "
 "εύρους"
 
-#: ../gui.glade.h:38
 msgid "Timeout"
 msgstr "Timeout"
 
-#: ../gui.glade.h:39
 msgid "Timeout Gestures"
 msgstr "Timeout χειρονομιών"
 
-#: ../gui.glade.h:40
 msgid "Timeout profile"
 msgstr "Timeout προφίλ"
 
-#: ../gui.glade.h:41
 msgid "Width"
 msgstr "Πλάτος"
 
-#: ../gui.glade.h:42
 msgid "_Add Action"
 msgstr "_Προσθήκη Δράσης"
 
-#: ../gui.glade.h:43
 msgid "_Add Exception"
 msgstr "_Προσθήκη Εξαίρεσης"
 
-#: ../gui.glade.h:44
 msgid "_Alt"
 msgstr "_Alt"
 
-#: ../gui.glade.h:45
 msgid "_Control"
 msgstr "_Control"
 
-#: ../gui.glade.h:46
 msgid "_Default"
 msgstr "_Προεπιλογή"
 
-#: ../gui.glade.h:47
 msgid "_Delete Action(s)"
 msgstr "_Διαγραφή Δράσεων"
 
-#: ../gui.glade.h:48
 msgid "_Delete Current"
 msgstr "_Διαγραφή Τρέχοντος"
 
-#: ../gui.glade.h:49
 msgid "_Gesture Button"
 msgstr "Κουμπί _Χειρονομίας"
 
-#: ../gui.glade.h:50
 msgid "_Hide"
 msgstr "_Απόκρυψη"
 
-#: ../gui.glade.h:51
 msgid "_History"
 msgstr "_Ιστορικό"
 
-#: ../gui.glade.h:52
 msgid "_Matrix"
 msgstr "_Μήτρα"
 
-#: ../gui.glade.h:53
 msgid "_Record Stroke"
 msgstr "_Καταχώρηση Κτυπήματος"
 
-#: ../gui.glade.h:54
 msgid "_Remove Exception"
 msgstr "_Αφαίρεση Εξαίρεσης"
 
-#: ../gui.glade.h:55
 msgid "_Shift"
 msgstr "_Shift"
 
-#: ../gui.glade.h:56
 msgid "optimize for left-handed operation )"
 msgstr "βελτιστοποίηση για χειρισμούς από αριστερόχειρες"
 
-#: ../easystroke.desktop.in.h:1
 msgid "Control your desktop using mouse gestures"
 msgstr "Ελέγξτε την επιφάνεια εργασίας χρησιμοποιώντας χειρονομίες ποντικιού"
 
-#: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke Αναγνώρηση Χειρονομιών"
 

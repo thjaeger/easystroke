@@ -104,6 +104,12 @@ update-translations: po/POTFILES.in
 		intltool-update `echo $$f | sed "s|po/\(.*\)\.po$$|\1|"`; \
 	done
 
+strip-translations:
+	for f in $(POFILES); do \
+		grep -v '^#:' $$f > $$f.out; \
+		mv $$f.out $$f; \
+	done
+
 po/%/LC_MESSAGES/easystroke.mo: po/%.po
 	mkdir -p po/$*/LC_MESSAGES
 	msgfmt -c $< -o $@

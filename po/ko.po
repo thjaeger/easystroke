@@ -19,47 +19,36 @@ msgstr ""
 "X-Launchpad-Export-Date: 2011-03-09 17:56+0000\n"
 "X-Generator: Launchpad (build 12532)\n"
 
-#: ../actiondb.cc:127
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
 msgstr "오류: 명령 \"%s\"를 실행할 수 없습니다: fork() 실패\n"
 
-#: ../actiondb.cc:145 ../prefs.cc:154
 msgid "None"
 msgstr "없음"
 
-#: ../actiondb.cc:145
 msgid "Unminimize"
 msgstr "최소화 안함"
 
-#: ../actiondb.cc:145
 msgid "Show/Hide"
 msgstr "보이기/숨기기"
 
-#: ../actiondb.cc:145
 msgid "Disable (Enable)"
 msgstr "비활성화(활성화)"
 
-#: ../actiondb.cc:159 ../actiondb.cc:183 ../prefs.cc:155 ../prefs.cc:166
-#: ../prefs.cc:176
 msgid "Default"
 msgstr "기본값"
 
-#: ../actiondb.cc:210
 #, c-format
 msgid "Error: Couldn't read action database: %s.\n"
 msgstr "오류: %s 움직임 데이터베이스를 읽을 수 없습니다.\n"
 
-#: ../actiondb.cc:226
 msgid "rename() failed"
 msgstr "rename() 실패"
 
-#: ../actiondb.cc:230
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
 msgstr "오류: %s 움직임 데이터베이스를 저장할 수 없습니다.\n"
 
-#: ../actiondb.cc:234 ../prefdb.cc:154
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
 "directory and that you have write access to it.  You can change the "
@@ -68,533 +57,406 @@ msgstr ""
 "%1을(를) 저장하지 못했습니다. 바뀐 점은 없어집니다. \"%2\"이(가) 쓰기 가능한 경로인지 확인하십시오. 명령행에서 -c 또는 --"
 "config-dir 옵션을 통해 설정 경로를 바꿀 수 있습니다."
 
-#: ../actiondb.cc:237
 msgid "actions"
 msgstr "활동"
 
-#: ../actions.cc:66
 msgid "Key combination..."
 msgstr "키 조합..."
 
-#: ../actions.cc:164
 msgid "Command"
 msgstr "명령어"
 
-#: ../actions.cc:165
 msgid "Key"
 msgstr "키"
 
-#: ../actions.cc:166
 msgid "Text"
 msgstr "글자"
 
-#: ../actions.cc:167 ../actions.cc:1024
 msgid "Scroll"
 msgstr "스크롤"
 
-#: ../actions.cc:168 ../actions.cc:1031
 msgid "Ignore"
 msgstr "무시"
 
-#: ../actions.cc:169 ../prefs.cc:303 ../prefs.cc:327
 msgid "Button"
 msgstr "단추"
 
-#: ../actions.cc:170
 msgid "Misc"
 msgstr "기타"
 
-#: ../actions.cc:226 ../stats.cc:33 ../stats.cc:39
 msgid "Stroke"
 msgstr "선 그리기"
 
-#: ../actions.cc:232 ../stats.cc:34 ../stats.cc:42
 msgid "Name"
 msgstr "이름"
 
-#: ../actions.cc:256
 msgid "Type"
 msgstr "종류"
 
-#: ../actions.cc:262
 msgid "Details"
 msgstr "자세히"
 
-#: ../actions.cc:287
 msgid "Application"
 msgstr "프로그램"
 
-#: ../actions.cc:294 ../gui.glade.h:9
 msgid "Actions"
 msgstr "활동"
 
-#: ../actions.cc:552
 msgid "Action \"%1\" is about to be deleted."
 msgstr "활동 \"%1\"을(를) 삭제할 것입니다."
 
-#: ../actions.cc:554
 msgid "One action is about to be deleted."
 msgid_plural "%1 actions are about to be deleted"
 msgstr[0] "활동이 삭제됩니다."
 
-#: ../actions.cc:559
 msgid "Delete an Action"
 msgid_plural "Delete Actions"
 msgstr[0] "활동 삭제"
 
-#: ../actions.cc:625
 msgid "%1 \"%2\" (containing %3 %4) is about to be deleted."
 msgstr "%1 \"%2\" (%3 %4를 포함하는)을(를) 삭제할 것입니다."
 
-#: ../actions.cc:626
 msgid "The application"
 msgstr "프로그램"
 
-#: ../actions.cc:626
 msgid "The group"
 msgstr "모음"
 
-#: ../actions.cc:629
 msgid "action"
 msgid_plural "actions"
 msgstr[0] "동작"
 
-#: ../actions.cc:630
 msgid "Delete an Application"
 msgstr "프로그램 삭제"
 
-#: ../actions.cc:630
 msgid "Delete an Application Group"
 msgstr "프로그램 모음 삭제"
 
-#: ../actions.cc:660
 msgid "Group"
 msgstr ""
 
-#: ../actions.cc:760
 msgid ""
 "You are about to bind an action to a single click.  This might make it "
 "difficult to use Button %1 in the future.  Are you sure you want to continue?"
 msgstr "활동을 한번 클릭과 연결하려 합니다. 이는 나중에 %1 버튼을 사용하기 힘들게 합니다. 계속하시겠습니까?"
 
-#: ../actions.cc:793
 msgid "Record a New Stroke"
 msgstr "새 선 그리기를 녹음합니다."
 
-#: ../actions.cc:794
 msgid ""
 "The next stroke will be associated with the action \"%1\".  You can draw it "
 "anywhere on the screen (except for the two buttons below)."
 msgstr "다음 선 그리기는 \"%1\" 활동에 연결됩니다. 화면 아무곳에 그리세요(두 버튼 아래 제외)."
 
-#: ../actions.cc:886
 msgid "Gesture %1"
 msgstr "동작 %1"
 
-#: ../actions.cc:1002
 msgid "No Modifiers"
 msgstr "고치기 없음"
 
-#: ../actions.cc:1010
 msgid "(Instantly) "
 msgstr "(즉시) "
 
-#: ../actions.cc:1012
 msgid "(Click & Hold) "
 msgstr "(클릭 유지) "
 
-#: ../actions.cc:1014
 msgid "Any Modifier"
 msgstr "다른 수정"
 
-#: ../actions.cc:1017 ../prefs.cc:446
 msgid "Button %1"
 msgstr "버튼 %1"
 
-#: ../actions.cc:1022
 msgid " + Scroll"
 msgstr " +스크롤"
 
-#: ../composite.cc:26
 msgid "'composite' not available"
 msgstr "'컴퍼지트' 사용 불가"
 
-#: ../main.cc:102 ../main.cc:263 ../main.cc:1366
 #, c-format
 msgid "Error: %s\n"
 msgstr "오류: %s\n"
 
-#: ../main.cc:265
 #, c-format
 msgid "Error: A grab failed.  Resetting...\n"
 msgstr "오류: 잡기 실패. 다시 설정중...\n"
 
-#: ../main.cc:286
 #, c-format
 msgid "Fatal Error: Connection to X server lost, restarting...\n"
 msgstr "치명적인 오류: X 서버와의 연결이 끊어짐, 재시작중...\n"
 
-#: ../main.cc:935
 #, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "경고: 활동 \"%s\"가 정의되지 않음\n"
 
-#: ../main.cc:950
 msgid "Tray icon disabled"
 msgstr "트레이 아이콘이 비활성화됨"
 
-#: ../main.cc:951
 msgid ""
 "To bring the configuration dialog up again, you should define an action of "
 "type Misc...Show/Hide."
 msgstr "설정 창을 다시 보려면 활동의 없음...보이기/숨기기 형식을 지정해야 합니다."
 
-#: ../main.cc:1012
 #, c-format
 msgid "Error initializing D-BUS\n"
 msgstr "D-BUS 초기화 오류\n"
 
-#: ../main.cc:1050
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "디스플레이를 열 수 없습니다.\n"
 
-#: ../main.cc:1054
 #, c-format
 msgid ""
 "Easystroke is already running, showing configuration window instead.\n"
 msgstr "이지스트로크가 이미 실행중이므로 설정 창을 대신 보여드립니다.\n"
 
-#: ../main.cc:1203
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
 msgstr "오류: \"%s\" 설정 경로를 열 수 없습니다.\n"
 
-#: ../main.cc:1208
 #, c-format
 msgid "Error: \"%s\" is not a directory\n"
 msgstr "오류: \"%s\"은(는) 경로가 아닙니다.\n"
 
-#: ../prefdb.cc:150
 #, c-format
 msgid "Error: Couldn't save preferences: %s.\n"
 msgstr "오류: 환경설정:%s을 저장할 수 없습니다.\n"
 
-#: ../prefdb.cc:157
 msgid "preferences"
 msgstr "환경설정"
 
-#: ../prefdb.cc:223
 #, c-format
 msgid "Error: Couldn't read preferences.\n"
 msgstr "오류: 환경설정을 읽을 수 없습니다.\n"
 
-#: ../prefs.cc:156
 msgid "XShape"
 msgstr "XShape"
 
-#: ../prefs.cc:157
 msgid "Annotate (compiz)"
 msgstr "주석 (컴피즈)"
 
-#: ../prefs.cc:158
 msgid "Fire (compiz)"
 msgstr "화면에 불꽃으로 그림을 그림 (컴피즈)"
 
-#: ../prefs.cc:159
 msgid "Water (compiz)"
 msgstr "물결 효과 (컴피즈)"
 
-#: ../prefs.cc:164 ../prefs.cc:174
 msgid "Timeout Off"
 msgstr "시간제한 끔"
 
-#: ../prefs.cc:165 ../prefs.cc:175
 msgid "Conservative"
 msgstr "조심스러움"
 
-#: ../prefs.cc:167 ../prefs.cc:177
 msgid "Medium"
 msgstr "중간"
 
-#: ../prefs.cc:168 ../prefs.cc:178
 msgid "Aggressive"
 msgstr "적극적"
 
-#: ../prefs.cc:169 ../prefs.cc:179
 msgid "Flick"
 msgstr "경쾌함"
 
-#: ../prefs.cc:180
 msgid "Custom"
 msgstr "사용자 지정"
 
-#: ../prefs.cc:298
 msgid "Application (WM__CLASS)"
 msgstr "프로그램 (WM_CLASS)"
 
-#: ../prefs.cc:316
 msgid "Enabled"
 msgstr "활성화"
 
-#: ../prefs.cc:317
 msgid "Device"
 msgstr "기기"
 
-#: ../prefs.cc:342 ../prefs.cc:595 ../prefs.cc:618
 msgid "<App disabled>"
 msgstr "<프로그램 비활성화>"
 
-#: ../prefs.cc:426
 msgid "Select a Mouse or Pen Button"
 msgstr "마우스나 펜 버튼을 선택하세요"
 
-#: ../prefs.cc:427
 msgid ""
 "Please place your mouse or pen in the box below and press the button that "
 "you want to select.  You can also hold down additional modifiers."
 msgstr "박스 안으로 마우스나 펜을 가져가서 선택할 버튼을 누르십시오. 추가 변경자를 억제할 수도 있습니다."
 
-#: ../stats.cc:35 ../stats.cc:43
 msgid "Score"
 msgstr "점수"
 
-#: ../win.cc:161
 msgid "D_isabled"
 msgstr "사용 안함(_I)"
 
-#: ../win.cc:272
 msgid "(window manager frame)"
 msgstr "(창 관리자 프레임)"
 
-#: ../trace.h:23
 msgid "Connection to DBus failed"
 msgstr "DBus 연결 실패"
 
-#: ../gui.glade.h:1
 msgid "     Timeout (ms)"
 msgstr "     시간제한 (ms)"
 
-#: ../gui.glade.h:2
 msgid "(See Documentation)"
 msgstr "(문서 참조)"
 
-#: ../gui.glade.h:3
 msgid "<b>Appearance</b>"
 msgstr "<b>모양새</b>"
 
-#: ../gui.glade.h:4
 msgid "<b>Behavior</b>"
 msgstr "<b>동작</b>"
 
-#: ../gui.glade.h:5
 msgid "<b>Devices</b>"
 msgstr "<b>기기</b>"
 
-#: ../gui.glade.h:6
 msgid "<b>Exceptions</b>"
 msgstr "<b>예외</b>"
 
-#: ../gui.glade.h:7
 msgid "<b>Tablet Options</b>"
 msgstr "<b>태블릿 선택</b>"
 
-#: ../gui.glade.h:8
 msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
 msgstr "압력이 왼쪽 숫자(255 이하)를 넘어서면 선 그리기 취소"
 
-#: ../gui.glade.h:10
 msgid "Add Application"
 msgstr "프로그램 추가"
 
-#: ../gui.glade.h:11
 msgid "Add Group"
 msgstr "모음 추가"
 
-#: ../gui.glade.h:12
 msgid "Additional Buttons"
 msgstr "보조 버튼"
 
-#: ../gui.glade.h:13
 msgid "Advanced"
 msgstr "고급"
 
-#: ../gui.glade.h:14
 msgid "Alternatively, you may select button and modifiers below."
 msgstr "대신, 아래의 버튼과 변경자를 선택할 수 있습니다."
 
-#: ../gui.glade.h:15
 msgid "An_y Modifier"
 msgstr "다른 변경자(_Y)"
 
-#: ../gui.glade.h:16
 msgid "Applications"
 msgstr "프로그램"
 
-#: ../gui.glade.h:17
 msgid "Autostart easystroke"
 msgstr "이지스트로크 자동 실행"
 
-#: ../gui.glade.h:18
 msgid "Click & Hold"
 msgstr "누른채로 잡고있기"
 
-#: ../gui.glade.h:19
 msgid "Color"
 msgstr "색"
 
-#: ../gui.glade.h:20
 msgid "Ignore strokes leading up to advanced gestures"
 msgstr "고급 동작에 따라 무시"
 
-#: ../gui.glade.h:21
 msgid "Initial Timeout (ms)"
 msgstr "초기 시간제한 (ms)"
 
-#: ../gui.glade.h:22
 msgid "Instant Gestures"
 msgstr "순간 동작"
 
-#: ../gui.glade.h:23
 msgid "Invert Scroll Direction"
 msgstr "스크롤 방향 뒤집기"
 
-#: ../gui.glade.h:24
 msgid "Method to show gestures"
 msgstr "동작을 보여줄 방법"
 
-#: ../gui.glade.h:25
 msgid "Move the cursor back to the original position after each gesture"
 msgstr "동작 후 커서를 원래 위치로 돌려놓음"
 
-#: ../gui.glade.h:26
 msgid "Preferences"
 msgstr "환경설정"
 
-#: ../gui.glade.h:27
 msgid "Remove Application/Group"
 msgstr "프로그램/모음 지우기"
 
-#: ../gui.glade.h:28
 msgid "Reset Action(s)"
 msgstr "활동 초기화"
 
-#: ../gui.glade.h:29
 msgid "S_uper"
 msgstr "S_uper"
 
-#: ../gui.glade.h:30
 msgid "Scroll Speed"
 msgstr "스크롤 빠르기"
 
-#: ../gui.glade.h:31
 msgid "Show OSD"
 msgstr "OSD 보임"
 
-#: ../gui.glade.h:32
 msgid "Show deleted rows"
 msgstr "삭제된 줄 보이기"
 
-#: ../gui.glade.h:33
 msgid "Show last gesture in tray"
 msgstr "트레이에 마지막 동작 보이기"
 
-#: ../gui.glade.h:34
 msgid "Show popups ("
 msgstr "팝업 보이기 ("
 
-#: ../gui.glade.h:35
 msgid "Show popups on advanced gestures"
 msgstr "고급 동작 시 팝업 보이기"
 
-#: ../gui.glade.h:36
 msgid "Show tray icon"
 msgstr "트레이 아이콘 보이기"
 
-#: ../gui.glade.h:37
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr "펜이 범위 안에 있는 동안 '스크롤'과 '무시' 상태 유지하기"
 
-#: ../gui.glade.h:38
 msgid "Timeout"
 msgstr "시간제한"
 
-#: ../gui.glade.h:39
 msgid "Timeout Gestures"
 msgstr "활동 시간제한"
 
-#: ../gui.glade.h:40
 msgid "Timeout profile"
 msgstr "시간제한 정책"
 
-#: ../gui.glade.h:41
 msgid "Width"
 msgstr "너비"
 
-#: ../gui.glade.h:42
 msgid "_Add Action"
 msgstr "활동 추가(_A)"
 
-#: ../gui.glade.h:43
 msgid "_Add Exception"
 msgstr "예외 추가(_A)"
 
-#: ../gui.glade.h:44
 msgid "_Alt"
 msgstr "_Alt"
 
-#: ../gui.glade.h:45
 msgid "_Control"
 msgstr "_Control"
 
-#: ../gui.glade.h:46
 msgid "_Default"
 msgstr "기본값(_D)"
 
-#: ../gui.glade.h:47
 msgid "_Delete Action(s)"
 msgstr "활동 삭제(_D)"
 
-#: ../gui.glade.h:48
 msgid "_Delete Current"
 msgstr "현재 것 삭제(_D)"
 
-#: ../gui.glade.h:49
 msgid "_Gesture Button"
 msgstr "동작 버튼(_G)"
 
-#: ../gui.glade.h:50
 msgid "_Hide"
 msgstr "숨기기(_H)"
 
-#: ../gui.glade.h:51
 msgid "_History"
 msgstr "기록(_H)"
 
-#: ../gui.glade.h:52
 msgid "_Matrix"
 msgstr "표(_M)"
 
-#: ../gui.glade.h:53
 msgid "_Record Stroke"
 msgstr "선 그리기 기록(_R)"
 
-#: ../gui.glade.h:54
 msgid "_Remove Exception"
 msgstr "예외 삭제(_R)"
 
-#: ../gui.glade.h:55
 msgid "_Shift"
 msgstr "_Shift"
 
-#: ../gui.glade.h:56
 msgid "optimize for left-handed operation )"
 msgstr "왼손잡이에 맞게 최적화 )"
 
-#: ../easystroke.desktop.in.h:1
 msgid "Control your desktop using mouse gestures"
 msgstr "마우스 동작을 통해 데스크탑 제어"
 
-#: ../easystroke.desktop.in.h:2
 msgid "Easystroke Gesture Recognition"
 msgstr "이지스트로크 동작 인식"
