@@ -570,7 +570,7 @@ Van Diep Duong (Vietnamese)</property>
             <property name="border_width">6</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkVPaned" id="vpaned1">
+              <object class="GtkVPaned" id="vpaned_apps">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <child>

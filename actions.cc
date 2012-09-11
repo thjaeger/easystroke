@@ -185,6 +185,7 @@ const char *type_info_to_name(const std::type_info *info) {
 
 Actions::Actions() :
 	apps_view(0),
+	vpaned_position(-1),
 	editing_new(false),
 	editing(false),
 	action_list(actions.get_root())
@@ -205,6 +206,7 @@ Actions::Actions() :
 	widgets->get_widget("button_reset_actions", button_reset_actions);
 	widgets->get_widget("check_show_deleted", check_show_deleted);
 	widgets->get_widget("expander_apps", expander_apps);
+	widgets->get_widget("vpaned_apps", vpaned_apps);
 	button_record->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_record));
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
@@ -276,6 +278,7 @@ Actions::Actions() :
 
 	check_show_deleted->signal_toggled().connect(sigc::mem_fun(*this, &Actions::update_action_list));
 	expander_apps->property_expanded().signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
+	expander_apps->property_expanded().signal_changed().connect(sigc::mem_fun(*this, &Actions::on_expanded));
 	apps_view->get_selection()->signal_changed().connect(sigc::mem_fun(*this, &Actions::on_apps_selection_changed));
 	apps_model = AppsStore::create(ca, this);
 
@@ -676,6 +679,18 @@ void Actions::on_group_name_edited(const Glib::ustring& path, const Glib::ustrin
 	ActionListDiff *as = row[ca.actions];
 	as->name = new_text;
 	update_actions();
+}
+
+void Actions::on_expanded() {
+	if (expander_apps->get_expanded()) {
+		vpaned_apps->set_position(vpaned_position);
+	} else {
+		if(vpaned_apps->property_position_set().get_value())
+			vpaned_position = vpaned_apps->get_position();
+		else
+			vpaned_position = -1;
+		vpaned_apps->property_position_set().set_value(false);
+	}
 }
 
 void Actions::on_apps_selection_changed() {

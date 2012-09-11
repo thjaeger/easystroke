@@ -65,6 +65,7 @@ private:
 	void on_add_group();
 	void on_group_name_edited(const Glib::ustring& path, const Glib::ustring& new_text);
 	void on_apps_selection_changed();
+	void on_expanded();
 	void load_app_list(const Gtk::TreeNodeChildren &ch, ActionListDiff *actions);
 	void on_cell_data_apps(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter);
 	void update_action_list();
@@ -139,7 +140,9 @@ private:
 	Gtk::Button *button_record, *button_delete, *button_remove_app, *button_reset_actions;
 	Gtk::CheckButton *check_show_deleted;
 	Gtk::Expander *expander_apps;
+	Gtk::VPaned *vpaned_apps;
 
+	int vpaned_position;
 	bool editing_new;
 	bool editing;
 
