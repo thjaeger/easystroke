@@ -719,6 +719,7 @@ void Actions::update_counts() {
 }
 
 void Actions::update_action_list() {
+	check_show_deleted->set_sensitive(action_list != actions.get_root());
 	boost::shared_ptr<std::set<Unique *> > ids = action_list->get_ids(check_show_deleted->get_active());
 	const Gtk::TreeNodeChildren &ch = tm->children();
 
