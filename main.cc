@@ -1467,6 +1467,10 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			if (xinput_pressed.size()) {
 				if (!current_dev || current_dev->dev != event->deviceid)
 					break;
+			} else {
+				current_app_window.set(get_app_window(event->child));
+				if (verbosity >= 3)
+					printf("Active window 0x%lx -> 0x%lx\n", event->child, current_app_window.get());
 			}
 			current_dev = grabber->get_xi_dev(event->deviceid);
 			if (!current_dev) {
