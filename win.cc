@@ -286,5 +286,5 @@ void error_dialog(const Glib::ustring &text) {
 }
 
 Glib::ustring app_name_hr(Glib::ustring src) {
-	return src == "" ? _("(window manager frame)") : src;
+	return src == "" ? _("<unnamed>") : src;
 }

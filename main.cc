@@ -1504,7 +1504,8 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			handle_raw_motion((XIRawEvent *)event);
 			break;
 		case XI_HierarchyChanged:
-			grabber->hierarchy_changed((XIHierarchyEvent *)event);
+			if (grabber->hierarchy_changed((XIHierarchyEvent *)event))
+				win->prefs_tab->update_device_list();
 	}
 }
 

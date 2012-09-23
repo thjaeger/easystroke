@@ -1248,7 +1248,7 @@ Van Diep Duong (Vietnamese)</property>
                             </child>
                             <child>
                               <object class="GtkCheckButton" id="check_left_handed">
-                                <property name="label" translatable="yes">optimize for left-handed operation )</property>
+                                <property name="label" translatable="yes">to the right of the cursor)</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>

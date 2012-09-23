@@ -16,8 +16,7 @@
 #include "actiondb.h" // TODO
 #include "grabber.h"
 #include "main.h"
-#include "win.h" // TODO
-#include "prefs.h" // TODO
+#include "prefs.h"
 #include <X11/extensions/XTest.h>
 #include <xorg/xserver-properties.h>
 #include <X11/cursorfont.h>
@@ -28,7 +27,6 @@ extern Window get_window(Window w, Atom prop);
 extern Source<bool> disabled;
 extern Source<Window> current_app_window;
 extern Source<bool> recording;
-extern bool in_proximity;
 
 Grabber *grabber = 0;
 
@@ -308,32 +306,33 @@ bool Grabber::init_xi() {
 	return true;
 }
 
-void Grabber::hierarchy_changed(XIHierarchyEvent *event) {
+bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
+	bool changed = false;
 	for (int i = 0; i < event->num_info; i++) {
 		XIHierarchyInfo *info = event->info + i;
 		if (info->flags & XISlaveAdded) {
 			int n;
 			XIDeviceInfo *dev_info = XIQueryDevice(dpy, info->deviceid, &n);
 			if (!dev_info)
-				return;
+				continue;
 			new_device(dev_info);
 			XIFreeDeviceInfo(dev_info);
 			update_excluded();
-			win->prefs_tab->update_device_list();
+			changed = true;
 		} else if (info->flags & XISlaveRemoved) {
 			if (verbosity >= 1)
 				printf("Device %d removed.\n", info->deviceid);
 			xi_devs.erase(info->deviceid);
-			win->prefs_tab->update_device_list();
 			if (current_dev && current_dev->dev == info->deviceid)
 				current_dev = NULL;
+			changed = true;
 		} else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
 			DeviceMap::iterator i = xi_devs.find(info->deviceid);
-			if (i == xi_devs.end())
-				return;
-			i->second->master = info->attachment;
+			if (i != xi_devs.end())
+				i->second->master = info->attachment;
 		}
 	}
+	return changed;
 }
 
 void Grabber::update_excluded() {

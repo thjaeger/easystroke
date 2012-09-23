@@ -117,7 +117,7 @@ public:
 	bool is_grabbed(guint b);
 	bool is_instant(guint b);
 	bool is_click_hold(guint b);
-	void hierarchy_changed(XIHierarchyEvent *);
+	bool hierarchy_changed(XIHierarchyEvent *);
 
 	int get_default_button() { return grabbed_button.button; }
 	guint get_default_mods(guint button);
