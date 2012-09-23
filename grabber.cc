@@ -13,7 +13,7 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "actiondb.h" // TODO
+#include "handler.h"
 #include "grabber.h"
 #include "main.h"
 #include "prefs.h"
@@ -23,7 +23,6 @@
 #include <X11/Xutil.h>
 #include <glibmm/i18n.h>
 
-extern Window get_window(Window w, Atom prop);
 extern Source<bool> disabled;
 extern Source<Window> current_app_window;
 extern Source<bool> recording;
@@ -91,7 +90,7 @@ BiMap<unsigned int, Window> minimized;
 unsigned int minimized_n = 0;
 
 void get_frame(Window w) {
-	Window frame = get_window(w, *_NET_FRAME_WINDOW);
+	Window frame = xstate->get_window(w, *_NET_FRAME_WINDOW);
 	if (!frame)
 		return;
 	frame_win.add(frame, w);
@@ -143,7 +142,7 @@ bool Children::handle(XEvent &ev) {
 					minimized.erase2(ev.xproperty.window);
 					return true;
 				}
-				if (has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN))
+				if (xstate->has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN))
 					minimized.add(minimized_n++, ev.xproperty.window);
 				else
 					minimized.erase2(ev.xproperty.window);
@@ -204,7 +203,7 @@ class IdleNotifier : public Base {
 	void run() { f(); }
 public:
 	IdleNotifier(sigc::slot<void> f_) : f(f_) {}
-	virtual void notify() { queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
+	virtual void notify() { xstate->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
 };
 
 void Grabber::unminimize() {
@@ -261,8 +260,6 @@ bool Grabber::init_xi() {
 		printf("Warning: No XInput devices available\n");
 		return false;
 	}
-
-	current_dev = NULL;
 
 	for (int i = 0; i < n; i++)
 		new_device(info + i);
@@ -321,9 +318,8 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 		} else if (info->flags & XISlaveRemoved) {
 			if (verbosity >= 1)
 				printf("Device %d removed.\n", info->deviceid);
+			xstate->remove_device(info->deviceid);
 			xi_devs.erase(info->deviceid);
-			if (current_dev && current_dev->dev == info->deviceid)
-				current_dev = NULL;
 			changed = true;
 		} else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
 			DeviceMap::iterator i = xi_devs.find(info->deviceid);
@@ -419,8 +415,7 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
 		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
 	else {
 		XIUngrabButton(dpy, dev, bi.button, ROOT, nmods, modifiers);
-		if (current_dev && current_dev->dev == dev)
-			xinput_pressed.clear();
+		xstate->ungrab(dev);
 	}
 }
 
@@ -437,8 +432,7 @@ void Grabber::grab_xi(bool grab) {
 void Grabber::XiDevice::grab_device(GrabState grab) {
 	if (grab == GrabNo) {
 		XIUngrabDevice(dpy, dev, CurrentTime);
-		if (current_dev && current_dev->dev == dev)
-			xinput_pressed.clear();
+		xstate->ungrab(dev);
 		return;
 	}
 	XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
@@ -480,6 +474,18 @@ void Grabber::set() {
 		if (code != GrabSuccess)
 			throw GrabFailedException(code);
 	}
+}
+
+void Grabber::queue_suspend() {
+	xstate->queue(sigc::mem_fun(*this, &Grabber::suspend));
+}
+
+void Grabber::queue_resume() {
+	xstate->queue(sigc::mem_fun(*this, &Grabber::resume));
+}
+
+std::string Grabber::select_window() {
+	return xstate->select_window();
 }
 
 bool Grabber::is_grabbed(guint b) {
@@ -543,7 +549,7 @@ void Grabber::update() {
 }
 
 // Fuck Xlib
-bool has_wm_state(Window w) {
+static bool has_wm_state(Window w) {
 	static XAtom WM_STATE("WM_STATE");
 	Atom actual_type_return;
 	int actual_format_return;

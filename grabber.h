@@ -46,13 +46,6 @@ public:
 class Grabber;
 extern Grabber *grabber;
 
-bool has_wm_state(Window w);
-bool has_atom(Window w, Atom prop, Atom value);
-
-void queue(sigc::slot<void> f);
-std::string select_window();
-void fake_core_button(guint b, bool press);
-
 class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
@@ -110,8 +103,9 @@ public:
 	bool handle(XEvent &ev) { return children.handle(ev); }
 	Out<std::string> *current_class;
 
-	void queue_suspend() { queue(sigc::mem_fun(*this, &Grabber::suspend)); }
-	void queue_resume() { queue(sigc::mem_fun(*this, &Grabber::resume)); }
+	void queue_suspend();
+	void queue_resume();
+	std::string select_window();
 
 	void new_device(XIDeviceInfo *);
 
@@ -125,9 +119,6 @@ public:
 
 	void unminimize();
 };
-
-extern Grabber::XiDevice *current_dev;
-extern std::set<guint> xinput_pressed;
 
 class GrabFailedException : public std::exception {
 	char *msg;

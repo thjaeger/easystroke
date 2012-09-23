@@ -602,7 +602,7 @@ bool Actions::select_app(const Gtk::TreeModel::Path& path, const Gtk::TreeModel:
 }
 
 void Actions::on_add_app() {
-	std::string name = select_window();
+	std::string name = grabber->select_window();
 	if (actions.apps.count(name)) {
 		apps_model->foreach(sigc::bind(sigc::mem_fun(*this, &Actions::select_app), actions.apps[name]));
 		return;

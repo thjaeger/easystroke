@@ -611,7 +611,7 @@ bool Prefs::select_row(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::i
 }
 
 void Prefs::on_add() {
-	std::string str = select_window();
+	std::string str = grabber->select_window();
 	bool is_new;
 	{
 		Atomic a;

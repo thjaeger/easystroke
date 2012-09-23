@@ -51,6 +51,8 @@ class Unique;
 class Modifiers;
 typedef boost::shared_ptr<Modifiers> RModifiers;
 
+bool mods_equal(RModifiers m1, RModifiers m2);
+
 class Action {
 	friend class boost::serialization::access;
 	friend std::ostream& operator<<(std::ostream& output, const Action& c);
