@@ -819,6 +819,7 @@ static void get_timeouts(TimeoutType type, int *init, int *final) {
 
 class StrokeHandler : public Handler, public sigc::trackable {
 	guint button;
+	guint trigger;
 	RPreStroke cur;
 	bool is_gesture;
 	bool drawing;
@@ -845,7 +846,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 			c.reset(new PreStroke);
 		if (b && prefs.advanced_ignore.get())
 			c.reset(new PreStroke);
-		return Stroke::create(*c, button, b, modifiers, false);
+		return Stroke::create(*c, trigger, b, modifiers, false);
 	}
 
 	bool timeout() {
@@ -857,7 +858,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 			c.reset(new PreStroke);
 		RStroke s;
 		if (prefs.timeout_gestures.get() || grabber->is_click_hold(button))
-			s = Stroke::create(*c, button, 0, modifiers, true);
+			s = Stroke::create(*c, trigger, 0, modifiers, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
 		XFlush(dpy);
 		return false;
@@ -865,7 +866,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 
 	void do_instant() {
 		PreStroke ps;
-		RStroke s = Stroke::create(ps, button, button, modifiers, false);
+		RStroke s = Stroke::create(ps, trigger, button, modifiers, false);
 		parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
 	}
 
@@ -966,8 +967,17 @@ protected:
 		parent->replace_child(NULL);
 	}
 public:
-	StrokeHandler(guint b, RTriple e) : button(b), is_gesture(false), drawing(false), last(e), orig(e),
-	init_timeout(prefs.init_timeout.get()), final_timeout(prefs.final_timeout.get()), radius(16) {
+	StrokeHandler(guint b, RTriple e) :
+		button(b),
+		trigger(grabber->get_default_button() == (int)b ? 0 : b),
+		is_gesture(false),
+		drawing(false),
+		last(e),
+		orig(e),
+		init_timeout(prefs.init_timeout.get()),
+		final_timeout(prefs.final_timeout.get()),
+		radius(16)
+	{
 		const std::map<std::string, TimeoutType> &dt = prefs.device_timeout.ref();
 		std::map<std::string, TimeoutType>::const_iterator j = dt.find(current_dev->name);
 		if (j != dt.end())

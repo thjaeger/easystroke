@@ -510,13 +510,6 @@ guint Grabber::get_default_mods(guint button) {
 	return AnyModifier;
 }
 
-int get_default_button() {
-	if (grabber)
-		return grabber->get_default_button();
-	else
-		return prefs.button.get().button;
-}
-
 void Grabber::update() {
 	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(current_class->get());
 	active = true;

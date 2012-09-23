@@ -34,8 +34,6 @@ class PreStroke;
 typedef boost::shared_ptr<Stroke> RStroke;
 typedef boost::shared_ptr<PreStroke> RPreStroke;
 
-int get_default_button();
-
 struct Triple {
 	float x;
 	float y;
@@ -85,40 +83,8 @@ private:
 	static Glib::RefPtr<Gdk::Pixbuf> pbEmpty;
 
 	BOOST_SERIALIZATION_SPLIT_MEMBER()
-	template<class Archive> void save(Archive & ar, const unsigned int version) const {
-		std::vector<Point> ps;
-		for (unsigned int i = 0; i < size(); i++)
-			ps.push_back(points(i));
-		ar & ps;
-		ar & button;
-		ar & trigger;
-		ar & timeout;
-		ar & modifiers;
-	}
-	template<class Archive> void load(Archive & ar, const unsigned int version) {
-		std::vector<Point> ps;
-		ar & ps;
-		if (ps.size()) {
-			stroke_t *s = stroke_alloc(ps.size());
-			for (std::vector<Point>::iterator i = ps.begin(); i != ps.end(); ++i)
-				stroke_add_point(s, i->x, i->y);
-			stroke_finish(s);
-			stroke.reset(s, &stroke_free);
-		}
-		if (version == 0) return;
-		ar & button;
-		if (version >= 2)
-			ar & trigger;
-		if (version < 4 && (!button || trigger == get_default_button()))
-			trigger = 0;
-		if (version < 3)
-			return;
-		ar & timeout;
-		if (version < 5)
-			return;
-		ar & modifiers;
-	}
-
+	template<class Archive> void load(Archive & ar, const unsigned int version);
+	template<class Archive> void save(Archive & ar, const unsigned int version) const;
 public:
 	int trigger;
 	int button;

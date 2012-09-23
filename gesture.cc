@@ -16,6 +16,13 @@
 #include "gesture.h"
 #include "prefdb.h"
 
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+#include <boost/serialization/export.hpp>
+
+BOOST_CLASS_EXPORT(Stroke)
+
 void update_triple(RTriple e, float x, float y, Time t) {
 	e->x = x;
 	e->y = y;
@@ -28,9 +35,42 @@ RTriple create_triple(float x, float y, Time t) {
 	return e;
 }
 
-Stroke::Stroke(PreStroke &ps, int trigger_, int button_, unsigned int modifiers_, bool timeout_) : button(button_), modifiers(modifiers_), timeout(timeout_) {
-	trigger = (trigger_ == get_default_button()) ? 0 : trigger_;
+template<class Archive> void Stroke::save(Archive & ar, const unsigned int version) const {
+	std::vector<Point> ps;
+	for (unsigned int i = 0; i < size(); i++)
+		ps.push_back(points(i));
+	ar & ps;
+	ar & button;
+	ar & trigger;
+	ar & timeout;
+	ar & modifiers;
+}
 
+template<class Archive> void Stroke::load(Archive & ar, const unsigned int version) {
+	std::vector<Point> ps;
+	ar & ps;
+	if (ps.size()) {
+		stroke_t *s = stroke_alloc(ps.size());
+		for (std::vector<Point>::iterator i = ps.begin(); i != ps.end(); ++i)
+			stroke_add_point(s, i->x, i->y);
+		stroke_finish(s);
+		stroke.reset(s, &stroke_free);
+	}
+	if (version == 0) return;
+	ar & button;
+	if (version >= 2)
+		ar & trigger;
+	if (version < 4 && (!button || trigger == (int)prefs.button.get().button))
+		trigger = 0;
+	if (version < 3)
+		return;
+	ar & timeout;
+	if (version < 5)
+		return;
+	ar & modifiers;
+}
+
+Stroke::Stroke(PreStroke &ps, int trigger_, int button_, unsigned int modifiers_, bool timeout_) : trigger(trigger_), button(button_), modifiers(modifiers_), timeout(timeout_) {
 	if (ps.valid()) {
 		stroke_t *s = stroke_alloc(ps.size());
 		for (std::vector<RTriple>::iterator i = ps.begin(); i != ps.end(); ++i)
@@ -48,12 +88,8 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
 		return -1;
 	if (a->button != b->button)
 		return -1;
-	if (a->trigger != b->trigger) {
-		if (a->trigger && b->trigger)
-			return -1;
-		if (a->trigger + b->trigger != get_default_button())
-			return -1;
-	}
+	if (a->trigger != b->trigger)
+		return -1;
 	if (a->modifiers != b->modifiers)
 		return -1;
 	if (!a->stroke || !b->stroke) {
@@ -61,8 +97,7 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
 			score = 1.0;
 			return 1;
 		}
-		else
-			return -1;
+		return -1;
 	}
 	double cost = stroke_compare(a->stroke.get(), b->stroke.get(), NULL, NULL);
 	if (cost >= stroke_infinity)
