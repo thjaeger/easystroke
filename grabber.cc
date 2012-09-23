@@ -277,7 +277,6 @@ bool Grabber::init_xi() {
 		exit(EXIT_FAILURE);
 	}
 
-	// TODO: Proximity
 	device_mask.deviceid = XIAllDevices;
 	device_mask.mask = device_mask_data;
 	device_mask.mask_len = sizeof(device_mask_data);
@@ -371,7 +370,8 @@ void Grabber::new_device(XIDeviceInfo *info) {
 		}
 }
 
-Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(false), scale_x(1.0), scale_y(1.0), num_buttons(0) {
+Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(false), proximity_axis(-1), scale_x(1.0), scale_y(1.0), num_buttons(0) {
+	static XAtom PROXIMITY(AXIS_LABEL_PROP_ABS_DISTANCE);
 	dev = info->deviceid;
 	name = info->name;
 	master = info->attachment;
@@ -390,6 +390,8 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
 					scale_y = (double)DisplayHeight(dpy, DefaultScreen(dpy)) / (double)(v->max - v->min);
 
 			}
+			if (v->label == *PROXIMITY)
+				proximity_axis = v->number;
 		}
 	}
 

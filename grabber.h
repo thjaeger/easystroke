@@ -69,6 +69,7 @@ public:
 		std::string name;
 		bool absolute;
 		bool active;
+		int proximity_axis;
 		double scale_x, scale_y;
 		int num_buttons;
 		int master;

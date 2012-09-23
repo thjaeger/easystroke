@@ -135,7 +135,6 @@ public:
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_master(guint b, Time t) {}
-	virtual void proximity_out() {}
 	virtual void pong() {}
 	void replace_child(Handler *c) {
 		if (child)
@@ -214,8 +213,9 @@ std::list<OSD *> OSD::osd_stack;
 
 class IgnoreHandler : public Handler {
 	RModifiers mods;
+	bool proximity;
 public:
-	IgnoreHandler(RModifiers mods_) : mods(mods_) {}
+	IgnoreHandler(RModifiers mods_) : mods(mods_), proximity(in_proximity && prefs.proximity.get()) {}
 	virtual void press(guint b, RTriple e) {
 		if (current_dev->master) {
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
@@ -225,14 +225,15 @@ public:
 	virtual void motion(RTriple e) {
 		if (current_dev->master)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+		if (proximity && !in_proximity)
+			parent->replace_child(NULL);
 	}
-	// TODO: Handle Proximity
 	virtual void release(guint b, RTriple e) {
 		if (current_dev->master) {
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
 		}
-		if (!xinput_pressed.size())
+		if (proximity ? !in_proximity : !xinput_pressed.size())
 			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "Ignore"; }
@@ -242,8 +243,14 @@ public:
 class ButtonHandler : public Handler {
 	RModifiers mods;
 	guint button, real_button;
+	bool proximity;
 public:
-	ButtonHandler(RModifiers mods_, guint button_) : mods(mods_), button(button_), real_button(0) {}
+	ButtonHandler(RModifiers mods_, guint button_) :
+		mods(mods_),
+		button(button_),
+		real_button(0),
+		proximity(in_proximity && prefs.proximity.get())
+	{}
 	virtual void press(guint b, RTriple e) {
 		if (current_dev->master) {
 			if (!real_button)
@@ -257,8 +264,9 @@ public:
 	virtual void motion(RTriple e) {
 		if (current_dev->master)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
+		if (proximity && !in_proximity)
+			parent->replace_child(NULL);
 	}
-	// TODO: Handle Proximity
 	virtual void release(guint b, RTriple e) {
 		if (current_dev->master) {
 			if (real_button == b)
@@ -266,7 +274,7 @@ public:
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
 		}
-		if (!xinput_pressed.size())
+		if (proximity ? !in_proximity : !xinput_pressed.size())
 			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "Button"; }
@@ -453,12 +461,18 @@ class ScrollHandler : public AbstractScrollHandler {
 	RModifiers mods;
 	std::map<guint, guint> map;
 	int orig_x, orig_y;
+	bool proximity;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
 		// If you want to use buttons > 9, you're on your own..
 		map[1] = 0; map[2] = 0; map[3] = 0; map[8] = 0; map[9] = 0;
+		proximity = in_proximity && prefs.proximity.get();
 	}
 	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
+		if (proximity && !in_proximity) {
+			parent->replace_child(NULL);
+			move_back();
+		}
 		if (xinput_pressed.size())
 			AbstractScrollHandler::raw_motion(e, abs_x, abs_y);
 	}
@@ -466,12 +480,8 @@ public:
 		fake_core_button(b, false);
 	}
 	virtual void release(guint b, RTriple e) {
-		if (in_proximity || xinput_pressed.size())
+		if ((proximity && in_proximity) || xinput_pressed.size())
 			return;
-		parent->replace_child(0);
-		move_back();
-	}
-	virtual void proximity_out() {
 		parent->replace_child(0);
 		move_back();
 	}
@@ -1467,6 +1477,16 @@ static void print_coordinates(XIValuatorState *valuators, double *values) {
 	}
 }
 
+static double get_axis(XIValuatorState &valuators, int axis) {
+	if (axis < 0 || !XIMaskIsSet(valuators.mask, axis))
+		return 0.0;
+	double *val = valuators.values;
+	for (int i = 0; i < axis; i++)
+		if (XIMaskIsSet(valuators.mask, i))
+			val++;
+	return *val;
+}
+
 void App::report_xi2_event(XIDeviceEvent *event, const char *type) {
 	printf("%s (XI2): ", type);
 	if (event->detail)
@@ -1504,6 +1524,7 @@ void App::handle_xi2_event(XIDeviceEvent *event) {
 					modifiers = event->mods.base;
 			}
 			xinput_pressed.insert(event->detail);
+			in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
 			H->press(event->detail, create_triple(event->root_x, event->root_y, event->time));
 			break;
 		case XI_ButtonRelease:
@@ -1512,6 +1533,7 @@ void App::handle_xi2_event(XIDeviceEvent *event) {
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
 			xinput_pressed.erase(event->detail);
+			in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
 			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
 			break;
 		case XI_Motion:
@@ -1522,6 +1544,9 @@ void App::handle_xi2_event(XIDeviceEvent *event) {
 			H->motion(create_triple(event->root_x, event->root_y, event->time));
 			break;
 		case XI_RawMotion:
+			if (!current_dev)
+				break;
+			in_proximity = get_axis(((XIRawEvent *)event)->valuators, current_dev->proximity_axis);
 			handle_raw_motion((XIRawEvent *)event);
 			break;
 		case XI_HierarchyChanged:

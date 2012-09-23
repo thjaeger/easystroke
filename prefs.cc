@@ -281,6 +281,7 @@ Prefs::Prefs() {
 	widgets->get_widget("treeview_exceptions", tv);
 	widgets->get_widget("treeview_devices", dtv);
 	widgets->get_widget("treeview_extra", etv);
+	widgets->get_widget("frame_tablet", frame_tablet);
 
 	new Sensitive(*fun(&is_custom, prefs.timeout_profile), "hbox_timeout");
 	new Sensitive(*fun(&draw_trace, prefs.trace), "button_color");
@@ -348,9 +349,6 @@ Prefs::Prefs() {
 		widgets->get_widget("hbox_timeout", hbox);
 		hbox->hide();
 	}
-	Gtk::Frame *tablet_frame;
-	widgets->get_widget("frame_advanced2", tablet_frame);
-	tablet_frame->hide();
 
 	set_button_label();
 
@@ -364,10 +362,13 @@ Prefs::Prefs() {
 }
 
 void Prefs::update_device_list() {
+	bool proximity = false;
 	ignore_device_toggled = true;
 	dtm->clear();
 	std::set<std::string> names;
 	for (Grabber::DeviceMap::iterator i = grabber->xi_devs.begin(); i != grabber->xi_devs.end(); ++i) {
+		if (i->second->proximity_axis >= 0)
+			proximity = true;
 		std::string name = i->second->name;
 		if (names.count(name))
 			continue;
@@ -385,6 +386,7 @@ void Prefs::update_device_list() {
 					row[dcs.timeout] = i->name;
 	}
 	ignore_device_toggled = false;
+	frame_tablet->set_visible(proximity);
 }
 
 void Prefs::update_extra_buttons() {

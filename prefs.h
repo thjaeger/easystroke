@@ -79,6 +79,7 @@ private:
 
 	Gtk::SpinButton *spin_radius;
 	Gtk::Label* blabel;
+	Gtk::Frame *frame_tablet;
 	bool ignore_device_toggled;
 };
 
