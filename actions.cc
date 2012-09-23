@@ -760,7 +760,7 @@ void Actions::update_row(const Gtk::TreeRow &row) {
 }
 
 extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
-Source<ActionListDiff *> stroke_app(NULL);
+Source<bool> recording(false);
 
 class Actions::OnStroke {
 	Actions *parent;
@@ -796,7 +796,7 @@ public:
 		stroke = stroke_;
 		Glib::signal_idle().connect(sigc::mem_fun(*this, &OnStroke::run));
 		stroke_action.reset();
-		stroke_app.set(NULL);
+		recording.set(false);
 	}
 };
 
@@ -824,14 +824,14 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 
 	OnStroke ps(this, dialog, row);
 	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::delayed_run)));
-	stroke_app.set(action_list);
+	recording.set(true);
 
 	dialog->show();
 	cancel->grab_focus();
 	int response = dialog->run();
 	dialog->hide();
 	stroke_action.reset();
-	stroke_app.set(NULL);
+	recording.set(false);
 	if (response != 1)
 		return;
 

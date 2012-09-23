@@ -971,6 +971,9 @@ Van Diep Duong (Vietnamese)</property>
                                         <property name="height_request">120</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
+                                        <child internal-child="selection">
+                                          <object class="GtkTreeSelection" id="treeview-selection2"/>
+                                        </child>
                                       </object>
                                     </child>
                                   </object>
@@ -1502,6 +1505,23 @@ Van Diep Duong (Vietnamese)</property>
                         <property name="can_focus">False</property>
                         <property name="spacing">6</property>
                         <child>
+                          <object class="GtkCheckButton" id="check_whitelist">
+                            <property name="label" translatable="yes">Only enable easystroke for applications listed on 'Actions' tab</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="use_action_appearance">False</property>
+                            <property name="xalign">0</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">0</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkCheckButton" id="check_timeout_gestures">
                             <property name="label" translatable="yes">Timeout Gestures</property>
                             <property name="visible">True</property>
@@ -1513,7 +1533,7 @@ Van Diep Duong (Vietnamese)</property>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
-                            <property name="position">0</property>
+                            <property name="position">1</property>
                           </packing>
                         </child>
                         <child>
@@ -1555,7 +1575,7 @@ Van Diep Duong (Vietnamese)</property>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">True</property>
-                            <property name="position">1</property>
+                            <property name="position">2</property>
                           </packing>
                         </child>
                         <child>
@@ -1597,7 +1617,7 @@ Van Diep Duong (Vietnamese)</property>
                           <packing>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
-                            <property name="position">2</property>
+                            <property name="position">3</property>
                           </packing>
                         </child>
                         <child>
@@ -1650,7 +1670,7 @@ Van Diep Duong (Vietnamese)</property>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
                             <property name="padding">6</property>
-                            <property name="position">3</property>
+                            <property name="position">4</property>
                           </packing>
                         </child>
                         <child>
@@ -1665,7 +1685,7 @@ Van Diep Duong (Vietnamese)</property>
                           <packing>
                             <property name="expand">True</property>
                             <property name="fill">True</property>
-                            <property name="position">4</property>
+                            <property name="position">5</property>
                           </packing>
                         </child>
                       </object>

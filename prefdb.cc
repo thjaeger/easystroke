@@ -51,7 +51,8 @@ PrefDB::PrefDB() :
 	scroll_speed(2.0),
 	tray_feedback(false),
 	show_osd(true),
-	move_back(false)
+	move_back(false),
+	whitelist(false)
 {}
 
 template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int version) {
@@ -132,6 +133,8 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & move_back.unsafe_ref();
 	if (version < 17) return;
 	ar & device_timeout.unsafe_ref();
+	if (version < 18) return;
+	ar & whitelist.unsafe_ref();
 }
 
 void PrefDB::timeout() {

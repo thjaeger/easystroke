@@ -132,12 +132,13 @@ public:
 	PrefSource<bool> show_osd;
 	PrefSource<bool> move_back;
 	PrefSource<std::map<std::string, TimeoutType> > device_timeout;
+	PrefSource<bool> whitelist;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 17)
+BOOST_CLASS_VERSION(PrefDB, 18)
 
 extern PrefDB prefs;
 

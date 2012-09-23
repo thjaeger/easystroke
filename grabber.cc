@@ -27,7 +27,7 @@
 extern Window get_window(Window w, Atom prop);
 extern Source<bool> disabled;
 extern Source<Window> current_app_window;
-extern Source<ActionListDiff *> stroke_app;
+extern Source<bool> recording;
 extern bool in_proximity;
 
 Grabber *grabber = 0;
@@ -189,9 +189,7 @@ void activate(Window w, Time t) {
 	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
 }
 
-std::string get_wm_class(Window w, ActionListDiff *actions) {
-	if (actions && actions->app)
-		return actions->name;
+std::string get_wm_class(Window w) {
 	if (!w)
 		return "";
 	XClassHint ch;
@@ -236,8 +234,9 @@ Grabber::Grabber() : children(ROOT) {
 	init_xi();
 	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	current_class = fun2(&get_wm_class, current_app_window, stroke_app);
+	current_class = fun(&get_wm_class, current_app_window);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
+	recording.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	disabled.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::set)));
 	update();
 	resume();
@@ -511,20 +510,20 @@ guint Grabber::get_default_mods(guint button) {
 }
 
 void Grabber::update() {
-	std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(current_class->get());
-	active = true;
 	ButtonInfo bi = prefs.button.ref();
-	if (i != prefs.exceptions.ref().end()) {
-		if (i->second)
-			bi = *i->second;
-		else
+	active = true;
+	if (!recording.get()) {
+		std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(current_class->get());
+		if (i != prefs.exceptions.ref().end()) {
+			if (i->second)
+				bi = *i->second;
+			else
+				active = false;
+		}
+
+		if (prefs.whitelist.get() && !actions.apps.count(current_class->get()))
 			active = false;
 	}
-	const ActionListDiff *a = stroke_app.get();
-	if (!a)
-		a = actions.get_action_list(current_class->get());
-	if (active && actions.get_root()->size_rec() && !a->count_actions())
-		active = false;
 	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
 	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
 			std::equal(extra.begin(), extra.end(), ++buttons.begin())) {

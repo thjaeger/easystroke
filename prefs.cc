@@ -257,6 +257,7 @@ Prefs::Prefs() {
 	new Adjustment<int>(prefs.trace_width, "adjustment_trace_width");
 	new Combo<TimeoutType>(prefs.timeout_profile, "box_timeout", experimental ? timeout_info_exp : timeout_info);
 
+	new Check(prefs.whitelist, "check_whitelist");
 	new Check(prefs.timeout_gestures, "check_timeout_gestures");
 
 	new Check(prefs.scroll_invert, "check_scroll_invert");
