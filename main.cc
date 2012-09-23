@@ -47,7 +47,7 @@ extern Source<bool> disabled;
 bool experimental = false;
 int verbosity = 0;
 const char *prefs_versions[] = { "-0.5.5", "-0.4.1", "-0.4.0", "", NULL };
-const char *actions_versions[] = { "-0.4.1", "-0.4.0", "", NULL };
+const char *actions_versions[] = { "-0.5.6", "-0.4.1", "-0.4.0", "", NULL };
 Source<Window> current_app_window(None);
 std::string config_dir;
 Win *win = NULL;
@@ -57,6 +57,7 @@ bool in_proximity = false;
 boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Grabber::XiDevice *current_dev = 0;
 std::set<guint> xinput_pressed; // TODO get rid of
+guint modifiers;
 
 static bool show_gui = false;
 static bool no_dbus = false;
@@ -844,7 +845,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 			c.reset(new PreStroke);
 		if (b && prefs.advanced_ignore.get())
 			c.reset(new PreStroke);
-		return Stroke::create(*c, button, b, false);
+		return Stroke::create(*c, button, b, modifiers, false);
 	}
 
 	bool timeout() {
@@ -856,7 +857,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 			c.reset(new PreStroke);
 		RStroke s;
 		if (prefs.timeout_gestures.get() || grabber->is_click_hold(button))
-			s = Stroke::create(*c, button, 0, true);
+			s = Stroke::create(*c, button, 0, modifiers, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
 		XFlush(dpy);
 		return false;
@@ -864,7 +865,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 
 	void do_instant() {
 		PreStroke ps;
-		RStroke s = Stroke::create(ps, button, button, false);
+		RStroke s = Stroke::create(ps, button, button, modifiers, false);
 		parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
 	}
 
@@ -1466,6 +1467,13 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			}
 			if (current_dev->master)
 				XISetClientPointer(dpy, None, current_dev->master);
+			if (!xinput_pressed.size()) {
+				guint default_mods = grabber->get_default_mods(event->detail);
+				if (default_mods == AnyModifier || default_mods == (guint)event->mods.base)
+					modifiers = AnyModifier;
+				else
+					modifiers = event->mods.base;
+			}
 			xinput_pressed.insert(event->detail);
 			H->press(event->detail, create_triple(event->root_x, event->root_y, event->time));
 			break;

@@ -503,6 +503,13 @@ bool Grabber::is_click_hold(guint b) {
 	return false;
 }
 
+guint Grabber::get_default_mods(guint button) {
+	for (std::vector<ButtonInfo>::const_iterator i = buttons.begin(); i != buttons.end(); ++i)
+		if (i->button == button)
+			return i->state;
+	return AnyModifier;
+}
+
 int get_default_button() {
 	if (grabber)
 		return grabber->get_default_button();

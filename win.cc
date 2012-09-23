@@ -69,8 +69,15 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	}
 	ctx->restore();
 	Glib::ustring str;
+	if (modifiers != AnyModifier) {
+		str = Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)modifiers);
+		if (str == "")
+			str = "<>";
+		else
+			str = "<" + str.substr(0, str.size()-1) + ">";
+	}
 	if (trigger)
-		str = Glib::ustring::compose("%1\xE2\x86\x92", trigger);
+		str += Glib::ustring::compose("%1\xE2\x86\x92", trigger);
 	if (timeout)
 		str += "x";
 	if (button)

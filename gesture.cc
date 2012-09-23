@@ -28,7 +28,7 @@ RTriple create_triple(float x, float y, Time t) {
 	return e;
 }
 
-Stroke::Stroke(PreStroke &ps, int trigger_, int button_, bool timeout_) : button(button_), timeout(timeout_) {
+Stroke::Stroke(PreStroke &ps, int trigger_, int button_, unsigned int modifiers_, bool timeout_) : button(button_), modifiers(modifiers_), timeout(timeout_) {
 	trigger = (trigger_ == get_default_button()) ? 0 : trigger_;
 
 	if (ps.valid()) {
@@ -54,6 +54,8 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
 		if (a->trigger + b->trigger != get_default_button())
 			return -1;
 	}
+	if (a->modifiers != b->modifiers)
+		return -1;
 	if (!a->stroke || !b->stroke) {
 		if (!a->stroke && !b->stroke) {
 			score = 1.0;
@@ -102,5 +104,5 @@ RStroke Stroke::trefoil() {
 		double r = exp(1.0 + sin(6.0*M_PI*i/n)) + 2.0;
 		s.add(create_triple(r*cos(phi), r*sin(phi), i));
 	}
-	return Stroke::create(s, 0, 0, false);
+	return Stroke::create(s, 0, 0, AnyModifier, false);
 }

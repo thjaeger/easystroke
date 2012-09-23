@@ -120,6 +120,7 @@ public:
 	void hierarchy_changed(XIHierarchyEvent *);
 
 	int get_default_button() { return grabbed_button.button; }
+	guint get_default_mods(guint button);
 
 	void unminimize();
 };

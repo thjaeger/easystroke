@@ -24,7 +24,7 @@
 #include <boost/serialization/version.hpp>
 #include <boost/serialization/split_member.hpp>
 
-#include <X11/X.h> // Time
+#include <X11/X.h>
 
 #define STROKE_SIZE 64
 
@@ -76,7 +76,7 @@ public:
 	};
 
 private:
-	Stroke(PreStroke &s, int trigger_, int button_, bool timeout_);
+	Stroke(PreStroke &s, int trigger_, int button_, unsigned int modifiers_, bool timeout_);
 
 	Glib::RefPtr<Gdk::Pixbuf> draw_(int size, double width = 2.0, bool inv = false) const;
 	mutable Glib::RefPtr<Gdk::Pixbuf> pb[2];
@@ -93,6 +93,7 @@ private:
 		ar & button;
 		ar & trigger;
 		ar & timeout;
+		ar & modifiers;
 	}
 	template<class Archive> void load(Archive & ar, const unsigned int version) {
 		std::vector<Point> ps;
@@ -113,17 +114,21 @@ private:
 		if (version < 3)
 			return;
 		ar & timeout;
+		if (version < 5)
+			return;
+		ar & modifiers;
 	}
 
 public:
 	int trigger;
 	int button;
+	unsigned int modifiers;
 	bool timeout;
 	boost::shared_ptr<stroke_t> stroke;
 
-	Stroke() : trigger(0), button(0), timeout(false) {}
-	static RStroke create(PreStroke &s, int trigger_, int button_, bool timeout_) {
-		return RStroke(new Stroke(s, trigger_, button_, timeout_));
+	Stroke() : trigger(0), button(0), modifiers(AnyModifier), timeout(false) {}
+	static RStroke create(PreStroke &s, int trigger_, int button_, unsigned int modifiers_, bool timeout_) {
+		return RStroke(new Stroke(s, trigger_, button_, modifiers_, timeout_));
 	}
         Glib::RefPtr<Gdk::Pixbuf> draw(int size, double width = 2.0, bool inv = false) const;
 	void draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, double width = 2.0, bool inv = false) const;
@@ -141,7 +146,7 @@ public:
 	double time(int n) const { return stroke_get_time(stroke.get(), n); }
 	bool is_timeout() const { return timeout; }
 };
-BOOST_CLASS_VERSION(Stroke, 4)
+BOOST_CLASS_VERSION(Stroke, 5)
 BOOST_CLASS_VERSION(Stroke::Point, 1)
 
 class PreStroke : public std::vector<RTriple> {
