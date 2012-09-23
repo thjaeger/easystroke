@@ -1518,7 +1518,6 @@ Van Diep Duong (Vietnamese)</property>
                         </child>
                         <child>
                           <object class="GtkHBox" id="hbox1">
-                            <property name="visible">True</property>
                             <property name="can_focus">False</property>
                             <child>
                               <object class="GtkCheckButton" id="check_advanced_ignore">

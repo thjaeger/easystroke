@@ -844,8 +844,6 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		RPreStroke c = cur;
 		if (!is_gesture || grabber->is_instant(button))
 			c.reset(new PreStroke);
-		if (b && prefs.advanced_ignore.get())
-			c.reset(new PreStroke);
 		return Stroke::create(*c, trigger, b, modifiers, false);
 	}
 
