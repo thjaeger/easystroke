@@ -53,6 +53,39 @@ void Stats::on_cursor_changed() {
 	ranking_view->set_model(ranking_store);
 }
 
+class Tooltip : public Gtk::Window {
+public:
+	Tooltip(Gtk::Widget &widget) : Gtk::Window(Gtk::WINDOW_POPUP) {
+		Glib::RefPtr<Gdk::Visual> visual = get_screen()->get_rgba_visual();
+		if (visual)
+			gtk_widget_set_visual(GTK_WIDGET(gobj()), visual->gobj());
+		set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
+		set_app_paintable();
+		set_resizable(false);
+		set_accept_focus(false);
+		get_style_context()->add_class(GTK_STYLE_CLASS_TOOLTIP);
+		signal_draw().connect(sigc::mem_fun(*this, &Tooltip::on_early_draw), false);
+		add(widget);
+		widget.show();
+	}
+
+private:
+	bool on_early_draw(const Cairo::RefPtr<Cairo::Context> &cr) {
+		if (is_composited()) {
+			cr->save();
+			cr->set_source_rgba(0, 0, 0, 0);
+			cr->set_operator(Cairo::OPERATOR_SOURCE);
+			cr->paint();
+			cr->restore();
+		}
+		int w = get_allocated_width();
+		int h = get_allocated_height();
+		get_style_context()->render_background(cr, 0, 0, w, h);
+		get_style_context()->render_frame(cr, 0, 0, w, h);
+		return false;
+	}
+};
+
 class Feedback {
 	boost::shared_ptr<Gtk::Window> icon;
 	boost::shared_ptr<Gtk::Window> text;
@@ -61,34 +94,18 @@ public:
 		x += (prefs.left_handed.get() ? 1 : -1)*3*STROKE_SIZE / 2;
 		int w,h;
 		if (s) {
-			icon.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
-			icon->set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
-			icon->get_style_context()->add_class(GTK_STYLE_CLASS_TOOLTIP);
-			Glib::RefPtr<Gdk::Visual> visual = icon->get_screen()->get_rgba_visual();
-			gtk_widget_set_visual((GtkWidget *)icon->gobj(), visual->gobj());
-
 			WIDGET(Gtk::Image, image, s->draw(STROKE_SIZE));
-			icon->set_accept_focus(false);
-			icon->add(image);
 			image.set_padding(2,2);
-			image.show();
+			icon.reset(new Tooltip(image));
 			icon->get_size(w,h);
 			icon->move(x - w/2, y - h/2);
 			y += h/2;
 		}
 
 		if (t != "") {
-			text.reset(new Gtk::Window(Gtk::WINDOW_POPUP));
-			text->set_type_hint(Gdk::WINDOW_TYPE_HINT_TOOLTIP);
-			text->get_style_context()->add_class(GTK_STYLE_CLASS_TOOLTIP);
-			Glib::RefPtr<Gdk::Visual> visual = text->get_screen()->get_rgba_visual();
-			gtk_widget_set_visual((GtkWidget *)text->gobj(), visual->gobj());
-
-			text->set_accept_focus(false);
 			WIDGET(Gtk::Label, label, t);
-			text->add(label);
 			label.set_padding(4,4);
-			label.show();
+			text.reset(new Tooltip(label));
 			text->get_size(w,h);
 			text->move(x - w/2, y + h/2);
 		}
