@@ -384,7 +384,7 @@ void App::on_activate() {
 	action_watcher->init();
 
 	xstate = new XState;
-	grabber = new Grabber;
+	new Grabber;
 	// Force enter events to be generated
 	XGrabPointer(dpy, ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
 	XUngrabPointer(dpy, CurrentTime);
@@ -496,9 +496,7 @@ int main(int argc, char **argv) {
 }
 
 void Button::run() {
-	grabber->suspend();
 	xstate->fake_click(button);
-	grabber->resume();
 }
 
 void SendKey::run() {

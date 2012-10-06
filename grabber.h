@@ -53,7 +53,7 @@ class Grabber {
 	friend class Prefs;
 public:
 	Children children;
-	enum State { NONE, BUTTON, SELECT, RAW };
+	enum State { BUTTON, GRAB, SELECT, RAW };
 	enum GrabState { GrabNo, GrabYes, GrabRaw };
 	static const char *state_name[4];
 
@@ -63,12 +63,16 @@ public:
 		bool absolute;
 		bool active;
 		int proximity_axis;
+		bool touch;
 		double scale_x, scale_y;
 		int num_buttons;
 		int master;
 		XiDevice(Grabber *, XIDeviceInfo *);
-		void grab_device(GrabState grab);
-		void grab_button(ButtonInfo &bi, bool grab);
+
+		void update_grabs();
+		void update_button(ButtonInfo &bi, bool grab);
+		bool button_grabbed, touch_grabbed;
+		GrabState device_grabbed;
 	};
 
 	typedef std::map<XID, boost::shared_ptr<XiDevice> > DeviceMap;
@@ -78,18 +82,19 @@ private:
 	bool init_xi();
 
 	DeviceMap xi_devs;
-	State current, grabbed;
-	bool xi_grabbed;
-	GrabState xi_devs_grabbed;
+	State current;
+	bool select;
+	bool grab_button, grab_touch;
+	GrabState grab_device;
+	bool touch_grabbed;
 	int suspended;
 	bool active;
 	Cursor cursor_select;
 	ButtonInfo grabbed_button;
 	std::vector<ButtonInfo> buttons;
 
+	void update_grabs();
 	void set();
-	void grab_xi(bool);
-	void grab_xi_devs(GrabState);
 
 	void update_excluded();
 
@@ -109,7 +114,8 @@ public:
 
 	void new_device(XIDeviceInfo *);
 
-	bool is_grabbed(guint b);
+	bool has_touch_grab() { return grab_touch && grab_device != GrabYes; }
+	bool is_active() { return active; }
 	bool is_instant(guint b);
 	bool is_click_hold(guint b);
 	bool hierarchy_changed(XIHierarchyEvent *);

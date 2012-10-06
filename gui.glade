@@ -104,12 +104,10 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkButton" id="button_delete_delete">
                 <property name="label">gtk-delete</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -179,12 +177,10 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkButton" id="button_record_cancel">
                 <property name="label">gtk-cancel</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -196,11 +192,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkButton" id="button_record_delete">
                 <property name="label" translatable="yes">_Delete Current</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="image">image6</property>
                 <property name="use_underline">True</property>
               </object>
@@ -245,11 +239,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkButton" id="select_cancel">
                 <property name="label">gtk-cancel</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -261,11 +253,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkButton" id="select_ok">
                 <property name="label">gtk-ok</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -277,11 +267,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkButton" id="select_default">
                 <property name="label" translatable="yes">_Default</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="image">image5</property>
                 <property name="use_underline">True</property>
               </object>
@@ -308,11 +296,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkRadioButton" id="radio_timeout_default">
                 <property name="label" translatable="yes">Timeout</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="xalign">0.5</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
@@ -326,11 +312,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkRadioButton" id="radio_instant">
                 <property name="label" translatable="yes">Instant Gestures</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="xalign">0.5</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
@@ -345,11 +329,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkRadioButton" id="radio_click_hold">
                 <property name="label" translatable="yes">Click &amp; Hold</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">False</property>
-                <property name="use_action_appearance">False</property>
                 <property name="xalign">0.5</property>
                 <property name="active">True</property>
                 <property name="draw_indicator">True</property>
@@ -381,11 +363,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkToggleButton" id="toggle_control">
                 <property name="label" translatable="yes">_Control</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
               </object>
               <packing>
@@ -396,22 +376,18 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkToggleButton" id="toggle_shift">
                 <property name="label" translatable="yes">_Shift</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
               </object>
             </child>
             <child>
               <object class="GtkToggleButton" id="toggle_alt">
                 <property name="label" translatable="yes">_Alt</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
               </object>
               <packing>
@@ -422,11 +398,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkToggleButton" id="toggle_super">
                 <property name="label" translatable="yes">S_uper</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
               </object>
               <packing>
@@ -439,11 +413,9 @@ Van Diep Duong (Vietnamese)</property>
             <child>
               <object class="GtkToggleButton" id="toggle_any">
                 <property name="label" translatable="yes">An_y Modifier</property>
-                <property name="use_action_appearance">False</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
-                <property name="use_action_appearance">False</property>
                 <property name="use_underline">True</property>
               </object>
               <packing>
@@ -621,11 +593,9 @@ Van Diep Duong (Vietnamese)</property>
                         <child>
                           <object class="GtkCheckButton" id="check_show_deleted">
                             <property name="label" translatable="yes">Show deleted rows</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="xalign">0</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -645,11 +615,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkButton" id="button_add_app">
                                 <property name="label" translatable="yes">Add Application</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="image">image8</property>
                               </object>
                               <packing>
@@ -661,11 +629,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkButton" id="button_remove_app">
                                 <property name="label" translatable="yes">Remove Application/Group</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="image">image9</property>
                               </object>
                               <packing>
@@ -677,11 +643,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkButton" id="button_add_group">
                                 <property name="label" translatable="yes">Add Group</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="image">image10</property>
                               </object>
                               <packing>
@@ -696,17 +660,15 @@ Van Diep Duong (Vietnamese)</property>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="x_options"></property>
+                            <property name="x_options"/>
                           </packing>
                         </child>
                         <child>
                           <object class="GtkButton" id="button_reset_actions">
                             <property name="label" translatable="yes">Reset Action(s)</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="image">image11</property>
                           </object>
                           <packing>
@@ -715,7 +677,7 @@ Van Diep Duong (Vietnamese)</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options"></property>
+                            <property name="y_options"/>
                           </packing>
                         </child>
                       </object>
@@ -764,12 +726,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_record">
                     <property name="label" translatable="yes">_Record Stroke</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="image">image1</property>
                     <property name="use_underline">True</property>
                   </object>
@@ -782,12 +742,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_add_action">
                     <property name="label" translatable="yes">_Add Action</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="image">image2</property>
                     <property name="use_underline">True</property>
                   </object>
@@ -800,12 +758,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_delete_action">
                     <property name="label" translatable="yes">_Delete Action(s)</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="image">image3</property>
                     <property name="use_underline">True</property>
                   </object>
@@ -818,12 +774,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_hide1">
                     <property name="label" translatable="yes">_Hide</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
                   </object>
                   <packing>
@@ -890,12 +844,10 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkButton" id="button_button">
                                 <property name="label" translatable="yes">_Gesture Button</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="use_underline">True</property>
                               </object>
                               <packing>
@@ -939,11 +891,9 @@ Van Diep Duong (Vietnamese)</property>
                                     <child>
                                       <object class="GtkButton" id="button_add_extra">
                                         <property name="label">gtk-add</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="use_stock">True</property>
                                       </object>
                                       <packing>
@@ -955,11 +905,9 @@ Van Diep Duong (Vietnamese)</property>
                                     <child>
                                       <object class="GtkButton" id="button_edit_extra">
                                         <property name="label">gtk-edit</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="use_stock">True</property>
                                       </object>
                                       <packing>
@@ -971,11 +919,9 @@ Van Diep Duong (Vietnamese)</property>
                                     <child>
                                       <object class="GtkButton" id="button_remove_extra">
                                         <property name="label">gtk-remove</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="receives_default">True</property>
-                                        <property name="use_action_appearance">False</property>
                                         <property name="use_stock">True</property>
                                       </object>
                                       <packing>
@@ -1067,6 +1013,21 @@ Van Diep Duong (Vietnamese)</property>
                           </packing>
                         </child>
                         <child>
+                          <object class="GtkCheckButton" id="check_touch">
+                            <property name="label" translatable="yes">Enable Touch Support (Experimental)</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">False</property>
+                            <property name="xalign">0</property>
+                            <property name="draw_indicator">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">3</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkHBox" id="hbox_timeout">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
@@ -1123,7 +1084,7 @@ Van Diep Duong (Vietnamese)</property>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
-                            <property name="position">3</property>
+                            <property name="position">4</property>
                           </packing>
                         </child>
                       </object>
@@ -1213,11 +1174,9 @@ Van Diep Duong (Vietnamese)</property>
                             </child>
                             <child>
                               <object class="GtkColorButton" id="button_color">
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="color">#000000000000</property>
                               </object>
                               <packing>
@@ -1264,11 +1223,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_feedback">
                                 <property name="label" translatable="yes">Show popups (</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1281,11 +1238,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_left_handed">
                                 <property name="label" translatable="yes">to the right of the cursor)</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1310,11 +1265,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_tray_icon">
                                 <property name="label" translatable="yes">Show tray icon</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1327,11 +1280,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_tray_feedback">
                                 <property name="label" translatable="yes">Show last gesture in tray</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1344,11 +1295,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_autostart">
                                 <property name="label" translatable="yes">Autostart easystroke</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1443,12 +1392,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_add_exception">
                     <property name="label" translatable="yes">_Add Exception</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="image">image4</property>
                     <property name="use_underline">True</property>
                   </object>
@@ -1461,12 +1408,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_remove_exception">
                     <property name="label" translatable="yes">_Remove Exception</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="image">image7</property>
                     <property name="use_underline">True</property>
                   </object>
@@ -1479,12 +1424,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_hide2">
                     <property name="label" translatable="yes">_Hide</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
                   </object>
                   <packing>
@@ -1551,11 +1494,9 @@ Van Diep Duong (Vietnamese)</property>
                         <child>
                           <object class="GtkCheckButton" id="check_whitelist">
                             <property name="label" translatable="yes">Only enable easystroke for applications listed on 'Actions' tab</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="xalign">0</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -1568,11 +1509,9 @@ Van Diep Duong (Vietnamese)</property>
                         <child>
                           <object class="GtkCheckButton" id="check_timeout_gestures">
                             <property name="label" translatable="yes">Timeout Gestures</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="xalign">0</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -1588,11 +1527,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_advanced_ignore">
                                 <property name="label" translatable="yes">Ignore strokes leading up to advanced gestures</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1605,12 +1542,10 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkLinkButton" id="linkbutton1">
                                 <property name="label" translatable="yes">(See Documentation)</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
                                 <property name="has_tooltip">True</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="relief">none</property>
                                 <property name="uri">http://easystroke.wiki.sourceforge.net/FeatureAdvancedGestures#content</property>
                               </object>
@@ -1635,11 +1570,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_advanced_popups">
                                 <property name="label" translatable="yes">Show popups on advanced gestures</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1652,11 +1585,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_osd">
                                 <property name="label" translatable="yes">Show OSD</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1681,11 +1612,9 @@ Van Diep Duong (Vietnamese)</property>
                             <child>
                               <object class="GtkCheckButton" id="check_scroll_invert">
                                 <property name="label" translatable="yes">Invert Scroll Direction</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">False</property>
-                                <property name="use_action_appearance">False</property>
                                 <property name="xalign">0</property>
                                 <property name="draw_indicator">True</property>
                               </object>
@@ -1731,11 +1660,9 @@ Van Diep Duong (Vietnamese)</property>
                         <child>
                           <object class="GtkCheckButton" id="check_move_back">
                             <property name="label" translatable="yes">Move the cursor back to the original position after each gesture</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="xalign">0</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -1785,11 +1712,9 @@ Van Diep Duong (Vietnamese)</property>
                         <child>
                           <object class="GtkCheckButton" id="check_proximity">
                             <property name="label" translatable="yes">Stay in 'scroll' and 'ignore' mode as long as the pen is within range</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
-                            <property name="use_action_appearance">False</property>
                             <property name="xalign">0</property>
                             <property name="draw_indicator">True</property>
                           </object>
@@ -1877,12 +1802,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_hide4">
                     <property name="label" translatable="yes">_Hide</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
                   </object>
                   <packing>
@@ -1985,12 +1908,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_hide3">
                     <property name="label" translatable="yes">_Hide</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
                   </object>
                   <packing>
@@ -2003,12 +1924,10 @@ Van Diep Duong (Vietnamese)</property>
                 <child>
                   <object class="GtkButton" id="button_matrix">
                     <property name="label" translatable="yes">_Matrix</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
                     <property name="receives_default">True</property>
                     <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                    <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
                   </object>
                   <packing>
