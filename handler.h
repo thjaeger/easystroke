@@ -30,14 +30,16 @@ public:
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	void handle_xi2_event(XIDeviceEvent *event);
-	void handle_raw_motion(XIRawEvent *event);
+	void handle_raw_event(XIRawEvent *event);
 	void report_xi2_event(XIDeviceEvent *event, const char *type);
+	void report_raw_event(XIRawEvent *event, const char *type);
+
+	void accept_touch(bool accept = true);
 
 	void fake_core_button(guint b, bool press);
 	void fake_click(guint b);
 	void update_core_mapping();
 
-	void remove_device(int deviceid);
 	void ungrab(int deviceid);
 
 	bool idle();
@@ -56,7 +58,10 @@ public:
 
 	Grabber::XiDevice *current_dev;
 	bool in_proximity;
-	bool accepted;
+	bool touch;
+	bool touch_accepted;
+	int first_touch;
+	int touch_device;
 	std::set<guint> xinput_pressed;
 	guint modifiers;
         std::map<guint, guint> core_inv_map;
@@ -85,7 +90,7 @@ public:
 	}
 
 	virtual void motion(RTriple e) {}
-	virtual void raw_motion(RTriple e, bool, bool) {}
+	virtual void raw_motion(int id, RTriple e, bool, bool) {}
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_master(guint b, Time t) {}

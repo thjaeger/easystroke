@@ -30,9 +30,7 @@ void update_triple(RTriple e, float x, float y, Time t) {
 }
 
 RTriple create_triple(float x, float y, Time t) {
-	RTriple e(new Triple);
-	update_triple(e, x, y, t);
-	return e;
+	return RTriple(new Triple(x, y, t));
 }
 
 template<class Archive> void Stroke::save(Archive & ar, const unsigned int version) const {

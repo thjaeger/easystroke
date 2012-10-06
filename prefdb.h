@@ -133,12 +133,13 @@ public:
 	PrefSource<bool> move_back;
 	PrefSource<std::map<std::string, TimeoutType> > device_timeout;
 	PrefSource<bool> whitelist;
+	PrefSource<bool> touch;
 
 	void init();
 	virtual void timeout();
 };
 
-BOOST_CLASS_VERSION(PrefDB, 18)
+BOOST_CLASS_VERSION(PrefDB, 19)
 
 extern PrefDB prefs;
 

@@ -235,7 +235,10 @@ static double get_axis(XIValuatorState &valuators, int axis) {
 }
 
 void XState::report_xi2_event(XIDeviceEvent *event, const char *type) {
-	printf("%s (XI2): ", type);
+	if (event->deviceid == event->sourceid)
+		printf("%s (device %d): ", type, event->deviceid);
+	else
+		printf("%s (device %d -> %d): ", type, event->sourceid, event->deviceid);
 	if (event->detail)
 		printf("%d ", event->detail);
 	printf("(%.3f, %.3f) - (", event->root_x, event->root_y);
@@ -243,7 +246,33 @@ void XState::report_xi2_event(XIDeviceEvent *event, const char *type) {
 	printf(") at t = %ld\n", event->time);
 }
 
+void XState::report_raw_event(XIRawEvent *event, const char *type) {
+	if (event->deviceid == event->sourceid)
+		printf("%s (device %d): (", type, event->deviceid);
+	else
+		printf("%s (device %d -> %d): (", type, event->sourceid, event->deviceid);
+	print_coordinates(&event->valuators, event->raw_values);
+	printf(") -> (");
+	print_coordinates(&event->valuators, event->valuators.values);
+	printf(") at t = %ld\n", event->time);
+}
+
+void XState::accept_touch(bool accept) {
+	if (!touch || touch_accepted)
+		return;
+	XIAllowTouchEvents(dpy, touch_device, first_touch, ROOT, accept ? XIAcceptTouch : XIRejectTouch);
+	if (accept) {
+		touch_accepted = true;
+		return;
+	}
+	touch = false;
+	current_dev = NULL;
+	xinput_pressed.clear();
+}
+
 void XState::handle_xi2_event(XIDeviceEvent *event) {
+	if (grabber->has_touch_grab() && (event->flags & XIPointerEmulated))
+		return;
 	switch (event->evtype) {
 		case XI_ButtonPress:
 			if (verbosity >= 3)
@@ -282,6 +311,8 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 			xinput_pressed.erase(event->detail);
 			in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
 			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
+			if (!xinput_pressed.size())
+				current_dev = NULL;
 			break;
 		case XI_Motion:
 			if (verbosity >= 5)
@@ -290,9 +321,75 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 				break;
 			H->motion(create_triple(event->root_x, event->root_y, event->time));
 			break;
+		case XI_TouchBegin:
+			if (verbosity >= 3)
+				report_xi2_event(event, "TouchBegin");
+			if (current_dev) {
+				if (!touch || event->sourceid != current_dev->dev || event->deviceid != touch_device)
+					break;
+				xinput_pressed.insert(event->detail);
+			} else {
+				if (grabber->get_xi_dev(event->deviceid)) {
+					XIAllowTouchEvents(dpy, event->deviceid, event->detail, ROOT, XIRejectTouch);
+					break;
+				}
+				current_dev = grabber->get_xi_dev(event->sourceid);
+				if (!current_dev) {
+					printf("Warning: Received touch event from unknown device\n");
+					XIAllowTouchEvents(dpy, event->deviceid, event->detail, ROOT, XIRejectTouch);
+					break;
+				}
+				touch = true;
+				touch_device = event->deviceid;
+				first_touch = event->detail;
+				touch_accepted = false;
+				if (!current_dev->active) {
+					accept_touch(false);
+					touch = false;
+					current_dev = NULL;
+					break;
+				}
+				modifiers = AnyModifier;
+				current_app_window.set(get_app_window(event->child));
+				if (verbosity >= 3)
+					printf("Active window 0x%lx -> 0x%lx\n", event->child, current_app_window.get());
+				if (!grabber->is_active()) {
+					accept_touch(false);
+					touch = false;
+					current_dev = NULL;
+					break;
+				}
+				xinput_pressed.insert(event->detail);
+				H->press(1, create_triple(event->root_x, event->root_y, event->time));
+			}
+			break;
+		case XI_TouchUpdate:
+			if (verbosity >= 5)
+				report_xi2_event(event, "TouchUpdate");
+			if (!touch || event->sourceid != current_dev->dev || event->deviceid != touch_device)
+				break;
+			if (event->detail == first_touch)
+				H->motion(create_triple(event->root_x, event->root_y, event->time));
+			break;
+		case XI_TouchEnd:
+			if (verbosity >= 3)
+				report_xi2_event(event, "TouchEnd");
+			if (!touch || event->sourceid != current_dev->dev || event->deviceid != touch_device)
+				break;
+			xinput_pressed.erase(event->detail);
+			if (event->detail == first_touch)
+				H->release(1, create_triple(event->root_x, event->root_y, event->time));
+			if (!xinput_pressed.size()) {
+				accept_touch(false);
+				touch = false;
+				current_dev = NULL;
+			}
+			break;
+		case XI_RawTouchBegin:
+		case XI_RawTouchUpdate:
+		case XI_RawTouchEnd:
 		case XI_RawMotion:
-			in_proximity = get_axis(((XIRawEvent *)event)->valuators, current_dev->proximity_axis);
-			handle_raw_motion((XIRawEvent *)event);
+			handle_raw_event((XIRawEvent *)event);
 			break;
 		case XI_HierarchyChanged:
 			if (grabber->hierarchy_changed((XIHierarchyEvent *)event))
@@ -300,31 +397,86 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 	}
 }
 
-void XState::handle_raw_motion(XIRawEvent *event) {
-	if (!current_dev || current_dev->dev != event->deviceid)
+void XState::handle_raw_event(XIRawEvent *event) {
+	Grabber::XiDevice *event_dev = grabber->get_xi_dev(event->deviceid);
+	if (!event_dev) {
+		printf("Warning: Raw event from unknown device\n");
 		return;
-	double x = 0.0, y = 0.0;
-	bool abs_x = current_dev->absolute;
-	bool abs_y = current_dev->absolute;
+	}
+
+	in_proximity = get_axis(event->valuators, event_dev->proximity_axis);
+
 	int i = 0;
+	double x = 0.0, y = 0.0;
+	bool abs_x = event_dev->absolute;
+	bool abs_y = event_dev->absolute;
 
 	if (XIMaskIsSet(event->valuators.mask, 0))
-		x = event->raw_values[i++];
+		x = abs_x ? event->valuators.values[i++] : event->raw_values[i++];
 	else
 		abs_x = false;
 
 	if (XIMaskIsSet(event->valuators.mask, 1))
-		y = event->raw_values[i++];
+		y = abs_y ? event->valuators.values[i++] : event->raw_values[i++];
 	else
 		abs_y = false;
 
-	if (verbosity >= 5) {
-		printf("Raw motion (XI2): (");
-		print_coordinates(&event->valuators, event->raw_values);
-		printf(") at t = %ld\n", event->time);
-	}
+	if (abs_x)
+		x *= event_dev->scale_x;
+	if (abs_y)
+		y *= event_dev->scale_y;
 
-	H->raw_motion(create_triple(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
+	switch(event->evtype) {
+		case XI_RawMotion:
+			if (verbosity >= 5)
+				report_raw_event(event, "RawMotion");
+			if (!current_dev || current_dev->dev != event->deviceid)
+				break;
+			H->raw_motion(0, create_triple(x, y, event->time), abs_x, abs_y);
+			break;
+		case XI_RawTouchBegin:
+			if (verbosity >= 3)
+				report_raw_event(event, "RawTouchBegin");
+			if (current_dev) {
+				if (!touch || event->deviceid != current_dev->dev)
+					break;
+				xinput_pressed.insert(event->detail);
+			} else {
+				current_dev = grabber->get_xi_dev(event->deviceid);
+				if (!current_dev) {
+					printf("Warning: Received raw touch event from unknown device\n");
+					break;
+				}
+				touch = true;
+				touch_device = event->deviceid;
+				first_touch = event->detail;
+				touch_accepted = true;
+				modifiers = AnyModifier;
+				xinput_pressed.insert(event->detail);
+				H->press(1, create_triple(x, y, event->time));
+			}
+			break;
+		case XI_RawTouchUpdate:
+			if (verbosity >= 5)
+				report_raw_event(event, "RawTouchUpdate");
+			if (!touch || event->deviceid != current_dev->dev)
+				break;
+			H->raw_motion(event->detail, create_triple(x, y, event->time), abs_x, abs_y);
+			break;
+		case XI_RawTouchEnd:
+			if (verbosity >= 3)
+				report_raw_event(event, "RawTouchEnd");
+			if (!touch || event->deviceid != current_dev->dev)
+				break;
+			xinput_pressed.erase(event->detail);
+			if (event->detail == first_touch)
+				H->release(1, create_triple(x, y, event->time));
+			if (!xinput_pressed.size()) {
+				touch = false;
+				current_dev = NULL;
+			}
+			break;
+	}
 }
 
 #undef H
@@ -415,7 +567,7 @@ public:
 			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "Ignore"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::GRAB; }
 };
 
 class ButtonHandler : public Handler {
@@ -456,7 +608,7 @@ public:
 			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "Button"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::GRAB; }
 };
 
 void XState::bail_out() {
@@ -511,14 +663,11 @@ void XState::ping() {
 	XFlush(dpy);
 }
 
-void XState::remove_device(int deviceid) {
-	if (current_dev && current_dev->dev == deviceid)
-		current_dev = NULL;
-}
-
 void XState::ungrab(int deviceid) {
-	if (current_dev && current_dev->dev == deviceid)
+	if (!touch && current_dev && current_dev->dev == deviceid) {
+		current_dev = NULL;
 		xinput_pressed.clear();
+	}
 }
 
 class WaitForPongHandler : public Handler, protected Timeout {
@@ -536,8 +685,8 @@ public:
 static inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
-	bool have_x, have_y;
-	float last_x, last_y;
+	std::map<int, float> last_x, last_y;
+	std::list<Triple> hist;
 	Time last_t;
 	float offset_x, offset_y;
 	Glib::ustring str;
@@ -568,34 +717,47 @@ protected:
 		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig_x, orig_y, 0);
 	}
 public:
-	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
-		float dx = abs_x ? (have_x ? e->x - last_x : 0) : e->x;
-		float dy = abs_y ? (have_y ? e->y - last_y : 0) : e->y;
+	virtual void raw_motion(int id, RTriple e, bool abs_x, bool abs_y) {
+		float dx = e->x, dy = e->y;
 
 		if (abs_x) {
-			last_x = e->x;
-			have_x = true;
+			dx = (last_x.find(id) != last_x.end()) ? e->x - last_x[id] : 0;
+			last_x[id] = e->x;
 		}
 
 		if (abs_y) {
-			last_y = e->y;
-			have_y = true;
+			dy = (last_y.find(id) != last_y.end()) ? e->y - last_y[id] : 0;
+			last_y[id] = e->y;
 		}
+
 
 		if (!last_t) {
 			last_t = e->t;
 			return;
 		}
 
-		if (e->t == last_t)
-			return;
+		std::list<Triple>::iterator i = hist.begin();
+		while (i != hist.end() && i->t + 100 < e->t)
+			i++;
+		hist.erase(hist.begin(), i);
 
-		int dt = e->t - last_t;
+		hist.push_back(Triple(dx, dy, last_t));
+
+		float x_prime = 0, y_prime = 0;
+		for (std::list<Triple>::iterator j = hist.begin(); j != hist.end(); ++j) {
+			x_prime += j->x;
+			y_prime += j->y;
+		}
+
+		int dt = e->t - hist.begin()->t;
+		x_prime = dt < 20 ? 0.1 : x_prime/dt;
+		y_prime = dt < 20 ? 0.1 : y_prime/dt;
+
 		last_t = e->t;
 
 		double factor = (prefs.scroll_invert.get() ? 1.0 : -1.0) * prefs.scroll_speed.get();
-		offset_x += factor * curve(dx/dt)*dt/20.0;
-		offset_y += factor * curve(dy/dt)*dt/10.0;
+		offset_x += factor * powf(abs(x_prime), 0.333)*dx/20.0;
+		offset_y += factor * powf(abs(y_prime), 0.333)*dy/10.0;
 		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
 		if (abs(offset_x) > 1.0) {
 			n1 = (int)floor(abs(offset_x));
@@ -632,13 +794,13 @@ public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
 		proximity = xstate->in_proximity && prefs.proximity.get();
 	}
-	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
+	virtual void raw_motion(int id, RTriple e, bool abs_x, bool abs_y) {
 		if (proximity && !xstate->in_proximity) {
 			parent->replace_child(NULL);
 			move_back();
 		}
 		if (xstate->xinput_pressed.size())
-			AbstractScrollHandler::raw_motion(e, abs_x, abs_y);
+			AbstractScrollHandler::raw_motion(id, e, abs_x, abs_y);
 	}
 	virtual void press_master(guint b, Time t) {
 		xstate->fake_core_button(b, false);
@@ -695,7 +857,7 @@ public:
 			parent->replace_child(NULL);
 	}
 	virtual std::string name() { return "InstantStrokeAction"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
 
 class AdvancedHandler : public Handler {
@@ -725,11 +887,19 @@ class AdvancedHandler : public Handler {
 		}
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, RPreStroke replay) {
-		if (stroke_action && s)
+		if (stroke_action && s) {
+			if (xstate->touch)
+				xstate->accept_touch();
 			return new AdvancedStrokeActionHandler(s, e);
-		else
-			return new AdvancedHandler(s, e, b1, b2, replay);
-
+		}
+		AdvancedHandler *ret = new AdvancedHandler(s, e, b1, b2, replay);
+		if (xstate->touch && ret->as.empty()) {
+			delete ret;
+			ret = NULL;
+		}
+		if (xstate->touch)
+			xstate->accept_touch(ret);
+		return ret;
 	}
 	virtual void init() {
 		if (replay && replay->size()) {
@@ -831,7 +1001,7 @@ public:
 		remap_from = 0;
 	}
 	virtual std::string name() { return "Advanced"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
 
 static void get_timeouts(TimeoutType type, int *init, int *final) {
@@ -921,7 +1091,12 @@ class StrokeHandler : public Handler, public sigc::trackable {
 	}
 protected:
 	void abort_stroke() {
-		parent->replace_child(AdvancedHandler::create(RStroke(), last, button, 0, cur));
+		if (xstate->touch) {
+			xstate->accept_touch(false);
+			parent->replace_child(NULL);
+		} else {
+			parent->replace_child(AdvancedHandler::create(RStroke(), last, button, 0, cur));
+		}
 	}
 	virtual void motion(RTriple e) {
 		cur->add(e);
@@ -976,10 +1151,16 @@ protected:
 
 		if (stroke_action) {
 			(*stroke_action)(s);
+			xstate->accept_touch();
 			return parent->replace_child(NULL);
 		}
 		RRanking ranking;
 		RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
+		if (xstate->touch && IS_CLICK(act)) {
+			xstate->accept_touch(false);
+			return parent->replace_child(NULL);
+		}
+		xstate->accept_touch();
 		if (!IS_CLICK(act))
 			Ranking::queue_show(ranking, e);
 		if (!act) {
@@ -1014,7 +1195,7 @@ protected:
 public:
 	StrokeHandler(guint b, RTriple e) :
 		button(b),
-		trigger(grabber->get_default_button() == (int)b ? 0 : b),
+		trigger(xstate->touch ? 0 : grabber->get_default_button() == (int)b ? 0 : b),
 		is_gesture(false),
 		drawing(false),
 		last(e),
@@ -1052,7 +1233,7 @@ public:
 	}
 	~StrokeHandler() { trace->end(); }
 	virtual std::string name() { return "Stroke"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
 };
 
 class IdleHandler : public Handler {
@@ -1099,7 +1280,7 @@ std::string XState::select_window() {
 	return grabber->current_class->get();
 }
 
-XState::XState() : current_dev(NULL), in_proximity(false), accepted(true) {
+XState::XState() : current_dev(NULL), in_proximity(false), touch(false) {
 	int n, opcode, event, error;
 	char **ext = XListExtensions(dpy, &n);
 	for (int i = 0; i < n; i++)

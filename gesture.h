@@ -35,6 +35,7 @@ typedef boost::shared_ptr<Stroke> RStroke;
 typedef boost::shared_ptr<PreStroke> RPreStroke;
 
 struct Triple {
+	Triple(float x_, float y_, Time t_) : x(x_), y(y_), t(t_) {}
 	float x;
 	float y;
 	Time t;
