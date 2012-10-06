@@ -8,16 +8,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
-"PO-Revision-Date: 2011-10-26 12:56+0000\n"
-"Last-Translator: Hendrik Knackstedt <Unknown>\n"
+"POT-Creation-Date: 2012-09-08 23:49-0400\n"
+"PO-Revision-Date: 2012-09-10 17:51+0000\n"
+"Last-Translator: Maximilian Mühlbauer <Unknown>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2012-10-06 06:00+0000\n"
+"X-Generator: Launchpad (build 16061)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -193,10 +193,6 @@ msgid "Error: A grab failed.  Resetting...\n"
 msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
 
 #, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Fataler Fehler: Verbindung zum X-Server verloren, starte neu...\n"
-
-#, c-format
 msgid "Warning: No action \"%s\" defined\n"
 msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
@@ -210,20 +206,22 @@ msgstr ""
 "Um den Konfigurationsdialog wieder anzuzeigen, können Sie eine Aktion vom "
 "Typ Verschiedene..Anzeigen/Verstecken erstellen."
 
-#, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Fehler bei der Initialisierung von D-BUS\n"
+#. section1->append(_("Enabled"), "app.enabled");
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgid "Disable"
+msgstr "Deaktivieren"
+
+msgid "About"
+msgstr "Über"
+
+msgid "Quit"
+msgstr "Schließen"
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Konnte Verbindung zum Server nicht herstellen.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr ""
-"Easystroke ist bereits gestartet, zeige stattdessen das "
-"Konfigurationsfenster.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -314,174 +312,171 @@ msgstr "(Rahmen des Window-Managers)"
 msgid "Connection to DBus failed"
 msgstr "Verbindung zum DBus fehlgeschlagen"
 
-msgid "     Timeout (ms)"
-msgstr "     Timeout (ms)"
+msgid "_Delete Current"
+msgstr "Geste löschen"
 
-msgid "(See Documentation)"
-msgstr "(Siehe die Dokumentation)"
+msgid "_Default"
+msgstr "Standard"
 
-msgid "<b>Appearance</b>"
-msgstr "<b>Erscheinung</b>"
+msgid "Timeout"
+msgstr "Timeout"
 
-msgid "<b>Behavior</b>"
-msgstr "<b>Verhalten</b>"
+msgid "Instant Gestures"
+msgstr "Sofortige Gesten"
 
-msgid "<b>Devices</b>"
-msgstr "<b>Geräte</b>"
+msgid "Click & Hold"
+msgstr "Click & Hold"
 
-msgid "<b>Exceptions</b>"
-msgstr "<b>Ausnahmen</b>"
+msgid "_Control"
+msgstr "Strg"
 
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Tablet-Optionen</b>"
+msgid "_Shift"
+msgstr "Umschalt"
 
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "Breche Gesten ab folgendem Druck ab (von 255)"
+msgid "_Alt"
+msgstr "Alt"
 
-msgid "Add Application"
-msgstr "Anwendung hinzufügen"
+msgid "S_uper"
+msgstr "Super"
 
-msgid "Add Group"
-msgstr "Gruppe hinzufügen"
-
-msgid "Additional Buttons"
-msgstr "Zusätzliche Maustasten"
-
-msgid "Advanced"
-msgstr "Fortgeschritten"
+msgid "An_y Modifier"
+msgstr "Beliebiger Modifier"
 
 msgid "Alternatively, you may select button and modifiers below."
 msgstr ""
 "Alternativ können sie Maustaste und Modifiers weiter unten auswählen."
 
-msgid "An_y Modifier"
-msgstr "Beliebiger Modifier"
+msgid "Show deleted rows"
+msgstr "Zeige gelöschte Zeilen"
 
-msgid "Applications"
-msgstr "Anwendungen"
-
-msgid "Autostart easystroke"
-msgstr "Automatisch starten"
-
-msgid "Click & Hold"
-msgstr "Click & Hold"
-
-msgid "Color"
-msgstr "Farbe"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Ignoriere die Mausbewegung bei Advanced Gestures"
-
-msgid "Initial Timeout (ms)"
-msgstr "Anfängliches Timeout (ms)"
-
-msgid "Instant Gestures"
-msgstr "Sofortige Gesten"
-
-msgid "Invert Scroll Direction"
-msgstr "Scroll-Richtung invertieren"
-
-msgid "Method to show gestures"
-msgstr "Methode zum Anzeigen der Gesten"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
-"Bewegen Sie den Mauszeiger nach einer Geste zurück in die Ausgangsposition"
-
-msgid "Preferences"
-msgstr "Einstellungen"
+msgid "Add Application"
+msgstr "Anwendung hinzufügen"
 
 msgid "Remove Application/Group"
 msgstr "Entferne Anwendung/Gruppe"
 
+msgid "Add Group"
+msgstr "Gruppe hinzufügen"
+
 msgid "Reset Action(s)"
 msgstr "Aktion(en) zurücksetzen"
 
-msgid "S_uper"
-msgstr "Super"
+msgid "Applications"
+msgstr "Anwendungen"
 
-msgid "Scroll Speed"
-msgstr "Scrollgeschwindigkeit"
+msgid "_Record Stroke"
+msgstr "Geste aufnehmen"
 
-msgid "Show OSD"
-msgstr "OSD anzeigen"
+msgid "_Add Action"
+msgstr "Aktion hinzufügen"
 
-msgid "Show deleted rows"
-msgstr "Zeige gelöschte Zeilen"
+msgid "_Delete Action(s)"
+msgstr "Aktion(en) löschen"
 
-msgid "Show last gesture in tray"
-msgstr "Zeige die letzte Geste im Tray"
+msgid "_Hide"
+msgstr "Verstecken"
+
+msgid "_Gesture Button"
+msgstr "Gesten-Maustaste"
+
+msgid "Additional Buttons"
+msgstr "Zusätzliche Maustasten"
+
+msgid "Initial Timeout (ms)"
+msgstr "Anfängliches Timeout (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Timeout (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Verhalten</b>"
+
+msgid "Method to show gestures"
+msgstr "Methode zum Anzeigen der Gesten"
+
+msgid "Color"
+msgstr "Farbe"
+
+msgid "Width"
+msgstr "Breite"
 
 msgid "Show popups ("
 msgstr "Popus anzeigen ("
 
-msgid "Show popups on advanced gestures"
-msgstr "Popups bei Advanced Gestures anzeigen"
+msgid "optimize for left-handed operation )"
+msgstr "für linkshändige Bedienung optimieren )"
 
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
+
+msgid "Show last gesture in tray"
+msgstr "Zeige die letzte Geste im Tray"
+
+msgid "Autostart easystroke"
+msgstr "Automatisch starten"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Erscheinung</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Ausnahmen</b>"
+
+msgid "_Add Exception"
+msgstr "Ausnahme hinzufügen"
+
+msgid "_Remove Exception"
+msgstr "Ausnahme Entfernen"
+
+msgid "Preferences"
+msgstr "Einstellungen"
+
+msgid "Timeout Gestures"
+msgstr "Timeout-Gesten"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Ignoriere die Mausbewegung bei Advanced Gestures"
+
+msgid "(See Documentation)"
+msgstr "(Siehe die Dokumentation)"
+
+msgid "Show popups on advanced gestures"
+msgstr "Popups bei Advanced Gestures anzeigen"
+
+msgid "Show OSD"
+msgstr "OSD anzeigen"
+
+msgid "Invert Scroll Direction"
+msgstr "Scroll-Richtung invertieren"
+
+msgid "Scroll Speed"
+msgstr "Scrollgeschwindigkeit"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr ""
+"Bewegen Sie den Mauszeiger nach einer Geste zurück in die Ausgangsposition"
 
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Bleibe im 'Scrollen' oder 'Ignorieren' Modus solange der Stift in Reichweite "
 "ist"
 
-msgid "Timeout"
-msgstr "Timeout"
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Tablet-Optionen</b>"
 
-msgid "Timeout Gestures"
-msgstr "Timeout-Gesten"
+msgid "<b>Devices</b>"
+msgstr "<b>Geräte</b>"
 
-msgid "Width"
-msgstr "Breite"
-
-msgid "_Add Action"
-msgstr "Aktion hinzufügen"
-
-msgid "_Add Exception"
-msgstr "Ausnahme hinzufügen"
-
-msgid "_Alt"
-msgstr "Alt"
-
-msgid "_Control"
-msgstr "Strg"
-
-msgid "_Default"
-msgstr "Standard"
-
-msgid "_Delete Action(s)"
-msgstr "Aktion(en) löschen"
-
-msgid "_Delete Current"
-msgstr "Geste löschen"
-
-msgid "_Gesture Button"
-msgstr "Gesten-Maustaste"
-
-msgid "_Hide"
-msgstr "Verstecken"
-
-msgid "_History"
-msgstr "Verlauf"
+msgid "Advanced"
+msgstr "Fortgeschritten"
 
 msgid "_Matrix"
 msgstr "Matrix"
 
-msgid "_Record Stroke"
-msgstr "Geste aufnehmen"
-
-msgid "_Remove Exception"
-msgstr "Ausnahme Entfernen"
-
-msgid "_Shift"
-msgstr "Umschalt"
-
-msgid "optimize for left-handed operation )"
-msgstr "für linkshändige Bedienung optimieren )"
-
-msgid "Control your desktop using mouse gestures"
-msgstr "Den Rechner mit Mausgesten bedienen"
+msgid "_History"
+msgstr "Verlauf"
 
 msgid "Easystroke Gesture Recognition"
 msgstr "Easystroke Gestenerkennung"
+
+msgid "Control your desktop using mouse gestures"
+msgstr "Den Rechner mit Mausgesten bedienen"
