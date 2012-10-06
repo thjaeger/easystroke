@@ -1,3 +1,11 @@
+2012-10-06 Release 0.5.6
+	* Keycode translation improvements
+	* Allow gestures to be distinguished by modifiers
+	* Improve detection current application
+	* Minor UI improvements
+	* Make Bell work again
+	* Add Hungarian translations
+
 2011-08-16 Released 0.5.5.1
 	* Fix build failure due to missing import
 
