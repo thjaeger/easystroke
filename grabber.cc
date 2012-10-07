@@ -173,7 +173,7 @@ void Children::destroy(Window w) {
 	frame_win.erase2(w);
 }
 
-void activate(Window w, Time t) {
+static void activate(Window w, Time t) {
 	XClientMessageEvent ev;
 	ev.type = ClientMessage;
 	ev.window = w;
