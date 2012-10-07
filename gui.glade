@@ -7,7 +7,7 @@
     <property name="border_width">5</property>
     <property name="window_position">center</property>
     <property name="type_hint">normal</property>
-    <property name="copyright">Copyright © 2008-2009 Thomas Jaeger.</property>
+    <property name="copyright">Copyright © 2008-2012 Thomas Jaeger.</property>
     <property name="website">http://easystroke.sourceforge.net</property>
     <property name="website_label">http://easystroke.sourceforge.net</property>
     <property name="authors">Thomas Jaeger &lt;ThJaeger@gmail.com&gt;</property>
