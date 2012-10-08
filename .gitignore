@@ -5,9 +5,7 @@ easystroke.1
 gui.c
 desktop.c
 *.swp
-dbus-server.h
 debug.mk
-*.gz
 po/??
 po/??_??
 po/POTFILES.in
