@@ -18,9 +18,12 @@
 #include "main.h"
 #include "grabber.h"
 #include <glibmm/i18n.h>
+#include <sys/stat.h>
 
 #include <set>
 #include <iostream>
+
+extern const char *desktop_file;
 
 class Check : private Base {
 	IO<bool> &io;
@@ -183,9 +186,6 @@ const Combo<TimeoutType>::Info timeout_info_exp[] = {
 
 Source<bool> autostart_ok(true);
 
-#include <sys/stat.h>
-extern const char *desktop_file;
-
 class Autostart : public IO<bool>, private Base {
 	bool a;
 	std::string filename;
@@ -208,8 +208,11 @@ public:
 	virtual bool get() const { return a; }
 	virtual void notify() {
 		if (a) {
+			char path[256] = "easystroke";
+			readlink("/proc/self/exe", path, sizeof(path));
+
 			FILE *file = fopen(filename.c_str(), "w");
-			if (!file || fprintf(file, desktop_file, "easystroke") == -1)
+			if (!file || fprintf(file, desktop_file, path) == -1)
 				autostart_ok.set(false);
 			if (file)
 				fclose(file);

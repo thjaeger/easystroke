@@ -80,7 +80,7 @@ easystroke.desktop: easystroke.desktop.in $(MOFILES)
 
 desktop.c: easystroke.desktop
 	echo "const char *desktop_file = \"\\" > $@
-	sed 's/Exec=easystroke/Exec=%s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
+	sed 's/Exec=easystroke/Exec=%1$$s/' $< | sed 's/"/\\"/g' | sed 's/.*/&\\n\\/' >> $@
 	echo "\";" >> $@
 
 po/POTFILES.in: $(CCFILES) $(HFILES)
