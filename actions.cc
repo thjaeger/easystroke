@@ -962,8 +962,6 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 }
 
 void Actions::on_combo_edited(const Glib::ustring& path_string, guint item) {
-	if (item < 0)
-		item = 0;
 	RMisc misc = Misc::create((Misc::Type)item);
 	Glib::ustring str = misc->get_label();
 	Gtk::TreeRow row(*tm->get_iter(path_string));
