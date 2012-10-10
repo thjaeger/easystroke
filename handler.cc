@@ -21,12 +21,8 @@
 #include <gtkmm.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
-//#include <X11/extensions/XInput2.h>
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
-// From #include <X11/extensions/XIproto.h>
-// which is not C++-safe
-#define X_GrabDeviceButton              17
 
 XState *xstate = NULL;
 
@@ -481,27 +477,19 @@ int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
 				return 0;
 		}
 	}
-	if (e->request_code == X_GrabButton ||
-			(grabber && e->request_code == grabber->event &&
-			 e->minor_code == X_GrabDeviceButton)) {
-		if (!xstate->handler || xstate->idle()) {
-			printf(_("Error: %s\n"), e->request_code==X_GrabButton ? "A grab failed" : "An XInput grab failed");
-		} else {
-			printf(_("Error: A grab failed.  Resetting...\n"));
-			xstate->bail_out();
-		}
-	} else {
-		char text[64];
-		XGetErrorText(dpy, e->error_code, text, sizeof text);
-		char msg[16];
-		snprintf(msg, sizeof msg, "%d", e->request_code);
-		char def[32];
+	char text[64];
+	XGetErrorText(dpy, e->error_code, text, sizeof text);
+	char msg[16];
+	snprintf(msg, sizeof msg, "%d", e->request_code);
+	char def[128];
+	if (e->request_code < 128)
 		snprintf(def, sizeof def, "request_code=%d, minor_code=%d", e->request_code, e->minor_code);
-		char dbtext[128];
-		XGetErrorDatabaseText(dpy, "XRequest", msg,
-				def, dbtext, sizeof dbtext);
-		printf("XError: %s: %s\n", text, dbtext);
-	}
+	else
+		snprintf(def, sizeof def, "extension=%s, request_code=%d", xstate->opcodes[e->request_code].c_str(), e->minor_code);
+	char dbtext[128];
+	XGetErrorDatabaseText(dpy, "XRequest", msg, def, dbtext, sizeof dbtext);
+	printf("XError: %s: %s\n", text, dbtext);
+
 	return 0;
 }
 
@@ -1112,6 +1100,12 @@ std::string XState::select_window() {
 }
 
 XState::XState() : current_dev(NULL), in_proximity(false), accepted(true) {
+	int n, opcode, event, error;
+	char **ext = XListExtensions(dpy, &n);
+	for (int i = 0; i < n; i++)
+		if (XQueryExtension(dpy, ext[i], &opcode, &event, &error))
+			opcodes[opcode] = ext[i];
+	XFreeExtensionList(ext);
 	oldHandler = XSetErrorHandler(xErrorHandler);
 	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
 	ping_window = XCreateSimpleWindow(dpy, ROOT, 0, 0, 1, 1, 0, 0, 0);

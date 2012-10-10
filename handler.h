@@ -69,6 +69,7 @@ private:
 	int (*oldHandler)(Display *, XErrorEvent *);
 	int (*oldIOHandler)(Display *);
 	std::list<sigc::slot<void> > queued;
+	std::map<int, std::string> opcodes;
 };
 
 class Handler {
