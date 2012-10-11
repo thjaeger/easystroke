@@ -55,8 +55,7 @@ void stroke_add_point(stroke_t *s, double x, double y) {
 	s->n++;
 }
 
-inline static double angle_difference(double alpha, double beta) {
-	// return 1.0 - cos((alpha - beta) * M_PI);
+static inline double angle_difference(double alpha, double beta) {
 	double d = alpha - beta;
 	if (d < -1.0)
 		d += 2.0;
@@ -133,26 +132,80 @@ double stroke_angle_difference(const stroke_t *a, const stroke_t *b, int i, int 
 	return fabs(angle_difference(stroke_get_angle(a, i), stroke_get_angle(b, j)));
 }
 
+static inline void step(const stroke_t *a,
+			const stroke_t *b,
+			const int N,
+			double *dist,
+			int *prev_x,
+			int *prev_y,
+			const int x,
+			const int y,
+			const double tx,
+			const double ty,
+			int *k,
+			const int x2,
+			const int y2)
+{
+	double dtx = a->p[x2].t - tx;
+	double dty = b->p[y2].t - ty;
+	if (dtx >= dty * 2.2 || dty >= dtx * 2.2 || dtx < EPS || dty < EPS)
+		return;
+	(*k)++;
+
+	double d = 0.0;
+	int i = x, j = y;
+	double next_tx = (a->p[i+1].t - tx) / dtx;
+	double next_ty = (b->p[j+1].t - ty) / dty;
+	double cur_t = 0.0;
+
+	for (;;) {
+		double ad = sqr(angle_difference(a->p[i].alpha, b->p[j].alpha));
+		double next_t = next_tx < next_ty ? next_tx : next_ty;
+		bool done = next_t >= 1.0 - EPS;
+		if (done)
+			next_t = 1.0;
+		d += (next_t - cur_t)*ad;
+		if (done)
+			break;
+		cur_t = next_t;
+		if (next_tx < next_ty)
+			next_tx = (a->p[++i+1].t - tx) / dtx;
+		else
+			next_ty = (b->p[++j+1].t - ty) / dty;
+	}
+	double new_dist = dist[x*N+y] + d * (dtx + dty);
+	if (new_dist != new_dist) abort();
+
+	if (new_dist >= dist[x2*N+y2])
+		return;
+
+	prev_x[x2*N+y2] = x;
+	prev_y[x2*N+y2] = y;
+	dist[x2*N+y2] = new_dist;
+}
+
 /* To compare two gestures, we use dynamic programming to minimize (an
  * approximation) of the integral over square of the angle difference among
  * (roughly) all reparametrizations whose slope is always between 1/2 and 2.
  */
 double stroke_compare(const stroke_t *a, const stroke_t *b, int *path_x, int *path_y) {
-	int m = a->n - 1;
-	int n = b->n - 1;
+	const int M = a->n;
+	const int N = b->n;
+	const int m = M - 1;
+	const int n = N - 1;
 
-	double dist[m+1][n+1];
-	int prev_x[m+1][n+1];
-	int prev_y[m+1][n+1];
+	double* dist = malloc(M * N * sizeof(double));
+	int* prev_x  = malloc(M * N * sizeof(int));
+	int* prev_y  = malloc(M * N * sizeof(int));
 	for (int i = 0; i < m; i++)
 		for (int j = 0; j < n; j++)
-			dist[i][j] = stroke_infinity;
-	dist[m][n] = stroke_infinity;
-	dist[0][0] = 0.0;
+			dist[i*N+j] = stroke_infinity;
+	dist[M*N-1] = stroke_infinity;
+	dist[0] = 0.0;
 
 	for (int x = 0; x < m; x++) {
 		for (int y = 0; y < n; y++) {
-			if (dist[x][y] >= stroke_infinity)
+			if (dist[x*N+y] >= stroke_infinity)
 				continue;
 			double tx  = a->p[x].t;
 			double ty  = b->p[y].t;
@@ -160,67 +213,28 @@ double stroke_compare(const stroke_t *a, const stroke_t *b, int *path_x, int *pa
 			int max_y = y;
 			int k = 0;
 
-			inline void step(int x2, int y2) {
-				double dtx = a->p[x2].t - tx;
-				double dty = b->p[y2].t - ty;
-				if (dtx >= dty * 2.2 || dty >= dtx * 2.2 || dtx < EPS || dty < EPS)
-					return;
-				k++;
-
-				double d = 0.0;
-				int i = x, j = y;
-				double next_tx = (a->p[i+1].t - tx) / dtx;
-				double next_ty = (b->p[j+1].t - ty) / dty;
-				double cur_t = 0.0;
-
-				for (;;) {
-					double ad = sqr(angle_difference(a->p[i].alpha, b->p[j].alpha));
-					double next_t = next_tx < next_ty ? next_tx : next_ty;
-					bool done = next_t >= 1.0 - EPS;
-					if (done)
-						next_t = 1.0;
-					d += (next_t - cur_t)*ad;
-					if (done)
-						break;
-					cur_t = next_t;
-					if (next_tx < next_ty)
-						next_tx = (a->p[++i+1].t - tx) / dtx;
-					else
-						next_ty = (b->p[++j+1].t - ty) / dty;
-				}
-				double new_dist = dist[x][y] + d * (dtx + dty);
-				if (new_dist != new_dist) abort();
-
-				if (new_dist >= dist[x2][y2])
-					return;
-
-				prev_x[x2][y2] = x;
-				prev_y[x2][y2] = y;
-				dist[x2][y2] = new_dist;
-			}
-
 			while (k < 4) {
 				if (a->p[max_x+1].t - tx > b->p[max_y+1].t - ty) {
 					max_y++;
 					if (max_y == n) {
-						step(m, n);
+						step(a, b, N, dist, prev_x, prev_y, x, y, tx, ty, &k, m, n);
 						break;
 					}
 					for (int x2 = x+1; x2 <= max_x; x2++)
-						step(x2, max_y);
+						step(a, b, N, dist, prev_x, prev_y, x, y, tx, ty, &k, x2, max_y);
 				} else {
 					max_x++;
 					if (max_x == m) {
-						step(m, n);
+						step(a, b, N, dist, prev_x, prev_y, x, y, tx, ty, &k, m, n);
 						break;
 					}
 					for (int y2 = y+1; y2 <= max_y; y2++)
-						step(max_x, y2);
+						step(a, b, N, dist, prev_x, prev_y, x, y, tx, ty, &k, max_x, y2);
 				}
 			}
 		}
 	}
-	double cost = dist[m][n];
+	double cost = dist[M*N-1];
 	if (path_x && path_y) {
 		if (cost < stroke_infinity) {
 			int x = m;
@@ -228,8 +242,8 @@ double stroke_compare(const stroke_t *a, const stroke_t *b, int *path_x, int *pa
 			int k = 0;
 			while (x || y) {
 				int old_x = x;
-				x = prev_x[x][y];
-				y = prev_y[old_x][y];
+				x = prev_x[x*N+y];
+				y = prev_y[old_x*N+y];
 				path_x[k] = x;
 				path_y[k] = y;
 				k++;
@@ -239,5 +253,10 @@ double stroke_compare(const stroke_t *a, const stroke_t *b, int *path_x, int *pa
 			path_y[0] = 0;
 		}
 	}
+
+	free(prev_y);
+	free(prev_x);
+	free(dist);
+
 	return cost;
 }
