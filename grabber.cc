@@ -30,8 +30,8 @@ extern Source<bool> recording;
 Grabber *grabber = 0;
 
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
-static unsigned char bt_mask_data[4], button_mask_data[4], touch_mask_data[4], raw_mask_data[4];
-static XIEventMask bt_mask, button_mask, touch_mask, raw_mask;
+static unsigned char button_mask_data[4], touch_mask_data[4], raw_mask_data[4];
+static XIEventMask button_mask, touch_mask, raw_mask;
 
 template <class X1, class X2> class BiMap {
 	std::map<X1, X2> map1;
@@ -279,17 +279,6 @@ bool Grabber::init_xi() {
 		exit(EXIT_FAILURE);
 	}
 
-	bt_mask.deviceid = XIAllDevices;
-	bt_mask.mask = bt_mask_data;
-	bt_mask.mask_len = sizeof(bt_mask_data);
-	memset(bt_mask.mask, 0, bt_mask.mask_len);
-	XISetMask(bt_mask.mask, XI_ButtonPress);
-	XISetMask(bt_mask.mask, XI_ButtonRelease);
-	XISetMask(bt_mask.mask, XI_Motion);
-	XISetMask(bt_mask.mask, XI_TouchBegin);
-	XISetMask(bt_mask.mask, XI_TouchUpdate);
-	XISetMask(bt_mask.mask, XI_TouchEnd);
-
 	button_mask.deviceid = XIAllDevices;
 	button_mask.mask = button_mask_data;
 	button_mask.mask_len = sizeof(button_mask_data);
@@ -403,7 +392,6 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) :
 	scale_y(1.0),
 	num_buttons(0),
 	button_grabbed(false),
-	touch_grabbed(false),
 	device_grabbed(GrabNo)
 {
 	static XAtom PROXIMITY(AXIS_LABEL_PROP_ABS_DISTANCE);
@@ -457,7 +445,7 @@ void Grabber::XiDevice::update_button(ButtonInfo &bi, bool grab) {
 			modifiers[i].modifiers = bi.state ^ ignore_mods[i];
 	}
 	if (grab)
-		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, prefs.touch.get() ? &bt_mask : &button_mask, nmods, modifiers);
+		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &button_mask, nmods, modifiers);
 	else {
 		XIUngrabButton(dpy, dev, bi.button, ROOT, nmods, modifiers);
 //TODO		xstate->ungrab(dev);
@@ -465,22 +453,12 @@ void Grabber::XiDevice::update_button(ButtonInfo &bi, bool grab) {
 }
 
 void Grabber::XiDevice::update_grabs() {
-	XIGrabModifiers modifier = {0,};
-	modifier.modifiers = XIAnyModifier;
-
-	bool grab_button  = active && grabber->grab_button;
-	bool grab_touch = active && grabber->grab_touch;
+	bool grab_button  = active && grabber->grab_button && !(grabber->grab_touch && touch);
 
 	// TODO: Take touch pref into account
 	if (!grab_button != !button_grabbed)
 		for (std::vector<ButtonInfo>::iterator j = grabber->buttons.begin(); j != grabber->buttons.end(); j++)
 			update_button(*j, grab_button);
-
-	if (grab_touch && !touch_grabbed)
-		XIGrabTouchBegin(dpy, dev, ROOT, False, &touch_mask, 1, &modifier);
-	if (!grab_touch && touch_grabbed)
-		XIUngrabTouchBegin(dpy, dev, ROOT, 1, &modifier);
-
 	if (grabber->grab_device == GrabNo && device_grabbed != GrabNo) {
 		XIUngrabDevice(dpy, dev, CurrentTime);
 //TODO		xstate->ungrab(dev);
@@ -489,7 +467,6 @@ void Grabber::XiDevice::update_grabs() {
 		XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False, grabber->grab_device == GrabYes ? &button_mask : &raw_mask);
 
 	button_grabbed = grab_button;
-	touch_grabbed = grab_touch;
 	device_grabbed = grabber->grab_device;
 }
 

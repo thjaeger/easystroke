@@ -325,14 +325,14 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 			if (verbosity >= 3)
 				report_xi2_event(event, "TouchBegin");
 			if (current_dev) {
-				if (!touch || event->sourceid != current_dev->dev || event->deviceid != touch_device)
-					break;
-				xinput_pressed.insert(event->detail);
-			} else {
-				if (grabber->get_xi_dev(event->deviceid)) {
+				if (!touch || event->sourceid != current_dev->dev || event->deviceid != touch_device) {
 					XIAllowTouchEvents(dpy, event->deviceid, event->detail, ROOT, XIRejectTouch);
 					break;
 				}
+				xinput_pressed.insert(event->detail);
+			} else {
+				if (grabber->get_xi_dev(event->deviceid))
+					break;
 				current_dev = grabber->get_xi_dev(event->sourceid);
 				if (!current_dev) {
 					printf("Warning: Received touch event from unknown device\n");
