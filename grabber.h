@@ -71,7 +71,7 @@ public:
 
 		void update_grabs();
 		void update_button(ButtonInfo &bi, bool grab);
-		bool button_grabbed, touch_grabbed;
+		bool button_grabbed;
 		GrabState device_grabbed;
 	};
 
