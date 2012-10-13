@@ -1235,7 +1235,7 @@ void Main::run() {
 		exit(EXIT_FAILURE);
 	}
 	win = new Win;
-	if (show_gui)
+	if (show_gui || !actions.get_root()->size_rec())
 		win->get_window().show();
 	Gtk::Main::run();
 	delete win;
