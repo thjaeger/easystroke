@@ -472,6 +472,10 @@ public:
 		if (xinput_pressed.size())
 			AbstractScrollHandler::raw_motion(e, abs_x, abs_y);
 	}
+	virtual void motion(RTriple e) {
+		if (xinput_pressed.size())
+			AbstractScrollHandler::raw_motion(e, true, true);
+	}
 	virtual void press_master(guint b, Time t) {
 		fake_core_button(b, false);
 	}
@@ -509,6 +513,10 @@ public:
 		p->replace_child(NULL);
 		p->press(b, e);
 		move_back();
+	}
+	virtual void motion(RTriple e) {
+		if (xinput_pressed.size())
+			AbstractScrollHandler::raw_motion(e, true, true);
 	}
 	virtual std::string name() { return "ScrollAdvanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::RAW; }

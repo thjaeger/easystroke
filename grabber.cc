@@ -440,7 +440,7 @@ void Grabber::XiDevice::grab_device(GrabState grab) {
 		return;
 	}
 	XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
-			grab == GrabYes ? &device_mask : &raw_mask);
+			(grab == GrabYes || absolute) ? &device_mask : &raw_mask);
 }
 
 void Grabber::grab_xi_devs(GrabState grab) {
