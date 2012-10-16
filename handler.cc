@@ -638,13 +638,10 @@ public:
 
 class ScrollHandler : public AbstractScrollHandler {
 	RModifiers mods;
-	std::map<guint, guint> map;
 	int orig_x, orig_y;
 	bool proximity;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
-		// If you want to use buttons > 9, you're on your own..
-		map[1] = 0; map[2] = 0; map[3] = 0; map[8] = 0; map[9] = 0;
 		proximity = xstate->in_proximity && prefs.proximity.get();
 	}
 	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
