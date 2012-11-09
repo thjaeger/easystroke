@@ -26,7 +26,7 @@ class XState {
 public:
 	XState();
 
-	bool handle(Glib::IOCondition);
+	bool handle();
 	void handle_enter_leave(XEvent &ev);
 	void handle_event(XEvent &ev);
 	void handle_xi2_event(XIDeviceEvent *event);

@@ -400,7 +400,7 @@ void App::on_activate() {
 	XTestGrabControl(dpy, True);
 
 	Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
-	io->connect(sigc::mem_fun(*xstate, &XState::handle));
+	io->connect(sigc::hide(sigc::mem_fun(*xstate, &XState::handle)));
 	io->attach();
 	try {
 		widgets = Gtk::Builder::create_from_string(gui_buffer);
