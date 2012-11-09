@@ -481,7 +481,7 @@ void XState::handle_raw_event(XIRawEvent *event) {
 
 #undef H
 
-bool XState::handle(Glib::IOCondition) {
+bool XState::handle() {
 	while (XPending(dpy)) {
 		try {
 			XEvent ev;
@@ -1075,7 +1075,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		if (prefs.timeout_gestures.get() || grabber->is_click_hold(button))
 			s = Stroke::create(*c, trigger, 0, xstate->modifiers, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
-		XFlush(dpy);
+		xstate->handle();
 		return false;
 	}
 
