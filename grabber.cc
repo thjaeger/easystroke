@@ -190,7 +190,7 @@ std::string get_wm_class(Window w) {
 	XClassHint ch;
 	if (!XGetClassHint(dpy, w, &ch))
 		return "";
-	std::string ans = ch.res_name;
+	std::string ans = ch.res_class;
 	XFree(ch.res_name);
 	XFree(ch.res_class);
 	return ans;
