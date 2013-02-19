@@ -21,6 +21,7 @@
 #include <glibmm/i18n.h>
 #include <X11/XKBlib.h>
 #include "grabber.h"
+#include "cellrenderertextish.h"
 
 #include <typeinfo>
 
@@ -56,124 +57,24 @@ TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
 	get_selection()->set_select_function(sigc::group(&negate, sigc::ref(pending)));
 }
 
-class CellEditableAccel : public Gtk::EventBox, public Gtk::CellEditable {
-	CellRendererTextish *parent;
-	Glib::ustring path;
-public:
-	CellEditableAccel(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget) :
-		Glib::ObjectBase(typeid(CellEditableAccel)),
-		parent(parent_), path(path_)
-	{
-		WIDGET(Gtk::Label, label, _("Key combination..."));
-		label.set_alignment(0.0, 0.5);
-		add(label);
-		override_background_color(widget.get_style_context()->get_background_color(Gtk::STATE_FLAG_SELECTED), Gtk::STATE_FLAG_NORMAL);
-		label.override_color(widget.get_style_context()->get_color(Gtk::STATE_FLAG_SELECTED), Gtk::STATE_FLAG_NORMAL);
-		show_all();
-	}
-protected:
-
-	virtual void start_editing_vfunc(GdkEvent *event) {
-		add_modal_grab();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		gdk_keyboard_grab(get_window()->gobj(), false, gdk_event_get_time(event));
-#pragma GCC diagnostic pop
-		signal_key_press_event().connect(sigc::mem_fun(*this, &CellEditableAccel::on_key));
-	}
-
-	bool on_key(GdkEventKey* event) {
-		if (event->is_modifier)
-			return true;
-		switch (event->keyval) {
-			case GDK_KEY_Super_L:
-			case GDK_KEY_Super_R:
-			case GDK_KEY_Hyper_L:
-			case GDK_KEY_Hyper_R:
-				return true;
-		}
-		guint mods = event->state & gtk_accelerator_get_default_mod_mask();
-		guint key = XkbKeycodeToKeysym(dpy, event->hardware_keycode, 0, 0);
-
-		editing_done();
-		remove_widget();
-
-		parent->signal_key_edited().emit(path, key, (Gdk::ModifierType)mods, event->hardware_keycode);
-		return true;
-	}
-
-	virtual void on_editing_done() {
-		remove_modal_grab();
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-		gdk_keyboard_ungrab(CurrentTime);
-#pragma GCC diagnostic pop
-		Gtk::CellEditable::on_editing_done();
-	}
-};
-
-class CellEditableCombo : public Gtk::ComboBoxText {
-	CellRendererTextish *parent;
-	Glib::ustring path;
-public:
-	CellEditableCombo(CellRendererTextish *parent_, const Glib::ustring &path_, Gtk::Widget &widget, const char **items) :
-		Glib::ObjectBase(typeid(CellEditableCombo)),
-		parent(parent_), path(path_)
-	{
-		while (*items)
-			append(_(*(items++)));
-	}
-protected:
-	virtual void on_changed() {
-		parent->signal_combo_edited().emit(path, get_active_row_number());
-	}
-};
-
-class CellEditableDummy : public Gtk::EventBox, public Gtk::CellEditable {
-public:
-	CellEditableDummy() : Glib::ObjectBase(typeid(CellEditableDummy)) {}
-protected:
-	virtual void start_editing_vfunc(GdkEvent *event) {
-		editing_done();
-		remove_widget();
-	}
-};
-
-Gtk::CellEditable* CellRendererTextish::start_editing_vfunc(GdkEvent *event, Gtk::Widget &widget, const Glib::ustring &path,
-		const Gdk::Rectangle &background_area, const Gdk::Rectangle &cell_area, Gtk::CellRendererState flags) {
-	if (!property_editable())
-		    return 0;
-	switch (mode) {
-		case TEXT:
-			return Gtk::CellRendererText::start_editing_vfunc(event, widget, path, background_area, cell_area, flags);
-		case KEY:
-			return Gtk::manage(new CellEditableAccel(this, path, widget));
-		case COMBO:
-			return Gtk::manage(new CellEditableCombo(this, path, widget, items));
-		case POPUP:
-			return Gtk::manage(new CellEditableDummy);
-	}
-	return NULL;
-}
-
 enum Type { COMMAND, KEY, TEXT, SCROLL, IGNORE, BUTTON, MISC };
 
 struct TypeInfo {
 	Type type;
 	const char *name;
 	const std::type_info *type_info;
-	const CellRendererTextish::Mode mode;
+	const CellRendererTextishMode mode;
 };
 
 TypeInfo all_types[8] = {
-	{ COMMAND, N_("Command"), &typeid(Command),  CellRendererTextish::TEXT  },
-	{ KEY,     N_("Key"),     &typeid(SendKey),  CellRendererTextish::KEY   },
-	{ TEXT,    N_("Text"),    &typeid(SendText), CellRendererTextish::TEXT  },
-	{ SCROLL,  N_("Scroll"),  &typeid(Scroll),   CellRendererTextish::KEY   },
-	{ IGNORE,  N_("Ignore"),  &typeid(Ignore),   CellRendererTextish::KEY   },
-	{ BUTTON,  N_("Button"),  &typeid(Button),   CellRendererTextish::POPUP },
-	{ MISC,    N_("Misc"),    &typeid(Misc),     CellRendererTextish::COMBO },
-	{ COMMAND, 0,             0,                 CellRendererTextish::TEXT  }
+	{ COMMAND, N_("Command"), &typeid(Command),  CELL_RENDERER_TEXTISH_MODE_Text  },
+	{ KEY,     N_("Key"),     &typeid(SendKey),  CELL_RENDERER_TEXTISH_MODE_Key   },
+	{ TEXT,    N_("Text"),    &typeid(SendText), CELL_RENDERER_TEXTISH_MODE_Text  },
+	{ SCROLL,  N_("Scroll"),  &typeid(Scroll),   CELL_RENDERER_TEXTISH_MODE_Key   },
+	{ IGNORE,  N_("Ignore"),  &typeid(Ignore),   CELL_RENDERER_TEXTISH_MODE_Key   },
+	{ BUTTON,  N_("Button"),  &typeid(Button),   CELL_RENDERER_TEXTISH_MODE_Popup },
+	{ MISC,    N_("Misc"),    &typeid(Misc),     CELL_RENDERER_TEXTISH_MODE_Combo },
+	{ COMMAND, 0,             0,                 CELL_RENDERER_TEXTISH_MODE_Text  }
 };
 
 const Type from_name(Glib::ustring name) {
@@ -187,6 +88,31 @@ const char *type_info_to_name(const std::type_info *info) {
 		if (i->type_info == info)
 			return _(i->name);
 	return "";
+}
+
+static void on_actions_cell_data_arg(GtkTreeViewColumn *tree_column, GtkCellRenderer *cell, GtkTreeModel *tree_model, GtkTreeIter *iter, gpointer data) {
+	GtkTreePath *path = gtk_tree_model_get_path(tree_model, iter);
+	gchar *path_string = gtk_tree_path_to_string(path);
+	((Actions *)data)->on_cell_data_arg(cell, path_string);
+	g_free(path_string);
+	gtk_tree_path_free(path);
+}
+
+static void on_actions_accel_edited(CellRendererTextish *, gchar *path, GdkModifierType mods, guint code, gpointer data) {
+	guint key = XkbKeycodeToKeysym(dpy, code, 0, 0);
+	((Actions *)data)->on_accel_edited(path, key, mods, code);
+}
+
+static void on_actions_combo_edited(CellRendererTextish *, gchar *path, guint row, gpointer data) {
+	((Actions *)data)->on_combo_edited(path, row);
+}
+
+static void on_actions_text_edited(GtkCellRendererText *, gchar *path, gchar *new_text, gpointer data) {
+	((Actions *)data)->on_text_edited(path, new_text);
+}
+
+static void on_actions_editing_started(GtkCellRenderer *, GtkCellEditable *editable, const gchar *path, gpointer data) {
+	((Actions *)data)->on_arg_editing_started(editable, path);
 }
 
 Actions::Actions() :
@@ -264,18 +190,19 @@ Actions::Actions() :
 	col_type->add_attribute(type_renderer->property_text(), cols.type);
 	col_type->set_cell_data_func(*type_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_type));
 
-	CellRendererTextish *arg_renderer = Gtk::manage(new CellRendererTextish);
-	n = tv.append_column(_("Details"), *arg_renderer);
-	Gtk::TreeView::Column *col_arg = tv.get_column(n-1);
-	col_arg->add_attribute(arg_renderer->property_text(), cols.arg);
-	col_arg->set_cell_data_func(*arg_renderer, sigc::mem_fun(*this, &Actions::on_cell_data_arg));
-	col_arg->set_resizable();
-	arg_renderer->property_editable() = true;
-	arg_renderer->signal_key_edited().connect(sigc::mem_fun(*this, &Actions::on_accel_edited));
-	arg_renderer->signal_combo_edited().connect(sigc::mem_fun(*this, &Actions::on_combo_edited));
-	arg_renderer->signal_edited().connect(sigc::mem_fun(*this, &Actions::on_text_edited));
-	arg_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Actions::on_arg_editing_started));
-	arg_renderer->items = Misc::types;
+	int i = 0;
+	while (Misc::types[i]) i++;
+	CellRendererTextish *arg_renderer = cell_renderer_textish_new_with_items ((gchar**)Misc::types, i);
+	GtkTreeViewColumn *col_arg = gtk_tree_view_column_new_with_attributes(_("Details"), GTK_CELL_RENDERER (arg_renderer), "text", cols.arg.index(), NULL);
+	gtk_tree_view_append_column(tv.gobj(), col_arg);
+
+	gtk_tree_view_column_set_cell_data_func (col_arg, GTK_CELL_RENDERER (arg_renderer), on_actions_cell_data_arg, this, NULL);
+	gtk_tree_view_column_set_resizable(col_arg, true);
+	g_object_set(arg_renderer, "editable", true, NULL);
+	g_signal_connect(arg_renderer, "key-edited", G_CALLBACK(on_actions_accel_edited), this);
+	g_signal_connect(arg_renderer, "combo-edited", G_CALLBACK(on_actions_combo_edited), this);
+	g_signal_connect(arg_renderer, "edited", G_CALLBACK(on_actions_text_edited), this);
+	g_signal_connect(arg_renderer, "editing-started", G_CALLBACK(on_actions_editing_started), this);
 
 	update_action_list();
 	tv.set_model(tm);
@@ -331,15 +258,14 @@ void Actions::on_cell_data_type(Gtk::CellRenderer* cell, const Gtk::TreeModel::i
 	cell->property_sensitive().set_value(!deactivated);
 }
 
-void Actions::on_cell_data_arg(Gtk::CellRenderer* cell, const Gtk::TreeModel::iterator& iter) {
+void Actions::on_cell_data_arg(GtkCellRenderer *cell, gchar *path) {
+	Gtk::TreeModel::iterator iter = tm->get_iter(path);
 	bool bold = (*iter)[cols.action_bold];
 	bool deactivated = (*iter)[cols.deactivated];
-	cell->property_sensitive().set_value(!deactivated);
-	CellRendererTextish *renderer = dynamic_cast<CellRendererTextish *>(cell);
+	g_object_set(cell, "sensitive", !deactivated, "weight", bold ? 700 : 400, NULL);
+	CellRendererTextish *renderer = CELL_RENDERER_TEXTISH (cell);
 	if (!renderer)
 		return;
-	renderer->property_weight().set_value(bold ? 700 : 400);
-
 	Glib::ustring str = (*iter)[cols.type];
 	renderer->mode = all_types[from_name(str)].mode;
 }
@@ -929,7 +855,7 @@ void Actions::on_name_edited(const Glib::ustring& path, const Glib::ustring& new
 	focus(row[cols.id], 2, editing_new);
 }
 
-void Actions::on_text_edited(const Glib::ustring& path, const Glib::ustring& new_text) {
+void Actions::on_text_edited(const gchar *path, const gchar *new_text) {
 	Gtk::TreeRow row(*tm->get_iter(path));
 	Type type = from_name(row[cols.type]);
 	if (type == COMMAND) {
@@ -941,7 +867,8 @@ void Actions::on_text_edited(const Glib::ustring& path, const Glib::ustring& new
 	update_actions();
 }
 
-void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key, Gdk::ModifierType accel_mods, guint hardware_keycode) {
+void Actions::on_accel_edited(const gchar *path_string, guint accel_key, GdkModifierType mods, guint hardware_keycode) {
+	Gdk::ModifierType accel_mods = (Gdk::ModifierType)mods;
 	Gtk::TreeRow row(*tm->get_iter(path_string));
 	Type type = from_name(row[cols.type]);
 	if (type == KEY) {
@@ -967,7 +894,7 @@ void Actions::on_accel_edited(const Glib::ustring& path_string, guint accel_key,
 	update_actions();
 }
 
-void Actions::on_combo_edited(const Glib::ustring& path_string, guint item) {
+void Actions::on_combo_edited(const gchar *path_string, guint item) {
 	RMisc misc = Misc::create((Misc::Type)item);
 	Glib::ustring str = misc->get_label();
 	Gtk::TreeRow row(*tm->get_iter(path_string));
@@ -986,7 +913,7 @@ void Actions::on_something_editing_started(Gtk::CellEditable* editable, const Gl
 	editing = true;
 }
 
-void Actions::on_arg_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
+void Actions::on_arg_editing_started(GtkCellEditable *editable, const gchar *path) {
 	tv.grab_focus();
 	Gtk::TreeRow row(*tm->get_iter(path));
 	if (from_name(row[cols.type]) != BUTTON)

@@ -23,6 +23,7 @@ OFLAGS   = -O2
 AOFLAGS  = -O3
 STROKEFLAGS  = -Wall -std=c99 $(DFLAGS)
 CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-3.0 dbus-glib-1 --cflags`
+CFLAGS   = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtk+-3.0 --cflags`
 LDFLAGS  = $(DFLAGS)
 
 LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst `pkg-config gtkmm-3.0 dbus-glib-1 --libs`
@@ -34,7 +35,7 @@ MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 HFILES   = $(wildcard *.h)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) stroke.o gui.o desktop.o version.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) stroke.o cellrenderertextish.o gui.o desktop.o version.o
 POFILES  = $(wildcard po/*.po)
 MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
 MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
@@ -63,6 +64,9 @@ $(BINARY): $(OFILES)
 
 stroke.o: stroke.c
 	$(CC) $(STROKEFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+
+cellrenderertextish.o: cellrenderertextish.c
+	$(CC) $(CFLAGS) -DGETTEXT_PACKAGE='"easystroke"' $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<

@@ -34,7 +34,9 @@ private:
 	void on_edit_extra();
 	void on_remove_extra();
 	void on_select_button();
-	void on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path);
+public:
+	void on_button_editing_started(GtkCellEditable *editable, const gchar *path);
+private:
 	void on_device_toggled(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter);
 	void on_device_timeout_changed(const Glib::ustring& path, const Glib::ustring& new_text);
 	bool select_row(const Gtk::TreeModel::Path& path, const Gtk::TreeModel::iterator& iter, std::string name);
