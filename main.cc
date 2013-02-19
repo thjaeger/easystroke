@@ -1350,7 +1350,7 @@ void Main::create_config_dir() {
 		config_dir += "/.easystroke";
 	}
 	struct stat st;
-	char *name = canonicalize_file_name(config_dir.c_str());
+	char *name = realpath(config_dir.c_str(), NULL);
 
 	// check if the directory does not exist
 	if (lstat(name, &st) == -1) {
