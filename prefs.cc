@@ -19,6 +19,7 @@
 #include "grabber.h"
 #include <glibmm/i18n.h>
 #include <sys/stat.h>
+#include "cellrenderertextish.h"
 
 #include <set>
 #include <iostream>
@@ -234,6 +235,10 @@ void remove_last_entry(const Glib::ustring & name) {
 	combo_model->erase(--i);
 }
 
+static void on_prefs_editing_started(GtkCellRenderer *, GtkCellEditable *editable, const gchar *path, gpointer data) {
+	((Prefs *)data)->on_button_editing_started(editable, path);
+}
+
 Prefs::Prefs() {
 	new Check(prefs.advanced_ignore, "check_advanced_ignore");
 
@@ -292,13 +297,12 @@ Prefs::Prefs() {
 	tv->append_column(_("Application (WM__CLASS)"), cols.user_app);
 	tm->set_sort_column(cols.user_app, Gtk::SORT_ASCENDING);
 
-	CellRendererTextish *button_renderer = Gtk::manage(new CellRendererTextish);
-	button_renderer->mode = CellRendererTextish::POPUP;
-	tv->append_column(_("Button"), *button_renderer);
-	Gtk::TreeView::Column *col_button = tv->get_column(1);
-	col_button->add_attribute(button_renderer->property_text(), cols.button);
-	button_renderer->property_editable() = true;
-	button_renderer->signal_editing_started().connect(sigc::mem_fun(*this, &Prefs::on_button_editing_started));
+	CellRendererTextish *button_renderer = cell_renderer_textish_new ();
+	button_renderer->mode = CELL_RENDERER_TEXTISH_MODE_Popup;
+	GtkTreeViewColumn *col_button = gtk_tree_view_column_new_with_attributes(_("Button"), GTK_CELL_RENDERER (button_renderer), "text", cols.button.index(), NULL);
+	gtk_tree_view_append_column(tv->gobj(), col_button);
+	g_object_set(button_renderer, "editable", true, NULL);
+	g_signal_connect(button_renderer, "editing-started", G_CALLBACK(on_prefs_editing_started), this);
 
 	bbutton->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_select_button));
 
@@ -630,7 +634,7 @@ void Prefs::on_add() {
 	}
 }
 
-void Prefs::on_button_editing_started(Gtk::CellEditable* editable, const Glib::ustring& path) {
+void Prefs::on_button_editing_started(GtkCellEditable* editable, const gchar *path) {
 	Gtk::TreeRow row(*tm->get_iter(path));
 	std::string app = row[cols.app];
 	ButtonInfo bi;
