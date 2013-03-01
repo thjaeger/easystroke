@@ -169,6 +169,9 @@ public:
 	App(int& argc, char**& argv, const Glib::ustring& application_id, Gio::ApplicationFlags flags=Gio::APPLICATION_FLAGS_NONE) :
 		Gtk::Application(argc, argv, application_id, flags), remote(false) {}
 	~App();
+
+	static void usage(const char *me);
+	static void version();
 protected:
 	virtual void on_startup();
 	virtual void on_activate();
@@ -176,9 +179,6 @@ private:
 	virtual bool local_command_line_vfunc (char**& arguments, int& exit_status);
 	int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &);
 	void run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationCommandLine> &cmd_line);
-
-	void usage(const char *me);
-	void version();
 
 	void create_config_dir();
 
@@ -491,6 +491,17 @@ int main(int argc, char **argv) {
 		trefoil->draw_svg("easystroke.svg");
 		exit(EXIT_SUCCESS);
 	}
+	// GtkApplication needs dbus to even invoke the local_command_line function
+	if (argc > 1 && !strcmp(argv[1], "--help")) {
+		App::usage(argv[0]);
+		return EXIT_SUCCESS;
+	}
+
+	if (argc > 1 && !strcmp(argv[1], "--version")) {
+		App::usage(argv[0]);
+		return EXIT_SUCCESS;
+	}
+
 	App app(argc, argv, "org.easystroke.easystroke", Gio::APPLICATION_HANDLES_COMMAND_LINE);
 	return app.run(argc, argv);
 }
