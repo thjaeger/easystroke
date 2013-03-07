@@ -86,7 +86,7 @@ XAtom _NET_WM_STATE("_NET_WM_STATE");
 XAtom _NET_WM_STATE_HIDDEN("_NET_WM_STATE_HIDDEN");
 XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
 
-BiMap<unsigned int, Window> minimized;
+std::list<Window> minimized;
 unsigned int minimized_n = 0;
 
 void get_frame(Window w) {
@@ -116,7 +116,7 @@ bool Children::handle(XEvent &ev) {
 		case DestroyNotify:
 			frame_child.erase1(ev.xdestroywindow.window);
 			frame_child.erase2(ev.xdestroywindow.window);
-			minimized.erase2(ev.xdestroywindow.window);
+			minimized.remove(ev.xdestroywindow.window);
 			destroy(ev.xdestroywindow.window);
 			return true;
 		case ReparentNotify:
@@ -139,13 +139,15 @@ bool Children::handle(XEvent &ev) {
 			}
 			if (ev.xproperty.atom == *_NET_WM_STATE) {
 				if (ev.xproperty.state == PropertyDelete) {
-					minimized.erase2(ev.xproperty.window);
+					minimized.remove(ev.xproperty.window);
 					return true;
 				}
-				if (xstate->has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN))
-					minimized.add(minimized_n++, ev.xproperty.window);
-				else
-					minimized.erase2(ev.xproperty.window);
+				bool was_hidden = std::find(minimized.begin(), minimized.end(), ev.xproperty.window) != minimized.end();
+				bool is_hidden = xstate->has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN);
+				if (was_hidden && !is_hidden)
+					minimized.remove(ev.xproperty.window);
+				if (is_hidden && !was_hidden)
+					minimized.push_back(ev.xproperty.window);
 				return true;
 			}
 			return false;
@@ -209,9 +211,8 @@ public:
 void Grabber::unminimize() {
 	if (minimized.empty())
 		return;
-	Window w;
-	unsigned int n;
-	minimized.pop(n, w);
+	Window w = minimized.back();
+	minimized.pop_back();
 	activate(w, CurrentTime);
 }
 
