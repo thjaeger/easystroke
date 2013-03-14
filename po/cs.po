@@ -7,16 +7,16 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
-"PO-Revision-Date: 2010-03-31 16:20+0000\n"
-"Last-Translator: Roman Horník <Unknown>\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
+"PO-Revision-Date: 2013-03-14 20:01+0000\n"
+"Last-Translator: Zbyněk Schwarz <Unknown>\n"
 "Language-Team: Czech <cs@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-27 01:12+0000\n"
+"X-Generator: Launchpad (build 16540)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -59,9 +59,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "akce"
-
-msgid "Key combination..."
-msgstr "Kombinace kláves..."
 
 msgid "Command"
 msgstr "Příkaz"
@@ -186,18 +183,6 @@ msgstr "'composite' není k dispozici"
 msgid "Error: %s\n"
 msgstr "Chyba: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Chyba: Grab selhal, restartování...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Fatální chyba: Spojení s X servere zraceno, resetuji...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Varování: Nebyla nadefinována akce \"%s\"\n"
-
 msgid "Tray icon disabled"
 msgstr "Ikona v oznam. oblasti zakázána"
 
@@ -209,18 +194,21 @@ msgstr ""
 "Ostatní....Zobrazit/Skrýt"
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Chyba při spouštění D-BUS\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Varování: Nebyla nadefinována akce \"%s\"\n"
+
+msgid "Enabled"
+msgstr "Povoleno"
+
+msgid "About"
+msgstr "O programu"
+
+msgid "Quit"
+msgstr "Konec"
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Nelze otevřít display.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr ""
-"Easystroke již běží, proto bude zobrazeno konfigurační okno Easystroku.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -274,14 +262,11 @@ msgstr "Vlastní"
 msgid "Application (WM__CLASS)"
 msgstr "Aplikace (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Povoleno"
-
 msgid "Device"
 msgstr "Zařízení"
 
 msgid "<unchanged>"
-msgstr ""
+msgstr "<nezměněno>"
 
 msgid "Timeout profile"
 msgstr "Profil timeoutu"
@@ -305,176 +290,182 @@ msgstr "Skóre"
 msgid "D_isabled"
 msgstr "Zakázán_o"
 
-msgid "(window manager frame)"
-msgstr "(window manager frame)"
+msgid "<unnamed>"
+msgstr "<bez názvu>"
 
 msgid "Connection to DBus failed"
 msgstr "Spojení s DBus selhalo"
 
-msgid "     Timeout (ms)"
-msgstr "     Timeout (ms)"
-
-msgid "(See Documentation)"
-msgstr "(Navštivte dokumentaci)"
-
-msgid "<b>Appearance</b>"
-msgstr "<b>Vzhled</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>Chování</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>Zařízení</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>Výjimky</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Nastavení Tabletu</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "Přerušit gesto, když tlak přesáhne číslo nalevo (max 255)"
-
-msgid "Add Application"
-msgstr "Přidat aplikaci"
-
-msgid "Add Group"
-msgstr "Přidat skupinu"
-
-msgid "Additional Buttons"
-msgstr "Další tlačítka"
-
-msgid "Advanced"
-msgstr "Pokročilé"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "Alternativně můžete zvolit tlačítko a modifikátory níže."
-
-msgid "An_y Modifier"
-msgstr "J_akýkoliv modifikátor"
-
-msgid "Applications"
-msgstr "Aplikace"
-
-msgid "Autostart easystroke"
-msgstr "Automaticky spouštět EasyStroke"
-
-msgid "Click & Hold"
-msgstr "Kliknout & držet"
-
-msgid "Color"
-msgstr "Barva"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Ignorovat čáry, které začínají být složitějšími gesty"
-
-msgid "Initial Timeout (ms)"
-msgstr "Počáteční timeout (ms)"
-
-msgid "Instant Gestures"
-msgstr "Rychlá gesta"
-
-msgid "Invert Scroll Direction"
-msgstr "Obrátit směr posuvu"
-
-msgid "Method to show gestures"
-msgstr "Metoda zobrazování gest"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr "Po každém gestu přesunout kurzor zpět na původní pozici."
-
-msgid "Preferences"
-msgstr "Nastavení"
-
-msgid "Remove Application/Group"
-msgstr "Odebrat Aplikaci/Skupinu"
-
-msgid "Reset Action(s)"
-msgstr "Resetovat Akce"
-
-msgid "S_uper"
-msgstr "S_uper"
-
-msgid "Scroll Speed"
-msgstr "Rychlost posuvu"
-
-msgid "Show OSD"
-msgstr "Zobrazit OSD"
-
-msgid "Show deleted rows"
-msgstr "Zobrazit smazané řady"
-
-msgid "Show last gesture in tray"
-msgstr "Zobrazit poslední gesto v oznam. oblasti"
-
-msgid "Show popups ("
-msgstr "Zobrazit vyskakovací okna ("
-
-msgid "Show popups on advanced gestures"
-msgstr "Zobrazit vyskakovací okna u pokročilých gest"
-
-msgid "Show tray icon"
-msgstr "Zobrazovat ikonu v oznamovací oblasti"
-
-msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr "Zůstat ve 'skrolovacím' a 'ignore' módu dokud je pero v dosahu"
-
-msgid "Timeout"
-msgstr "Timeout"
-
-msgid "Timeout Gestures"
-msgstr "Timeout Gest"
-
-msgid "Width"
-msgstr "Šířka"
-
-msgid "_Add Action"
-msgstr "Přid_at akci"
-
-msgid "_Add Exception"
-msgstr "Přid_at výjimku"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
+msgid "_Delete Current"
+msgstr "S_mazat aktuální"
 
 msgid "_Default"
 msgstr "_Výchozí"
 
-msgid "_Delete Action(s)"
-msgstr "S_mazat akce"
+msgid "Timeout"
+msgstr "Timeout"
 
-msgid "_Delete Current"
-msgstr "S_mazat aktuální"
+msgid "Instant Gestures"
+msgstr "Rychlá gesta"
 
-msgid "_Gesture Button"
-msgstr "Tlačítko _Gest"
+msgid "Click & Hold"
+msgstr "Kliknout & držet"
 
-msgid "_Hide"
-msgstr "_Skrýt"
-
-msgid "_History"
-msgstr "_Historie"
-
-msgid "_Matrix"
-msgstr "_Matrix"
-
-msgid "_Record Stroke"
-msgstr "_Zaznamenat gesto"
-
-msgid "_Remove Exception"
-msgstr "Odeb_rat výjimku"
+msgid "_Control"
+msgstr "_Control"
 
 msgid "_Shift"
 msgstr "_Shift"
 
-msgid "optimize for left-handed operation )"
-msgstr "optimalizovat pro leváky )"
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "S_uper"
+
+msgid "An_y Modifier"
+msgstr "J_akýkoliv modifikátor"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "Alternativně můžete zvolit tlačítko a modifikátory níže."
+
+msgid "Show deleted rows"
+msgstr "Zobrazit smazané řady"
+
+msgid "Add Application"
+msgstr "Přidat aplikaci"
+
+msgid "Remove Application/Group"
+msgstr "Odebrat Aplikaci/Skupinu"
+
+msgid "Add Group"
+msgstr "Přidat skupinu"
+
+msgid "Reset Action(s)"
+msgstr "Resetovat Akce"
+
+msgid "Applications"
+msgstr "Aplikace"
+
+msgid "_Record Stroke"
+msgstr "_Zaznamenat gesto"
+
+msgid "_Add Action"
+msgstr "Přid_at akci"
+
+msgid "_Delete Action(s)"
+msgstr "S_mazat akce"
+
+msgid "_Hide"
+msgstr "_Skrýt"
+
+msgid "_Gesture Button"
+msgstr "Tlačítko _Gest"
+
+msgid "Additional Buttons"
+msgstr "Další tlačítka"
+
+msgid "Initial Timeout (ms)"
+msgstr "Počáteční timeout (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Timeout (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Chování</b>"
+
+msgid "Method to show gestures"
+msgstr "Metoda zobrazování gest"
+
+msgid "Color"
+msgstr "Barva"
+
+msgid "Width"
+msgstr "Šířka"
+
+msgid "Show popups ("
+msgstr "Zobrazit vyskakovací okna ("
+
+msgid "to the right of the cursor)"
+msgstr "napravo od kurzoru)"
+
+msgid "Show tray icon"
+msgstr "Zobrazovat ikonu v oznamovací oblasti"
+
+msgid "Show last gesture in tray"
+msgstr "Zobrazit poslední gesto v oznam. oblasti"
+
+msgid "Autostart easystroke"
+msgstr "Automaticky spouštět EasyStroke"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Vzhled</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Výjimky</b>"
+
+msgid "_Add Exception"
+msgstr "Přid_at výjimku"
+
+msgid "_Remove Exception"
+msgstr "Odeb_rat výjimku"
+
+msgid "Preferences"
+msgstr "Nastavení"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr "Easystroke povolit pouze po aplikace uvedené v kartě 'Akce'"
+
+msgid "Timeout Gestures"
+msgstr "Timeout Gest"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Ignorovat čáry, které začínají být složitějšími gesty"
+
+msgid "(See Documentation)"
+msgstr "(Navštivte dokumentaci)"
+
+msgid "Show popups on advanced gestures"
+msgstr "Zobrazit vyskakovací okna u pokročilých gest"
+
+msgid "Show OSD"
+msgstr "Zobrazit OSD"
+
+msgid "Invert Scroll Direction"
+msgstr "Obrátit směr posuvu"
+
+msgid "Scroll Speed"
+msgstr "Rychlost posuvu"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr "Po každém gestu přesunout kurzor zpět na původní pozici."
+
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr "Zůstat ve 'skrolovacím' a 'ignore' módu dokud je pero v dosahu"
+
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Nastavení Tabletu</b>"
+
+msgid "<b>Devices</b>"
+msgstr "<b>Zařízení</b>"
+
+msgid "Advanced"
+msgstr "Pokročilé"
+
+msgid "_Matrix"
+msgstr "_Matrix"
+
+msgid "_History"
+msgstr "_Historie"
+
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke rozeznávání gest"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Ovládejte počítač pomocí gest myši"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke rozeznávání gest"
+msgid "Enable"
+msgstr "Povolit"
+
+msgid "Disable"
+msgstr "Zakázat"

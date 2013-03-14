@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2012-06-28 13:01+0000\n"
 "Last-Translator: @l3x1k0 <Unknown>\n"
 "Language-Team: Greek <el@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -61,9 +61,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "ενέργειες"
-
-msgid "Key combination..."
-msgstr "Συνδυασμός πλήκτρων..."
 
 msgid "Command"
 msgstr "Εντολή"
@@ -186,18 +183,6 @@ msgstr "Δεν είναι διαθέσιμο το 'composite'"
 msgid "Error: %s\n"
 msgstr "Σφάλμα: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Σφάλμα: Η σύλληψη απέτυχε. Επαναφορά...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Μοιραίο Σφάλμα: Η σύνδεση στον X server χάθηκε, επανεκκίνηση...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Προειδοποίηση: Καμία δράση \"%s\" δεν έχει ορισθεί\n"
-
 msgid "Tray icon disabled"
 msgstr "Το εικονίδιο συστήματος απενργοποιήθηκε"
 
@@ -209,18 +194,21 @@ msgstr ""
 "τύπου Διάφορα...Εμφάνιση/Απόκρυψη."
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Σφάλμα αρχικοποίησης D-BUS\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Προειδοποίηση: Καμία δράση \"%s\" δεν έχει ορισθεί\n"
+
+msgid "Enabled"
+msgstr "Ενεργοποιήθηκε"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Δεν μπόρεσε να ανοιχθεί display.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr ""
-"Το easystroke τρέχει ήδη, προβολή παραθύρου παραμετροποίησης αντ'αυτού\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -274,9 +262,6 @@ msgstr "Προσαρμοσμένo"
 msgid "Application (WM__CLASS)"
 msgstr "Εφαρμογή (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Ενεργοποιήθηκε"
-
 msgid "Device"
 msgstr "Συσκευή"
 
@@ -306,181 +291,199 @@ msgstr "Σκορ"
 msgid "D_isabled"
 msgstr "_Απενεργοποίηση"
 
-msgid "(window manager frame)"
-msgstr "(πλαίσιο διαχειρηστή παραθύρων)"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Η σύνδεση στο DBus απέτυχε"
 
-msgid "     Timeout (ms)"
-msgstr "     Timeout (ms)"
+msgid "_Delete Current"
+msgstr "_Διαγραφή Τρέχοντος"
 
-msgid "(See Documentation)"
-msgstr "(Βλέπε Τεκμηρίωση)"
+msgid "_Default"
+msgstr "_Προεπιλογή"
 
-msgid "<b>Appearance</b>"
-msgstr "<b>Εμφάνιση</b>"
+msgid "Timeout"
+msgstr "Timeout"
 
-msgid "<b>Behavior</b>"
-msgstr "<b>Συμπεριφορά</b>"
+msgid "Instant Gestures"
+msgstr "Στιγμιαίες Χειρονομίες"
 
-msgid "<b>Devices</b>"
-msgstr "<b>Συσκευές</b>"
+msgid "Click & Hold"
+msgstr "Κλικ & Κράτημα"
 
-msgid "<b>Exceptions</b>"
-msgstr "<b>Εξαιρέσεις</b>"
+msgid "_Control"
+msgstr "_Control"
 
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Επιλογές Πινακίδας</b>"
+msgid "_Shift"
+msgstr "_Shift"
 
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr ""
-"Διακοπή κτυπήματος αν η πίεση υπερβεί τον αριθμό στα αριστερά (μέχρι το 255)"
+msgid "_Alt"
+msgstr "_Alt"
 
-msgid "Add Application"
-msgstr "Προσθήκη Εφαρμογής"
+msgid "S_uper"
+msgstr "S_uper"
 
-msgid "Add Group"
-msgstr "Προσθήκη Ομάδας"
-
-msgid "Additional Buttons"
-msgstr "Πρόσθετα Κουμπιά"
-
-msgid "Advanced"
-msgstr "Για προχωρημένους"
+msgid "An_y Modifier"
+msgstr "Κάθ_ε Τροποποιητής"
 
 msgid "Alternatively, you may select button and modifiers below."
 msgstr ""
 "Εναλλακτικά, μπορείτε  να επιλέξετε κουμπί και τροποποιητές παρακάτω."
 
-msgid "An_y Modifier"
-msgstr "Κάθ_ε Τροποποιητής"
+msgid "Show deleted rows"
+msgstr "Εμφάνιση διεγραμμένων γραμμών"
 
-msgid "Applications"
-msgstr "Εφαρμογές"
-
-msgid "Autostart easystroke"
-msgstr "Αυτόματη έναρξη easystroke"
-
-msgid "Click & Hold"
-msgstr "Κλικ & Κράτημα"
-
-msgid "Color"
-msgstr "Χρώμα"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Αγνοήστε κτυπήματε που οδηγούν σε προχωρημένες χειρονομίες"
-
-msgid "Initial Timeout (ms)"
-msgstr "Αρχικό Όριο Χρόνου (ms)"
-
-msgid "Instant Gestures"
-msgstr "Στιγμιαίες Χειρονομίες"
-
-msgid "Invert Scroll Direction"
-msgstr "Αντιστροφή Διεύθυνσης Κύλισης"
-
-msgid "Method to show gestures"
-msgstr "Μέθοδος εμφάνισης χειρονομιών"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
-"Μετακινήστε τον κέρσορα πίσω στην αρχική του θέση ύστερα από κάθε χειρονομία"
-
-msgid "Preferences"
-msgstr "Προτιμήσεις"
+msgid "Add Application"
+msgstr "Προσθήκη Εφαρμογής"
 
 msgid "Remove Application/Group"
 msgstr "Αφαίρεση Εφαρμογής/Ομάδας"
 
+msgid "Add Group"
+msgstr "Προσθήκη Ομάδας"
+
 msgid "Reset Action(s)"
 msgstr "Επαναφορά Δράσεων"
 
-msgid "S_uper"
-msgstr "S_uper"
+msgid "Applications"
+msgstr "Εφαρμογές"
 
-msgid "Scroll Speed"
-msgstr "Ταχύτητα Κύλισης"
+msgid "_Record Stroke"
+msgstr "_Καταχώρηση Κτυπήματος"
 
-msgid "Show OSD"
-msgstr "Εμφάνιση OSD"
+msgid "_Add Action"
+msgstr "_Προσθήκη Δράσης"
 
-msgid "Show deleted rows"
-msgstr "Εμφάνιση διεγραμμένων γραμμών"
+msgid "_Delete Action(s)"
+msgstr "_Διαγραφή Δράσεων"
 
-msgid "Show last gesture in tray"
-msgstr "Εμφάνιση τελευταία χειρονομίας στην περιοχή ειδοποιήσεων"
+msgid "_Hide"
+msgstr "_Απόκρυψη"
+
+msgid "_Gesture Button"
+msgstr "Κουμπί _Χειρονομίας"
+
+msgid "Additional Buttons"
+msgstr "Πρόσθετα Κουμπιά"
+
+msgid "Initial Timeout (ms)"
+msgstr "Αρχικό Όριο Χρόνου (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Timeout (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Συμπεριφορά</b>"
+
+msgid "Method to show gestures"
+msgstr "Μέθοδος εμφάνισης χειρονομιών"
+
+msgid "Color"
+msgstr "Χρώμα"
+
+msgid "Width"
+msgstr "Πλάτος"
 
 msgid "Show popups ("
 msgstr "Εμφάνιση popups ("
 
-msgid "Show popups on advanced gestures"
-msgstr "Εμφάνιση popups σε προχωρημένες χειρονομίες"
+msgid "to the right of the cursor)"
+msgstr ""
 
 msgid "Show tray icon"
 msgstr "Εμφάνιση εικονιδίου συστήματος"
+
+msgid "Show last gesture in tray"
+msgstr "Εμφάνιση τελευταία χειρονομίας στην περιοχή ειδοποιήσεων"
+
+msgid "Autostart easystroke"
+msgstr "Αυτόματη έναρξη easystroke"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Εμφάνιση</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Εξαιρέσεις</b>"
+
+msgid "_Add Exception"
+msgstr "_Προσθήκη Εξαίρεσης"
+
+msgid "_Remove Exception"
+msgstr "_Αφαίρεση Εξαίρεσης"
+
+msgid "Preferences"
+msgstr "Προτιμήσεις"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "Timeout χειρονομιών"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Αγνοήστε κτυπήματε που οδηγούν σε προχωρημένες χειρονομίες"
+
+msgid "(See Documentation)"
+msgstr "(Βλέπε Τεκμηρίωση)"
+
+msgid "Show popups on advanced gestures"
+msgstr "Εμφάνιση popups σε προχωρημένες χειρονομίες"
+
+msgid "Show OSD"
+msgstr "Εμφάνιση OSD"
+
+msgid "Invert Scroll Direction"
+msgstr "Αντιστροφή Διεύθυνσης Κύλισης"
+
+msgid "Scroll Speed"
+msgstr "Ταχύτητα Κύλισης"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr ""
+"Μετακινήστε τον κέρσορα πίσω στην αρχική του θέση ύστερα από κάθε χειρονομία"
 
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Μείνετε σε κατάσταση 'κύλιση' και 'άγνοια' μέχρι η πένα να είναι μεταξύ του "
 "εύρους"
 
-msgid "Timeout"
-msgstr "Timeout"
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Επιλογές Πινακίδας</b>"
 
-msgid "Timeout Gestures"
-msgstr "Timeout χειρονομιών"
+msgid "<b>Devices</b>"
+msgstr "<b>Συσκευές</b>"
 
-msgid "Width"
-msgstr "Πλάτος"
-
-msgid "_Add Action"
-msgstr "_Προσθήκη Δράσης"
-
-msgid "_Add Exception"
-msgstr "_Προσθήκη Εξαίρεσης"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
-
-msgid "_Default"
-msgstr "_Προεπιλογή"
-
-msgid "_Delete Action(s)"
-msgstr "_Διαγραφή Δράσεων"
-
-msgid "_Delete Current"
-msgstr "_Διαγραφή Τρέχοντος"
-
-msgid "_Gesture Button"
-msgstr "Κουμπί _Χειρονομίας"
-
-msgid "_Hide"
-msgstr "_Απόκρυψη"
-
-msgid "_History"
-msgstr "_Ιστορικό"
+msgid "Advanced"
+msgstr "Για προχωρημένους"
 
 msgid "_Matrix"
 msgstr "_Μήτρα"
 
-msgid "_Record Stroke"
-msgstr "_Καταχώρηση Κτυπήματος"
+msgid "_History"
+msgstr "_Ιστορικό"
 
-msgid "_Remove Exception"
-msgstr "_Αφαίρεση Εξαίρεσης"
-
-msgid "_Shift"
-msgstr "_Shift"
-
-msgid "optimize for left-handed operation )"
-msgstr "βελτιστοποίηση για χειρισμούς από αριστερόχειρες"
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke Αναγνώρηση Χειρονομιών"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Ελέγξτε την επιφάνεια εργασίας χρησιμοποιώντας χειρονομίες ποντικιού"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke Αναγνώρηση Χειρονομιών"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "Συνδυασμός πλήκτρων..."
+
+#~ msgid "(window manager frame)"
+#~ msgstr "(πλαίσιο διαχειρηστή παραθύρων)"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "βελτιστοποίηση για χειρισμούς από αριστερόχειρες"
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Σφάλμα: Η σύλληψη απέτυχε. Επαναφορά...\n"

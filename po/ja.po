@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2010-05-04 06:50+0000\n"
 "Last-Translator: kawaji <jiro.kawada@gmail.com>\n"
 "Language-Team: Japanese <ja@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -58,9 +58,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "アクション"
-
-msgid "Key combination..."
-msgstr "キーの組み合わせ..."
 
 msgid "Command"
 msgstr "コマンド"
@@ -178,18 +175,6 @@ msgstr "”コンポジット”が利用できません"
 msgid "Error: %s\n"
 msgstr "エラー: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr ""
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "致命的なエラー: X サーバへの接続を喪失、再スタート中...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "警告: アクション \"%s\" は定義されていません\n"
-
 msgid "Tray icon disabled"
 msgstr "トレイアイコン無効"
 
@@ -199,17 +184,21 @@ msgid ""
 msgstr ""
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "D-BUS 初期化エラー\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "警告: アクション \"%s\" は定義されていません\n"
+
+msgid "Enabled"
+msgstr "有効"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "ディスプレイを開けませんでした。\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr "Easystroke はすでに実行されているので、代わりに設定ウィンドウを表示します。\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -263,9 +252,6 @@ msgstr "カスタム"
 msgid "Application (WM__CLASS)"
 msgstr "アプリケーション(WM__CLASS)"
 
-msgid "Enabled"
-msgstr "有効"
-
 msgid "Device"
 msgstr "デバイス"
 
@@ -292,176 +278,188 @@ msgstr "スコア"
 msgid "D_isabled"
 msgstr "無効(_I)"
 
-msgid "(window manager frame)"
+msgid "<unnamed>"
 msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "DBus への接続に失敗"
 
-msgid "     Timeout (ms)"
-msgstr "     タイムアウト(ミリ秒)"
-
-msgid "(See Documentation)"
-msgstr "(説明を参照のこと)"
-
-msgid "<b>Appearance</b>"
-msgstr "<b>外観</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>動作</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>デバイス</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>例外</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>タブレット・オプション</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "圧力が左の数値(255以内)を超えた場合はストロークを中止"
-
-msgid "Add Application"
-msgstr "アプリケーションを追加"
-
-msgid "Add Group"
-msgstr "グループを追加"
-
-msgid "Additional Buttons"
-msgstr "さらに追加するボタン"
-
-msgid "Advanced"
-msgstr "高度設定"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "代わりに、ボタンや修飾キーを下から選択することもできます。"
-
-msgid "An_y Modifier"
-msgstr "任意の修飾キー(_Y)"
-
-msgid "Applications"
-msgstr "アプリケーション"
-
-msgid "Autostart easystroke"
-msgstr "Easystroke を自動起動"
-
-msgid "Click & Hold"
-msgstr "クリック & ホールド"
-
-msgid "Color"
-msgstr "色"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "高度ジェスチャに至ったストロークを無視"
-
-msgid "Initial Timeout (ms)"
-msgstr "初期タイムアウト(ミリ秒)"
-
-msgid "Instant Gestures"
-msgstr "インスタント・ジェスチャ"
-
-msgid "Invert Scroll Direction"
-msgstr "スクロール方向を反転"
-
-msgid "Method to show gestures"
-msgstr "ジェスチャを表示する方法"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr "ジェスチャー毎後にカーソルを元の位置に戻す"
-
-msgid "Preferences"
-msgstr "設定"
-
-msgid "Remove Application/Group"
-msgstr "アプリケーション/グループを削除"
-
-msgid "Reset Action(s)"
-msgstr "アクションを再設定"
-
-msgid "S_uper"
-msgstr "S_uper"
-
-msgid "Scroll Speed"
-msgstr "スクロール速度"
-
-msgid "Show OSD"
-msgstr "OSD を表示"
-
-msgid "Show deleted rows"
-msgstr "削除した行を表示"
-
-msgid "Show last gesture in tray"
-msgstr "最後のジェスチャをトレイに表示"
-
-msgid "Show popups ("
-msgstr "ポップアップを表示 ("
-
-msgid "Show popups on advanced gestures"
-msgstr "高度ジェスチャ時にポップアップを表示"
-
-msgid "Show tray icon"
-msgstr "トレイアイコンを表示"
-
-msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr "ペンが読取可能高さの範囲内にある限り「スクロール」や「無視」モードを保つ"
-
-msgid "Timeout"
-msgstr "タイムアウト"
-
-msgid "Timeout Gestures"
-msgstr "タイムアウト・ジェスチャ"
-
-msgid "Width"
-msgstr "幅"
-
-msgid "_Add Action"
-msgstr "アクションを追加(_A)"
-
-msgid "_Add Exception"
-msgstr "例外を追加(_A)"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
+msgid "_Delete Current"
+msgstr "現在の設定を削除(_D)"
 
 msgid "_Default"
 msgstr "デフォルト(_D)"
 
-msgid "_Delete Action(s)"
-msgstr "アクションを削除(_D)"
+msgid "Timeout"
+msgstr "タイムアウト"
 
-msgid "_Delete Current"
-msgstr "現在の設定を削除(_D)"
+msgid "Instant Gestures"
+msgstr "インスタント・ジェスチャ"
 
-msgid "_Gesture Button"
-msgstr "ジェスチャ・ボタン(_G)"
+msgid "Click & Hold"
+msgstr "クリック & ホールド"
 
-msgid "_Hide"
-msgstr "隠す(_H)"
-
-msgid "_History"
-msgstr "履歴(_H)"
-
-msgid "_Matrix"
-msgstr "マトリクス(_M)"
-
-msgid "_Record Stroke"
-msgstr "ストロークを記録(_R)"
-
-msgid "_Remove Exception"
-msgstr "例外を削除(_R)"
+msgid "_Control"
+msgstr "_Control"
 
 msgid "_Shift"
 msgstr "_Shift"
 
-msgid "optimize for left-handed operation )"
-msgstr "左手操作のために最適化 )"
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "S_uper"
+
+msgid "An_y Modifier"
+msgstr "任意の修飾キー(_Y)"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "代わりに、ボタンや修飾キーを下から選択することもできます。"
+
+msgid "Show deleted rows"
+msgstr "削除した行を表示"
+
+msgid "Add Application"
+msgstr "アプリケーションを追加"
+
+msgid "Remove Application/Group"
+msgstr "アプリケーション/グループを削除"
+
+msgid "Add Group"
+msgstr "グループを追加"
+
+msgid "Reset Action(s)"
+msgstr "アクションを再設定"
+
+msgid "Applications"
+msgstr "アプリケーション"
+
+msgid "_Record Stroke"
+msgstr "ストロークを記録(_R)"
+
+msgid "_Add Action"
+msgstr "アクションを追加(_A)"
+
+msgid "_Delete Action(s)"
+msgstr "アクションを削除(_D)"
+
+msgid "_Hide"
+msgstr "隠す(_H)"
+
+msgid "_Gesture Button"
+msgstr "ジェスチャ・ボタン(_G)"
+
+msgid "Additional Buttons"
+msgstr "さらに追加するボタン"
+
+msgid "Initial Timeout (ms)"
+msgstr "初期タイムアウト(ミリ秒)"
+
+msgid "     Timeout (ms)"
+msgstr "     タイムアウト(ミリ秒)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>動作</b>"
+
+msgid "Method to show gestures"
+msgstr "ジェスチャを表示する方法"
+
+msgid "Color"
+msgstr "色"
+
+msgid "Width"
+msgstr "幅"
+
+msgid "Show popups ("
+msgstr "ポップアップを表示 ("
+
+msgid "to the right of the cursor)"
+msgstr ""
+
+msgid "Show tray icon"
+msgstr "トレイアイコンを表示"
+
+msgid "Show last gesture in tray"
+msgstr "最後のジェスチャをトレイに表示"
+
+msgid "Autostart easystroke"
+msgstr "Easystroke を自動起動"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>外観</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>例外</b>"
+
+msgid "_Add Exception"
+msgstr "例外を追加(_A)"
+
+msgid "_Remove Exception"
+msgstr "例外を削除(_R)"
+
+msgid "Preferences"
+msgstr "設定"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "タイムアウト・ジェスチャ"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "高度ジェスチャに至ったストロークを無視"
+
+msgid "(See Documentation)"
+msgstr "(説明を参照のこと)"
+
+msgid "Show popups on advanced gestures"
+msgstr "高度ジェスチャ時にポップアップを表示"
+
+msgid "Show OSD"
+msgstr "OSD を表示"
+
+msgid "Invert Scroll Direction"
+msgstr "スクロール方向を反転"
+
+msgid "Scroll Speed"
+msgstr "スクロール速度"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr "ジェスチャー毎後にカーソルを元の位置に戻す"
+
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr "ペンが読取可能高さの範囲内にある限り「スクロール」や「無視」モードを保つ"
+
+msgid "<b>Tablet Options</b>"
+msgstr "<b>タブレット・オプション</b>"
+
+msgid "<b>Devices</b>"
+msgstr "<b>デバイス</b>"
+
+msgid "Advanced"
+msgstr "高度設定"
+
+msgid "_Matrix"
+msgstr "マトリクス(_M)"
+
+msgid "_History"
+msgstr "履歴(_H)"
+
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke ジェスチャ認識"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "マウス・ジェスチャを使用してデスクトップを制御します"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke ジェスチャ認識"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "キーの組み合わせ..."
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "左手操作のために最適化 )"

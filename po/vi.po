@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2010-09-04 14:46+0000\n"
 "Last-Translator: Van Diep Duong <Unknown>\n"
 "Language-Team: Vietnamese <vi@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -59,9 +59,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "thao tác"
-
-msgid "Key combination..."
-msgstr "Phím kết hợp..."
 
 msgid "Command"
 msgstr "Câu lệnh"
@@ -181,18 +178,6 @@ msgstr "'kết hợp' không có sẵn"
 msgid "Error: %s\n"
 msgstr "Lỗi: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Lỗi: Lấy A  thất bại. Làm lại ...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Lỗi nghiêm trọng : Kết nối với X server bị mất, khởi động lại...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Cảnh báo: Thao tác \"%s\" không xác định\n"
-
 msgid "Tray icon disabled"
 msgstr "Tắt biểu tượng trên khay hệ thống"
 
@@ -204,17 +189,21 @@ msgstr ""
 "động của loại Lặt vặt...Hiện/Ẩn."
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Lỗi khởi tạo D-BUS\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Cảnh báo: Thao tác \"%s\" không xác định\n"
+
+msgid "Enabled"
+msgstr "Bật"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Không thể mở sự hiển thị.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr "Easystroke vẫn chạy khi cửa sổ cấu hình không hiển thị.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -268,9 +257,6 @@ msgstr "Tuỳ chọn"
 msgid "Application (WM__CLASS)"
 msgstr "Ứng dụng (WM_CLASS)"
 
-msgid "Enabled"
-msgstr "Bật"
-
 msgid "Device"
 msgstr "Thiết bị"
 
@@ -299,176 +285,195 @@ msgstr "Thành công"
 msgid "D_isabled"
 msgstr "Tắ_t"
 
-msgid "(window manager frame)"
-msgstr "Quản lý cửa sổ khung"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Kết nối với DBUS thất bại"
 
-msgid "     Timeout (ms)"
-msgstr "     Timeout (ms)"
-
-msgid "(See Documentation)"
-msgstr "(Xem tài liệu)"
-
-msgid "<b>Appearance</b>"
-msgstr "<b>Diện mạo</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>Chế độ</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>Thiết bị</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>Ngoại lệ</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Tùy chọn Tablet PC</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "Hủy bỏ nét vẽ nếu độ nén vượt quá số trên bên trái (tối đa 255)"
-
-msgid "Add Application"
-msgstr "Thêm ứng dụng"
-
-msgid "Add Group"
-msgstr "Thêm nhóm"
-
-msgid "Additional Buttons"
-msgstr "Thêm nút bấm"
-
-msgid "Advanced"
-msgstr "Nâng cao"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "Ngoài ra, bạn có thể chọn nút bấm và nút bổ trợ dưới đây."
-
-msgid "An_y Modifier"
-msgstr "Tùy ý"
-
-msgid "Applications"
-msgstr "Ứng dụng"
-
-msgid "Autostart easystroke"
-msgstr "Easystroke tự khởi động"
-
-msgid "Click & Hold"
-msgstr "Nhắp & Giữ"
-
-msgid "Color"
-msgstr "Màu"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Bỏ qua các nét vẽ dẫn đến cử chỉ cao cấp"
-
-msgid "Initial Timeout (ms)"
-msgstr "Thời gian trễ ban đầu (ms)"
-
-msgid "Instant Gestures"
-msgstr "Cử chỉ tức thời"
-
-msgid "Invert Scroll Direction"
-msgstr "Đảo ngược hướng cuộn"
-
-msgid "Method to show gestures"
-msgstr "Cách thể hiện cử chỉ"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr "Di chuyển con trỏ trở lại vị trí ban đầu sau mỗi cử chỉ"
-
-msgid "Preferences"
-msgstr "Tùy chỉnh"
-
-msgid "Remove Application/Group"
-msgstr "Hủy bỏ Ứng dụng/Nhóm"
-
-msgid "Reset Action(s)"
-msgstr "Thiết lập lại thao tác"
-
-msgid "S_uper"
-msgstr "S_uper"
-
-msgid "Scroll Speed"
-msgstr "Tốc độ cuộn"
-
-msgid "Show OSD"
-msgstr "Hiện OSD"
-
-msgid "Show deleted rows"
-msgstr "Hiện hàng đã xóa"
-
-msgid "Show last gesture in tray"
-msgstr "Hiện cử chỉ mới nhất trong khay"
-
-msgid "Show popups ("
-msgstr "Hiển thị popup"
-
-msgid "Show popups on advanced gestures"
-msgstr "Hiển thì popup trong các cử chỉ nâng cao"
-
-msgid "Show tray icon"
-msgstr "Hiện biểu tượng trên khay"
-
-msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr "Trong chế độ  'cuộn' và 'bỏ qua' miễn là bút vẽ ở trong phạm vi"
-
-msgid "Timeout"
-msgstr "Timeout"
-
-msgid "Timeout Gestures"
-msgstr "Timeout Gestures"
-
-msgid "Width"
-msgstr "Độ rộng"
-
-msgid "_Add Action"
-msgstr "_Thêm thao tác"
-
-msgid "_Add Exception"
-msgstr "_Thêm ngoại lệ"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
+msgid "_Delete Current"
+msgstr "_Xóa sự hiện hành"
 
 msgid "_Default"
 msgstr "_Mặc định"
 
-msgid "_Delete Action(s)"
-msgstr "_Xóa thao tác"
+msgid "Timeout"
+msgstr "Timeout"
 
-msgid "_Delete Current"
-msgstr "_Xóa sự hiện hành"
+msgid "Instant Gestures"
+msgstr "Cử chỉ tức thời"
 
-msgid "_Gesture Button"
-msgstr "_Nút bấm"
+msgid "Click & Hold"
+msgstr "Nhắp & Giữ"
 
-msgid "_Hide"
-msgstr "Ẩ_n"
-
-msgid "_History"
-msgstr "_Lược sử"
-
-msgid "_Matrix"
-msgstr "_Bảng"
-
-msgid "_Record Stroke"
-msgstr "_Ghi nét vẽ"
-
-msgid "_Remove Exception"
-msgstr "_Xóa ngoại trừ"
+msgid "_Control"
+msgstr "_Control"
 
 msgid "_Shift"
 msgstr "_Shift"
 
-msgid "optimize for left-handed operation )"
-msgstr "tối ưu cho hoạt động thuận tay trái)"
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "S_uper"
+
+msgid "An_y Modifier"
+msgstr "Tùy ý"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "Ngoài ra, bạn có thể chọn nút bấm và nút bổ trợ dưới đây."
+
+msgid "Show deleted rows"
+msgstr "Hiện hàng đã xóa"
+
+msgid "Add Application"
+msgstr "Thêm ứng dụng"
+
+msgid "Remove Application/Group"
+msgstr "Hủy bỏ Ứng dụng/Nhóm"
+
+msgid "Add Group"
+msgstr "Thêm nhóm"
+
+msgid "Reset Action(s)"
+msgstr "Thiết lập lại thao tác"
+
+msgid "Applications"
+msgstr "Ứng dụng"
+
+msgid "_Record Stroke"
+msgstr "_Ghi nét vẽ"
+
+msgid "_Add Action"
+msgstr "_Thêm thao tác"
+
+msgid "_Delete Action(s)"
+msgstr "_Xóa thao tác"
+
+msgid "_Hide"
+msgstr "Ẩ_n"
+
+msgid "_Gesture Button"
+msgstr "_Nút bấm"
+
+msgid "Additional Buttons"
+msgstr "Thêm nút bấm"
+
+msgid "Initial Timeout (ms)"
+msgstr "Thời gian trễ ban đầu (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Timeout (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Chế độ</b>"
+
+msgid "Method to show gestures"
+msgstr "Cách thể hiện cử chỉ"
+
+msgid "Color"
+msgstr "Màu"
+
+msgid "Width"
+msgstr "Độ rộng"
+
+msgid "Show popups ("
+msgstr "Hiển thị popup"
+
+msgid "to the right of the cursor)"
+msgstr ""
+
+msgid "Show tray icon"
+msgstr "Hiện biểu tượng trên khay"
+
+msgid "Show last gesture in tray"
+msgstr "Hiện cử chỉ mới nhất trong khay"
+
+msgid "Autostart easystroke"
+msgstr "Easystroke tự khởi động"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Diện mạo</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Ngoại lệ</b>"
+
+msgid "_Add Exception"
+msgstr "_Thêm ngoại lệ"
+
+msgid "_Remove Exception"
+msgstr "_Xóa ngoại trừ"
+
+msgid "Preferences"
+msgstr "Tùy chỉnh"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "Timeout Gestures"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Bỏ qua các nét vẽ dẫn đến cử chỉ cao cấp"
+
+msgid "(See Documentation)"
+msgstr "(Xem tài liệu)"
+
+msgid "Show popups on advanced gestures"
+msgstr "Hiển thì popup trong các cử chỉ nâng cao"
+
+msgid "Show OSD"
+msgstr "Hiện OSD"
+
+msgid "Invert Scroll Direction"
+msgstr "Đảo ngược hướng cuộn"
+
+msgid "Scroll Speed"
+msgstr "Tốc độ cuộn"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr "Di chuyển con trỏ trở lại vị trí ban đầu sau mỗi cử chỉ"
+
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr "Trong chế độ  'cuộn' và 'bỏ qua' miễn là bút vẽ ở trong phạm vi"
+
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Tùy chọn Tablet PC</b>"
+
+msgid "<b>Devices</b>"
+msgstr "<b>Thiết bị</b>"
+
+msgid "Advanced"
+msgstr "Nâng cao"
+
+msgid "_Matrix"
+msgstr "_Bảng"
+
+msgid "_History"
+msgstr "_Lược sử"
+
+msgid "Easystroke Gesture Recognition"
+msgstr "Trình nhận dạng hành vi Easystroke"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Điều khiển máy tính bằng những hành vi của chuột"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Trình nhận dạng hành vi Easystroke"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "Phím kết hợp..."
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Lỗi: Lấy A  thất bại. Làm lại ...\n"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "tối ưu cho hoạt động thuận tay trái)"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "Quản lý cửa sổ khung"

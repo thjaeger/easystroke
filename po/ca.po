@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2011-08-07 17:13+0000\n"
 "Last-Translator: jordis <Unknown>\n"
 "Language-Team: Catalan <ca@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -60,9 +60,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "accions"
-
-msgid "Key combination..."
-msgstr "Combinació de tecles..."
 
 msgid "Command"
 msgstr "Ordre"
@@ -184,19 +181,6 @@ msgstr "«composite» no està disponible"
 msgid "Error: %s\n"
 msgstr "Error: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Error: Ha fallat una captura. Es reiniciarà...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr ""
-"Error molt greu: S'ha perdut la connexió al servidor X. Es reiniciarà...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Avís: No s'ha definit cap acció «%s»\n"
-
 msgid "Tray icon disabled"
 msgstr "S'ha inhabilitat la icona de la safata"
 
@@ -208,19 +192,21 @@ msgstr ""
 "Altres - Mostra/Amaga"
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Error en inicialitzar D-BUS\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Avís: No s'ha definit cap acció «%s»\n"
+
+msgid "Enabled"
+msgstr "Habilitat"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "No s'ha pogut obrir la pantalla.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr ""
-"L'Easystroke ja s'està executant. A continuació, s'obrirà la finestra de "
-"configuració.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -274,9 +260,6 @@ msgstr "Personalitzat"
 msgid "Application (WM__CLASS)"
 msgstr "Aplicació (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Habilitat"
-
 msgid "Device"
 msgstr "Dispositiu"
 
@@ -305,176 +288,192 @@ msgstr "Puntuació"
 msgid "D_isabled"
 msgstr "_Inhabilitat"
 
-msgid "(window manager frame)"
-msgstr "(marc del gestor de finestres)"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Ha fallat la connexió al DBus"
 
-msgid "     Timeout (ms)"
-msgstr "     Temps d'espera (ms)"
-
-msgid "(See Documentation)"
-msgstr "(Vegeu la documentació)"
-
-msgid "<b>Appearance</b>"
-msgstr "<b>Aspecte</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>Comportament</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>Dispositius</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>Excepcions</b>"
-
-msgid "<b>Tablet Options</b>"
+msgid "_Delete Current"
 msgstr ""
 
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
+msgid "_Default"
+msgstr "Per _defecte"
+
+msgid "Timeout"
+msgstr "Temps d'espera"
+
+msgid "Instant Gestures"
+msgstr ""
+
+msgid "Click & Hold"
+msgstr ""
+
+msgid "_Control"
+msgstr "_Control"
+
+msgid "_Shift"
+msgstr "Tecla de majú_scules"
+
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "Sú_per"
+
+msgid "An_y Modifier"
+msgstr "_Qualsevol modificador"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr ""
+
+msgid "Show deleted rows"
 msgstr ""
 
 msgid "Add Application"
 msgstr "Afegeix una aplicació"
 
-msgid "Add Group"
-msgstr "Afegeix un grup"
-
-msgid "Additional Buttons"
-msgstr "Botons addicionals"
-
-msgid "Advanced"
-msgstr "Avançat"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr ""
-
-msgid "An_y Modifier"
-msgstr "_Qualsevol modificador"
-
-msgid "Applications"
-msgstr "Aplicacions"
-
-msgid "Autostart easystroke"
-msgstr "Inicia l'Easystroke automàticament"
-
-msgid "Click & Hold"
-msgstr ""
-
-msgid "Color"
-msgstr "Color"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr ""
-
-msgid "Initial Timeout (ms)"
-msgstr ""
-
-msgid "Instant Gestures"
-msgstr ""
-
-msgid "Invert Scroll Direction"
-msgstr ""
-
-msgid "Method to show gestures"
-msgstr ""
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
-
-msgid "Preferences"
-msgstr "Preferències"
-
 msgid "Remove Application/Group"
 msgstr ""
+
+msgid "Add Group"
+msgstr "Afegeix un grup"
 
 msgid "Reset Action(s)"
 msgstr ""
 
-msgid "S_uper"
-msgstr "Sú_per"
+msgid "Applications"
+msgstr "Aplicacions"
 
-msgid "Scroll Speed"
-msgstr "Velocitat de desplaçament"
-
-msgid "Show OSD"
-msgstr "Mostra l'OSD"
-
-msgid "Show deleted rows"
+msgid "_Record Stroke"
 msgstr ""
-
-msgid "Show last gesture in tray"
-msgstr ""
-
-msgid "Show popups ("
-msgstr ""
-
-msgid "Show popups on advanced gestures"
-msgstr ""
-
-msgid "Show tray icon"
-msgstr "Mostra la icona a la barra de sistema"
-
-msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr ""
-
-msgid "Timeout"
-msgstr "Temps d'espera"
-
-msgid "Timeout Gestures"
-msgstr ""
-
-msgid "Width"
-msgstr "Amplada"
 
 msgid "_Add Action"
 msgstr ""
 
-msgid "_Add Exception"
-msgstr ""
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
-
-msgid "_Default"
-msgstr "Per _defecte"
-
 msgid "_Delete Action(s)"
-msgstr ""
-
-msgid "_Delete Current"
-msgstr ""
-
-msgid "_Gesture Button"
 msgstr ""
 
 msgid "_Hide"
 msgstr "A_maga"
 
-msgid "_History"
-msgstr "_Historial"
-
-msgid "_Matrix"
+msgid "_Gesture Button"
 msgstr ""
 
-msgid "_Record Stroke"
+msgid "Additional Buttons"
+msgstr "Botons addicionals"
+
+msgid "Initial Timeout (ms)"
+msgstr ""
+
+msgid "     Timeout (ms)"
+msgstr "     Temps d'espera (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Comportament</b>"
+
+msgid "Method to show gestures"
+msgstr ""
+
+msgid "Color"
+msgstr "Color"
+
+msgid "Width"
+msgstr "Amplada"
+
+msgid "Show popups ("
+msgstr ""
+
+msgid "to the right of the cursor)"
+msgstr ""
+
+msgid "Show tray icon"
+msgstr "Mostra la icona a la barra de sistema"
+
+msgid "Show last gesture in tray"
+msgstr ""
+
+msgid "Autostart easystroke"
+msgstr "Inicia l'Easystroke automàticament"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Aspecte</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Excepcions</b>"
+
+msgid "_Add Exception"
 msgstr ""
 
 msgid "_Remove Exception"
 msgstr ""
 
-msgid "_Shift"
-msgstr "Tecla de majú_scules"
+msgid "Preferences"
+msgstr "Preferències"
 
-msgid "optimize for left-handed operation )"
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
 msgstr ""
+
+msgid "Timeout Gestures"
+msgstr ""
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr ""
+
+msgid "(See Documentation)"
+msgstr "(Vegeu la documentació)"
+
+msgid "Show popups on advanced gestures"
+msgstr ""
+
+msgid "Show OSD"
+msgstr "Mostra l'OSD"
+
+msgid "Invert Scroll Direction"
+msgstr ""
+
+msgid "Scroll Speed"
+msgstr "Velocitat de desplaçament"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr ""
+
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr ""
+
+msgid "<b>Tablet Options</b>"
+msgstr ""
+
+msgid "<b>Devices</b>"
+msgstr "<b>Dispositius</b>"
+
+msgid "Advanced"
+msgstr "Avançat"
+
+msgid "_Matrix"
+msgstr ""
+
+msgid "_History"
+msgstr "_Historial"
+
+msgid "Easystroke Gesture Recognition"
+msgstr "Reconeixement de gestos Easystroke"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Controla el teu escriptori a través de gestos amb el ratolí"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Reconeixement de gestos Easystroke"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "Combinació de tecles..."
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Error: Ha fallat una captura. Es reiniciarà...\n"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "(marc del gestor de finestres)"

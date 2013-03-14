@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2010-08-31 15:44+0000\n"
 "Last-Translator: 于 <Unknown>\n"
 "Language-Team: Chinese (Traditional) <zh_TW@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -57,9 +57,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "滑鼠手勢"
-
-msgid "Key combination..."
-msgstr "按鍵組合…"
 
 msgid "Command"
 msgstr "指令"
@@ -174,18 +171,6 @@ msgstr "組件（composite）無法使用"
 msgid "Error: %s\n"
 msgstr "錯誤：%s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "錯誤：擷取失敗。重新設定…\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "嚴重錯誤：遺失至X server的連線，重新啟動…\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "警告：\"%s\"動作未被定義\n"
-
 msgid "Tray icon disabled"
 msgstr "系統列圖示已禁用"
 
@@ -195,17 +180,21 @@ msgid ""
 msgstr "要重新顯示設定對話視窗，您必須為\"其它…顯示/隱藏\"定義一個操作"
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "初始化D-BUS錯誤\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "警告：\"%s\"動作未被定義\n"
+
+msgid "Enabled"
+msgstr "啟用"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "無法啟用顯示\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr "Easystroke 已經執行中，現在將顯示設定視窗\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -259,9 +248,6 @@ msgstr "自訂"
 msgid "Application (WM__CLASS)"
 msgstr "應用程式（WM__CLASS）"
 
-msgid "Enabled"
-msgstr "啟用"
-
 msgid "Device"
 msgstr "裝置"
 
@@ -288,176 +274,195 @@ msgstr "相似度"
 msgid "D_isabled"
 msgstr "禁用(_i)"
 
-msgid "(window manager frame)"
-msgstr "（視窗邊框管理）"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "連接至DBus失敗"
 
-msgid "     Timeout (ms)"
-msgstr "     逾時（毫秒）"
-
-msgid "(See Documentation)"
-msgstr "（檢視說明文件）"
-
-msgid "<b>Appearance</b>"
-msgstr "<b>外觀</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>行為</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>裝置</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>例外</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>平版電腦選項</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "若壓力超過左方設定值（最大255）取消滑鼠手勢"
-
-msgid "Add Application"
-msgstr "加入應用程式"
-
-msgid "Add Group"
-msgstr "新增群組"
-
-msgid "Additional Buttons"
-msgstr "額外按鈕"
-
-msgid "Advanced"
-msgstr "進階"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "或者你也可以選擇以下的按鈕和組合鍵"
-
-msgid "An_y Modifier"
-msgstr "任意組合鍵"
-
-msgid "Applications"
-msgstr "應用程式"
-
-msgid "Autostart easystroke"
-msgstr "自動啟動easystroke"
-
-msgid "Click & Hold"
-msgstr "按住不放"
-
-msgid "Color"
-msgstr "顏色"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "忽略會觸發進階操作的滑鼠手勢"
-
-msgid "Initial Timeout (ms)"
-msgstr "初始逾時值（毫秒）"
-
-msgid "Instant Gestures"
-msgstr "滑鼠手勢"
-
-msgid "Invert Scroll Direction"
-msgstr "顛倒滑動方向"
-
-msgid "Method to show gestures"
-msgstr "顯示手勢的方式"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr "劃出手勢後，滑鼠回到原來位置"
-
-msgid "Preferences"
-msgstr "偏好設定"
-
-msgid "Remove Application/Group"
-msgstr "移除應用程式/群組"
-
-msgid "Reset Action(s)"
-msgstr "重設操作"
-
-msgid "S_uper"
-msgstr "S_uper"
-
-msgid "Scroll Speed"
-msgstr "滑動速度"
-
-msgid "Show OSD"
-msgstr "顯示 OSD"
-
-msgid "Show deleted rows"
-msgstr "顯示刪除行"
-
-msgid "Show last gesture in tray"
-msgstr "在系統列顯示上次的滑鼠手勢"
-
-msgid "Show popups ("
-msgstr "顯示手勢的描繪"
-
-msgid "Show popups on advanced gestures"
-msgstr "顯示進階手勢的描繪"
-
-msgid "Show tray icon"
-msgstr "顯示系統列圖示"
-
-msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr "當觸控筆在指定範圍內，則保持滑動與忽略模式"
-
-msgid "Timeout"
-msgstr "逾時"
-
-msgid "Timeout Gestures"
-msgstr "滑鼠手勢逾時"
-
-msgid "Width"
-msgstr "寬度"
-
-msgid "_Add Action"
-msgstr "增加動作(_A)"
-
-msgid "_Add Exception"
-msgstr "增加例外(_A)"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
+msgid "_Delete Current"
+msgstr "刪除目前設定(_D)"
 
 msgid "_Default"
 msgstr "預設(_D)"
 
-msgid "_Delete Action(s)"
-msgstr "刪除動作(_D)"
+msgid "Timeout"
+msgstr "逾時"
 
-msgid "_Delete Current"
-msgstr "刪除目前設定(_D)"
+msgid "Instant Gestures"
+msgstr "滑鼠手勢"
 
-msgid "_Gesture Button"
-msgstr "滑鼠手勢按鈕(_G)"
+msgid "Click & Hold"
+msgstr "按住不放"
 
-msgid "_Hide"
-msgstr "隱藏(_H)"
-
-msgid "_History"
-msgstr "歷史(_H)"
-
-msgid "_Matrix"
-msgstr "矩陣(_M)"
-
-msgid "_Record Stroke"
-msgstr "記錄手勢(_R)"
-
-msgid "_Remove Exception"
-msgstr "移除例外(_R)"
+msgid "_Control"
+msgstr "_Control"
 
 msgid "_Shift"
 msgstr "_Shift"
 
-msgid "optimize for left-handed operation )"
-msgstr "慣用左手操作"
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "S_uper"
+
+msgid "An_y Modifier"
+msgstr "任意組合鍵"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "或者你也可以選擇以下的按鈕和組合鍵"
+
+msgid "Show deleted rows"
+msgstr "顯示刪除行"
+
+msgid "Add Application"
+msgstr "加入應用程式"
+
+msgid "Remove Application/Group"
+msgstr "移除應用程式/群組"
+
+msgid "Add Group"
+msgstr "新增群組"
+
+msgid "Reset Action(s)"
+msgstr "重設操作"
+
+msgid "Applications"
+msgstr "應用程式"
+
+msgid "_Record Stroke"
+msgstr "記錄手勢(_R)"
+
+msgid "_Add Action"
+msgstr "增加動作(_A)"
+
+msgid "_Delete Action(s)"
+msgstr "刪除動作(_D)"
+
+msgid "_Hide"
+msgstr "隱藏(_H)"
+
+msgid "_Gesture Button"
+msgstr "滑鼠手勢按鈕(_G)"
+
+msgid "Additional Buttons"
+msgstr "額外按鈕"
+
+msgid "Initial Timeout (ms)"
+msgstr "初始逾時值（毫秒）"
+
+msgid "     Timeout (ms)"
+msgstr "     逾時（毫秒）"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>行為</b>"
+
+msgid "Method to show gestures"
+msgstr "顯示手勢的方式"
+
+msgid "Color"
+msgstr "顏色"
+
+msgid "Width"
+msgstr "寬度"
+
+msgid "Show popups ("
+msgstr "顯示手勢的描繪"
+
+msgid "to the right of the cursor)"
+msgstr ""
+
+msgid "Show tray icon"
+msgstr "顯示系統列圖示"
+
+msgid "Show last gesture in tray"
+msgstr "在系統列顯示上次的滑鼠手勢"
+
+msgid "Autostart easystroke"
+msgstr "自動啟動easystroke"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>外觀</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>例外</b>"
+
+msgid "_Add Exception"
+msgstr "增加例外(_A)"
+
+msgid "_Remove Exception"
+msgstr "移除例外(_R)"
+
+msgid "Preferences"
+msgstr "偏好設定"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "滑鼠手勢逾時"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "忽略會觸發進階操作的滑鼠手勢"
+
+msgid "(See Documentation)"
+msgstr "（檢視說明文件）"
+
+msgid "Show popups on advanced gestures"
+msgstr "顯示進階手勢的描繪"
+
+msgid "Show OSD"
+msgstr "顯示 OSD"
+
+msgid "Invert Scroll Direction"
+msgstr "顛倒滑動方向"
+
+msgid "Scroll Speed"
+msgstr "滑動速度"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr "劃出手勢後，滑鼠回到原來位置"
+
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr "當觸控筆在指定範圍內，則保持滑動與忽略模式"
+
+msgid "<b>Tablet Options</b>"
+msgstr "<b>平版電腦選項</b>"
+
+msgid "<b>Devices</b>"
+msgstr "<b>裝置</b>"
+
+msgid "Advanced"
+msgstr "進階"
+
+msgid "_Matrix"
+msgstr "矩陣(_M)"
+
+msgid "_History"
+msgstr "歷史(_H)"
+
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke 滑鼠手勢辨識"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "使用滑鼠手勢控制您的桌面"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke 滑鼠手勢辨識"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "錯誤：擷取失敗。重新設定…\n"
+
+#~ msgid "Key combination..."
+#~ msgstr "按鍵組合…"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "慣用左手操作"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "（視窗邊框管理）"

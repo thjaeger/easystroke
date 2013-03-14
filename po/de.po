@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke 0.3.97\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-09-08 23:49-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2012-09-10 17:51+0000\n"
 "Last-Translator: Maximilian Mühlbauer <Unknown>\n"
 "Language-Team: German <gnome-de@gnome.org>\n"
@@ -16,8 +16,8 @@ msgstr ""
 "Content-Type: text/plain; charset=iso-8859-1\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-10-06 06:00+0000\n"
-"X-Generator: Launchpad (build 16061)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -62,9 +62,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "Aktionen"
-
-msgid "Key combination..."
-msgstr "Tastenkombination..."
 
 msgid "Command"
 msgstr "Befehl"
@@ -188,14 +185,6 @@ msgstr "'composite' nicht verfügbar"
 msgid "Error: %s\n"
 msgstr "Fehler: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
-
 msgid "Tray icon disabled"
 msgstr "Tray-Symbol deaktiviert"
 
@@ -206,12 +195,12 @@ msgstr ""
 "Um den Konfigurationsdialog wieder anzuzeigen, können Sie eine Aktion vom "
 "Typ Verschiedene..Anzeigen/Verstecken erstellen."
 
-#. section1->append(_("Enabled"), "app.enabled");
-msgid "Enable"
-msgstr "Aktivieren"
+#, c-format
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Warnung: Aktion \"%s\" nicht definiert\n"
 
-msgid "Disable"
-msgstr "Deaktivieren"
+msgid "Enabled"
+msgstr "Aktiv"
 
 msgid "About"
 msgstr "Über"
@@ -275,9 +264,6 @@ msgstr "Benutzerdefiniert"
 msgid "Application (WM__CLASS)"
 msgstr "Anwendung (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Aktiv"
-
 msgid "Device"
 msgstr "Gerät"
 
@@ -306,8 +292,8 @@ msgstr "Ergebnis"
 msgid "D_isabled"
 msgstr "Deaktiviert"
 
-msgid "(window manager frame)"
-msgstr "(Rahmen des Window-Managers)"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Verbindung zum DBus fehlgeschlagen"
@@ -403,8 +389,8 @@ msgstr "Breite"
 msgid "Show popups ("
 msgstr "Popus anzeigen ("
 
-msgid "optimize for left-handed operation )"
-msgstr "für linkshändige Bedienung optimieren )"
+msgid "to the right of the cursor)"
+msgstr ""
 
 msgid "Show tray icon"
 msgstr "Zeige Tray-Symbol"
@@ -429,6 +415,9 @@ msgstr "Ausnahme Entfernen"
 
 msgid "Preferences"
 msgstr "Einstellungen"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
 
 msgid "Timeout Gestures"
 msgstr "Timeout-Gesten"
@@ -480,3 +469,22 @@ msgstr "Easystroke Gestenerkennung"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Den Rechner mit Mausgesten bedienen"
+
+msgid "Enable"
+msgstr "Aktivieren"
+
+msgid "Disable"
+msgstr "Deaktivieren"
+
+#~ msgid "Key combination..."
+#~ msgstr "Tastenkombination..."
+
+#~ msgid "(window manager frame)"
+#~ msgstr "(Rahmen des Window-Managers)"
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Fehler: Ein Grab ist fehlgeschlagen.  Breche Geste ab...\n"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "für linkshändige Bedienung optimieren )"

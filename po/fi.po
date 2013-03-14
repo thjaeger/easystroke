@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2011-01-07 03:33+0000\n"
 "Last-Translator: Sauli Pelkonen <Unknown>\n"
 "Language-Team: Finnish <fi@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -59,9 +59,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "toiminnot"
-
-msgid "Key combination..."
-msgstr "Näppäinyhdistelmä"
 
 msgid "Command"
 msgstr "Komento"
@@ -183,19 +180,6 @@ msgstr "'composite' ei saatavilla"
 msgid "Error: %s\n"
 msgstr "Virhe: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Virhe: Sieppaus epäonnistui. Nollataan...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr ""
-"Vakava virhe: Yhteys X -palvelimeen katkesi, käynnistetään uudelleen...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Varoitus: Toimintoa \"%s\" ei määritelty\n"
-
 msgid "Tray icon disabled"
 msgstr "Ilmoitusalueen kuvake ei käytössä"
 
@@ -207,17 +191,21 @@ msgstr ""
 "Näytä/Piilota."
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Virhe alustettaessa D-Busia.\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Varoitus: Toimintoa \"%s\" ei määritelty\n"
+
+msgid "Enabled"
+msgstr "Käytössä"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Näyttöä ei voitu avata.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr "Easystroke on jo käynnissä, näytetään vain asetusikkuna.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -271,9 +259,6 @@ msgstr "Mukautettu"
 msgid "Application (WM__CLASS)"
 msgstr "Sovellus (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Käytössä"
-
 msgid "Device"
 msgstr "Laite"
 
@@ -302,178 +287,197 @@ msgstr "Pisteet"
 msgid "D_isabled"
 msgstr "E_i käytössä"
 
-msgid "(window manager frame)"
-msgstr "(ikkunointiohjelman kehys)"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Yhteys D-Busiin epäonnistui"
 
-msgid "     Timeout (ms)"
-msgstr "     Aikakatkaisu (ms)"
+msgid "_Delete Current"
+msgstr "_Poista nykyinen"
 
-msgid "(See Documentation)"
-msgstr "(Katso Dokumentointi [englanniksi] )"
+msgid "_Default"
+msgstr "_Oletus"
 
-msgid "<b>Appearance</b>"
-msgstr "<b>Ulkoasu</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>Toiminta</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>Laitteet</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>Poikkeukset</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Tablet-valinnat</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "Keskeytä ele, jos paine ylittää vasemmalla olevan luvun (255:stä)"
-
-msgid "Add Application"
-msgstr "Lisää sovellus"
-
-msgid "Add Group"
-msgstr "Lisää ryhmä"
-
-msgid "Additional Buttons"
-msgstr "Muut hiirinäppäimet"
-
-msgid "Advanced"
-msgstr "Lisäasetukset"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "Vaihtoehtoisesti voit valita näppäimen muunnoksineen alapuolelta."
-
-msgid "An_y Modifier"
-msgstr "Mi_kä tahansa"
-
-msgid "Applications"
-msgstr "Sovellukset"
-
-msgid "Autostart easystroke"
-msgstr "Käynnistä easystroke automaattisesti"
-
-msgid "Click & Hold"
-msgstr "Pidä pohjassa"
-
-msgid "Color"
-msgstr "Väri"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Jätä huomiotta edistyneisiin toimintoihin johtavat eleet"
-
-msgid "Initial Timeout (ms)"
-msgstr "Alustava aikakatkaisu (ms)"
+msgid "Timeout"
+msgstr "Aikakatkaisu"
 
 msgid "Instant Gestures"
 msgstr "Välitön ele"
 
-msgid "Invert Scroll Direction"
-msgstr "Käänteinen vierityssuunta"
+msgid "Click & Hold"
+msgstr "Pidä pohjassa"
+
+msgid "_Control"
+msgstr "_Control"
+
+msgid "_Shift"
+msgstr "_Shift"
+
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "S_uper"
+
+msgid "An_y Modifier"
+msgstr "Mi_kä tahansa"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "Vaihtoehtoisesti voit valita näppäimen muunnoksineen alapuolelta."
+
+msgid "Show deleted rows"
+msgstr "Näytä poistetut rivit"
+
+msgid "Add Application"
+msgstr "Lisää sovellus"
+
+msgid "Remove Application/Group"
+msgstr "Poista sovellus/ryhmä"
+
+msgid "Add Group"
+msgstr "Lisää ryhmä"
+
+msgid "Reset Action(s)"
+msgstr "Nollaa toiminto/toiminnot"
+
+msgid "Applications"
+msgstr "Sovellukset"
+
+msgid "_Record Stroke"
+msgstr "_Sieppaa ele"
+
+msgid "_Add Action"
+msgstr "_Lisää toiminto"
+
+msgid "_Delete Action(s)"
+msgstr "_Poista toiminto/toiminnot"
+
+msgid "_Hide"
+msgstr "P_iilota"
+
+msgid "_Gesture Button"
+msgstr "_Eleen liipaisinnäppäin"
+
+msgid "Additional Buttons"
+msgstr "Muut hiirinäppäimet"
+
+msgid "Initial Timeout (ms)"
+msgstr "Alustava aikakatkaisu (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Aikakatkaisu (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Toiminta</b>"
 
 msgid "Method to show gestures"
 msgstr "Eleiden näyttämismenetelmä"
+
+msgid "Color"
+msgstr "Väri"
+
+msgid "Width"
+msgstr "Leveys"
+
+msgid "Show popups ("
+msgstr "Näytä ponnahdusikkunat ("
+
+msgid "to the right of the cursor)"
+msgstr ""
+
+msgid "Show tray icon"
+msgstr "Näytä ilmoitusalueen kuvake"
+
+msgid "Show last gesture in tray"
+msgstr "Näytä viimeisin ele ilmaisinalueella"
+
+msgid "Autostart easystroke"
+msgstr "Käynnistä easystroke automaattisesti"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Ulkoasu</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Poikkeukset</b>"
+
+msgid "_Add Exception"
+msgstr "_Lisää poikkeus"
+
+msgid "_Remove Exception"
+msgstr "_Poista poikkeus"
+
+msgid "Preferences"
+msgstr "Asetukset"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "Eleiden aikakatkaisu"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Jätä huomiotta edistyneisiin toimintoihin johtavat eleet"
+
+msgid "(See Documentation)"
+msgstr "(Katso Dokumentointi [englanniksi] )"
+
+msgid "Show popups on advanced gestures"
+msgstr "Näytä ponnahdusikkunat edistyneille eleille"
+
+msgid "Show OSD"
+msgstr "Näytä viestit ruudulla"
+
+msgid "Invert Scroll Direction"
+msgstr "Käänteinen vierityssuunta"
+
+msgid "Scroll Speed"
+msgstr "Vieritysnopeus"
 
 msgid "Move the cursor back to the original position after each gesture"
 msgstr ""
 "Palauta osoitin takaisin alkuperäiseen sijaintiin jokaisen liikkeen jälkeen"
 
-msgid "Preferences"
-msgstr "Asetukset"
-
-msgid "Remove Application/Group"
-msgstr "Poista sovellus/ryhmä"
-
-msgid "Reset Action(s)"
-msgstr "Nollaa toiminto/toiminnot"
-
-msgid "S_uper"
-msgstr "S_uper"
-
-msgid "Scroll Speed"
-msgstr "Vieritysnopeus"
-
-msgid "Show OSD"
-msgstr "Näytä viestit ruudulla"
-
-msgid "Show deleted rows"
-msgstr "Näytä poistetut rivit"
-
-msgid "Show last gesture in tray"
-msgstr "Näytä viimeisin ele ilmaisinalueella"
-
-msgid "Show popups ("
-msgstr "Näytä ponnahdusikkunat ("
-
-msgid "Show popups on advanced gestures"
-msgstr "Näytä ponnahdusikkunat edistyneille eleille"
-
-msgid "Show tray icon"
-msgstr "Näytä ilmoitusalueen kuvake"
-
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Pysy 'Vieritys' tai 'Ohita' -tilassa niin kauan kuin kynä on alueella"
 
-msgid "Timeout"
-msgstr "Aikakatkaisu"
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Tablet-valinnat</b>"
 
-msgid "Timeout Gestures"
-msgstr "Eleiden aikakatkaisu"
+msgid "<b>Devices</b>"
+msgstr "<b>Laitteet</b>"
 
-msgid "Width"
-msgstr "Leveys"
-
-msgid "_Add Action"
-msgstr "_Lisää toiminto"
-
-msgid "_Add Exception"
-msgstr "_Lisää poikkeus"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
-
-msgid "_Default"
-msgstr "_Oletus"
-
-msgid "_Delete Action(s)"
-msgstr "_Poista toiminto/toiminnot"
-
-msgid "_Delete Current"
-msgstr "_Poista nykyinen"
-
-msgid "_Gesture Button"
-msgstr "_Eleen liipaisinnäppäin"
-
-msgid "_Hide"
-msgstr "P_iilota"
-
-msgid "_History"
-msgstr "_Historia"
+msgid "Advanced"
+msgstr "Lisäasetukset"
 
 msgid "_Matrix"
 msgstr "_Matriisi"
 
-msgid "_Record Stroke"
-msgstr "_Sieppaa ele"
+msgid "_History"
+msgstr "_Historia"
 
-msgid "_Remove Exception"
-msgstr "_Poista poikkeus"
-
-msgid "_Shift"
-msgstr "_Shift"
-
-msgid "optimize for left-handed operation )"
-msgstr "optimoi vasenkätisen tablet-käytölle )"
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke hiirieleet"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Hallitse työpöytää hiirieleillä"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke hiirieleet"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "Näppäinyhdistelmä"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "(ikkunointiohjelman kehys)"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "optimoi vasenkätisen tablet-käytölle )"
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Virhe: Sieppaus epäonnistui. Nollataan...\n"

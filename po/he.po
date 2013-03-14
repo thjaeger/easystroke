@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2009-11-19 08:54+0000\n"
 "Last-Translator: Yaron <sh.yaron@gmail.com>\n"
 "Language-Team: Hebrew <he@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -56,9 +56,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "פעולות"
-
-msgid "Key combination..."
-msgstr "צירוף מקשים"
 
 msgid "Command"
 msgstr "פקודה"
@@ -180,18 +177,6 @@ msgstr "'חיבור' אינו זמין"
 msgid "Error: %s\n"
 msgstr "שגיאה: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "שגיאה: הלכידה נכשלה. מתבצע איפוס...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "שגיאה קריטית: החיבור לשרת ה־X נכשל, מתבצעת הפעלה מחדש...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "אזהרה: לא הוגדרה פעולה \"%s\"\n"
-
 msgid "Tray icon disabled"
 msgstr "סמל הדיווח מנוטרל"
 
@@ -202,17 +187,21 @@ msgstr ""
 "כדי להעלות את דו־שיח התצורה שוב, עליך להגדיר פעולה מסוג שונות...הצגה/הסתרה."
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "ארעה שגיאה בהפעלת D-BUS\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "אזהרה: לא הוגדרה פעולה \"%s\"\n"
+
+msgid "Enabled"
+msgstr "פעיל"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "לא ניתן לפתוח את התצוגה.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr "Easystroke כבר פעיל, חלון התצורה יופיע במקום.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -266,9 +255,6 @@ msgstr "מותאם אישית"
 msgid "Application (WM__CLASS)"
 msgstr "יישום (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "פעיל"
-
 msgid "Device"
 msgstr "התקן"
 
@@ -297,176 +283,195 @@ msgstr "ניקוד"
 msgid "D_isabled"
 msgstr "מ_נוטרל"
 
-msgid "(window manager frame)"
-msgstr "(מסגרת מנהל החלונות)"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "החיבור אל DBus נכשל"
 
-msgid "     Timeout (ms)"
-msgstr "     תום הזמן (מילישניות)"
-
-msgid "(See Documentation)"
-msgstr "(יש לעיין בתיעוד)"
-
-msgid "<b>Appearance</b>"
-msgstr "<b>מראה</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>התנהגות</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>התקנים</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>חריגות</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>אפשרויות מחשב הלוח</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr "ביטול התנועה אם הלחץ חורג מהמספר שמשמאל (מתוך 255)"
-
-msgid "Add Application"
-msgstr "הוספת יישום"
-
-msgid "Add Group"
-msgstr "הוספת קבוצה"
-
-msgid "Additional Buttons"
-msgstr "לחצנים נוספים"
-
-msgid "Advanced"
-msgstr "מתקדם"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "לחילופין, ניתן לבחור לחצנים ומקשי החלפה להלן."
-
-msgid "An_y Modifier"
-msgstr "מקש ה_חלפה כלשהו"
-
-msgid "Applications"
-msgstr "יישומים"
-
-msgid "Autostart easystroke"
-msgstr "הפעלה אוטומטית של easystroke"
-
-msgid "Click & Hold"
-msgstr "לחיצה והחזקה"
-
-msgid "Color"
-msgstr "צבע"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "התעלמות מתנועות המובילות למחוות מתקדמות"
-
-msgid "Initial Timeout (ms)"
-msgstr "תום זמן התחלתי (מילישניות)"
-
-msgid "Instant Gestures"
-msgstr "מחווה מיידית"
-
-msgid "Invert Scroll Direction"
-msgstr "הפיכת כיוון הגלילה"
-
-msgid "Method to show gestures"
-msgstr "השיטה להצגת המחוות"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
-
-msgid "Preferences"
-msgstr "העדפות"
-
-msgid "Remove Application/Group"
-msgstr "הסרת יישום/קבוצה"
-
-msgid "Reset Action(s)"
-msgstr "איפוס הפעולה/ות"
-
-msgid "S_uper"
-msgstr "_סופר"
-
-msgid "Scroll Speed"
-msgstr "מהירות הגלילה"
-
-msgid "Show OSD"
-msgstr "הצגת תצוגה על המסך"
-
-msgid "Show deleted rows"
-msgstr "הצגת שורות שנמחקו"
-
-msgid "Show last gesture in tray"
-msgstr "הצגת המחוהה האחרונה במגשית"
-
-msgid "Show popups ("
-msgstr "הצגת חלוניות מוקפצות ("
-
-msgid "Show popups on advanced gestures"
-msgstr "הצגת חלוניות מוקפצות עבור מחוות מתקדמות"
-
-msgid "Show tray icon"
-msgstr "הצגת סמל באזור הדיווחים"
-
-msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
-msgstr ""
-
-msgid "Timeout"
-msgstr "תום הזמן"
-
-msgid "Timeout Gestures"
-msgstr ""
-
-msgid "Width"
-msgstr "רוחב"
-
-msgid "_Add Action"
-msgstr "הוספת _פעולה"
-
-msgid "_Add Exception"
-msgstr "הוספת _חריגה"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
+msgid "_Delete Current"
+msgstr "מחיקת ה_נוכחית"
 
 msgid "_Default"
 msgstr "_ברירת מחדל"
 
-msgid "_Delete Action(s)"
-msgstr "מחיקת _פעולה"
+msgid "Timeout"
+msgstr "תום הזמן"
 
-msgid "_Delete Current"
-msgstr "מחיקת ה_נוכחית"
+msgid "Instant Gestures"
+msgstr "מחווה מיידית"
 
-msgid "_Gesture Button"
-msgstr "לחצן ה_מחווה"
+msgid "Click & Hold"
+msgstr "לחיצה והחזקה"
 
-msgid "_Hide"
-msgstr "ה_סתרה"
-
-msgid "_History"
-msgstr "היס_טוריה"
-
-msgid "_Matrix"
-msgstr "_מטריצה"
-
-msgid "_Record Stroke"
-msgstr "ה_קלטת התנועה"
-
-msgid "_Remove Exception"
-msgstr "הסרת ה_חריגה"
+msgid "_Control"
+msgstr "_Control"
 
 msgid "_Shift"
 msgstr "_Shift"
 
-msgid "optimize for left-handed operation )"
-msgstr "התאמה לתפעול על ידי שמאליים ("
+msgid "_Alt"
+msgstr "_Alt"
+
+msgid "S_uper"
+msgstr "_סופר"
+
+msgid "An_y Modifier"
+msgstr "מקש ה_חלפה כלשהו"
+
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "לחילופין, ניתן לבחור לחצנים ומקשי החלפה להלן."
+
+msgid "Show deleted rows"
+msgstr "הצגת שורות שנמחקו"
+
+msgid "Add Application"
+msgstr "הוספת יישום"
+
+msgid "Remove Application/Group"
+msgstr "הסרת יישום/קבוצה"
+
+msgid "Add Group"
+msgstr "הוספת קבוצה"
+
+msgid "Reset Action(s)"
+msgstr "איפוס הפעולה/ות"
+
+msgid "Applications"
+msgstr "יישומים"
+
+msgid "_Record Stroke"
+msgstr "ה_קלטת התנועה"
+
+msgid "_Add Action"
+msgstr "הוספת _פעולה"
+
+msgid "_Delete Action(s)"
+msgstr "מחיקת _פעולה"
+
+msgid "_Hide"
+msgstr "ה_סתרה"
+
+msgid "_Gesture Button"
+msgstr "לחצן ה_מחווה"
+
+msgid "Additional Buttons"
+msgstr "לחצנים נוספים"
+
+msgid "Initial Timeout (ms)"
+msgstr "תום זמן התחלתי (מילישניות)"
+
+msgid "     Timeout (ms)"
+msgstr "     תום הזמן (מילישניות)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>התנהגות</b>"
+
+msgid "Method to show gestures"
+msgstr "השיטה להצגת המחוות"
+
+msgid "Color"
+msgstr "צבע"
+
+msgid "Width"
+msgstr "רוחב"
+
+msgid "Show popups ("
+msgstr "הצגת חלוניות מוקפצות ("
+
+msgid "to the right of the cursor)"
+msgstr ""
+
+msgid "Show tray icon"
+msgstr "הצגת סמל באזור הדיווחים"
+
+msgid "Show last gesture in tray"
+msgstr "הצגת המחוהה האחרונה במגשית"
+
+msgid "Autostart easystroke"
+msgstr "הפעלה אוטומטית של easystroke"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>מראה</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>חריגות</b>"
+
+msgid "_Add Exception"
+msgstr "הוספת _חריגה"
+
+msgid "_Remove Exception"
+msgstr "הסרת ה_חריגה"
+
+msgid "Preferences"
+msgstr "העדפות"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr ""
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "התעלמות מתנועות המובילות למחוות מתקדמות"
+
+msgid "(See Documentation)"
+msgstr "(יש לעיין בתיעוד)"
+
+msgid "Show popups on advanced gestures"
+msgstr "הצגת חלוניות מוקפצות עבור מחוות מתקדמות"
+
+msgid "Show OSD"
+msgstr "הצגת תצוגה על המסך"
+
+msgid "Invert Scroll Direction"
+msgstr "הפיכת כיוון הגלילה"
+
+msgid "Scroll Speed"
+msgstr "מהירות הגלילה"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr ""
+
+msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
+msgstr ""
+
+msgid "<b>Tablet Options</b>"
+msgstr "<b>אפשרויות מחשב הלוח</b>"
+
+msgid "<b>Devices</b>"
+msgstr "<b>התקנים</b>"
+
+msgid "Advanced"
+msgstr "מתקדם"
+
+msgid "_Matrix"
+msgstr "_מטריצה"
+
+msgid "_History"
+msgstr "היס_טוריה"
+
+msgid "Easystroke Gesture Recognition"
+msgstr "זיהוי תנועות עכבר של Easystroke"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "ניתן לשלוט בשולחן העבודה באמצעות תנועות העכבר"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "זיהוי תנועות עכבר של Easystroke"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "צירוף מקשים"
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "שגיאה: הלכידה נכשלה. מתבצע איפוס...\n"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "(מסגרת מנהל החלונות)"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "התאמה לתפעול על ידי שמאליים ("

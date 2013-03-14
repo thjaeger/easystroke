@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2012-02-15 22:36+0000\n"
 "Last-Translator: Péter Trombitás <trombipeti@gmail.com>\n"
 "Language-Team: Hungarian <hu@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -60,9 +60,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "műveletek"
-
-msgid "Key combination..."
-msgstr "Billentyűkombináció..."
 
 msgid "Command"
 msgstr "Parancs"
@@ -185,19 +182,6 @@ msgstr "a 'kompozit' nem elérhető"
 msgid "Error: %s\n"
 msgstr "Hiba: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Hiba: Egy elfogás sikertelen volt. Újrakezdés...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr ""
-"Végzetes hiba: Elveszett a kapcsolat az X szerverrel, újraindítás...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Figyelem: Nincs \"%s\" meghatározva\n"
-
 msgid "Tray icon disabled"
 msgstr "A tálcaikon tiltva van"
 
@@ -209,17 +193,21 @@ msgstr ""
 "Egyéb...Megjelenítés/Elrejtés műveletet."
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Hiba a D-Bus inicializálása közben\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Figyelem: Nincs \"%s\" meghatározva\n"
+
+msgid "Enabled"
+msgstr "Engedélyezve"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Nem nyitható meg a kijelző.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr "Az easystroke már fut, indítás helyett beállítóablak megynitása.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -273,9 +261,6 @@ msgstr "Egyéni"
 msgid "Application (WM__CLASS)"
 msgstr "Művelet (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Engedélyezve"
-
 msgid "Device"
 msgstr "Eszköz"
 
@@ -304,180 +289,197 @@ msgstr "Pontszám"
 msgid "D_isabled"
 msgstr "Le_tiltva"
 
-msgid "(window manager frame)"
-msgstr "(ablakkezelő ablakkerete)"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Nem sikerült csatlakozni a DBus-hoz"
 
-msgid "     Timeout (ms)"
-msgstr "     Késleltetés (ms)"
+msgid "_Delete Current"
+msgstr "_Jelenlegi törlése"
 
-msgid "(See Documentation)"
-msgstr "(Dokumentáció megtekintése)"
+msgid "_Default"
+msgstr "Ala_pértelmezett"
 
-msgid "<b>Appearance</b>"
-msgstr "<b>Megjelenés</b>"
-
-msgid "<b>Behavior</b>"
-msgstr "<b>Viselkedés</b>"
-
-msgid "<b>Devices</b>"
-msgstr "<b>Eszközök</b>"
-
-msgid "<b>Exceptions</b>"
-msgstr "<b>Kivételek</b>"
-
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Tábla beállításai</b>"
-
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr ""
-"Vonalrajz megszakítása, ha a nyomás meghaladja a bal oldalon lévő számot "
-"(255-ből)"
-
-msgid "Add Application"
-msgstr "Alkalmazás hozzáadása"
-
-msgid "Add Group"
-msgstr "Csoport hozzáadása"
-
-msgid "Additional Buttons"
-msgstr "További gombok"
-
-msgid "Advanced"
-msgstr "Haladó"
-
-msgid "Alternatively, you may select button and modifiers below."
-msgstr "Ha kívánja, lent megadhat egy gombot és módosítókat."
-
-msgid "An_y Modifier"
-msgstr "_Bármely módosító"
-
-msgid "Applications"
-msgstr "Alkalmazások"
-
-msgid "Autostart easystroke"
-msgstr "Easystroke automatikus indítása"
-
-msgid "Click & Hold"
-msgstr "Lenyomva tart"
-
-msgid "Color"
-msgstr "Szín"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Bonyolultabb mozdulatokra vezető vonalrajzok figyelmen kívül hagyása"
-
-msgid "Initial Timeout (ms)"
-msgstr "Kezdetoi késleltetés (ms)"
+msgid "Timeout"
+msgstr "Késleltetés"
 
 msgid "Instant Gestures"
 msgstr "Azonnali mozdulatok"
 
-msgid "Invert Scroll Direction"
-msgstr "Görgetés irányának megfordítása"
+msgid "Click & Hold"
+msgstr "Lenyomva tart"
 
-msgid "Method to show gestures"
-msgstr "Mozdulatok megjelenítési módszere"
+msgid "_Control"
+msgstr "_Control"
 
-msgid "Move the cursor back to the original position after each gesture"
-msgstr "Egér visszaállítása a kezdeti pozícióra minden mozdulat után"
+msgid "_Shift"
+msgstr "_Shift"
 
-msgid "Preferences"
-msgstr "Beállítások"
-
-msgid "Remove Application/Group"
-msgstr "Alkalmazás/Csoport eltávolítása"
-
-msgid "Reset Action(s)"
-msgstr "Művelet(ek) visszaállítása"
+msgid "_Alt"
+msgstr "_Alt"
 
 msgid "S_uper"
 msgstr "S_uper"
 
-msgid "Scroll Speed"
-msgstr "Görgetés sebessége"
+msgid "An_y Modifier"
+msgstr "_Bármely módosító"
 
-msgid "Show OSD"
-msgstr "OSD üzenetek megjelenítése"
+msgid "Alternatively, you may select button and modifiers below."
+msgstr "Ha kívánja, lent megadhat egy gombot és módosítókat."
 
 msgid "Show deleted rows"
 msgstr "Törölt sorok megjelenítése"
 
-msgid "Show last gesture in tray"
-msgstr "Utolsó mozdulat mutatása a tálcán"
+msgid "Add Application"
+msgstr "Alkalmazás hozzáadása"
+
+msgid "Remove Application/Group"
+msgstr "Alkalmazás/Csoport eltávolítása"
+
+msgid "Add Group"
+msgstr "Csoport hozzáadása"
+
+msgid "Reset Action(s)"
+msgstr "Művelet(ek) visszaállítása"
+
+msgid "Applications"
+msgstr "Alkalmazások"
+
+msgid "_Record Stroke"
+msgstr "Vonalraj_z rögzítése"
+
+msgid "_Add Action"
+msgstr "Művelet _hozzáadása"
+
+msgid "_Delete Action(s)"
+msgstr "Művelet(ek) _törlése"
+
+msgid "_Hide"
+msgstr "_Elrejtés"
+
+msgid "_Gesture Button"
+msgstr "Művelet_gomb"
+
+msgid "Additional Buttons"
+msgstr "További gombok"
+
+msgid "Initial Timeout (ms)"
+msgstr "Kezdetoi késleltetés (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Késleltetés (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Viselkedés</b>"
+
+msgid "Method to show gestures"
+msgstr "Mozdulatok megjelenítési módszere"
+
+msgid "Color"
+msgstr "Szín"
+
+msgid "Width"
+msgstr "Szélesség"
 
 msgid "Show popups ("
 msgstr "Felugró ablakok megjelenítése ("
 
-msgid "Show popups on advanced gestures"
-msgstr "Felugró ablakok megjelenítése bonyolult mozdulatoknál"
+msgid "to the right of the cursor)"
+msgstr ""
 
 msgid "Show tray icon"
 msgstr "Tálcaikon megjelenítése"
+
+msgid "Show last gesture in tray"
+msgstr "Utolsó mozdulat mutatása a tálcán"
+
+msgid "Autostart easystroke"
+msgstr "Easystroke automatikus indítása"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Megjelenés</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Kivételek</b>"
+
+msgid "_Add Exception"
+msgstr "_Kivétel hozzáadása"
+
+msgid "_Remove Exception"
+msgstr "Ki_vétel eltávolítása"
+
+msgid "Preferences"
+msgstr "Beállítások"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "Mozdulatok késleltetése"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Bonyolultabb mozdulatokra vezető vonalrajzok figyelmen kívül hagyása"
+
+msgid "(See Documentation)"
+msgstr "(Dokumentáció megtekintése)"
+
+msgid "Show popups on advanced gestures"
+msgstr "Felugró ablakok megjelenítése bonyolult mozdulatoknál"
+
+msgid "Show OSD"
+msgstr "OSD üzenetek megjelenítése"
+
+msgid "Invert Scroll Direction"
+msgstr "Görgetés irányának megfordítása"
+
+msgid "Scroll Speed"
+msgstr "Görgetés sebessége"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr "Egér visszaállítása a kezdeti pozícióra minden mozdulat után"
 
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "'Görgetés' és 'figyelmen kívül hagyás' módban maradás, amíg a toll a "
 "tartományon belül van"
 
-msgid "Timeout"
-msgstr "Késleltetés"
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Tábla beállításai</b>"
 
-msgid "Timeout Gestures"
-msgstr "Mozdulatok késleltetése"
+msgid "<b>Devices</b>"
+msgstr "<b>Eszközök</b>"
 
-msgid "Width"
-msgstr "Szélesség"
-
-msgid "_Add Action"
-msgstr "Művelet _hozzáadása"
-
-msgid "_Add Exception"
-msgstr "_Kivétel hozzáadása"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Control"
-
-msgid "_Default"
-msgstr "Ala_pértelmezett"
-
-msgid "_Delete Action(s)"
-msgstr "Művelet(ek) _törlése"
-
-msgid "_Delete Current"
-msgstr "_Jelenlegi törlése"
-
-msgid "_Gesture Button"
-msgstr "Művelet_gomb"
-
-msgid "_Hide"
-msgstr "_Elrejtés"
-
-msgid "_History"
-msgstr "Elő_zmények"
+msgid "Advanced"
+msgstr "Haladó"
 
 msgid "_Matrix"
 msgstr "Mátri_x"
 
-msgid "_Record Stroke"
-msgstr "Vonalraj_z rögzítése"
+msgid "_History"
+msgstr "Elő_zmények"
 
-msgid "_Remove Exception"
-msgstr "Ki_vétel eltávolítása"
-
-msgid "_Shift"
-msgstr "_Shift"
-
-msgid "optimize for left-handed operation )"
-msgstr "optimalizálás balkezes műveletekre )"
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke gesztusfelismerés"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Az asztali környezet irányítása egérgesztusokkal"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke gesztusfelismerés"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#~ msgid "Key combination..."
+#~ msgstr "Billentyűkombináció..."
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Hiba: Egy elfogás sikertelen volt. Újrakezdés...\n"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "(ablakkezelő ablakkerete)"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "optimalizálás balkezes műveletekre )"

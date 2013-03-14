@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-15 03:59-0400\n"
+"POT-Creation-Date: 2013-03-14 00:24-0400\n"
 "PO-Revision-Date: 2011-09-09 11:55+0000\n"
 "Last-Translator: simone.sandri <lexluxsox@hotmail.it>\n"
 "Language-Team: Italian <it@li.org>\n"
@@ -15,8 +15,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Launchpad-Export-Date: 2012-09-09 04:28+0000\n"
-"X-Generator: Launchpad (build 15914)\n"
+"X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
+"X-Generator: Launchpad (build 16532)\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -60,9 +60,6 @@ msgstr ""
 
 msgid "actions"
 msgstr "azioni"
-
-msgid "Key combination..."
-msgstr "Combinazione di tasti..."
 
 msgid "Command"
 msgstr "Comando"
@@ -184,18 +181,6 @@ msgstr "'composite' non disponibile"
 msgid "Error: %s\n"
 msgstr "Errore: %s\n"
 
-#, c-format
-msgid "Error: A grab failed.  Resetting...\n"
-msgstr "Errore: acquisizione fallita. Resetto...\n"
-
-#, c-format
-msgid "Fatal Error: Connection to X server lost, restarting...\n"
-msgstr "Errore Fatale: Connessione con X server perdura, riavvio...\n"
-
-#, c-format
-msgid "Warning: No action \"%s\" defined\n"
-msgstr "Attenzione: Nessuna azione \"%s\" definita\n"
-
 msgid "Tray icon disabled"
 msgstr "icona nel vassoio disabilitata"
 
@@ -207,19 +192,21 @@ msgstr ""
 "un azione del tipo \"Varie->Mostra/nascondi\"."
 
 #, c-format
-msgid "Error initializing D-BUS\n"
-msgstr "Errore inizializzando D-BUS\n"
+msgid "Warning: No action \"%s\" defined\n"
+msgstr "Attenzione: Nessuna azione \"%s\" definita\n"
+
+msgid "Enabled"
+msgstr "Attivo"
+
+msgid "About"
+msgstr ""
+
+msgid "Quit"
+msgstr ""
 
 #, c-format
 msgid "Couldn't open display.\n"
 msgstr "Impossibile aprire il display.\n"
-
-#, c-format
-msgid ""
-"Easystroke is already running, showing configuration window instead.\n"
-msgstr ""
-"Easystroke è già in esecuzione, sarà mostrata la finestra di "
-"configurazione.\n"
 
 #, c-format
 msgid "Error: Couldn't create configuration directory \"%s\"\n"
@@ -273,9 +260,6 @@ msgstr "Personalizzato"
 msgid "Application (WM__CLASS)"
 msgstr "Applicazione (WM__CLASS)"
 
-msgid "Enabled"
-msgstr "Attivo"
-
 msgid "Device"
 msgstr "Dispositivo"
 
@@ -305,182 +289,200 @@ msgstr "Punteggio"
 msgid "D_isabled"
 msgstr "D_isabilitato"
 
-msgid "(window manager frame)"
-msgstr "cornice del gestore finestre"
+msgid "<unnamed>"
+msgstr ""
 
 msgid "Connection to DBus failed"
 msgstr "Connessione a DBus fallita"
 
-msgid "     Timeout (ms)"
-msgstr "     Timeout (ms)"
+msgid "_Delete Current"
+msgstr "Cancella Corrente"
 
-msgid "(See Documentation)"
-msgstr "(vedi la documentazione)"
+msgid "_Default"
+msgstr "Pre_definito"
 
-msgid "<b>Appearance</b>"
-msgstr "<b>Aspetto</b>"
+msgid "Timeout"
+msgstr "Timeout"
 
-msgid "<b>Behavior</b>"
-msgstr "<b>Comportamento</b>"
+msgid "Instant Gestures"
+msgstr "Gesti istantanei"
 
-msgid "<b>Devices</b>"
-msgstr "<b>Dispositivi</b>"
+msgid "Click & Hold"
+msgstr "clicca e tieni premuto"
 
-msgid "<b>Exceptions</b>"
-msgstr "<b>Eccezioni</b>"
+msgid "_Control"
+msgstr "_Controllo"
 
-msgid "<b>Tablet Options</b>"
-msgstr "<b>Opzioni Tablet</b>"
+msgid "_Shift"
+msgstr "_Shift"
 
-msgid "Abort stroke if pressure exceeds the number on the left (out of 255)"
-msgstr ""
-"Annulla gesto se la pressione eccede il numero sulla sinistra (fuori di 255)"
+msgid "_Alt"
+msgstr "_Alt"
 
-msgid "Add Application"
-msgstr "Aggiungi applicazione"
+msgid "S_uper"
+msgstr "S_uper"
 
-msgid "Add Group"
-msgstr "Aggiungi gruppo"
-
-msgid "Additional Buttons"
-msgstr "Pulsanti aggiuntivi"
-
-msgid "Advanced"
-msgstr "Avanzato"
+msgid "An_y Modifier"
+msgstr "Qualsiasi Modificatore (_y)"
 
 msgid "Alternatively, you may select button and modifiers below."
 msgstr ""
 "Alternativamente, è possibile selezionare i pulsanti e modificatori "
 "sottostanti."
 
-msgid "An_y Modifier"
-msgstr "Qualsiasi Modificatore (_y)"
+msgid "Show deleted rows"
+msgstr "Mostra righe cancellate"
 
-msgid "Applications"
-msgstr "Applicazioni"
-
-msgid "Autostart easystroke"
-msgstr "esegui automaticamente easystroke"
-
-msgid "Click & Hold"
-msgstr "clicca e tieni premuto"
-
-msgid "Color"
-msgstr "Colore"
-
-msgid "Ignore strokes leading up to advanced gestures"
-msgstr "Ignora i gesti che portano ai \"gesti avanzati\""
-
-msgid "Initial Timeout (ms)"
-msgstr "Timeout iniziale (ms)"
-
-msgid "Instant Gestures"
-msgstr "Gesti istantanei"
-
-msgid "Invert Scroll Direction"
-msgstr "Invertire direzione di scorrimento"
-
-msgid "Method to show gestures"
-msgstr "Metodi per mostrari i gesti"
-
-msgid "Move the cursor back to the original position after each gesture"
-msgstr ""
-"Rimetti il cursore nella posizione di partenza al termine di ogni gesture"
-
-msgid "Preferences"
-msgstr "Preferenze"
+msgid "Add Application"
+msgstr "Aggiungi applicazione"
 
 msgid "Remove Application/Group"
 msgstr "Rimuovi Applicazione/Gruppo"
 
+msgid "Add Group"
+msgstr "Aggiungi gruppo"
+
 msgid "Reset Action(s)"
 msgstr "Azzera Azione/i"
 
-msgid "S_uper"
-msgstr "S_uper"
+msgid "Applications"
+msgstr "Applicazioni"
 
-msgid "Scroll Speed"
-msgstr "Velocità di scorrimento"
+msgid "_Record Stroke"
+msgstr "_Registra Gesto"
 
-msgid "Show OSD"
-msgstr "Mostra OSD"
+msgid "_Add Action"
+msgstr "_Aggiungi Azione"
 
-msgid "Show deleted rows"
-msgstr "Mostra righe cancellate"
+msgid "_Delete Action(s)"
+msgstr "Cancella Azione/i (_d)"
 
-msgid "Show last gesture in tray"
-msgstr "Mostra l'ultimo gesto nel vassoio"
+msgid "_Hide"
+msgstr "_Nascondi"
+
+msgid "_Gesture Button"
+msgstr "Pulsante _Gesto"
+
+msgid "Additional Buttons"
+msgstr "Pulsanti aggiuntivi"
+
+msgid "Initial Timeout (ms)"
+msgstr "Timeout iniziale (ms)"
+
+msgid "     Timeout (ms)"
+msgstr "     Timeout (ms)"
+
+msgid "<b>Behavior</b>"
+msgstr "<b>Comportamento</b>"
+
+msgid "Method to show gestures"
+msgstr "Metodi per mostrari i gesti"
+
+msgid "Color"
+msgstr "Colore"
+
+msgid "Width"
+msgstr "Larghezza"
 
 msgid "Show popups ("
 msgstr "Mostra popup ("
 
-msgid "Show popups on advanced gestures"
-msgstr "Mostra popup nei \"gesti avanzati\""
+msgid "to the right of the cursor)"
+msgstr ""
 
 msgid "Show tray icon"
 msgstr "Mostrare l'icona nell'area di notifica"
+
+msgid "Show last gesture in tray"
+msgstr "Mostra l'ultimo gesto nel vassoio"
+
+msgid "Autostart easystroke"
+msgstr "esegui automaticamente easystroke"
+
+msgid "<b>Appearance</b>"
+msgstr "<b>Aspetto</b>"
+
+msgid "<b>Exceptions</b>"
+msgstr "<b>Eccezioni</b>"
+
+msgid "_Add Exception"
+msgstr "_Aggiungi Eccezione"
+
+msgid "_Remove Exception"
+msgstr "_Rimuovi Eccezione"
+
+msgid "Preferences"
+msgstr "Preferenze"
+
+msgid "Only enable easystroke for applications listed on 'Actions' tab"
+msgstr ""
+
+msgid "Timeout Gestures"
+msgstr "Timeout gesti"
+
+msgid "Ignore strokes leading up to advanced gestures"
+msgstr "Ignora i gesti che portano ai \"gesti avanzati\""
+
+msgid "(See Documentation)"
+msgstr "(vedi la documentazione)"
+
+msgid "Show popups on advanced gestures"
+msgstr "Mostra popup nei \"gesti avanzati\""
+
+msgid "Show OSD"
+msgstr "Mostra OSD"
+
+msgid "Invert Scroll Direction"
+msgstr "Invertire direzione di scorrimento"
+
+msgid "Scroll Speed"
+msgstr "Velocità di scorrimento"
+
+msgid "Move the cursor back to the original position after each gesture"
+msgstr ""
+"Rimetti il cursore nella posizione di partenza al termine di ogni gesture"
 
 msgid "Stay in 'scroll' and 'ignore' mode as long as the pen is within range"
 msgstr ""
 "Rimani nella modalità 'scorri' e 'ignora' fintanto che la penna è "
 "all'interno del range"
 
-msgid "Timeout"
-msgstr "Timeout"
+msgid "<b>Tablet Options</b>"
+msgstr "<b>Opzioni Tablet</b>"
 
-msgid "Timeout Gestures"
-msgstr "Timeout gesti"
+msgid "<b>Devices</b>"
+msgstr "<b>Dispositivi</b>"
 
-msgid "Width"
-msgstr "Larghezza"
-
-msgid "_Add Action"
-msgstr "_Aggiungi Azione"
-
-msgid "_Add Exception"
-msgstr "_Aggiungi Eccezione"
-
-msgid "_Alt"
-msgstr "_Alt"
-
-msgid "_Control"
-msgstr "_Controllo"
-
-msgid "_Default"
-msgstr "Pre_definito"
-
-msgid "_Delete Action(s)"
-msgstr "Cancella Azione/i (_d)"
-
-msgid "_Delete Current"
-msgstr "Cancella Corrente"
-
-msgid "_Gesture Button"
-msgstr "Pulsante _Gesto"
-
-msgid "_Hide"
-msgstr "_Nascondi"
-
-msgid "_History"
-msgstr "Cronologia (_H)"
+msgid "Advanced"
+msgstr "Avanzato"
 
 msgid "_Matrix"
 msgstr "_Matrice"
 
-msgid "_Record Stroke"
-msgstr "_Registra Gesto"
+msgid "_History"
+msgstr "Cronologia (_H)"
 
-msgid "_Remove Exception"
-msgstr "_Rimuovi Eccezione"
-
-msgid "_Shift"
-msgstr "_Shift"
-
-msgid "optimize for left-handed operation )"
-msgstr "ottimizza operazioni per mancini )"
+msgid "Easystroke Gesture Recognition"
+msgstr "Easystroke riconoscimento gesti"
 
 msgid "Control your desktop using mouse gestures"
 msgstr "Controlla la scrivania utilizzando i gesti del muse"
 
-msgid "Easystroke Gesture Recognition"
-msgstr "Easystroke riconoscimento gesti"
+msgid "Enable"
+msgstr ""
+
+msgid "Disable"
+msgstr ""
+
+#, c-format
+#~ msgid "Error: A grab failed.  Resetting...\n"
+#~ msgstr "Errore: acquisizione fallita. Resetto...\n"
+
+#~ msgid "(window manager frame)"
+#~ msgstr "cornice del gestore finestre"
+
+#~ msgid "optimize for left-handed operation )"
+#~ msgstr "ottimizza operazioni per mancini )"
+
+#~ msgid "Key combination..."
+#~ msgstr "Combinazione di tasti..."
