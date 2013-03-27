@@ -21,15 +21,25 @@ extern "C" {
 #endif
 
 struct _stroke_t;
+struct point;
 
 typedef struct _stroke_t stroke_t;
 
 stroke_t *stroke_alloc(int n);
 void stroke_add_point(stroke_t *stroke, double x, double y);
+void stroke_normalize(stroke_t *stroke, stroke_t *stroke2);
 void stroke_finish(stroke_t *stroke);
 void stroke_free(stroke_t *stroke);
 
 int stroke_get_size(const stroke_t *stroke);
+double stroke_radians_difference(double alpha, double beta);
+double stroke_how_compatible(const stroke_t *stroke, const stroke_t *stroke2);
+double stroke_dist_start(const stroke_t *stroke, const stroke_t *stroke2);
+double stroke_dist_middle(const stroke_t *stroke, const stroke_t *stroke2);
+double stroke_dist_end(const stroke_t *stroke, const stroke_t *stroke2);
+double stroke_orient_start(const stroke_t *stroke, const stroke_t *stroke2);
+double stroke_orient_middle(const stroke_t *stroke, const stroke_t *stroke2);
+double stroke_orient_end(const stroke_t *stroke, const stroke_t *stroke2);
 void stroke_get_point(const stroke_t *stroke, int n, double *x, double *y);
 double stroke_get_time(const stroke_t *stroke, int n);
 double stroke_get_angle(const stroke_t *stroke, int n);

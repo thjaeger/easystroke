@@ -37,6 +37,10 @@ struct _stroke_t {
 	int n;
 	int capacity;
 	struct point *p;
+	double minX;
+	double maxX;
+	double minY;
+	double maxY;
 };
 
 stroke_t *stroke_alloc(int n) {
@@ -52,6 +56,14 @@ void stroke_add_point(stroke_t *s, double x, double y) {
 	assert(s->capacity > s->n);
 	s->p[s->n].x = x;
 	s->p[s->n].y = y;
+	if (s->n==0) {
+		s->minX = x; s->maxX = x; s->minY = y; s->maxY = y;
+	} else {
+		if (x < s->minX) s->minX = x;
+		if (x > s->maxX) s->maxX = x;
+		if (y < s->minY) s->minY = y;
+		if (y > s->maxY) s->maxY = y;
+	}
 	s->n++;
 }
 
@@ -63,6 +75,85 @@ inline static double angle_difference(double alpha, double beta) {
 	else if (d > 1.0)
 		d -= 2.0;
 	return d;
+}
+double stroke_radians_difference(double alpha, double beta) {
+	return angle_difference(alpha, beta);
+}
+
+double stroke_calc_angle(struct point *p, struct point *q) {
+	return atan2(p->y - q->y, p->x - q->x)/M_PI;
+}
+
+/* subdivide the square with 5x5 grid */
+void point_position( const struct point *p, int *grid_x, int *grid_y) {
+	*grid_x = p->x * 5.0;
+	*grid_y = p->y * 5.0;
+}
+
+#include <stdio.h>
+
+double how_compatible_points(const struct point *p1, const struct point *p2) {
+	int grid_1_x, grid_1_y, grid_2_x, grid_2_y;
+	int diff_x, diff_y;
+	double compatible = 0.0;
+	point_position( p1, &grid_1_x, &grid_1_y );
+	point_position( p2, &grid_2_x, &grid_2_y );
+	diff_x = abs(grid_1_x - grid_2_x);
+	diff_y = abs(grid_1_y - grid_2_y);
+	switch(diff_x){
+	case 0: compatible += 1.0; break;
+	case 1: compatible += 0.5; break;
+	}
+	switch(diff_y){
+	case 0: compatible += 1.0; break;
+	case 1: compatible += 0.5; break;
+	}
+	return compatible / 2.0;
+}
+
+double stroke_how_compatible(const stroke_t *stroke, const stroke_t *stroke2) {
+	double compatible_start = how_compatible_points(&stroke->p[0],&stroke2->p[0]);
+	double compatible_end = how_compatible_points(&stroke->p[stroke->n - 1],&stroke2->p[stroke2->n - 1]);
+
+	return ( compatible_start + compatible_end ) / 2.0;
+}
+
+double stroke_dist_start(const stroke_t *stroke, const stroke_t *stroke2) {
+	return fabs(hypot(stroke->p[0].x - stroke2->p[0].x, stroke->p[0].y - stroke2->p[0].y));
+}
+
+double stroke_dist_middle(const stroke_t *stroke, const stroke_t *stroke2) {
+	return fabs(hypot(stroke->p[stroke->n / 2].x - stroke2->p[stroke2->n / 2].x, stroke->p[stroke->n / 2].y - stroke2->p[stroke2->n / 2].y));
+}
+
+double stroke_dist_end(const stroke_t *stroke, const stroke_t *stroke2) {
+	return fabs(hypot(stroke->p[stroke->n - 1].x - stroke2->p[stroke2->n - 1].x, stroke->p[stroke->n - 1].y - stroke2->p[stroke2->n - 1].y));
+}
+
+double stroke_orient_start(const stroke_t *stroke, const stroke_t *stroke2) {
+	return stroke_calc_angle(&stroke->p[0],&stroke2->p[0]);
+}
+
+double stroke_orient_middle(const stroke_t *stroke, const stroke_t *stroke2) {
+	return stroke_calc_angle(&stroke->p[stroke->n / 2],&stroke2->p[stroke2->n / 2]);
+}
+
+double stroke_orient_end(const stroke_t *stroke, const stroke_t *stroke2) {
+	return stroke_calc_angle(&stroke->p[stroke->n - 1],&stroke2->p[stroke2->n - 1]);
+}
+
+void stroke_normalize(stroke_t *s,stroke_t *s2) {
+	if (s && s2){
+		double minX = s->minX, minY = s->minY, maxX = s->maxX, maxY = s->maxY;
+		if (s2->minX < s->minX) minX = s2->minX;
+		if (s2->minY < s->minY) minY = s2->minY;
+		if (s2->maxX > s->maxX) maxX = s2->maxX;
+		if (s2->maxY > s->maxY) maxY = s2->maxY;
+		s->minX = s2->minX = minX;
+		s->minY = s2->minY = minY;
+		s->maxX = s2->maxX = maxX;
+		s->maxY = s2->maxY = maxY;
+	}
 }
 
 void stroke_finish(stroke_t *s) {
@@ -78,25 +169,18 @@ void stroke_finish(stroke_t *s) {
 	}
 	for (int i = 0; i <= n; i++)
 		s->p[i].t /= total;
-	double minX = s->p[0].x, minY = s->p[0].y, maxX = minX, maxY = minY;
-	for (int i = 1; i <= n; i++) {
-		if (s->p[i].x < minX) minX = s->p[i].x;
-		if (s->p[i].x > maxX) maxX = s->p[i].x;
-		if (s->p[i].y < minY) minY = s->p[i].y;
-		if (s->p[i].y > maxY) maxY = s->p[i].y;
-	}
-	double scaleX = maxX - minX;
-	double scaleY = maxY - minY;
+	double scaleX = s->maxX - s->minX;
+	double scaleY = s->maxY - s->minY;
 	double scale = (scaleX > scaleY) ? scaleX : scaleY;
 	if (scale < 0.001) scale = 1;
 	for (int i = 0; i <= n; i++) {
-		s->p[i].x = (s->p[i].x-(minX+maxX)/2)/scale + 0.5;
-		s->p[i].y = (s->p[i].y-(minY+maxY)/2)/scale + 0.5;
+		s->p[i].x = (s->p[i].x-(s->minX+s->maxX)/2)/scale + 0.5;
+		s->p[i].y = (s->p[i].y-(s->minY+s->maxY)/2)/scale + 0.5;
 	}
 
 	for (int i = 0; i < n; i++) {
 		s->p[i].dt = s->p[i+1].t - s->p[i].t;
-		s->p[i].alpha = atan2(s->p[i+1].y - s->p[i].y, s->p[i+1].x - s->p[i].x)/M_PI;
+		s->p[i].alpha = stroke_calc_angle(&s->p[i+1], &s->p[i])/M_PI;
 	}
 
 }

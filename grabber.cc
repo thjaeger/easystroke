@@ -33,7 +33,7 @@ extern bool in_proximity;
 Grabber *grabber = 0;
 
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
-static unsigned char device_mask_data[2];
+static unsigned char device_mask_data[XIMaskLen(XI_LASTEVENT)];
 static XIEventMask device_mask;
 static unsigned char raw_mask_data[3];
 static XIEventMask raw_mask;
@@ -227,6 +227,7 @@ Grabber::Grabber() : children(ROOT) {
 	suspended = 0;
 	suspend();
 	active = true;
+	multitouch = false;
 	grabbed = NONE;
 	xi_grabbed = false;
 	xi_devs_grabbed = GrabNo;
@@ -249,13 +250,21 @@ Grabber::~Grabber() {
 
 bool Grabber::init_xi() {
 	/* XInput Extension available? */
-	int major = 2, minor = 0;
+	int major = 2, minor = 2;
 	if (!XQueryExtension(dpy, "XInputExtension", &opcode, &event, &error) ||
 			XIQueryVersion(dpy, &major, &minor) == BadRequest ||
 			major < 2) {
 		printf("Error: This version of easystroke needs an XInput 2.0-aware X server.\n"
 				"Please downgrade to easystroke 0.4.x or upgrade your X server to 1.7.\n");
 		exit(EXIT_FAILURE);
+	}
+	if( major * 1000 + minor < 2002 ) {
+		if (verbosity >= 1)
+			printf("The XInput version %d.%d is older than 2.2, it is not multitouch-aware.\n",major,minor);
+	} else {
+		multitouch = true;
+		if (verbosity >= 3)
+			printf("The XInput version is at least 2.2, it is multitouch-aware.\n");
 	}
 
 	int n;
@@ -288,6 +297,10 @@ bool Grabber::init_xi() {
 	XISetMask(device_mask.mask, XI_ButtonPress);
 	XISetMask(device_mask.mask, XI_ButtonRelease);
 	XISetMask(device_mask.mask, XI_Motion);
+	XISetMask(device_mask.mask, XI_TouchBegin);
+	XISetMask(device_mask.mask, XI_TouchUpdate);
+	XISetMask(device_mask.mask, XI_TouchEnd);
+
 
 	raw_mask.deviceid = XIAllDevices;
 	raw_mask.mask = raw_mask_data;
@@ -296,6 +309,10 @@ bool Grabber::init_xi() {
 	XISetMask(raw_mask.mask, XI_ButtonPress);
 	XISetMask(raw_mask.mask, XI_ButtonRelease);
 	XISetMask(raw_mask.mask, XI_RawMotion);
+	XISetMask(raw_mask.mask, XI_TouchBegin);
+	XISetMask(raw_mask.mask, XI_TouchUpdate);
+	XISetMask(raw_mask.mask, XI_TouchEnd);
+
 
 	XIEventMask global_mask;
 	unsigned char data[2] = { 0, 0 };
@@ -382,6 +399,12 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 		if (dev_class->type == ButtonClass) {
 			XIButtonClassInfo *b = (XIButtonClassInfo*)dev_class;
 			num_buttons = b->num_buttons;
+		} else if (dev_class->type == XITouchClass) {
+			XITouchClassInfo *t = (XITouchClassInfo*)dev_class;
+			num_touches = t->num_touches;
+			if(t->mode == XIDirectTouch){
+				direct = 1;
+			}
 		} else if (dev_class->type == ValuatorClass) {
 			XIValuatorClassInfo *v = (XIValuatorClassInfo*)dev_class;
 			if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative) {
@@ -401,11 +424,23 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : supports_pres
 		}
 	}
 
-	if (verbosity >= 1)
-		printf("Opened Device %d ('%s'%s).\n", dev, info->name,
+	if (verbosity >= 1){
+		printf("Opened Device %d ('%s'%s", dev, info->name,
 				absolute ?
 					supports_pressure ? ": absolute, pressure" : ": absolute" :
-					supports_pressure ? ": pressure" : "");
+					supports_pressure ? ": pressure" : ""
+					);
+		if(num_touches > 0){
+			printf(",");
+			if(direct){
+				printf("direct ");
+			} else {
+				printf("dependent ");
+			}
+			printf("touches=%d", num_touches);
+		}
+		printf(").\n");
+	}
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {
@@ -424,12 +459,24 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
 		for (int i = 0; i < 4; i++)
 			modifiers[i].modifiers = bi.state ^ ignore_mods[i];
 	}
-	if (grab)
-		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
-	else {
-		XIUngrabButton(dpy, dev, bi.button, ROOT, nmods, modifiers);
-		if (current_dev && current_dev->dev == dev)
-			xinput_pressed.clear();
+	if(num_touches > 0){
+		if (verbosity >= 2)
+			printf("grabbing touch: %s\n" , grab ? "YES" : "NO");
+		if (grab)
+			XIGrabTouchBegin(dpy, dev, ROOT, False, &device_mask, nmods, modifiers);
+		else {
+			XIUngrabTouchBegin(dpy, dev, ROOT, nmods, modifiers);
+			if (current_dev && current_dev->dev == dev)
+				xinput_pressed.clear();
+		}
+	} else {
+		if (grab)
+			XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
+		else {
+			XIUngrabButton(dpy, dev, bi.button, ROOT, nmods, modifiers);
+			if (current_dev && current_dev->dev == dev)
+				xinput_pressed.clear();
+		}
 	}
 }
 

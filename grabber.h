@@ -73,6 +73,8 @@ public:
 		double scale_x, scale_y;
 		int pressure_min, pressure_max;
 		int num_buttons;
+		int num_touches;
+		bool direct;
 		int master;
 		XiDevice(Grabber *, XIDeviceInfo *);
 		int normalize_pressure(int pressure) {
@@ -94,6 +96,7 @@ private:
 	GrabState xi_devs_grabbed;
 	int suspended;
 	bool active;
+	bool multitouch;
 	Cursor cursor_select;
 	ButtonInfo grabbed_button;
 	std::vector<ButtonInfo> buttons;

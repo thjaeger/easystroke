@@ -319,6 +319,7 @@ RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 			if (match < 0)
 				continue;
 			RStrokeInfo si = get_info(i->first);
+			if (verbosity >=2) printf("Action compared: %s\n", si->name.c_str());
 			r->r.insert(pair<double, pair<std::string, RStroke> >
 					(score, pair<std::string, RStroke>(si->name, *j)));
 			if (score > r->score) {

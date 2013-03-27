@@ -19,11 +19,11 @@
 #include <glibmm/i18n.h>
 
 double red, green, blue, alpha, width;
-std::list<Trace::Point> points;
 
-Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), rect(x1, y1, x2-x1, y2-y1) {
+Popup::Popup(Composite *comp, int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), rect(x1, y1, x2-x1, y2-y1) {
 	if (!is_composited())
 		throw std::runtime_error(_("'composite' not available"));
+	composite = comp;
 
 	Glib::RefPtr<Gdk::Colormap> colormap = get_screen()->get_rgba_colormap();
 	if (colormap)
@@ -55,7 +55,7 @@ Composite::Composite() {
 	for (int i = 0; i < num_x; i++) {
 		pieces[i] = new Popup*[num_y];
 		for (int j = 0; j < num_y; j++)
-			pieces[i][j] = new Popup(i*N,j*N,MIN((i+1)*N,w),MIN((j+1)*N,h));
+			pieces[i][j] = new Popup(this,i*N,j*N,MIN((i+1)*N,w),MIN((j+1)*N,h));
 
 	}
 }
@@ -91,11 +91,11 @@ void Composite::start_() {
 }
 
 void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
-	if (!points.size())
+	if (!composite->points.size())
 		return;
-	std::list<Trace::Point>::iterator i = points.begin();
+	std::list<Trace::Point>::iterator i = composite->points.begin();
 	ctx->move_to (i->x, i->y);
-	for (; i != points.end(); i++)
+	for (; i != composite->points.end(); i++)
 		ctx->line_to (i->x, i->y);
 	ctx->set_source_rgba((red+0.5)/2.0, (green+0.5)/2.0, (blue+0.5)/2.0, alpha/2.0);
 	ctx->set_line_width(width+1.0);

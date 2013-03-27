@@ -20,12 +20,15 @@
 #include "main.h"
 #include <list>
 
+class Composite;
+
 class Popup : public Gtk::Window {
 	bool on_expose(GdkEventExpose* event);
 	void draw_line(Cairo::RefPtr<Cairo::Context> ctx);
 	Gdk::Rectangle rect;
+	Composite *composite;
 public:
-	Popup(int x1, int y1, int x2, int y2);
+	Popup(Composite *comp,int x1, int y1, int x2, int y2);
 	void invalidate(int x1, int y1, int x2, int y2);
 };
 
@@ -36,6 +39,7 @@ class Composite : public Trace {
 	virtual void start_();
 	virtual void end_();
 public:
+	std::list<Trace::Point> points;
 	Composite();
 	virtual ~Composite();
 };

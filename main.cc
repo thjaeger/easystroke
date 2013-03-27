@@ -45,8 +45,8 @@ extern Source<bool> disabled;
 
 bool experimental = false;
 int verbosity = 0;
-const char *prefs_versions[] = { "-0.5.5", "-0.4.1", "-0.4.0", "", NULL };
-const char *actions_versions[] = { "-0.4.1", "-0.4.0", "", NULL };
+const char *prefs_versions[] = { "-0.5.5-mt", "-0.5.5", "-0.4.1", "-0.4.0", "", NULL };
+const char *actions_versions[] = { "-0.4.1-mt", "-0.4.1", "-0.4.0", "", NULL };
 Source<Window> current_app_window(None);
 std::string config_dir;
 Win *win = NULL;
@@ -65,6 +65,7 @@ static char **argv;
 
 static Window ping_window = 0;
 static boost::shared_ptr<Trace> trace;
+static boost::shared_ptr<Trace> trace2;
 static std::map<guint, guint> core_inv_map;
 
 class Handler;
@@ -816,14 +817,26 @@ static void get_timeouts(TimeoutType type, int *init, int *final) {
 	}
 }
 
+#define MAX_PREV_LAST 20
+#define MAX_FINGERS 10
+
 class StrokeHandler : public Handler, public sigc::trackable {
 	guint button;
 	RPreStroke cur;
+	RPreStroke cur2;
 	bool is_gesture;
 	bool drawing;
 	RTriple last, orig;
+	RTriple last2, orig2;
 	bool use_timeout;
 	int init_timeout, final_timeout, radius;
+	int multi_finger_founds[ MAX_FINGERS ];
+
+	RTriple prev_lasts[MAX_PREV_LAST];
+	int multi_finger;
+	float min_dist_multi_finger;
+	int multi_finger_tested_times;
+	int num_prev_last;
 	struct Connection {
 		sigc::connection c;
 		double dist;
@@ -838,25 +851,55 @@ class StrokeHandler : public Handler, public sigc::trackable {
 
 	RStroke finish(guint b) {
 		trace->end();
+		trace2->end();
 		XFlush(dpy);
 		RPreStroke c = cur;
-		if (!is_gesture || grabber->is_instant(button))
+		RPreStroke c2 = cur2;
+		if (verbosity >= 2)
+			printf("finish: multi_finger=%d c.size=%d c2.size=%d\n",multi_finger,c->size(),c2->size());
+		if (!c->valid()) {
+			c = c2;
+			c2.reset(new PreStroke);
+		}
+		if (multi_finger == 2) {
+			if (!c2->valid()) {
+				c2.reset(new PreStroke);
+				multi_finger = 1;
+				if (verbosity >= 2)
+					printf("two finger goes to one\n");
+			}
+		}
+		if (!is_gesture || grabber->is_instant(button)) {
 			c.reset(new PreStroke);
-		if (b && prefs.advanced_ignore.get())
+			c2.reset(new PreStroke);
+			if (verbosity >= 2)
+				printf("reset stroke (1) is_gesture=%s is_instant=%s\n",
+					is_gesture ? "true" : "false",
+					grabber->is_instant(button) ? "true" : "false"
+					);
+		}
+		if (b && prefs.advanced_ignore.get()) {
 			c.reset(new PreStroke);
-		return Stroke::create(*c, button, b, false);
+			c2.reset(new PreStroke);
+			if (verbosity >= 2) printf("reset stroke (2)\n");
+		}
+		return Stroke::create(*c, *c2, button, b, false, multi_finger);
 	}
 
 	bool timeout() {
 		if (verbosity >= 2)
 			printf("Aborting stroke...\n");
 		trace->end();
+		trace2->end();
 		RPreStroke c = cur;
-		if (!is_gesture)
+		RPreStroke c2 = cur2;
+		if (!is_gesture) {
 			c.reset(new PreStroke);
+			c2.reset(new PreStroke);
+		}
 		RStroke s;
 		if (prefs.timeout_gestures.get() || grabber->is_click_hold(button))
-			s = Stroke::create(*c, button, 0, true);
+			s = Stroke::create(*c, *c2, button, 0, true, multi_finger);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
 		XFlush(dpy);
 		return false;
@@ -864,7 +907,8 @@ class StrokeHandler : public Handler, public sigc::trackable {
 
 	void do_instant() {
 		PreStroke ps;
-		RStroke s = Stroke::create(ps, button, button, false);
+		PreStroke ps2;
+		RStroke s = Stroke::create(ps, ps2, button, button, false, multi_finger);
 		parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
 	}
 
@@ -881,13 +925,58 @@ protected:
 		timeout();
 	}
 	virtual void motion(RTriple e) {
+		float distIni = hypot(e->x-last->x, e->y-last->y);
+		if (verbosity >= 5){
+			printf("-Comparing point (%g,%g) with previous (%g,%g)\n",e->x,e->y,last->x,last->y);
+		}
+		if ( distIni < 0.001f ) {
+			if (verbosity >= 5){
+				printf("-Skipping point (%g,%g) same as previous\n",e->x,e->y);
+			}
+		}
+		if (verbosity >= 2) printf("-Valuating point (%g,%g)\n",e->x,e->y);
+		float dist;
+
+		int ndx_multi_finger_founds;
+		for (ndx_multi_finger_founds = 0; ndx_multi_finger_founds < MAX_FINGERS; ndx_multi_finger_founds++) {
+			if (verbosity >= 4) printf("-Valuating ndx_multi_finger_founds %d e->finger %d\n",ndx_multi_finger_founds,e->finger);
+			if( multi_finger_founds[ ndx_multi_finger_founds ] == 0 ){
+				multi_finger_founds[ ndx_multi_finger_founds ] = e->finger;
+				multi_finger = ndx_multi_finger_founds + 1;
+				if (verbosity >= 3) printf("-new_finger ndx_multi_finger_founds %d e->finger %d\n",ndx_multi_finger_founds,e->finger);
+				break;
+			} else if( multi_finger_founds[ ndx_multi_finger_founds ] == e->finger ){
+				if (verbosity >= 5) printf("-already ndx_multi_finger_founds %d e->finger %d\n",ndx_multi_finger_founds,e->finger);
+				break;
+			}
+		}
+		if(ndx_multi_finger_founds > 0){
+			if( multi_finger == 2 && ndx_multi_finger_founds == 1 ){ // 2 finger total and second finger
+				cur2->add(e);
+				Trace::Point p;
+				p.x = e->x;
+				p.y = e->y;
+				if (cur2->size() == 1) {
+					trace2->start(p);
+				} else {
+					trace2->draw(p);
+				}
+			}
+			return;
+		}
+
+
+
+
 		cur->add(e);
-		float dist = hypot(e->x-orig->x, e->y-orig->y);
+		dist = hypot(e->x-orig->x, e->y-orig->y);
 		if (!is_gesture && dist > 16) {
+			if (verbosity >= 2) printf("Not gesture yet dist=%g\n",dist);
 			if (use_timeout && !final_timeout)
 				return abort_stroke();
 			init_connection.disconnect();
 			is_gesture = true;
+			if (verbosity >= 2) printf("Now is a gesture\n");
 		}
 		if (!drawing && dist > 4 && (!use_timeout || final_timeout)) {
 			drawing = true;
@@ -978,6 +1067,12 @@ public:
 		else
 			get_timeouts(prefs.timeout_profile.get(), &init_timeout, &final_timeout);
 		use_timeout = init_timeout;
+		multi_finger = 1;
+		multi_finger = 0;
+		min_dist_multi_finger = 50.0;
+		multi_finger_tested_times = 0;
+		num_prev_last = 0;
+		memset(multi_finger_founds,0,sizeof multi_finger_founds);
 	}
 	virtual void init() {
 		if (grabber->is_instant(button))
@@ -988,7 +1083,10 @@ public:
 			final_timeout = 0;
 		}
 		cur = PreStroke::create();
+		cur2 = PreStroke::create();
 		cur->add(orig);
+		multi_finger_founds[ 0 ] = orig->finger;
+		multi_finger = 1;
 		if (!use_timeout)
 			return;
 		if (final_timeout && final_timeout < 32 && radius < 16*32/final_timeout) {
@@ -998,7 +1096,7 @@ public:
 		init_connection = Glib::signal_timeout().connect(
 				sigc::mem_fun(*this, &StrokeHandler::timeout), init_timeout);
 	}
-	~StrokeHandler() { trace->end(); }
+	~StrokeHandler() { trace->end(); trace2->end(); }
 	virtual std::string name() { return "Stroke"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
@@ -1114,7 +1212,7 @@ class ReloadTrace : public Timeout {
 			printf("Reloading gesture display\n");
 		queue(sigc::mem_fun(*this, &ReloadTrace::reload));
 	}
-	void reload() { trace.reset(init_trace()); }
+	void reload() { trace.reset(init_trace()); trace2.reset(init_trace()); }
 } reload_trace;
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
@@ -1194,6 +1292,7 @@ Main::Main() : kit(0) {
 	XUngrabPointer(dpy, CurrentTime);
 
 	trace.reset(init_trace());
+	trace2.reset(init_trace());
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
 	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, NULL);
 	screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
@@ -1433,8 +1532,8 @@ static void print_coordinates(XIValuatorState *valuators, double *values) {
 
 void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
 	printf("%s (XI2): ", type);
-	if (event->detail)
-		printf("%d ", event->detail);
+	printf("(dev=%d, src=%d", event->deviceid, event->sourceid);
+	printf(", det=%d - (", event->detail);
 	printf("(%.3f, %.3f) - (", event->root_x, event->root_y);
 	print_coordinates(&event->valuators, event->valuators.values);
 	printf(") at t = %ld\n", event->time);
@@ -1442,11 +1541,10 @@ void Main::report_xi2_event(XIDeviceEvent *event, const char *type) {
 
 void Main::handle_xi2_event(XIDeviceEvent *event) {
 	switch (event->evtype) {
-		case XI_ButtonPress:
+		case XI_TouchBegin:
 			if (verbosity >= 3)
-				report_xi2_event(event, "Press");
+				report_xi2_event(event, "TouchBegin");
 			if (xinput_pressed.size()) {
-				if (!current_dev || current_dev->dev != event->deviceid)
 					break;
 			}
 			current_dev = grabber->get_xi_dev(event->deviceid);
@@ -1457,7 +1555,31 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			if (current_dev->master)
 				XISetClientPointer(dpy, None, current_dev->master);
 			xinput_pressed.insert(event->detail);
-			H->press(event->detail, create_triple(event->root_x, event->root_y, event->time));
+			H->press(event->detail, create_triple(event->detail, event->root_x, event->root_y, event->time));
+			break;
+		case XI_ButtonPress:
+			if (verbosity >= 3)
+				report_xi2_event(event, "Press");
+			if (xinput_pressed.size()) {
+					break;
+			}
+			current_dev = grabber->get_xi_dev(event->deviceid);
+			if (!current_dev) {
+				printf("Warning: Spurious device event\n");
+				break;
+			}
+			if (current_dev->master)
+				XISetClientPointer(dpy, None, current_dev->master);
+			xinput_pressed.insert(event->detail);
+			H->press(event->detail, create_triple(0, event->root_x, event->root_y, event->time));
+			break;
+		case XI_TouchEnd:
+			if (verbosity >= 3)
+				report_xi2_event(event, "TouchEnd");
+			if (!current_dev || current_dev->dev != event->deviceid)
+				break;
+			xinput_pressed.erase(event->detail);
+			H->release(event->detail, create_triple(event->detail, event->root_x, event->root_y, event->time));
 			break;
 		case XI_ButtonRelease:
 			if (verbosity >= 3)
@@ -1465,7 +1587,24 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
 			xinput_pressed.erase(event->detail);
-			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
+			H->release(event->detail, create_triple(0, event->root_x, event->root_y, event->time));
+			break;
+		case XI_TouchUpdate:
+			if (verbosity >= 3)
+				report_xi2_event(event, "TouchUpdate");
+			if (!current_dev || current_dev->dev != event->deviceid)
+				break;
+			if (current_dev->supports_pressure && XIMaskIsSet(event->valuators.mask, 2)) {
+				int i = 0;
+				if (XIMaskIsSet(event->valuators.mask, 0))
+				       i++;
+				if (XIMaskIsSet(event->valuators.mask, 1))
+				       i++;
+				int z = current_dev->normalize_pressure(event->valuators.values[i]);
+				if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
+					H->pressure();
+			}
+			H->motion(create_triple(event->detail, event->root_x, event->root_y, event->time));
 			break;
 		case XI_Motion:
 			if (verbosity >= 5)
@@ -1482,7 +1621,7 @@ void Main::handle_xi2_event(XIDeviceEvent *event) {
 				if (prefs.pressure_abort.get() && z >= prefs.pressure_threshold.get())
 					H->pressure();
 			}
-			H->motion(create_triple(event->root_x, event->root_y, event->time));
+			H->motion(create_triple(0, event->root_x, event->root_y, event->time));
 			break;
 		case XI_RawMotion:
 			handle_raw_motion((XIRawEvent *)event);
@@ -1516,7 +1655,7 @@ void Main::handle_raw_motion(XIRawEvent *event) {
 		printf(") at t = %ld\n", event->time);
 	}
 
-	H->raw_motion(create_triple(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
+	H->raw_motion(create_triple(0, x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
 }
 
 #undef H
@@ -1538,7 +1677,9 @@ bool Main::handle(Glib::IOCondition) {
 
 Main::~Main() {
 	trace->end();
+	trace2->end();
 	trace.reset();
+	trace2.reset();
 	delete grabber;
 	delete kit;
 	XCloseDisplay(dpy);

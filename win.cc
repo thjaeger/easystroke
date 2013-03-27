@@ -25,6 +25,8 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	x += width; y += width; w -= 2*width; h -= 2*width;
 	ctx->save();
+	int same_draws = multi_finger;
+	if (same_draws < 1 || same_draws == 2) same_draws = 1;
 	ctx->translate(x,y);
 	ctx->scale(w,h);
 	ctx->set_line_width(2.0*width/(w+h));
@@ -41,6 +43,7 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 		z[n-1] = points(n-1) * (-sum);
 		for (int j = n-1; j > 0; j--)
 			z[j-1] = (z[j] - points(j)) * lambda;
+		for (double f = 0.0; f < (double)same_draws; f++) {
 		for (int j = 0; j < n-1; j++) {
 			// j -> j+1
 			if (inv)
@@ -50,11 +53,43 @@ void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, in
 			Point p[4];
 			p[0] = points(j);
 			p[3] = points(j+1);
+			p[0].x += f / 15.0; p[0].y += f / 15.0;
+			p[3].x += f / 15.0; p[3].y += f / 15.0;
 			p[1] = p[0] + y[j] + z[j];
 			p[2] = p[3] - y[j+1] - z[j+1];
 			ctx->move_to(p[0].x, p[0].y);
 			ctx->curve_to(p[1].x, p[1].y, p[2].x, p[2].y, p[3].x, p[3].y);
+			if (verbosity >= 4) printf(" draw1 (%g,%g)\n",p[0].x,p[0].y);
 			ctx->stroke();
+		}
+		}
+		n = size2();
+		if (multi_finger == 2 && n > 0) {
+			if (verbosity >= 2) printf("draw second (size=%d)\n",n);
+			std::vector<Point> y(n);
+			y[0] = points2(0) * sum;
+			for (int j = 0; j < n-1; j++)
+				y[j+1] = (y[j] + points2(j)) * lambda;
+			std::vector<Point> z(n);
+			z[n-1] = points2(n-1) * (-sum);
+			for (int j = n-1; j > 0; j--)
+				z[j-1] = (z[j] - points2(j)) * lambda;
+			for (int j = 0; j < n-1; j++) {
+				// j -> j+1
+				if (inv)
+					ctx->set_source_rgba(time2(j), 0.0, 1.0-time2(j), 1.0);
+				else
+					ctx->set_source_rgba(0.0, time2(j), 1.0-time2(j), 1.0);
+				Point p[4];
+				p[0] = points2(j);
+				p[3] = points2(j+1);
+				p[1] = p[0] + y[j] + z[j];
+				p[2] = p[3] - y[j+1] - z[j+1];
+				ctx->move_to(p[0].x, p[0].y);
+				ctx->curve_to(p[1].x, p[1].y, p[2].x, p[2].y, p[3].x, p[3].y);
+				if (verbosity >= 4) printf(" draw2 (%g,%g)\n",p[0].x,p[0].y);
+				ctx->stroke();
+			}
 		}
 	} else if (!button) {
 		if (inv)
