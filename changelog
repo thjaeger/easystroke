@@ -1,3 +1,9 @@
+2013-03-27 Release 0.6.0
+	* Update easystroke to gtk3
+	* Refactor event handling code
+	* Port CellRendererTextish to vala to make it work again
+	* Make unminimize work right
+
 2012-10-06 Release 0.5.6
 	* Keycode translation improvements
 	* Allow gestures to be distinguished by modifiers
