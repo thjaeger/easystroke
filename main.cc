@@ -161,7 +161,12 @@ void quit() {
 		xstate->bail_out();
 	dead = true;
 	win->hide();
-	xstate->queue(sigc::ptr_fun(&Gtk::Main::quit));
+	Glib::RefPtr<Gio::Application> app = Gio::Application::get_default();
+	xstate->queue(sigc::mem_fun(*app.operator->(), &Gio::Application::quit));
+}
+
+void sig_int(int) {
+	quit();
 }
 
 class App : public Gtk::Application, Base {
@@ -371,6 +376,10 @@ void App::on_activate() {
 
 	create_config_dir();
 	unsetenv("DESKTOP_AUTOSTART_ID");
+
+	signal(SIGINT, &sig_int);
+	signal(SIGCHLD, SIG_IGN);
+
 	dpy = XOpenDisplay(NULL);
 	if (!dpy) {
 		printf(_("Couldn't open display.\n"));
