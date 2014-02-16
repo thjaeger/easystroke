@@ -626,7 +626,6 @@ public:
 
 class ScrollHandler : public AbstractScrollHandler {
 	RModifiers mods;
-	int orig_x, orig_y;
 	bool proximity;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
