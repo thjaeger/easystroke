@@ -280,7 +280,7 @@ void Stats::on_pdf() {
 		printf("creating table took %ld us\n", (tv2.tv_sec - tv1.tv_sec)*1000000 + tv2.tv_usec - tv1.tv_usec);
 	}
 	if (!fork()) {
-		execlp("xdg-open", "xdg-open", "/tmp/strokes.pdf", NULL);
+		execlp("xdg-open", "xdg-open", "/tmp/strokes.pdf", nullptr);
 		exit(EXIT_FAILURE);
 	}
 }

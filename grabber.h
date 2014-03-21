@@ -123,7 +123,7 @@ public:
 class GrabFailedException : public std::exception {
 	char *msg;
 public:
-	GrabFailedException(int code) { if (asprintf(&msg, "Grab Failed: %d", code) == -1) msg = NULL; }
+	GrabFailedException(int code) { if (asprintf(&msg, "Grab Failed: %d", code) == -1) msg = nullptr; }
 	virtual const char* what() const throw() { return msg ? msg : "Grab Failed"; }
 	~GrabFailedException() throw() { free(msg); }
 };

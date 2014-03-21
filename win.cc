@@ -220,7 +220,7 @@ void Win::show_hide_icon() {
 		icon->signal_activate().connect(sigc::mem_fun(*this, &Win::show_hide));
 		icon->signal_popup_menu().connect(sigc::mem_fun(*this, &Win::show_popup));
 		if (gtk_major_version > 2 || (gtk_major_version == 2 && gtk_minor_version >= 15))
-			g_signal_connect(icon->gobj(), "button-release-event", G_CALLBACK(icon_clicked), NULL);
+			g_signal_connect(icon->gobj(), "button-release-event", G_CALLBACK(icon_clicked), nullptr);
 	} else {
 		if (icon)
 			icon.reset();

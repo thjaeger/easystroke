@@ -193,12 +193,12 @@ Actions::Actions() :
 	int i = 0;
 	while (Misc::types[i]) i++;
 	CellRendererTextish *arg_renderer = cell_renderer_textish_new_with_items ((gchar**)Misc::types, i);
-	GtkTreeViewColumn *col_arg = gtk_tree_view_column_new_with_attributes(_("Details"), GTK_CELL_RENDERER (arg_renderer), "text", cols.arg.index(), NULL);
+	GtkTreeViewColumn *col_arg = gtk_tree_view_column_new_with_attributes(_("Details"), GTK_CELL_RENDERER (arg_renderer), "text", cols.arg.index(), nullptr);
 	gtk_tree_view_append_column(tv.gobj(), col_arg);
 
-	gtk_tree_view_column_set_cell_data_func (col_arg, GTK_CELL_RENDERER (arg_renderer), on_actions_cell_data_arg, this, NULL);
+	gtk_tree_view_column_set_cell_data_func (col_arg, GTK_CELL_RENDERER (arg_renderer), on_actions_cell_data_arg, this, nullptr);
 	gtk_tree_view_column_set_resizable(col_arg, true);
-	g_object_set(arg_renderer, "editable", true, NULL);
+	g_object_set(arg_renderer, "editable", true, nullptr);
 	g_signal_connect(arg_renderer, "key-edited", G_CALLBACK(on_actions_accel_edited), this);
 	g_signal_connect(arg_renderer, "combo-edited", G_CALLBACK(on_actions_combo_edited), this);
 	g_signal_connect(arg_renderer, "edited", G_CALLBACK(on_actions_text_edited), this);
@@ -262,7 +262,7 @@ void Actions::on_cell_data_arg(GtkCellRenderer *cell, gchar *path) {
 	Gtk::TreeModel::iterator iter = tm->get_iter(path);
 	bool bold = (*iter)[cols.action_bold];
 	bool deactivated = (*iter)[cols.deactivated];
-	g_object_set(cell, "sensitive", !deactivated, "weight", bold ? 700 : 400, NULL);
+	g_object_set(cell, "sensitive", !deactivated, "weight", bold ? 700 : 400, nullptr);
 	CellRendererTextish *renderer = CELL_RENDERER_TEXTISH (cell);
 	if (!renderer)
 		return;
@@ -309,7 +309,7 @@ bool Actions::AppsStore::row_drop_possible_vfunc(const Gtk::TreeModel::Path &des
 	if (model != parent->tm)
 		return false;
 	Gtk::TreeIter dest_iter = parent->apps_model->get_iter(dest);
-	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
+	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)nullptr;
 	return actions && actions != parent->action_list;
 }
 
@@ -322,7 +322,7 @@ bool Actions::AppsStore::drag_data_received_vfunc(const Gtk::TreeModel::Path &de
 		return false;
 	Unique *src_id = (*parent->tm->get_iter(src))[parent->cols.id];
 	Gtk::TreeIter dest_iter = parent->apps_model->get_iter(dest);
-	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
+	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)nullptr;
 	if (!actions || actions == parent->action_list)
 		return false;
 	Glib::RefPtr<Gtk::TreeSelection> sel = parent->tv.get_selection();
@@ -752,7 +752,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	}
 	RStrokeInfo si = action_list->get_info(row[cols.id]);
 	if (si)
-		del->set_sensitive(si->strokes.size());
+		del->set_sensitive(si->strokes.size() != 0);
 
 	OnStroke ps(this, dialog, row);
 	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::delayed_run)));
