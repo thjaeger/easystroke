@@ -42,11 +42,11 @@ extern Source<bool> disabled;
 
 bool experimental = false;
 int verbosity = 0;
-const char *prefs_versions[] = { "-0.5.5", "-0.4.1", "-0.4.0", "", NULL };
-const char *actions_versions[] = { "-0.5.6", "-0.4.1", "-0.4.0", "", NULL };
+const char *prefs_versions[] = { "-0.5.5", "-0.4.1", "-0.4.0", "", nullptr };
+const char *actions_versions[] = { "-0.5.6", "-0.4.1", "-0.4.0", "", nullptr };
 Source<Window> current_app_window(None);
 std::string config_dir;
-Win *win = NULL;
+Win *win = nullptr;
 Display *dpy;
 Window ROOT;
 
@@ -161,13 +161,18 @@ void quit() {
 		xstate->bail_out();
 	dead = true;
 	win->hide();
-	xstate->queue(sigc::ptr_fun(&Gtk::Main::quit));
+	Glib::RefPtr<Gio::Application> app = Gio::Application::get_default();
+	xstate->queue(sigc::mem_fun(*app.operator->(), &Gio::Application::quit));
+}
+
+void sig_int(int) {
+	quit();
 }
 
 class App : public Gtk::Application, Base {
 public:
 	App(int& argc, char**& argv, const Glib::ustring& application_id, Gio::ApplicationFlags flags=Gio::APPLICATION_FLAGS_NONE) :
-		Gtk::Application(argc, argv, application_id, flags), remote(false) {}
+		Gtk::Application(argc, argv, application_id, flags), remote(false), enabled(nullptr) {}
 	~App();
 
 	static void usage(const char *me);
@@ -371,7 +376,11 @@ void App::on_activate() {
 
 	create_config_dir();
 	unsetenv("DESKTOP_AUTOSTART_ID");
-	dpy = XOpenDisplay(NULL);
+
+	signal(SIGINT, &sig_int);
+	signal(SIGCHLD, SIG_IGN);
+
+	dpy = XOpenDisplay(nullptr);
 	if (!dpy) {
 		printf(_("Couldn't open display.\n"));
 		exit(EXIT_FAILURE);
@@ -391,7 +400,7 @@ void App::on_activate() {
 
 	trace.reset(init_trace());
 	Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, NULL);
+	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
 	screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
 	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&schedule_reload_trace));
 	prefs.trace.connect(trace_notify);
@@ -453,7 +462,7 @@ void App::create_config_dir() {
 		config_dir += "/.easystroke";
 	}
 	struct stat st;
-	char *name = realpath(config_dir.c_str(), NULL);
+	char *name = realpath(config_dir.c_str(), nullptr);
 
 	// check if the directory does not exist
 	if (lstat(name, &st) == -1) {
@@ -624,7 +633,7 @@ class Modifiers : Timeout {
 	Glib::ustring str;
 	OSD *osd;
 public:
-	Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_), osd(NULL) {
+	Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_), osd(nullptr) {
 		if (prefs.show_osd.get())
 			set_timeout(150);
 		all.insert(this);

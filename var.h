@@ -24,6 +24,7 @@
 class Base {
 public:
 	virtual void notify() = 0;
+	virtual ~Base() {}
 };
 
 class Notifier : public Base {
@@ -53,11 +54,13 @@ protected:
 public:
 	void connect(Base *s) { out.insert(s); }
 	virtual T get() const = 0;
+	virtual ~Out() {}
 };
 
 template <class T> class In {
 public:
 	virtual void set(const T x) = 0;
+	virtual ~In() {}
 };
 
 template <class T> class IO : public In<T>, public Out<T> {};

@@ -59,7 +59,7 @@ public:
 	bool accepted;
 	std::set<guint> xinput_pressed;
 	guint modifiers;
-        std::map<guint, guint> core_inv_map;
+	std::map<guint, guint> core_inv_map;
 private:
 	Window ping_window;
 	Handler *handler;
@@ -76,7 +76,7 @@ class Handler {
 public:
 	Handler *child;
 	Handler *parent;
-	Handler() : child(NULL), parent(NULL) {}
+	Handler() : child(nullptr), parent(nullptr) {}
 	Handler *top() {
 		if (child)
 			return child->top();

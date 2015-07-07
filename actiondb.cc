@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <string>
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/map.hpp>
@@ -121,7 +122,7 @@ void Command::run() {
 	pid_t pid = fork();
 	switch (pid) {
 		case 0:
-			execlp("/bin/sh", "sh", "-c", cmd.c_str(), NULL);
+			execlp("/bin/sh", "sh", "-c", cmd.c_str(), nullptr);
 			exit(1);
 		case -1:
 			printf(_("Error: can't execute command \"%s\": fork() failed\n"), cmd.c_str());
@@ -142,7 +143,7 @@ const Glib::ustring Button::get_label() const {
 
 const Glib::ustring Misc::get_label() const { return _(types[type]); }
 
-const char *Misc::types[5] = { N_("None"), N_("Unminimize"), N_("Show/Hide"), N_("Disable (Enable)"), NULL };
+const char *Misc::types[5] = { N_("None"), N_("Unminimize"), N_("Show/Hide"), N_("Disable (Enable)"), nullptr };
 
 template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
 	ar & deleted;

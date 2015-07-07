@@ -99,7 +99,7 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
 		}
 		return -1;
 	}
-	double cost = stroke_compare(a->stroke.get(), b->stroke.get(), NULL, NULL);
+	double cost = stroke_compare(a->stroke.get(), b->stroke.get(), nullptr, nullptr);
 	if (cost >= stroke_infinity)
 		return -1;
 	score = MAX(1.0 - 2.5*cost, 0.0);

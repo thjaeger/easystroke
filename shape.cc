@@ -73,7 +73,7 @@ void Shape::timeout() {
 }
 
 void Shape::clear() {
-	XShapeCombineRectangles(dpy, win, ShapeBounding, 0, 0, NULL, 0, ShapeSet, YXBanded);
+	XShapeCombineRectangles(dpy, win, ShapeBounding, 0, 0, nullptr, 0, ShapeSet, YXBanded);
 }
 
 Shape::~Shape() {
