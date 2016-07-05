@@ -426,6 +426,8 @@ void Prefs::on_edit_extra() {
 	etv->get_cursor(path, col);
 	if (!path.gobj())
 		return;
+	if (path.empty())
+		return;
 	Gtk::TreeIter iter = *etm->get_iter(path);
 	std::vector<ButtonInfo>::iterator i = (*iter)[ecs.i];
 	SelectButton sb(*i, true, true);
@@ -447,6 +449,8 @@ void Prefs::on_remove_extra() {
 	Gtk::TreeViewColumn *col;
 	etv->get_cursor(path, col);
 	if (!path.gobj())
+		return;
+	if (path.empty())
 		return;
 	Gtk::TreeIter iter = *etm->get_iter(path);
 	Atomic a;
