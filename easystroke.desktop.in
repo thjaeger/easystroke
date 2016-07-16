@@ -6,7 +6,7 @@ Terminal=false
 Exec=easystroke
 Icon=easystroke
 Categories=GTK;Utility;Accessibility;
-Actions=About;Enable;Disable;Quit
+Actions=About;Enable;Disable;Quit;
 _Comment=Control your desktop using mouse gestures
 
 [Desktop Action About]
