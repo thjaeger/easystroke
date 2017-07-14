@@ -36,6 +36,7 @@ class Actions {
 public:
 	Actions();
 private:
+	void on_button_dup();
 	void on_button_delete();
 	void on_button_new();
 	void on_button_record();
@@ -138,7 +139,7 @@ private:
 
 	Glib::RefPtr<Gtk::ListStore> type_store;
 
-	Gtk::Button *button_record, *button_delete, *button_remove_app, *button_reset_actions;
+	Gtk::Button *button_record, *button_delete, *button_remove_app, *button_reset_actions, *button_dup;
 	Gtk::CheckButton *check_show_deleted;
 	Gtk::Expander *expander_apps;
 	Gtk::VPaned *vpaned_apps;

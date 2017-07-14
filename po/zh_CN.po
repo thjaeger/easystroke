@@ -341,6 +341,9 @@ msgstr "添加动作"
 msgid "_Delete Action(s)"
 msgstr "删除动作"
 
+msgid "_Duplicate Action(s)"
+msgstr "复制动作"
+
 msgid "_Hide"
 msgstr "隐藏(_H)"
 
