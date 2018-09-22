@@ -533,7 +533,7 @@ public:
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
 
-static inline float abs(float x) { return x > 0 ? x : -x; }
+/* static inline float abs(float x) { return x > 0 ? x : -x; } */
 
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;
