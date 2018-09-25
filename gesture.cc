@@ -104,9 +104,9 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
 		return -1;
 	score = MAX(1.0 - 2.5*cost, 0.0);
 	if (a->timeout)
-		return score > 0.85;
+		return score > 0.95;
 	else
-		return score > 0.7;
+		return score > 0.92;
 }
 
 Glib::RefPtr<Gdk::Pixbuf> Stroke::draw(int size, double width, bool inv) const {

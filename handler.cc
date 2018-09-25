@@ -563,7 +563,7 @@ protected:
 	}
 protected:
 	void move_back() {
-		if (!prefs.move_back.get() || (xstate->current_dev && xstate->current_dev->absolute))
+		if (!prefs.move_back.get())
 			return;
 		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig_x, orig_y, 0);
 	}
@@ -968,7 +968,7 @@ protected:
 	virtual void release(guint b, RTriple e) {
 		RStroke s = finish(0);
 
-		if (prefs.move_back.get() && !xstate->current_dev->absolute)
+		if (prefs.move_back.get())
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
 		else
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
