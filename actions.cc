@@ -53,9 +53,9 @@ void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context)
 
 TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
 	get_selection()->set_select_function(
-		[this](Glib::RefPtr<Gtk::TreeModel> const&, Gtk::TreeModel::Path const&, bool) {
-			return !pending;
-		});
+	[this](Glib::RefPtr<Gtk::TreeModel> const&, Gtk::TreeModel::Path const&, bool) {
+           return !pending;
+       });
 }
 
 enum Type { COMMAND, KEY, TEXT, SCROLL, IGNORE, BUTTON, MISC };
