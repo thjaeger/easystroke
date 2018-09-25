@@ -8,15 +8,16 @@ msgstr ""
 "Project-Id-Version: easystroke\n"
 "Report-Msgid-Bugs-To: FULL NAME <EMAIL@ADDRESS>\n"
 "POT-Creation-Date: 2013-03-14 00:24-0400\n"
-"PO-Revision-Date: 2012-10-28 10:42+0000\n"
-"Last-Translator: Penegal <Unknown>\n"
+"PO-Revision-Date: 2015-07-07 13:11+0200\n"
+"Last-Translator: Raphael Rochet <raphael@rri.fr>\n"
 "Language-Team: French <fr@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Launchpad-Export-Date: 2013-03-14 04:28+0000\n"
-"X-Generator: Launchpad (build 16532)\n"
+"X-Generator: Poedit 1.8.2\n"
+"Language: fr\n"
 
 #, c-format
 msgid "Error: can't execute command \"%s\": fork() failed\n"
@@ -46,8 +47,7 @@ msgstr "rename() a échoué"
 
 #, c-format
 msgid "Error: Couldn't save action database: %s.\n"
-msgstr ""
-"Erreur : impossible d'enregistrer la base de données des actions %s.\n"
+msgstr "Erreur : impossible d'enregistrer la base de données des actions %s.\n"
 
 msgid ""
 "Couldn't save %1.  Your changes will be lost.  Make sure that \"%2\" is a "
@@ -292,7 +292,7 @@ msgid "D_isabled"
 msgstr "D_ésactivé"
 
 msgid "<unnamed>"
-msgstr ""
+msgstr "<sansnom>"
 
 msgid "Connection to DBus failed"
 msgstr "La connexion à DBus a échoué"
@@ -390,7 +390,7 @@ msgid "Show popups ("
 msgstr "Afficher les popups ("
 
 msgid "to the right of the cursor)"
-msgstr ""
+msgstr "à droite du curseur)"
 
 msgid "Show tray icon"
 msgstr "Afficher l'icône dans la barre des tâches"
@@ -418,6 +418,8 @@ msgstr "Préférences"
 
 msgid "Only enable easystroke for applications listed on 'Actions' tab"
 msgstr ""
+"N'activer easystroke que pour les applications listées dans l'onglet "
+"'Actions'"
 
 msgid "Timeout Gestures"
 msgstr "Gestes de temps mort"
@@ -483,6 +485,5 @@ msgstr "Désactiver"
 #~ msgid "(window manager frame)"
 #~ msgstr "(cadre du gestionnaire de fenêtres)"
 
-#, c-format
 #~ msgid "Error: A grab failed.  Resetting...\n"
 #~ msgstr "Erreur : une saisie a échoué. Redémarrage...\n"
