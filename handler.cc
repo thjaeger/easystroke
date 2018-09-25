@@ -23,6 +23,8 @@
 #include <X11/extensions/XTest.h>
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
+#include <cmath>  // std::abs(float)
+using std::abs;
 
 XState *xstate = nullptr;
 
@@ -532,8 +534,6 @@ public:
 	virtual std::string name() { return "WaitForPong"; }
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
-
-static inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;
