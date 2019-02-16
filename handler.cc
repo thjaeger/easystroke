@@ -288,7 +288,8 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
                     {
 
                         if (  prefs.extra_buttons.ref().size() && (guint) event->detail == prefs.extra_buttons.ref().rbegin()->button) //check if the button is same as last extra button
-                            event->detail = prefs.button.ref().button; //fake the default button
+                            event->detail = 100+event->detail; //fake the default button
+                            //event->detail = prefs.button.ref().button; //fake the default button
                     }
 
 			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
@@ -979,7 +980,11 @@ protected:
 		RStroke s = finish(0);
 
         if (experimental) //button 1 should be treated as trigger 0, other trigger buttons copied from the event button b itself
-            s->trigger = b>1 ? b : 0 ; 
+            if (b>100) 
+            {
+                b=b-100;
+                s->trigger = prefs.button.ref().button-1; 
+            }
         
 		if (prefs.move_back.get() && !xstate->current_dev->absolute)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
