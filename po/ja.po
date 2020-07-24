@@ -375,7 +375,7 @@ msgid "Show popups ("
 msgstr "ポップアップを表示 ("
 
 msgid "to the right of the cursor)"
-msgstr ""
+msgstr "カーソルの右側)"
 
 msgid "Show tray icon"
 msgstr "トレイアイコンを表示"
