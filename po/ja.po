@@ -402,7 +402,7 @@ msgid "Preferences"
 msgstr "設定"
 
 msgid "Only enable easystroke for applications listed on 'Actions' tab"
-msgstr ""
+msgstr "アクションタブに登録されているアプリケーションのみ easystroke を有効にする"
 
 msgid "Timeout Gestures"
 msgstr "タイムアウト・ジェスチャ"
