@@ -22,7 +22,7 @@ public class CellRendererTextish : Gtk.CellRendererText {
 		this.items = items;
 	}
 
-	public override unowned Gtk.CellEditable start_editing (Gdk.Event? event, Gtk.Widget widget, string path, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags) {
+	public override unowned Gtk.CellEditable? start_editing (Gdk.Event? event, Gtk.Widget widget, string path, Gdk.Rectangle background_area, Gdk.Rectangle cell_area, Gtk.CellRendererState flags) {
 		cell = null;
 		if (!editable)
 			return cell;
@@ -112,7 +112,7 @@ class CellEditableAccel : Gtk.EventBox, Gtk.CellEditable {
 }
 
 
-class CellEditableCombo : Gtk.ComboBoxText {
+class CellEditableCombo : Gtk.ComboBoxText, Gtk.CellEditable {
 	new CellRendererTextish parent;
 	new string path;
 
@@ -124,4 +124,10 @@ class CellEditableCombo : Gtk.ComboBoxText {
 		}
 		changed.connect(() => parent.combo_edited(path, active));
 	}
+	
+	public virtual void start_editing(Gdk.Event? event) {
+		base.start_editing(event);
+		show_all();
+	}
 }
+

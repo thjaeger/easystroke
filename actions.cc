@@ -475,7 +475,7 @@ void Actions::on_type_edited(const Glib::ustring &path, const Glib::ustring &new
 		update_actions();
 	}
 	editing_new = false;
-	focus(row[cols.id], 3, edit);
+	if (new_type != MISC) focus(row[cols.id], 3, edit);
 }
 
 void Actions::on_button_delete() {
