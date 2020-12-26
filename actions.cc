@@ -23,6 +23,7 @@
 #include "grabber.h"
 #include "cellrenderertextish.h"
 
+#include <functional>
 #include <typeinfo>
 
 bool TreeViewMulti::on_button_press_event(GdkEventButton* event) {
@@ -54,7 +55,7 @@ void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context)
 bool negate(bool b) { return !b; }
 
 TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
-	get_selection()->set_select_function(sigc::group(&negate, sigc::ref(pending)));
+  get_selection()->set_select_function([this](const Glib::RefPtr<Gtk::TreeModel>&, const Gtk::TreePath&, const bool&) { return !this->pending; });
 }
 
 enum Type { COMMAND, KEY, TEXT, SCROLL, IGNORE, BUTTON, MISC };
