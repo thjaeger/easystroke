@@ -154,3 +154,7 @@ complete: .clang_complete
 .clang_complete: Makefile
 	@echo $(CXXSTD) > $@
 	@$(foreach inc,$(INCLUDES),echo $(inc) >> $@;)
+
+run:
+	make -j2
+	./easy-gesture
