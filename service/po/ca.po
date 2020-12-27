@@ -230,15 +230,6 @@ msgstr "Error: No s'han pogut llegir les preferències.\n"
 msgid "XShape"
 msgstr ""
 
-msgid "Annotate (compiz)"
-msgstr ""
-
-msgid "Fire (compiz)"
-msgstr "Foc (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Aigua (compiz)"
-
 msgid "Timeout Off"
 msgstr "Temps d'espera desactivat"
 

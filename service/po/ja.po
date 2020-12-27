@@ -222,15 +222,6 @@ msgstr "エラー: 設定を読めませんでした。\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "注釈線 (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "炎の描画 (compiz)"
-
-msgid "Water (compiz)"
-msgstr "水効果 (compiz)"
-
 msgid "Timeout Off"
 msgstr "タイムアウトなし"
 

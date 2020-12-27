@@ -225,15 +225,6 @@ msgstr "שגיאה: לא ניתן לקרוא את ההעדפות.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "ציור הערות (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "אש (compiz)"
-
-msgid "Water (compiz)"
-msgstr "מים (compiz)"
-
 msgid "Timeout Off"
 msgstr "פסק זמן כבוי"
 

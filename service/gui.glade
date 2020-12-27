@@ -1177,7 +1177,7 @@ Van Diep Duong (Vietnamese)</property>
                               <object class="GtkLabel" id="label13">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="label" translatable="yes">Method to show gestures</property>
+                                <property name="label" translatable="yes">Method tdsfo show gestures</property>
                               </object>
                               <packing>
                                 <property name="expand">True</property>

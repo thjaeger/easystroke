@@ -227,15 +227,6 @@ msgstr "Lỗi: Không thể đọc các tùy chọn\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Annotate (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Fire (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Water (compiz)"
-
 msgid "Timeout Off"
 msgstr "Tắt"
 

@@ -42,11 +42,4 @@ public:
 	virtual ~Trace() {}
 };
 
-class Trivial : public Trace {
-	virtual void draw(Point p, Point q) {}
-	virtual void start_() {}
-	virtual void end_() {}
-public:
-};
-
 #endif

@@ -34,7 +34,6 @@ PrefDB::PrefDB() :
 	TimeoutWatcher(5000),
 	good_state(true),
 	button(default_button),
-	trace(TraceDefault),
 	advanced_ignore(false),
 	proximity(false),
 	feedback(true),
@@ -71,9 +70,6 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 		bool help;
 		ar & help;
 	}
-	ar & trace.unsafe_ref();
-	if (trace.get() == TraceShape)
-		trace.unsafe_ref() = TraceDefault;
 	if (version < 3) {
 		int delay;
 		ar & delay;

@@ -218,15 +218,6 @@ msgstr "錯誤：無法讀取偏好設定\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Annotate (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Fire (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Water (compiz)"
-
 msgid "Timeout Off"
 msgstr "關閉"
 

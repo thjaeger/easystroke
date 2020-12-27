@@ -232,15 +232,6 @@ msgstr "Σφάλμα: Δεν διαβάστηκαν οι προτιμήσεις.
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Σχολιασμός (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Φλόγα (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Νερό (compiz)"
-
 msgid "Timeout Off"
 msgstr "Απενεργοποίηση Timeout"
 

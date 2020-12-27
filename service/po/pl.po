@@ -233,15 +233,6 @@ msgstr "Błąd: Nie potrafię odczytać ustawień.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Rysowanie (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Ogień  (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Woda (compiz)"
-
 msgid "Timeout Off"
 msgstr "Przeyrwanie wyłączone"
 

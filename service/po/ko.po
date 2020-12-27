@@ -220,15 +220,6 @@ msgstr "오류: 환경설정을 읽을 수 없습니다.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "주석 (컴피즈)"
-
-msgid "Fire (compiz)"
-msgstr "화면에 불꽃으로 그림을 그림 (컴피즈)"
-
-msgid "Water (compiz)"
-msgstr "물결 효과 (컴피즈)"
-
 msgid "Timeout Off"
 msgstr "시간제한 끔"
 

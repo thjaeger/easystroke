@@ -1,4 +1,5 @@
-/*
+/*	PrefSource<TraceType> trace;
+
  * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
  *
  * Permission to use, copy, modify, and/or distribute this software for any
@@ -25,7 +26,6 @@
 
 #include "var.h"
 
-enum TraceType { TraceDefault, TraceShape, TraceNone, TraceAnnotate, TraceFire, TraceWater };
 enum TimeoutType { TimeoutOff, TimeoutDefault, TimeoutMedium, TimeoutAggressive, TimeoutFlick, TimeoutCustom, TimeoutConservative };
 
 class ButtonInfo {
@@ -111,7 +111,6 @@ public:
 
 	PrefSource<std::map<std::string, RButtonInfo> > exceptions;
 	PrefSource<ButtonInfo> button;
-	PrefSource<TraceType> trace;
 	PrefSource<bool> advanced_ignore;
 	PrefSource<bool> proximity;
 	PrefSource<bool> feedback;

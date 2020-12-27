@@ -230,15 +230,6 @@ msgstr "Errore: impossibile leggere le preferenze.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Annotazione (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Fuoco (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Acqua (compiz)"
-
 msgid "Timeout Off"
 msgstr "Fine timeout"
 

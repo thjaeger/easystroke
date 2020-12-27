@@ -229,15 +229,6 @@ msgstr "Virhe: Ei voitu lukea asetuksia.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Piirros (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Tuli (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Vesitehoste (compiz)"
-
 msgid "Timeout Off"
 msgstr "Ei aikakatkaisua"
 

@@ -231,15 +231,6 @@ msgstr "Hiba: Nem sikerült olvasni a beállításokat.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Feljegyzés (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Tűz (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Víz (compiz)"
-
 msgid "Timeout Off"
 msgstr "Késleltetés kikapcsolva"
 

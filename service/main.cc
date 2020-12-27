@@ -15,14 +15,10 @@
  */
 #include "win.h"
 #include "main.h"
-#include "shape.h"
 #include "prefs.h"
 #include "actiondb.h"
 #include "prefdb.h"
 #include "trace.h"
-#include "annotate.h"
-#include "fire.h"
-#include "water.h"
 #include "composite.h"
 #include "grabber.h"
 #include "handler.h"
@@ -54,37 +50,8 @@ boost::shared_ptr<Trace> trace;
 
 static ActionDBWatcher *action_watcher = 0;
 
-static Trace *trace_composite() {
-	try {
-		return new Composite();
-	} catch (std::exception &e) {
-		if (verbosity >= 1)
-			printf("Falling back to Shape method: %s\n", e.what());
-		return new Shape();
-	}
-}
-
 static Trace *init_trace() {
-	try {
-		switch(prefs.trace.get()) {
-			case TraceNone:
-				return new Trivial();
-			case TraceShape:
-				return new Shape();
-			case TraceAnnotate:
-				return new Annotate();
-			case TraceFire:
-				return new Fire();
-			case TraceWater:
-				return new Water();
-			default:
-				return trace_composite();
-		}
-	} catch (DBusException &e) {
-		printf(_("Error: %s\n"), e.what());
-		return trace_composite();
-	}
-
+    return new Composite();
 }
 
 class OSD : public Gtk::Window {
@@ -95,7 +62,7 @@ public:
 		osd_stack.push_back(this);
 		set_accept_focus(false);
 		set_border_width(15);
-		WIDGET(Gtk::Label, label, "<big><b>" + txt + "</b></big>");
+		WIDGET(Gtk::Label, label, "<big><b>lolol" + txt + "</b></big>");
 		label.set_use_markup();
 		label.override_color(Gdk::RGBA("White"), Gtk::STATE_FLAG_NORMAL);
 		override_background_color(Gdk::RGBA("RoyalBlue3"), Gtk::STATE_FLAG_NORMAL);
@@ -403,7 +370,6 @@ void App::on_activate() {
 	g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
 	screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
 	Notifier *trace_notify = new Notifier(sigc::ptr_fun(&schedule_reload_trace));
-	prefs.trace.connect(trace_notify);
 	prefs.color.connect(trace_notify);
 
 	XTestGrabControl(dpy, True);

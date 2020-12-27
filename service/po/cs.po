@@ -232,15 +232,6 @@ msgstr "Chyba: Nelze načíst nastavení.\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Annotate (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Oheň (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Voda (compiz)"
-
 msgid "Timeout Off"
 msgstr "Timeout vypnutý"
 

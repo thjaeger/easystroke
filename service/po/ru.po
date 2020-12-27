@@ -234,15 +234,6 @@ msgstr "Ошибка: не смог прочитать параметры нас
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Annotate (Сompiz)"
-
-msgid "Fire (compiz)"
-msgstr "Огонь (Сompiz)"
-
-msgid "Water (compiz)"
-msgstr "Вода (Сompiz)"
-
 msgid "Timeout Off"
 msgstr "Тайм-аут вытключен"
 

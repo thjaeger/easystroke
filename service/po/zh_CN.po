@@ -219,15 +219,6 @@ msgstr "错误:读取参数失败\n"
 msgid "XShape"
 msgstr "XShape"
 
-msgid "Annotate (compiz)"
-msgstr "Annotate (compiz)"
-
-msgid "Fire (compiz)"
-msgstr "Fire (compiz)"
-
-msgid "Water (compiz)"
-msgstr "Water (compiz)"
-
 msgid "Timeout Off"
 msgstr "超时关闭"
 
