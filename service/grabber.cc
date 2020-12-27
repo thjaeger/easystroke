@@ -250,8 +250,8 @@ bool Grabber::init_xi() {
 	if (!XQueryExtension(dpy, "XInputExtension", &opcode, &event, &error) ||
 			XIQueryVersion(dpy, &major, &minor) == BadRequest ||
 			major < 2) {
-		printf("Error: This version of easystroke needs an XInput 2.0-aware X server.\n"
-				"Please downgrade to easystroke 0.4.x or upgrade your X server to 1.7.\n");
+		printf("Error: This version of Easy Gesture needs an XInput 2.0-aware X server.\n"
+				"Please upgrade your X server to 1.7.\n");
 		exit(EXIT_FAILURE);
 	}
 

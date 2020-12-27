@@ -1,6 +1,7 @@
 *.o
 *.Po
 easystroke
+easy-gesture
 easystroke.1
 gui.c
 desktop.c

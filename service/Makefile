@@ -30,7 +30,7 @@ LDFLAGS  = $(DFLAGS)
 
 LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst `pkg-config gtkmm-3.0 dbus-glib-1 --libs`
 
-BINARY   = easystroke
+BINARY   = easy-gesture
 ICON     = easystroke.svg
 MENU     = easystroke.desktop
 MANPAGE  = easystroke.1
