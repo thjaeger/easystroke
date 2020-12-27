@@ -1,3 +1,13 @@
+# Notices for easystroke
+
+This project is licensed under the licensing terms described in [./LICENSE.md](./LICENSE.md)
+
+## Third-party Content
+
+### easystroke (original)
+
+This project was based on easystroke by Thomas Jaegar under the following [license](https://github.com/thjaeger/easystroke/blob/master/LICENSE):
+
 Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
 
 Permission to use, copy, modify, and/or distribute this software for any
