@@ -16,7 +16,6 @@
 #include "handler.h"
 #include "grabber.h"
 #include "main.h"
-#include "prefs.h"
 #include <X11/extensions/XTest.h>
 #include <xorg/xserver-properties.h>
 #include <X11/cursorfont.h>
