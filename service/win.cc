@@ -163,7 +163,7 @@ public:
 	}
 };
 
-Win::Win() : stats(new Stats) {
+Win::Win() {
 	show_hide_icon();
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
 	disabled.connect(new Notifier(sigc::mem_fun(*this, &Win::timeout)));

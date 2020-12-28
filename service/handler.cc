@@ -711,7 +711,6 @@ class AdvancedHandler : public Handler {
 	void show_ranking(guint b, RTriple e) {
 		if (!rs.count(b))
 			return;
-		Ranking::queue_show(rs[b], e);
 		rs.erase(b);
 	}
 	AdvancedHandler(RStroke s, RTriple e_, guint b1, guint b2, RPreStroke replay_) :
@@ -977,8 +976,6 @@ protected:
 		}
 		RRanking ranking;
 		RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
-		if (!IS_CLICK(act))
-			Ranking::queue_show(ranking, e);
 		if (!act) {
 			XkbBell(dpy, None, 0, None);
 			return parent->replace_child(nullptr);
@@ -992,20 +989,7 @@ protected:
 			return parent->replace_child(new IgnoreHandler(mods));
 		if (IS_SCROLL(act))
 			return parent->replace_child(new ScrollHandler(mods));
-		char buf[16];
-		snprintf(buf, sizeof(buf), "%d", (int)orig->x);
-		setenv("EASYSTROKE_X1", buf, 1);
-		snprintf(buf, sizeof(buf), "%d", (int)orig->y);
-		setenv("EASYSTROKE_Y1", buf, 1);
-		snprintf(buf, sizeof(buf), "%d", (int)e->x);
-		setenv("EASYSTROKE_X2", buf, 1);
-		snprintf(buf, sizeof(buf), "%d", (int)e->y);
-		setenv("EASYSTROKE_Y2", buf, 1);
 		act->run();
-		unsetenv("EASYSTROKE_X1");
-		unsetenv("EASYSTROKE_Y1");
-		unsetenv("EASYSTROKE_X2");
-		unsetenv("EASYSTROKE_Y2");
 		parent->replace_child(nullptr);
 	}
 public:
