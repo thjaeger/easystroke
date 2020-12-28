@@ -8,6 +8,6 @@ set -e
     make clean
     make -j2
 
-    Write-Host "Starting..."
-    ./easy-gesture
+    echo "Starting..."
+    ./easy-gesture -v
 )

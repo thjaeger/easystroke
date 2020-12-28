@@ -20,8 +20,6 @@
 #include "util.h"
 #include "prefdb.h"
 
-class Actions;
-class Prefs;
 class Stats;
 class Ranking;
 
@@ -35,7 +33,6 @@ public:
 	Win();
 
 	Gtk::Window& get_window() { return *win; }
-    boost::shared_ptr<Actions> actions;
 	boost::shared_ptr<Stats> stats;
 	void show();
 	void hide();
