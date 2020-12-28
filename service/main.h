@@ -37,7 +37,4 @@ typedef struct _XDisplay Display;
 extern Display *dpy;
 extern Window ROOT;
 
-class Win;
-extern Win *win;
-
 #endif

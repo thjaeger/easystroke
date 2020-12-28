@@ -477,18 +477,6 @@ void Grabber::set() {
 	}
 }
 
-void Grabber::queue_suspend() {
-	xstate->queue(sigc::mem_fun(*this, &Grabber::suspend));
-}
-
-void Grabber::queue_resume() {
-	xstate->queue(sigc::mem_fun(*this, &Grabber::resume));
-}
-
-std::string Grabber::select_window() {
-	return xstate->select_window();
-}
-
 bool Grabber::is_instant(guint b) {
 	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
 		if (i->button == b && i->instant)

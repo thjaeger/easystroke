@@ -102,10 +102,6 @@ public:
 	bool handle(XEvent &ev) { return children.handle(ev); }
 	Out<std::string> *current_class;
 
-	void queue_suspend();
-	void queue_resume();
-	std::string select_window();
-
 	void new_device(XIDeviceInfo *);
 
 	bool is_instant(guint b);

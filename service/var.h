@@ -112,36 +112,6 @@ template <class X, class Y> Fun<X, Y> *fun(Y (*f)(X), Out<X> &in) {
 	return new Fun<X, Y>(sigc::ptr_fun(f), in);
 }
 
-template <class X, class Y, class Z> class Fun2 : public Out<Z>, private Base {
-	sigc::slot<Z, X, Y> f;
-	Out<X> &inX;
-	Out<Y> &inY;
-public:
-	Fun2(sigc::slot<Z, X, Y> f_, Out<X> &inX_, Out<Y> &inY_) : f(f_), inX(inX_), inY(inY_) {
-		inX.connect(this);
-		inY.connect(this);
-	}
-	virtual Z get() const { return f(inX.get(), inY.get()); }
-	virtual void notify() { Out<Z>::update(); }
-};
-
-template <class X1, class X2, class Y> Fun2<X1, X2, Y> *fun2(Y (*f)(X1, X2), Out<X1> &in1, Out<X2> &in2) {
-	return new Fun2<X1, X2, Y>(sigc::ptr_fun(f), in1, in2);
-}
-
-template <class X, class Y> class Bijection : public IO<Y>, private Base {
-	sigc::slot<Y, X> f;
-	sigc::slot<X, Y> g;
-	IO<X> &in;
-public:
-	Bijection(sigc::slot<Y, X> f_, sigc::slot<X, Y> g_, IO<X> &in_) : f(f_), g(g_), in(in_) {
-		in.connect(this);
-	}
-	virtual Y get() const { return f(in.get()); }
-	virtual void notify() { Out<Y>::update(); }
-	virtual void set(const Y y) { in.set(g(y)); }
-};
-
 class Watcher : private Base {
 public:
 	template <class T> void watch(Out<T> &v) { v.connect(this); }

@@ -15,7 +15,6 @@
  */
 #include "win.h"
 #include "main.h"
-#include "prefs.h"
 #include "actiondb.h"
 #include "prefdb.h"
 #include "trace.h"
@@ -42,7 +41,6 @@ const char *prefs_versions[] = {"-0.5.5", "-0.4.1", "-0.4.0", "", nullptr};
 const char *actions_versions[] = {"-0.5.6", "-0.4.1", "-0.4.0", "", nullptr};
 Source<Window> current_app_window(None);
 std::string config_dir;
-Win *win = nullptr;
 Display *dpy;
 Window ROOT;
 
@@ -69,30 +67,11 @@ void Trace::end() {
     end_();
 }
 
-void icon_warning() {
-    for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
-        Misc *m = dynamic_cast<Misc *>(i->second.action.get());
-        if (m && m->type == Misc::SHOWHIDE)
-            return;
-    }
-    if (!win)
-        return;
-
-    Gtk::MessageDialog *md;
-    widgets->get_widget("dialog_icon", md);
-    md->set_message(_("Tray icon disabled"));
-    md->set_secondary_text(
-            _("To bring the configuration dialog up again, you should define an action of type Misc...Show/Hide."));
-    md->run();
-    md->hide();
-}
-
 void quit() {
     static bool dead = false;
     if (dead)
         xstate->bail_out();
     dead = true;
-    win->hide();
     Glib::RefPtr<Gio::Application> app = Gio::Application::get_default();
     xstate->queue(sigc::mem_fun(*app.operator->(), &Gio::Application::quit));
 }
@@ -126,8 +105,6 @@ private:
     void run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationCommandLine> &cmd_line);
 
     void create_config_dir();
-
-    void on_about(const Glib::VariantBase &) { win->show_about(); }
 
     void on_quit(const Glib::VariantBase &) { quit(); }
 
@@ -254,17 +231,11 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
                 printf("Warning: Send requires an argument\n");
             else
                 run_by_name(arg[i], command_line);
-        } else if (!strcmp(arg[i], "show")) {
-            win->show();
-        } else if (!strcmp(arg[i], "hide")) {
-            win->hide();
         } else if (!strcmp(arg[i], "disable")) {
             disabled.set(true);
         } else if (!strcmp(arg[i], "enable")) {
             disabled.set(false);
-        } else if (!strcmp(arg[i], "about")) {
-            win->show_about();
-        } else if (!strcmp(arg[i], "quit")) {
+        }  else if (!strcmp(arg[i], "quit")) {
             quit();
         } else {
             char *msg;
@@ -272,8 +243,6 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
             command_line->print(msg);
             free(msg);
         }
-    if (!arg[1] && remote)
-        win->show_hide();
     remote = true;
     return true;
 }
@@ -286,9 +255,6 @@ void App::on_startup() {
     Gtk::Application::on_startup();
 
     Glib::RefPtr<Gio::SimpleAction> action;
-    action = Gio::SimpleAction::create("about");
-    action->signal_activate().connect(sigc::mem_fun(*this, &App::on_about));
-    add_action(action);
 
     action = Gio::SimpleAction::create("quit");
     action->signal_activate().connect(sigc::mem_fun(*this, &App::on_quit));
@@ -309,9 +275,6 @@ void App::on_startup() {
 }
 
 void App::on_activate() {
-    if (win)
-        return;
-
     bindtextdomain("easystroke", is_dir("po") ? "po" : LOCALEDIR);
     bind_textdomain_codeset("easystroke", "UTF-8");
     textdomain("easystroke");
@@ -358,10 +321,6 @@ void App::on_activate() {
         printf("Error building GUI: %s\n", e.what().c_str());
         exit(EXIT_FAILURE);
     }
-    win = new Win;
-    add_window(win->get_window());
-    if (!actions.get_root()->size_rec())
-        win->get_window().show();
     hold();
 }
 
@@ -425,15 +384,6 @@ void App::create_config_dir() {
 }
 
 App::~App() {
-    if (win) {
-        delete win;
-        trace->end();
-        trace.reset();
-        delete grabber;
-        XCloseDisplay(dpy);
-        prefs.execute_now();
-        action_watcher->execute_now();
-    }
 }
 
 int main(int argc, char **argv) {
@@ -613,9 +563,6 @@ bool mods_equal(RModifiers m1, RModifiers m2) {
 
 void Misc::run() {
     switch (type) {
-        case SHOWHIDE:
-            win->show_hide();
-            return;
         case UNMINIMIZE:
             grabber->unminimize();
             return;

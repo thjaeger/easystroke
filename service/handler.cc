@@ -16,8 +16,6 @@
 #include "handler.h"
 #include "main.h"
 #include "trace.h"
-#include "win.h" // Why?
-#include "prefs.h" // Why?
 #include <gtkmm.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
@@ -1067,18 +1065,6 @@ public:
 	virtual std::string name() { return "Select"; }
 	virtual Grabber::State grab_mode() { return Grabber::SELECT; }
 };
-
-void XState::select() {
-	win->get_window().get_window()->lower();
-	handler->top()->replace_child(new SelectHandler);
-}
-
-std::string XState::select_window() {
-	queue(sigc::mem_fun(this, &XState::select));
-	gtk_main();
-	win->get_window().raise();
-	return grabber->current_class->get();
-}
 
 XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), modifiers(0) {
 	int n, opcode, event, error;
