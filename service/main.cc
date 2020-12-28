@@ -31,11 +31,7 @@
 #include <string.h>
 #include <signal.h>
 #include <fcntl.h>
-#include <getopt.h>
 
-extern Source<bool> disabled;
-
-bool experimental = false;
 int verbosity = 100;
 const char *prefs_versions[] = {"-0.5.5", "-0.4.1", "-0.4.0", "", nullptr};
 const char *actions_versions[] = {"-0.5.6", "-0.4.1", "-0.4.0", "", nullptr};
@@ -109,7 +105,7 @@ private:
     void on_quit(const Glib::VariantBase &) { quit(); }
 
     virtual void notify() {
-        g_simple_action_set_state(enabled, g_variant_new("b", !disabled.get()));
+        g_simple_action_set_state(enabled, g_variant_new("b", true));
     }
 
     bool remote;
@@ -134,9 +130,7 @@ bool App::local_command_line_vfunc(char **&arg, int &exit_status) {
     int i = 1;
     while (arg[i] && arg[i][0] == '-') {
         if (arg[i][1] == '-') {
-            if (!strcmp(arg[i], "--experimental")) {
-                experimental = true;
-            } else if (!strcmp(arg[i], "--verbose")) {
+            if (!strcmp(arg[i], "--verbose")) {
                 verbosity++;
             } else if (!strcmp(arg[i], "--help")) {
                 usage(arg[0]);
@@ -168,9 +162,6 @@ bool App::local_command_line_vfunc(char **&arg, int &exit_status) {
                             return true;
                         }
                         config_dir = arg[++i];
-                        break;
-                    case 'e':
-                        experimental = true;
                         break;
                     case 'v':
                         verbosity++;
@@ -231,11 +222,7 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
                 printf("Warning: Send requires an argument\n");
             else
                 run_by_name(arg[i], command_line);
-        } else if (!strcmp(arg[i], "disable")) {
-            disabled.set(true);
-        } else if (!strcmp(arg[i], "enable")) {
-            disabled.set(false);
-        }  else if (!strcmp(arg[i], "quit")) {
+        } else if (!strcmp(arg[i], "quit")) {
             quit();
         } else {
             char *msg;
@@ -248,7 +235,6 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
 }
 
 static void enabled_activated(GSimpleAction *simple, GVariant *parameter, gpointer user_data) {
-    disabled.set(!disabled.get());
 }
 
 void App::on_startup() {
@@ -270,7 +256,6 @@ void App::on_startup() {
     menu->append(_("Quit"), "app.quit");
     set_app_menu(menu);
 
-    disabled.connect(this);
     notify();
 }
 
@@ -538,9 +523,6 @@ void Misc::run() {
     switch (type) {
         case UNMINIMIZE:
             grabber->unminimize();
-            return;
-        case DISABLE:
-            disabled.set(!disabled.get());
             return;
         default:
             return;

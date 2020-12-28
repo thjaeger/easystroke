@@ -22,7 +22,6 @@
 #include <X11/Xutil.h>
 #include <glibmm/i18n.h>
 
-extern Source<bool> disabled;
 extern Source<Window> current_app_window;
 extern Source<bool> recording;
 
@@ -234,7 +233,6 @@ Grabber::Grabber() : children(ROOT) {
 	current_class = fun(&get_wm_class, current_app_window);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	recording.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	disabled.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::set)));
 	update();
 	resume();
 }
@@ -448,7 +446,7 @@ void Grabber::grab_xi_devs(GrabState grab) {
 }
 
 void Grabber::set() {
-	bool act = !suspended && ((active && !disabled.get()) || (current != NONE && current != BUTTON));
+	bool act = !suspended && (active || (current != NONE && current != BUTTON));
 	grab_xi(act && current != SELECT);
 	if (!act)
 		grab_xi_devs(GrabNo);

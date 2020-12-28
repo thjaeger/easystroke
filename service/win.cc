@@ -18,8 +18,6 @@
 #include "main.h"
 #include <glibmm/i18n.h>
 
-Glib::RefPtr<Gtk::Builder> widgets;
-
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, double width, bool inv) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
 	x += width; y += width; w -= 2*width; h -= 2*width;
