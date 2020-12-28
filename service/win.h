@@ -35,8 +35,7 @@ public:
 	Win();
 
 	Gtk::Window& get_window() { return *win; }
-	boost::shared_ptr<Actions> actions;
-	boost::shared_ptr<Prefs> prefs_tab;
+    boost::shared_ptr<Actions> actions;
 	boost::shared_ptr<Stats> stats;
 	void show();
 	void hide();
@@ -46,7 +45,7 @@ public:
 private:
 	bool on_icon_size_changed(int);
 	virtual void timeout();
-	void on_help_toggled();
+    void on_help_toggled();
 	void show_popup(guint, guint32);
 	void show_hide_icon();
 
@@ -65,7 +64,6 @@ public:
 	Stats();
 	bool on_stroke(boost::shared_ptr<Ranking>);
 private:
-	void on_pdf();
 	void on_cursor_changed();
 
 	class ModelColumns : public Gtk::TreeModel::ColumnRecord {

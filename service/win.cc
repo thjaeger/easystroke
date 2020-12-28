@@ -14,7 +14,6 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "actions.h"
-#include "prefs.h"
 #include "win.h"
 #include "main.h"
 #include <glibmm/i18n.h>
@@ -164,7 +163,7 @@ public:
 	}
 };
 
-Win::Win() : actions(new Actions), prefs_tab(new Prefs), stats(new Stats) {
+Win::Win() : actions(new Actions), stats(new Stats) {
 	show_hide_icon();
 	prefs.tray_icon.connect(new Notifier(sigc::mem_fun(*this, &Win::show_hide_icon)));
 	disabled.connect(new Notifier(sigc::mem_fun(*this, &Win::timeout)));
