@@ -37,7 +37,7 @@ MANPAGE  = easystroke.1
 
 CCFILES  = $(wildcard *.cc)
 HFILES   = $(wildcard *.h)
-OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) stroke.o cellrenderertextish.o gui.o desktop.o version.o
+OFILES   = $(patsubst %.cc,%.o,$(CCFILES)) stroke.o desktop.o version.o
 POFILES  = $(wildcard po/*.po)
 MOFILES  = $(patsubst po/%.po,po/%/LC_MESSAGES/easystroke.mo,$(POFILES))
 MODIRS   = $(patsubst po/%.po,po/%,$(POFILES))
@@ -75,11 +75,6 @@ stroke.o: stroke.c
 
 version.o: $(GIT)
 	echo 'const char *version_string = "$(VERSION)";' | $(CXX) -o $@ -c -xc++ -
-
-gui.c: gui.glade
-	echo "const char *gui_buffer = \"\\" > $@
-	sed 's/"GtkWindow"/"GtkApplicationWindow"/' $< | sed 's/"/\\"/g' | sed 's/ *\(.*\)/\1\\n\\/' >> $@
-	echo "\";" >> $@
 
 easystroke.desktop: easystroke.desktop.in $(MOFILES)
 	intltool-merge po/ -d -u $< $@

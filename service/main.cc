@@ -315,37 +315,10 @@ void App::on_activate() {
     Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
     io->connect(sigc::mem_fun(*xstate, &XState::handle));
     io->attach();
-    try {
-        widgets = Gtk::Builder::create_from_string(gui_buffer);
-    } catch (Gtk::BuilderError &e) {
-        printf("Error building GUI: %s\n", e.what().c_str());
-        exit(EXIT_FAILURE);
-    }
     hold();
 }
 
 void App::usage(const char *me) {
-    printf("The full easystroke documentation is available at the following address:\n");
-    printf("\n");
-    printf("http://easystroke.wiki.sourceforge.net/Documentation#content\n");
-    printf("\n");
-    printf("Usage: %s [OPTION]... [COMMAND]...\n", me);
-    printf("\n");
-    printf("Commands:\n");
-    printf("  send <action_name>     Execute action <action_name>\n");
-    printf("  show                   Show configuration window\n");
-    printf("  hide                   Hide configuration window\n");
-    printf("  disable                Disable easystroke\n");
-    printf("  enable                 Enable easystroke\n");
-    printf("  about                  Show about dialog\n");
-    printf("  quit                   Quit easystroke\n");
-    printf("\n");
-    printf("Options:\n");
-    printf("  -c, --config-dir <dir> Directory for config files\n");
-    printf("  -e  --experimental     Start in experimental mode\n");
-    printf("  -v, --verbose          Increase verbosity level\n");
-    printf("  -h, --help             Display this help and exit\n");
-    printf("      --version          Output version information and exit\n");
 }
 
 extern const char *version_string;

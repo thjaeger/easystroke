@@ -13,13 +13,3 @@
  * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include "prefs.h"
-#include "win.h"
-#include "main.h"
-#include "grabber.h"
-#include <glibmm/i18n.h>
-#include <sys/stat.h>
-#include "cellrenderertextish.h"
-
-#include <set>
-#include <iostream>

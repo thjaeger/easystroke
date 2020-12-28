@@ -16,15 +16,9 @@
 #include "actions.h"
 #include "actiondb.h"
 #include "win.h"
-#include "main.h"
 #include "prefdb.h"
 #include <glibmm/i18n.h>
 #include <X11/XKBlib.h>
-#include "grabber.h"
-#include "cellrenderertextish.h"
-
-#include <functional>
-#include <typeinfo>
 
 enum Type { MISC };
 
