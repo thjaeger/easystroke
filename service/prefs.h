@@ -19,10 +19,4 @@
 
 #include <gtkmm.h>
 
-class Prefs {
-public:
-	Prefs();
-	virtual ~Prefs() {}
-};
-
 #endif

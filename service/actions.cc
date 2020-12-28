@@ -26,25 +26,8 @@
 #include <functional>
 #include <typeinfo>
 
-enum Type { COMMAND, KEY, TEXT, SCROLL, IGNORE, BUTTON, MISC };
+enum Type { MISC };
 
-struct TypeInfo {
-	Type type;
-	const char *name;
-	const std::type_info *type_info;
-	const CellRendererTextishMode mode;
-};
-
-TypeInfo all_types[8] = {
-	{ COMMAND, N_("Command"), &typeid(Command),  CELL_RENDERER_TEXTISH_MODE_Text  },
-	{ KEY,     N_("Key"),     &typeid(SendKey),  CELL_RENDERER_TEXTISH_MODE_Key   },
-	{ TEXT,    N_("Text"),    &typeid(SendText), CELL_RENDERER_TEXTISH_MODE_Text  },
-	{ SCROLL,  N_("Scroll"),  &typeid(Scroll),   CELL_RENDERER_TEXTISH_MODE_Key   },
-	{ IGNORE,  N_("Ignore"),  &typeid(Ignore),   CELL_RENDERER_TEXTISH_MODE_Key   },
-	{ BUTTON,  N_("Button"),  &typeid(Button),   CELL_RENDERER_TEXTISH_MODE_Popup },
-	{ MISC,    N_("Misc"),    &typeid(Misc),     CELL_RENDERER_TEXTISH_MODE_Combo },
-	{ COMMAND, 0,             0,                 CELL_RENDERER_TEXTISH_MODE_Text  }
-};
 
 extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Source<bool> recording(false);

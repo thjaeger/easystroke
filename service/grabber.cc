@@ -489,13 +489,6 @@ std::string Grabber::select_window() {
 	return xstate->select_window();
 }
 
-bool Grabber::is_grabbed(guint b) {
-	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
-		if (i->button == b)
-			return true;
-	return false;
-}
-
 bool Grabber::is_instant(guint b) {
 	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
 		if (i->button == b && i->instant)

@@ -22,15 +22,5 @@ class Unique;
 class Win;
 class ActionListDiff;
 
-class TreeViewMulti : public Gtk::TreeView {
-	bool pending;
-	Gtk::TreePath path;
-	virtual bool on_button_press_event(GdkEventButton* event);
-	virtual bool on_button_release_event(GdkEventButton* event);
-	virtual void on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context);
-public:
-	TreeViewMulti();
-};
-
 
 #endif

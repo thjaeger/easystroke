@@ -37,7 +37,7 @@
 extern Source<bool> disabled;
 
 bool experimental = false;
-int verbosity = 0;
+int verbosity = 100;
 const char *prefs_versions[] = {"-0.5.5", "-0.4.1", "-0.4.0", "", nullptr};
 const char *actions_versions[] = {"-0.5.6", "-0.4.1", "-0.4.0", "", nullptr};
 Source<Window> current_app_window(None);

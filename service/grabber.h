@@ -50,7 +50,6 @@ class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
 	friend class Button;
-	friend class Prefs;
 public:
 	Children children;
 	enum State { NONE, BUTTON, SELECT, RAW };
@@ -109,7 +108,6 @@ public:
 
 	void new_device(XIDeviceInfo *);
 
-	bool is_grabbed(guint b);
 	bool is_instant(guint b);
 	bool is_click_hold(guint b);
 	bool hierarchy_changed(XIHierarchyEvent *);
