@@ -26,8 +26,6 @@ Stats::Stats() {
 	widgets->get_widget("treeview_recent", recent_view);
 	widgets->get_widget("treeview_ranking", ranking_view);
 
-	button_matrix->signal_clicked().connect(sigc::mem_fun(*this, &Stats::on_pdf));
-
 	recent_store = Gtk::ListStore::create(cols);
 	recent_view->set_model(recent_store);
 	recent_view->append_column(_("Stroke"), cols.stroke);
@@ -230,58 +228,3 @@ bool Stats::on_stroke(RRanking r) {
 	}
 	return false;
 }
-
-void Stats::on_pdf() {
-	struct timeval tv1, tv2;
-	if (verbosity >= 1)
-		gettimeofday(&tv1, 0);
-	const int S = 32;
-	const int B = 1;
-	std::list<RStroke> strokes;
-	actions.get_root()->all_strokes(strokes);
-	const int n = strokes.size();
-	Cairo::RefPtr<Cairo::PdfSurface> surface = Cairo::PdfSurface::create("/tmp/strokes.pdf", (n+1)*S, (n+1)*S);
-	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create(surface);
-	int k = 1;
-	for (std::list<RStroke>::iterator i = strokes.begin(); i != strokes.end(); i++, k++) {
-		(*i)->draw(surface, k*S+B, B, S-2*B, S-2*B);
-		(*i)->draw(surface, B, k*S+B, S-2*B, S-2*B);
-
-		ctx->set_source_rgba(0,0,0,1);
-		ctx->set_line_width(1);
-		ctx->move_to(k*S, B);
-		ctx->line_to(k*S, (n+1)*S-B);
-		ctx->move_to(B, k*S);
-		ctx->line_to((n+1)*S-B, k*S);
-		ctx->stroke();
-
-		int l = 1;
-		for (std::list<RStroke>::iterator j = strokes.begin(); j != strokes.end(); j++, l++) {
-			double score;
-		        int match = Stroke::compare(*i, *j, score);
-			if (match < 0)
-				continue;
-			if (match) {
-				ctx->save();
-				ctx->set_source_rgba(0,0,1,score-0.6);
-				ctx->rectangle(l*S, k*S, S, S);
-				ctx->fill();
-				ctx->restore();
-			}
-			Glib::ustring str = format_float(score);
-			Cairo::TextExtents te;
-			ctx->get_text_extents(str, te);
-			ctx->move_to(l*S+S/2 - te.x_bearing - te.width/2, k*S+S/2 - te.y_bearing - te.height/2);
-			ctx->show_text(str);
-		}
-	}
-	if (verbosity >= 1) {
-		gettimeofday(&tv2, 0);
-		printf("creating table took %ld us\n", (tv2.tv_sec - tv1.tv_sec)*1000000 + tv2.tv_usec - tv1.tv_usec);
-	}
-	if (!fork()) {
-		execlp("xdg-open", "xdg-open", "/tmp/strokes.pdf", nullptr);
-		exit(EXIT_FAILURE);
-	}
-}
-

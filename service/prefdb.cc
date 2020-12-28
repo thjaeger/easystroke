@@ -49,7 +49,6 @@ PrefDB::PrefDB() :
 	scroll_invert(true),
 	scroll_speed(2.0),
 	tray_feedback(false),
-	show_osd(true),
 	move_back(false),
 	whitelist(false)
 {}
@@ -124,7 +123,6 @@ template<class Archive> void PrefDB::serialize(Archive & ar, const unsigned int 
 	ar & scroll_invert.unsafe_ref();
 	ar & scroll_speed.unsafe_ref();
 	ar & tray_feedback.unsafe_ref();
-	ar & show_osd.unsafe_ref();
 	if (version < 16) return;
 	ar & move_back.unsafe_ref();
 	if (version < 17) return;

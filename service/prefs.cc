@@ -261,8 +261,6 @@ Prefs::Prefs() {
 
 	new Check(prefs.move_back, "check_move_back");
 
-	new Check(prefs.show_osd, "check_osd");
-
 	Gtk::Button *bbutton, *add_exception, *remove_exception, *add_extra, *edit_extra, *remove_extra;
 	widgets->get_widget("button_add_exception", add_exception);
 	widgets->get_widget("button_button", bbutton);

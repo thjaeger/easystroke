@@ -128,7 +128,6 @@ public:
 	PrefSource<bool> scroll_invert;
 	PrefSource<double> scroll_speed;
 	PrefSource<bool> tray_feedback;
-	PrefSource<bool> show_osd;
 	PrefSource<bool> move_back;
 	PrefSource<std::map<std::string, TimeoutType> > device_timeout;
 	PrefSource<bool> whitelist;
