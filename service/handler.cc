@@ -1,6 +1,6 @@
 #include "handler.h"
 #include "log.h"
-#include "main.h"
+#include "globals.h"
 #include "trace.h"
 #include <gtkmm.h>
 #include <X11/Xutil.h>
@@ -478,8 +478,6 @@ int XState::xIOErrorHandler(Display *dpy2) {
 	if (dpy != dpy2)
 		return xstate->oldIOHandler(dpy2);
     g_error("Connection to X server lost");
-	quit();
-	return 0;
 }
 
 void XState::ping() {

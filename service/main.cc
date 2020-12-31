@@ -7,7 +7,6 @@
 #include "globals.h"
 #include "util.h"
 #include "prefdb.h"
-#include "main.h"
 #include "actiondb.h"
 #include "trace.h"
 #include "composite.h"

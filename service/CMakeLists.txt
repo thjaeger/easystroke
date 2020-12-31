@@ -32,7 +32,6 @@ set(SOURCE_FILES
     log.cpp
     log.h
     main.cc
-    main.h
     prefdb.cc
     prefdb.h
     stroke.c

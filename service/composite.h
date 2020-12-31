@@ -1,7 +1,6 @@
 #pragma once
 #include <gtkmm.h>
 #include "trace.h"
-#include "main.h"
 #include <list>
 
 class Popup : public Gtk::Window {
