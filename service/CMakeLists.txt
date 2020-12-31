@@ -28,7 +28,6 @@ set(SOURCE_FILES
     main.h
     prefdb.cc
     prefdb.h
-    stats.cc
     stroke.c
     stroke.h
     trace.h
