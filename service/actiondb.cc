@@ -125,7 +125,7 @@ void Command::run() {
 			execlp("/bin/sh", "sh", "-c", cmd.c_str(), nullptr);
 			exit(1);
 		case -1:
-			printf(_("Error: can't execute command \"%s\": fork() failed\n"), cmd.c_str());
+			printf("Error: can't execute command \"%s\": fork() failed\n", cmd.c_str());
 	}
 }
 
@@ -141,9 +141,9 @@ const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-const Glib::ustring Misc::get_label() const { return _(types[type]); }
+const Glib::ustring Misc::get_label() const { return types[type]; }
 
-const char *Misc::types[5] = { N_("None"), N_("Unminimize"), N_("Show/Hide"), N_("Disable (Enable)"), nullptr };
+const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", nullptr };
 
 template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
 	ar & deleted;
@@ -157,7 +157,7 @@ template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsig
 }
 
 ActionDB::ActionDB() {
-	root.name = _("Default");
+	root.name = "Default";
 }
 
 template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
@@ -181,7 +181,7 @@ template<class Archive> void ActionDB::load(Archive & ar, const unsigned int ver
 
 	root.fix_tree(version == 2);
 	root.add_apps(apps);
-	root.name = _("Default");
+	root.name = "Default";
 }
 
 template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
@@ -208,7 +208,7 @@ void ActionDBWatcher::init() {
 						printf("Loaded actions.\n");
 				}
 			} catch (exception &e) {
-				printf(_("Error: Couldn't read action database: %s.\n"), e.what());
+				printf("Error: Couldn't read action database: %s.\n", e.what());
 			}
 			break;
 		}
@@ -224,11 +224,11 @@ void ActionDBWatcher::timeout() {
 		oa << (const ActionDB &)actions;
 		ofs.close();
 		if (rename(tmp.c_str(), filename.c_str()))
-			throw std::runtime_error(_("rename() failed"));
+			throw std::runtime_error("rename() failed");
 		if (verbosity >= 2)
 			printf("Saved actions.\n");
 	} catch (exception &e) {
-		printf(_("Error: Couldn't save action database: %s.\n"), e.what());
+		printf("Error: Couldn't save action database: %s.\n", e.what());
 		if (!good_state)
 			return;
 		good_state = false;

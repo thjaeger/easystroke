@@ -208,7 +208,7 @@ void App::run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationComman
         }
     }
     char *msg;
-    asprintf(&msg, _("Warning: No action \"%s\" defined\n"), str);
+    asprintf(&msg, "Warning: No action \"%s\" defined\n", str);
     cmd_line->print(msg);
     free(msg);
 }
@@ -251,19 +251,15 @@ void App::on_startup() {
     g_action_map_add_action(G_ACTION_MAP(gobj()), G_ACTION(enabled));
 
     Glib::RefPtr<Gio::Menu> menu = Gio::Menu::create();
-    menu->append(_("Enabled"), "app.enabled");
-    menu->append(_("About"), "app.about");
-    menu->append(_("Quit"), "app.quit");
+    menu->append("Enabled", "app.enabled");
+    menu->append("About", "app.about");
+    menu->append("Quit", "app.quit");
     set_app_menu(menu);
 
     notify();
 }
 
 void App::on_activate() {
-    bindtextdomain("easystroke", is_dir("po") ? "po" : LOCALEDIR);
-    bind_textdomain_codeset("easystroke", "UTF-8");
-    textdomain("easystroke");
-
     create_config_dir();
     unsetenv("DESKTOP_AUTOSTART_ID");
 
@@ -272,7 +268,7 @@ void App::on_activate() {
 
     dpy = XOpenDisplay(nullptr);
     if (!dpy) {
-        printf(_("Couldn't open display.\n"));
+        printf("Couldn't open display.\n");
         exit(EXIT_FAILURE);
     }
 
@@ -306,10 +302,8 @@ void App::on_activate() {
 void App::usage(const char *me) {
 }
 
-extern const char *version_string;
-
 void App::version() {
-    printf("easystroke %s\n", version_string);
+    printf("easy-gesture %s\n", "0.1.0");
     printf("\n");
     printf("Written by Thomas Jaeger <ThJaeger@gmail.com>.\n");
     exit(EXIT_SUCCESS);
@@ -326,12 +320,12 @@ void App::create_config_dir() {
     // check if the directory does not exist
     if (lstat(name, &st) == -1) {
         if (mkdir(config_dir.c_str(), 0777) == -1) {
-            printf(_("Error: Couldn't create configuration directory \"%s\"\n"), config_dir.c_str());
+            printf("Error: Couldn't create configuration directory \"%s\"\n", config_dir.c_str());
             exit(EXIT_FAILURE);
         }
     } else {
         if (!S_ISDIR(st.st_mode)) {
-            printf(_("Error: \"%s\" is not a directory\n"), config_dir.c_str());
+            printf("Error: \"%s\" is not a directory\n", config_dir.c_str());
             exit(EXIT_FAILURE);
         }
 

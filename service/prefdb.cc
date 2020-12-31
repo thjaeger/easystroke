@@ -145,7 +145,7 @@ void PrefDB::timeout() {
 		if (verbosity >= 2)
 			printf("Saved preferences.\n");
 	} catch (std::exception &e) {
-		printf(_("Error: Couldn't save preferences: %s.\n"), e.what());
+		printf("Error: Couldn't save preferences: %s.\n", e.what());
 		if (!good_state)
 			return;
 		good_state = false;
@@ -175,7 +175,7 @@ void PrefDB::init() {
 						std::cout << "Loaded preferences." << std::endl;
 				}
 			} catch (...) {
-				printf(_("Error: Couldn't read preferences.\n"));
+				printf("Error: Couldn't read preferences.\n");
 			}
 			break;
 		}

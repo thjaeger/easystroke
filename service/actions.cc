@@ -32,7 +32,7 @@ const Glib::ustring SendKey::get_label() const {
 
 const Glib::ustring ModAction::get_label() const {
 	if (!mods)
-		return _("No Modifiers");
+		return "No Modifiers";
 	Glib::ustring label = Gtk::AccelGroup::get_label(0, mods);
 	return label.substr(0,label.size()-1);
 }
@@ -40,26 +40,26 @@ const Glib::ustring ModAction::get_label() const {
 Glib::ustring ButtonInfo::get_button_text() const {
 	Glib::ustring str;
 	if (instant)
-		str += _("(Instantly) ");
+		str += "(Instantly) ";
 	if (click_hold)
-		str += _("(Click & Hold) ");
+		str += "(Click & Hold) ";
 	if (state == AnyModifier)
-		str += Glib::ustring() + "(" + _("Any Modifier") + " +) ";
+		str += Glib::ustring() + "(" + "Any Modifier" + " +) ";
 	else
 		str += Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
-	return str + Glib::ustring::compose(_("Button %1"), button);
+	return str + Glib::ustring::compose("Button %1", button);
 }
 
 const Glib::ustring Scroll::get_label() const {
 	if (mods)
-		return ModAction::get_label() + _(" + Scroll");
+		return ModAction::get_label() + " + Scroll";
 	else
-		return _("Scroll");
+		return "Scroll";
 }
 
 const Glib::ustring Ignore::get_label() const {
 	if (mods)
 		return ModAction::get_label();
 	else
-		return _("Ignore");
+		return "Ignore";
 }

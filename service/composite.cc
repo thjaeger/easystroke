@@ -23,7 +23,7 @@ std::list<Trace::Point> points;
 
 Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), rect(x1, y1, x2-x1, y2-y1) {
 	if (!is_composited())
-		throw std::runtime_error(_("'composite' not available"));
+		throw std::runtime_error("'composite' not available");
 
 	Glib::RefPtr<Gdk::Visual> visual = get_screen()->get_rgba_visual();
 	gtk_widget_set_visual(Widget::gobj(), visual->gobj());

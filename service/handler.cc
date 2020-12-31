@@ -334,7 +334,7 @@ bool XState::handle(Glib::IOCondition) {
 			if (!grabber->handle(ev))
 				handle_event(ev);
 		} catch (GrabFailedException &e) {
-			printf(_("Error: %s\n"), e.what());
+			printf("Error: %s\n", e.what());
 			bail_out();
 		}
 	}

@@ -20,7 +20,7 @@
 #include <glibmm/i18n.h>
 
 struct DBusException: public std::exception {
-	virtual const char* what() const throw() { return _("Connection to DBus failed"); }
+	virtual const char* what() const throw() { return "Connection to DBus failed"; }
 };
 
 class Trace {
