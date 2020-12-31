@@ -1,14 +1,6 @@
 #pragma once
 
-#include <gtkmm.h>
-#include <X11/Xutil.h>
-#include <X11/extensions/XTest.h>
-#include <X11/extensions/Xfixes.h>
+#include <memory>
+#include "appxcontext.h"
 
-extern "C" {
-    struct _XDisplay;
-    typedef struct _XDisplay Display;
-}
-
-extern Display *dpy;
-extern Window ROOT;
+extern std::shared_ptr<AppXContext> context;

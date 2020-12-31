@@ -19,6 +19,8 @@ set(SOURCE_FILES
     actions/modifiers.cpp
     actions/modifiers.h
     actions.h
+    appxcontext.cpp
+    appxcontext.h
     composite.cc
     composite.h
     desktop.cc
@@ -40,7 +42,8 @@ set(SOURCE_FILES
     util.h
     var.h
     win.cc
-    win.h)
+    win.h
+)
 
 link_directories(${GTKMM_LIBRARY_DIRS})
 

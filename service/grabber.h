@@ -7,15 +7,6 @@
 
 #define MAX_BUTTONS 256
 
-class XAtom {
-	const char *name;
-	Atom atom;
-
-public:
-	XAtom(const char *name_) : name(name_), atom(0) {}
-	Atom operator*();
-	Atom operator->() { return operator*(); }
-};
 
 class Children {
 	Window parent;

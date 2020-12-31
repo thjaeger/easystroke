@@ -32,7 +32,7 @@ void Modifiers::update_mods() {
     for (int i = 0; i < n_modkeys; i++) {
         guint mask = modkeys[i].mask;
         if ((mod_state & mask) ^ (new_state & mask))
-            XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), new_state & mask, 0);
+            XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, modkeys[i].sym), new_state & mask, 0);
     }
     mod_state = new_state;
 }

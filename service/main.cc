@@ -20,8 +20,6 @@
 #include <csignal>
 
 Source<Window> current_app_window(None);
-Display *dpy;
-Window ROOT;
 
 std::shared_ptr<Trace> trace;
 
@@ -32,7 +30,7 @@ static Trace *init_trace() {
 void Trace::start(Trace::Point p) {
     last = p;
     active = true;
-    XFixesHideCursor(dpy, ROOT);
+    XFixesHideCursor(context->dpy, context->ROOT);
     start_();
 }
 
@@ -40,7 +38,7 @@ void Trace::end() {
     if (!active)
         return;
     active = false;
-    XFixesShowCursor(dpy, ROOT);
+    XFixesShowCursor(context->dpy, context->ROOT);
     end_();
 }
 
@@ -123,33 +121,34 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
     return true;
 }
 
+std::shared_ptr<AppXContext> context = nullptr;
+
 void App::on_activate() {
     unsetenv("DESKTOP_AUTOSTART_ID");
 
     signal(SIGINT, &sig_int);
     signal(SIGCHLD, SIG_IGN);
 
-    dpy = XOpenDisplay(nullptr);
-    if (!dpy) {
-        g_error("Couldn't open display.");
+    if (context) {
+        g_error("Context already configured");
     }
 
-    ROOT = DefaultRootWindow(dpy);
+    context = std::make_shared<AppXContext>();
 
     xstate = new XState;
     grabber = new Grabber;
     // Force enter events to be generated
-    XGrabPointer(dpy, ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-    XUngrabPointer(dpy, CurrentTime);
+    XGrabPointer(context->dpy, context->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+    XUngrabPointer(context->dpy, CurrentTime);
 
     trace.reset(init_trace());
     Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
     g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
     screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
 
-    XTestGrabControl(dpy, True);
+    XTestGrabControl(context->dpy, True);
 
-    Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(dpy), Glib::IO_IN);
+    Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(context->dpy), Glib::IO_IN);
     io->connect(sigc::mem_fun(*xstate, &XState::handle));
     io->attach();
     hold();
@@ -171,9 +170,9 @@ void Actions::Button::run() {
 void Actions::SendKey::run() {
     if (!key)
         return;
-    guint code = XKeysymToKeycode(dpy, key);
-    XTestFakeKeyEvent(dpy, code, true, 0);
-    XTestFakeKeyEvent(dpy, code, false, 0);
+    guint code = XKeysymToKeycode(context->dpy, key);
+    XTestFakeKeyEvent(context->dpy, code, true, 0);
+    XTestFakeKeyEvent(context->dpy, code, false, 0);
 }
 
 void fake_unicode(gunichar c) {
@@ -185,24 +184,24 @@ void fake_unicode(gunichar c) {
         buf[g_unichar_to_utf8(c, buf)] = '\0';
         g_debug("using unicode input for character %s", buf);
     }
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Control_L), true, 0);
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Shift_L), true, 0);
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_u), true, 0);
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_u), false, 0);
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Shift_L), false, 0);
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Control_L), false, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_Control_L), true, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_Shift_L), true, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_u), true, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_u), false, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_Shift_L), false, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_Control_L), false, 0);
     char buf[16];
     snprintf(buf, sizeof(buf), "%x", c);
     for (int i = 0; buf[i]; i++)
         if (buf[i] >= '0' && buf[i] <= '9') {
-            XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, numcode[buf[i] - '0']), true, 0);
-            XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, numcode[buf[i] - '0']), false, 0);
+            XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, numcode[buf[i] - '0']), true, 0);
+            XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, numcode[buf[i] - '0']), false, 0);
         } else if (buf[i] >= 'a' && buf[i] <= 'f') {
-            XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, hexcode[buf[i] - 'a']), true, 0);
-            XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, hexcode[buf[i] - 'a']), false, 0);
+            XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, hexcode[buf[i] - 'a']), true, 0);
+            XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, hexcode[buf[i] - 'a']), false, 0);
         }
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_space), true, 0);
-    XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_space), false, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_space), true, 0);
+    XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, XK_space), false, 0);
 }
 
 bool fake_char(gunichar c) {
@@ -211,12 +210,12 @@ bool fake_char(gunichar c) {
     KeySym keysym = XStringToKeysym(buf);
     if (keysym == NoSymbol)
         return false;
-    KeyCode keycode = XKeysymToKeycode(dpy, keysym);
+    KeyCode keycode = XKeysymToKeycode(context->dpy, keysym);
     if (!keycode)
         return false;
     KeyCode modifier = 0;
     int n;
-    KeySym *mapping = XGetKeyboardMapping(dpy, keycode, 1, &n);
+    KeySym *mapping = XGetKeyboardMapping(context->dpy, keycode, 1, &n);
     if (mapping[0] != keysym) {
         int i;
         for (i = 1; i < n; i++)
@@ -224,17 +223,17 @@ bool fake_char(gunichar c) {
                 break;
         if (i == n)
             return false;
-        XModifierKeymap *keymap = XGetModifierMapping(dpy);
+        XModifierKeymap *keymap = XGetModifierMapping(context->dpy);
         modifier = keymap->modifiermap[i];
         XFreeModifiermap(keymap);
     }
     XFree(mapping);
     if (modifier)
-        XTestFakeKeyEvent(dpy, modifier, true, 0);
-    XTestFakeKeyEvent(dpy, keycode, true, 0);
-    XTestFakeKeyEvent(dpy, keycode, false, 0);
+        XTestFakeKeyEvent(context->dpy, modifier, true, 0);
+    XTestFakeKeyEvent(context->dpy, keycode, true, 0);
+    XTestFakeKeyEvent(context->dpy, keycode, false, 0);
     if (modifier)
-        XTestFakeKeyEvent(dpy, modifier, false, 0);
+        XTestFakeKeyEvent(context->dpy, modifier, false, 0);
     return true;
 }
 

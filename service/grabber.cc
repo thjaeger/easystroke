@@ -56,33 +56,26 @@ public:
 	X1 find2(X2 x2) { return map2.find(x2)->second; }
 };
 
-Atom XAtom::operator*() {
-	if (!atom)
-		atom = XInternAtom(dpy, name, False);
-	return atom;
-}
+
 
 BiMap<Window, Window> frame_win;
 BiMap<Window, Window> frame_child;
-XAtom _NET_FRAME_WINDOW("_NET_FRAME_WINDOW");
-XAtom _NET_WM_STATE("_NET_WM_STATE");
-XAtom _NET_WM_STATE_HIDDEN("_NET_WM_STATE_HIDDEN");
-XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
+
 
 std::list<Window> minimized;
 
 void get_frame(Window w) {
-	Window frame = xstate->get_window(w, *_NET_FRAME_WINDOW);
+	Window frame = xstate->get_window(w, context->NET_FRAME_WINDOW);
 	if (!frame)
 		return;
 	frame_win.add(frame, w);
 }
 
 Children::Children(Window w) : parent(w) {
-	XSelectInput(dpy, parent, SubstructureNotifyMask);
+	XSelectInput(context->dpy, parent, SubstructureNotifyMask);
 	unsigned int n;
 	Window dummyw1, dummyw2, *ch;
-	XQueryTree(dpy, parent, &dummyw1, &dummyw2, &ch, &n);
+	XQueryTree(context->dpy, parent, &dummyw1, &dummyw2, &ch, &n);
 	for (unsigned int i = 0; i < n; i++)
 		add(ch[i]);
 	XFree(ch);
@@ -112,20 +105,20 @@ bool Children::handle(XEvent &ev) {
 				remove(ev.xreparent.window);
 			return true;
 		case PropertyNotify:
-			if (ev.xproperty.atom == *_NET_FRAME_WINDOW) {
+			if (ev.xproperty.atom == context->NET_FRAME_WINDOW) {
 				if (ev.xproperty.state == PropertyDelete)
 					frame_win.erase1(ev.xproperty.window);
 				if (ev.xproperty.state == PropertyNewValue)
 					get_frame(ev.xproperty.window);
 				return true;
 			}
-			if (ev.xproperty.atom == *_NET_WM_STATE) {
+			if (ev.xproperty.atom == context->NET_WM_STATE) {
 				if (ev.xproperty.state == PropertyDelete) {
 					minimized.remove(ev.xproperty.window);
 					return true;
 				}
 				bool was_hidden = std::find(minimized.begin(), minimized.end(), ev.xproperty.window) != minimized.end();
-				bool is_hidden = xstate->has_atom(ev.xproperty.window, *_NET_WM_STATE, *_NET_WM_STATE_HIDDEN);
+				bool is_hidden = xstate->has_atom(ev.xproperty.window, context->NET_WM_STATE, context->NET_WM_STATE_HIDDEN);
 				if (was_hidden && !is_hidden)
 					minimized.remove(ev.xproperty.window);
 				if (is_hidden && !was_hidden)
@@ -142,12 +135,12 @@ void Children::add(Window w) {
 	if (!w)
 		return;
 
-	XSelectInput(dpy, w, EnterWindowMask | PropertyChangeMask);
+	XSelectInput(context->dpy, w, EnterWindowMask | PropertyChangeMask);
 	get_frame(w);
 }
 
 void Children::remove(Window w) {
-	XSelectInput(dpy, w, 0);
+	XSelectInput(context->dpy, w, 0);
 	destroy(w);
 }
 
@@ -160,21 +153,21 @@ static void activate(Window w, Time t) {
 	XClientMessageEvent ev;
 	ev.type = ClientMessage;
 	ev.window = w;
-	ev.message_type = *_NET_ACTIVE_WINDOW;
+	ev.message_type = context->NET_ACTIVE_WINDOW;
 	ev.format = 32;
 	ev.data.l[0] = 0; // 1 app, 2 pager
 	ev.data.l[1] = t;
 	ev.data.l[2] = 0;
 	ev.data.l[3] = 0;
 	ev.data.l[4] = 0;
-	XSendEvent(dpy, ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
+	XSendEvent(context->dpy, context->ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask, (XEvent *)&ev);
 }
 
 std::string get_wm_class(Window w) {
 	if (!w)
 		return "";
 	XClassHint ch;
-	if (!XGetClassHint(dpy, w, &ch))
+	if (!XGetClassHint(context->dpy, w, &ch))
 		return "";
 	std::string ans = ch.res_name;
 	XFree(ch.res_name);
@@ -201,7 +194,7 @@ void Grabber::unminimize() {
 const char *Grabber::state_name[4] = { "None", "Button", "Select", "Raw" };
 
 Grabber::Grabber()
-    : children(ROOT) {
+    : children(context->ROOT) {
 	current = BUTTON;
 	suspended = 0;
 	suspend();
@@ -211,7 +204,7 @@ Grabber::Grabber()
 	xi_devs_grabbed = GrabNo;
 	grabbed_button.button = 0;
 	grabbed_button.state = 0;
-	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
+	cursor_select = XCreateFontCursor(context->dpy, XC_crosshair);
 	init_xi();
 	current_class = fun(&get_wm_class, current_app_window);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
@@ -220,14 +213,14 @@ Grabber::Grabber()
 }
 
 Grabber::~Grabber() {
-	XFreeCursor(dpy, cursor_select);
+	XFreeCursor(context->dpy, cursor_select);
 }
 
 bool Grabber::init_xi() {
 	/* XInput Extension available? */
 	int major = 2, minor = 0;
-	if (!XQueryExtension(dpy, "XInputExtension", &opcode, &event, &error) ||
-			XIQueryVersion(dpy, &major, &minor) == BadRequest ||
+	if (!XQueryExtension(context->dpy, "XInputExtension", &opcode, &event, &error) ||
+			XIQueryVersion(context->dpy, &major, &minor) == BadRequest ||
 			major < 2) {
 		g_error("This version of Easy Gesture needs an XInput 2.0-aware X server.\n"
 				"Please upgrade your X server to 1.7.");
@@ -235,7 +228,7 @@ bool Grabber::init_xi() {
 	}
 
 	int n;
-	XIDeviceInfo *info = XIQueryDevice(dpy, XIAllDevices, &n);
+	XIDeviceInfo *info = XIQueryDevice(context->dpy, XIAllDevices, &n);
 	if (!info) {
 		g_warning("Warning: No XInput devices available");
 		return false;
@@ -275,7 +268,7 @@ bool Grabber::init_xi() {
 	global_mask.mask_len = sizeof(data);
 	XISetMask(global_mask.mask, XI_HierarchyChanged);
 
-	XISelectEvents(dpy, ROOT, &global_mask, 1);
+	XISelectEvents(context->dpy, context->ROOT, &global_mask, 1);
 
 	return true;
 }
@@ -286,7 +279,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 		XIHierarchyInfo *info = event->info + i;
 		if (info->flags & XISlaveAdded) {
 			int n;
-			XIDeviceInfo *dev_info = XIQueryDevice(dpy, info->deviceid, &n);
+			XIDeviceInfo *dev_info = XIQueryDevice(context->dpy, info->deviceid, &n);
 			if (!dev_info)
 				continue;
 			new_device(dev_info);
@@ -315,12 +308,11 @@ void Grabber::update_excluded() {
 }
 
 bool is_xtest_device(int dev) {
-	static XAtom XTEST(XI_PROP_XTEST_DEVICE);
 	Atom type;
 	int format;
 	unsigned long num_items, bytes_after;
 	unsigned char *data;
-	if (Success != XIGetProperty(dpy, dev, *XTEST, 0, 1, False, XA_INTEGER,
+	if (Success != XIGetProperty(context->dpy, dev, context->XTEST, 0, 1, False, XA_INTEGER,
 				&type, &format, &num_items, &bytes_after, &data))
 		return false;
 	bool ret = num_items && format == 8 && *((int8_t*)data);
@@ -344,7 +336,6 @@ void Grabber::new_device(XIDeviceInfo *info) {
 }
 
 Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(false), active(true), proximity_axis(-1), scale_x(1.0), scale_y(1.0), num_buttons(0) {
-	static XAtom PROXIMITY(AXIS_LABEL_PROP_ABS_DISTANCE);
 	dev = info->deviceid;
 	name = info->name;
 	master = info->attachment;
@@ -358,12 +349,12 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
 			if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative) {
 				absolute = true;
 				if (v-> number == 0)
-					scale_x = (double)DisplayWidth(dpy, DefaultScreen(dpy)) / (double)(v->max - v->min);
+					scale_x = (double)DisplayWidth(context->dpy, DefaultScreen(context->dpy)) / (double)(v->max - v->min);
 				else
-					scale_y = (double)DisplayHeight(dpy, DefaultScreen(dpy)) / (double)(v->max - v->min);
+					scale_y = (double)DisplayHeight(context->dpy, DefaultScreen(context->dpy)) / (double)(v->max - v->min);
 
 			}
-			if (v->label == *PROXIMITY)
+			if (v->label == context->PROXIMITY)
 				proximity_axis = v->number;
 		}
 	}
@@ -388,9 +379,9 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {
 			modifiers[i].modifiers = bi.state ^ ignore_mods[i];
 	}
 	if (grab)
-		XIGrabButton(dpy, dev, bi.button, ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
+		XIGrabButton(context->dpy, dev, bi.button, context->ROOT, None, GrabModeAsync, GrabModeAsync, False, &device_mask, nmods, modifiers);
 	else {
-		XIUngrabButton(dpy, dev, bi.button, ROOT, nmods, modifiers);
+		XIUngrabButton(context->dpy, dev, bi.button, context->ROOT, nmods, modifiers);
 		xstate->ungrab(dev);
 	}
 }
@@ -407,11 +398,11 @@ void Grabber::grab_xi(bool grab) {
 
 void Grabber::XiDevice::grab_device(GrabState grab) {
 	if (grab == GrabNo) {
-		XIUngrabDevice(dpy, dev, CurrentTime);
+		XIUngrabDevice(context->dpy, dev, CurrentTime);
 		xstate->ungrab(dev);
 		return;
 	}
-	XIGrabDevice(dpy, dev, ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
+	XIGrabDevice(context->dpy, dev, context->ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
 			grab == GrabYes ? &device_mask : &raw_mask);
 }
 
@@ -441,11 +432,11 @@ void Grabber::set() {
 	g_debug("grabbing: %s", state_name[grabbed]);
 
 	if (old == SELECT)
-		XUngrabPointer(dpy, CurrentTime);
+		XUngrabPointer(context->dpy, CurrentTime);
 
 	if (grabbed == SELECT) {
-		int code = XGrabPointer(dpy, ROOT, False, ButtonPressMask,
-				GrabModeAsync, GrabModeAsync, ROOT, cursor_select, CurrentTime);
+		int code = XGrabPointer(context->dpy, context->ROOT, False, ButtonPressMask,
+				GrabModeAsync, GrabModeAsync, context->ROOT, cursor_select, CurrentTime);
 		if (code != GrabSuccess)
 			throw GrabFailedException(code);
 	}
@@ -501,15 +492,13 @@ void Grabber::update() {
 	resume();
 }
 
-// Fuck Xlib
 static bool has_wm_state(Window w) {
-	static XAtom WM_STATE("WM_STATE");
 	Atom actual_type_return;
 	int actual_format_return;
 	unsigned long nitems_return;
 	unsigned long bytes_after_return;
 	unsigned char *prop_return;
-	if (Success != XGetWindowProperty(dpy, w, *WM_STATE, 0, 2, False,
+	if (Success != XGetWindowProperty(context->dpy, w, context->WM_STATE, 0, 2, False,
 				AnyPropertyType, &actual_type_return,
 				&actual_format_return, &nitems_return,
 				&bytes_after_return, &prop_return))
@@ -526,7 +515,7 @@ Window find_wm_state(Window w) {
 	Window found = None;
 	unsigned int n;
 	Window dummyw1, dummyw2, *ch;
-	if (!XQueryTree(dpy, w, &dummyw1, &dummyw2, &ch, &n))
+	if (!XQueryTree(context->dpy, w, &dummyw1, &dummyw2, &ch, &n))
 		return None;
 	for (unsigned int i = 0; i != n; i++)
 		if (has_wm_state(ch[i]))
@@ -556,7 +545,7 @@ Window get_app_window(Window w) {
 		frame_child.add(w, w2);
 		if (w2 != w) {
 			w = w2;
-			XSelectInput(dpy, w2, StructureNotifyMask | PropertyChangeMask);
+			XSelectInput(context->dpy, w2, StructureNotifyMask | PropertyChangeMask);
 		}
 		return w2;
 	}
