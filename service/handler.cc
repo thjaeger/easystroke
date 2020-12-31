@@ -912,7 +912,7 @@ protected:
 		if (!drawing && dist > 4 && (!use_timeout || final_timeout)) {
 			drawing = true;
 			bool first = true;
-			for (PreStroke::iterator i = cur->begin(); i != cur->end(); i++) {
+			for (auto i = cur->begin(); i != cur->end(); i++) {
 				Trace::Point p;
 				p.x = (*i)->x;
 				p.y = (*i)->y;

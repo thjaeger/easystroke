@@ -1,11 +1,5 @@
 #pragma once
 
-#include <exception>
-
-struct DBusException: public std::exception {
-	virtual const char* what() const throw() { return "Connection to DBus failed"; }
-};
-
 class Trace {
 public:
 	struct Point { float x; float y; };

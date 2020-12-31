@@ -18,10 +18,8 @@
 
 #include <cstring>
 #include <csignal>
-#include <fcntl.h>
 
 Source<Window> current_app_window(None);
-std::string config_dir;
 Display *dpy;
 Window ROOT;
 
@@ -59,40 +57,23 @@ void sig_int(int) {
     quit();
 }
 
-class App : public Gtk::Application, Base {
+class App : public Gtk::Application {
 public:
     App(int &argc, char **&argv, const Glib::ustring &application_id,
         Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE) :
-            Gtk::Application(argc, argv, application_id, flags), remote(false), enabled(nullptr) {}
-
-    ~App();
-
-    static void usage(const char *me);
-
-    static void version();
+            Gtk::Application(argc, argv, application_id, flags) {}
 
 protected:
-    virtual void on_startup();
-
-    virtual void on_activate();
+    void on_activate() override;
 
 private:
-    virtual bool local_command_line_vfunc(char **&arguments, int &exit_status);
+    bool local_command_line_vfunc(char **&arguments, int &exit_status) override;
 
-    int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &);
+    int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &) override;
 
     void run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationCommandLine> &cmd_line);
 
-    void create_config_dir();
-
     void on_quit(const Glib::VariantBase &) { quit(); }
-
-    virtual void notify() {
-        g_simple_action_set_state(enabled, g_variant_new("b", true));
-    }
-
-    bool remote;
-    GSimpleAction *enabled;
 };
 
 class ReloadTrace : public Timeout {
@@ -105,8 +86,6 @@ class ReloadTrace : public Timeout {
 } reload_trace;
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
-
-extern const char *gui_buffer;
 
 bool App::local_command_line_vfunc(char **&arg, int &exit_status) {
     if (!register_application()) {
@@ -141,37 +120,10 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
         } else {
             g_warning("Warning: Unknown command \"%s\".", arg[i]);
         }
-    remote = true;
     return true;
 }
 
-static void enabled_activated(GSimpleAction *simple, GVariant *parameter, gpointer user_data) {
-}
-
-void App::on_startup() {
-    Gtk::Application::on_startup();
-
-    Glib::RefPtr<Gio::SimpleAction> action;
-
-    action = Gio::SimpleAction::create("quit");
-    action->signal_activate().connect(sigc::mem_fun(*this, &App::on_quit));
-    add_action(action);
-
-    enabled = g_simple_action_new_stateful("enabled", 0, g_variant_new_boolean(false));
-    g_signal_connect(G_OBJECT(enabled), "activate", G_CALLBACK(enabled_activated), this);
-    g_action_map_add_action(G_ACTION_MAP(gobj()), G_ACTION(enabled));
-
-    Glib::RefPtr<Gio::Menu> menu = Gio::Menu::create();
-    menu->append("Enabled", "app.enabled");
-    menu->append("About", "app.about");
-    menu->append("Quit", "app.quit");
-    set_app_menu(menu);
-
-    notify();
-}
-
 void App::on_activate() {
-    create_config_dir();
     unsetenv("DESKTOP_AUTOSTART_ID");
 
     signal(SIGINT, &sig_int);
@@ -203,56 +155,8 @@ void App::on_activate() {
     hold();
 }
 
-void App::usage(const char *me) {
-}
-
-void App::version() {
-}
-
-void App::create_config_dir() {
-    if (config_dir == "") {
-        config_dir = getenv("HOME");
-        config_dir += "/.easystroke";
-    }
-    struct stat st;
-    char *name = realpath(config_dir.c_str(), nullptr);
-
-    // check if the directory does not exist
-    if (lstat(name, &st) == -1) {
-        if (mkdir(config_dir.c_str(), 0777) == -1) {
-            g_error("Error: Couldn't create configuration directory \"%s\"", config_dir.c_str());
-        }
-    } else {
-        if (!S_ISDIR(st.st_mode)) {
-            g_error("Error: \"%s\" is not a directory", config_dir.c_str());
-        }
-    }
-
-    free(name);
-    config_dir += "/";
-}
-
-App::~App() {
-}
-
 int main(int argc, char **argv) {
     g_message("Listening...");
-
-    if (0) {
-        RStroke trefoil = Stroke::trefoil();
-        trefoil->draw_svg("easystroke.svg");
-        exit(EXIT_SUCCESS);
-    }
-    // GtkApplication needs dbus to even invoke the local_command_line function
-    if (argc > 1 && !strcmp(argv[1], "--help")) {
-        App::usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
-
-    if (argc > 1 && !strcmp(argv[1], "--version")) {
-        App::usage(argv[0]);
-        return EXIT_SUCCESS;
-    }
 
     App app(argc, argv, "org.easystroke.easystroke", Gio::APPLICATION_HANDLES_COMMAND_LINE);
     return app.run(argc, argv);
@@ -385,7 +289,7 @@ public:
         return mods == m.mods && str == m.str;
     }
 
-    virtual void timeout() {
+    void timeout() override {
     }
 
     ~Modifiers() {
@@ -418,9 +322,4 @@ void Misc::run() {
         default:
             return;
     }
-}
-
-bool is_file(std::string filename) {
-    struct stat st;
-    return lstat(filename.c_str(), &st) != -1 && S_ISREG(st.st_mode);
 }
