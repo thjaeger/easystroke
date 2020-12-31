@@ -1,105 +1,8 @@
 #include <glibmm/i18n.h>
-#include <iostream>
-#include <fstream>
 #include <string>
-#include <boost/archive/text_oarchive.hpp>
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/set.hpp>
-#include <boost/serialization/list.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/export.hpp>
-#include <boost/serialization/shared_ptr.hpp>
 
 #include "actiondb.h"
-#include "main.h"
 #include "win.h"
-
-BOOST_CLASS_EXPORT(StrokeSet)
-
-BOOST_CLASS_EXPORT(Action)
-BOOST_CLASS_EXPORT(Command)
-BOOST_CLASS_EXPORT(ModAction)
-BOOST_CLASS_EXPORT(SendKey)
-BOOST_CLASS_EXPORT(SendText)
-BOOST_CLASS_EXPORT(Scroll)
-BOOST_CLASS_EXPORT(Ignore)
-BOOST_CLASS_EXPORT(Button)
-BOOST_CLASS_EXPORT(Misc)
-
-template<class Archive> void Unique::serialize(Archive & ar, const unsigned int version) {}
-
-template<class Archive> void Action::serialize(Archive & ar, const unsigned int version) {}
-
-template<class Archive> void Command::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<Action>(*this);
-	ar & cmd;
-}
-
-template<class Archive> void ModAction::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<Action>(*this);
-	ar & mods;
-}
-
-template<class Archive> void SendKey::load(Archive & ar, const unsigned int version) {
-	guint code;
-	ar & boost::serialization::base_object<ModAction>(*this);
-	ar & key;
-	ar & code;
-	if (version < 1) {
-		bool xtest;
-		ar & xtest;
-	}
-}
-
-template<class Archive> void SendKey::save(Archive & ar, const unsigned int version) const {
-	guint code = 0;
-	ar & boost::serialization::base_object<ModAction>(*this);
-	ar & key;
-	ar & code;
-}
-
-template<class Archive> void SendText::load(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<Action>(*this);
-	std::string str;
-	ar & str;
-	text = str;
-}
-
-template<class Archive> void SendText::save(Archive & ar, const unsigned int version) const {
-	ar & boost::serialization::base_object<Action>(*this);
-	std::string str(text);
-	ar & str;
-}
-
-template<class Archive> void Scroll::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<ModAction>(*this);
-}
-
-template<class Archive> void Ignore::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<ModAction>(*this);
-}
-
-template<class Archive> void Button::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<ModAction>(*this);
-	ar & button;
-}
-
-template<class Archive> void Misc::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<Action>(*this);
-	ar & type;
-}
-
-template<class Archive> void StrokeSet::serialize(Archive & ar, const unsigned int version) {
-	ar & boost::serialization::base_object<std::set<RStroke> >(*this);
-}
-
-template<class Archive> void StrokeInfo::serialize(Archive & ar, const unsigned int version) {
-	ar & strokes;
-	ar & action;
-	if (version == 0) return;
-	ar & name;
-}
 
 using namespace std;
 
@@ -110,7 +13,7 @@ void Command::run() {
 			execlp("/bin/sh", "sh", "-c", cmd.c_str(), nullptr);
 			exit(1);
 		case -1:
-			g_warning("can't execute command \"%s\": fork() failed\n", cmd.c_str());
+			g_warning("can't execute command \"%s\": fork() failed", cmd.c_str());
 	}
 }
 
@@ -121,7 +24,6 @@ ButtonInfo Button::get_button_info() const {
 	return bi;
 }
 
-
 const Glib::ustring Button::get_label() const {
 	return get_button_info().get_button_text();
 }
@@ -130,94 +32,39 @@ const Glib::ustring Misc::get_label() const { return types[type]; }
 
 const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", nullptr };
 
-template<class Archive> void ActionListDiff::serialize(Archive & ar, const unsigned int version) {
-	ar & deleted;
-	ar & added;
-	ar & name;
-	ar & children;
-	ar & app;
-	if (version == 0)
-		return;
-	ar & order;
-}
-
 ActionDB::ActionDB() {
 	root.name = "Default";
+
+	auto upStroke = PreStroke();
+	upStroke.add(create_triple(1, 10, 0));
+	upStroke.add(create_triple(1, 1, 1));
+    upStroke.add(create_triple(1, 1, 1));
+
+    auto leftStroke = PreStroke();
+    leftStroke.add(create_triple(10, 1, 0));
+    leftStroke.add(create_triple(1, 1, 1));
+    leftStroke.add(create_triple(1, 1, 1));
+
+    auto rightStroke = PreStroke();
+    rightStroke.add(create_triple(1, 1, 0));
+    rightStroke.add(create_triple(10, 1, 1));
+    rightStroke.add(create_triple(10, 1, 1));
+
+    root.add(std::make_shared<StrokeInfo>(
+        std::make_shared<Stroke>(upStroke, 0, 0, 32768, false),
+        std::make_shared<Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"))
+    );
+
+    root.add(std::make_shared<StrokeInfo>(
+            std::make_shared<Stroke>(leftStroke, 0, 0, 32768, false),
+            std::make_shared<Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"))
+    );
+
+    root.add(std::make_shared<StrokeInfo>(
+            std::make_shared<Stroke>(rightStroke, 0, 0, 32768, false),
+            std::make_shared<Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"))
+    );
 }
-
-template<class Archive> void ActionDB::load(Archive & ar, const unsigned int version) {
-	if (version >= 2) {
-		ar & root;
-	}
-	if (version == 1) {
-		std::map<int, StrokeInfo> strokes;
-		ar & strokes;
-		for (std::map<int, StrokeInfo>::iterator i = strokes.begin(); i != strokes.end(); ++i)
-			root.add(i->second);
-	}
-	if (version == 0) {
-		std::map<std::string, StrokeInfo> strokes;
-		ar & strokes;
-		for (std::map<std::string, StrokeInfo>::iterator i = strokes.begin(); i != strokes.end(); ++i) {
-			i->second.name = i->first;
-			root.add(i->second);
-		}
-	}
-
-	root.fix_tree(version == 2);
-	root.add_apps(apps);
-	root.name = "Default";
-}
-
-template<class Archive> void ActionDB::save(Archive & ar, const unsigned int version) const {
-	ar & root;
-}
-
-Source<bool> action_dummy;
-
-void update_actions() {
-	action_dummy.set(false);
-}
-
-void ActionDBWatcher::init() {
-	std::string filename = config_dir+"actions";
-	for (const char **v = actions_versions; *v; v++)
-		if (is_file(filename + *v)) {
-			filename += *v;
-			try {
-				ifstream ifs(filename.c_str(), ios::binary);
-				if (!ifs.fail()) {
-					boost::archive::text_iarchive ia(ifs);
-					ia >> actions;
-                    g_debug("Loaded actions.\n");
-				}
-			} catch (exception &e) {
-				g_warning("Error: Couldn't read action database: %s.\n", e.what());
-			}
-			break;
-		}
-	watch(action_dummy);
-}
-
-void ActionDBWatcher::timeout() {
-	std::string filename = config_dir+"actions"+actions_versions[0];
-	std::string tmp = filename + ".tmp";
-	try {
-		ofstream ofs(tmp.c_str());
-		boost::archive::text_oarchive oa(ofs);
-		oa << (const ActionDB &)actions;
-		ofs.close();
-		if (rename(tmp.c_str(), filename.c_str()))
-			throw std::runtime_error("rename() failed");
-		g_message("Saved actions.\n");
-	} catch (exception &e) {
-		g_warning("Error: Couldn't save action database: %s.\n", e.what());
-		if (!good_state)
-			return;
-		good_state = false;
-	}
-}
-
 
 RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bool *name, bool *action) const {
 	if (deleted)
@@ -229,7 +76,7 @@ RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bo
 	if (action)
 		*action = false;
 	RStrokeInfo si = parent ? parent->get_info(id) : RStrokeInfo(new StrokeInfo);
-	std::map<Unique *, StrokeInfo>::const_iterator i = added.find(id);
+	auto i = added.find(id);
 	for (i = added.begin(); i != added.end(); i++) {
 		if (i->first == id)
 			break;
@@ -237,18 +84,18 @@ RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bo
 	if (i == added.end()) {
 		return si;
 	}
-	if (i->second.name != "") {
-		si->name = i->second.name;
+	if (i->second->name != "") {
+		si->name = i->second->name;
 		if (name)
 			*name = parent;
 	}
-	if (i->second.strokes.size()) {
-		si->strokes = i->second.strokes;
+	if (i->second->strokes.size()) {
+		si->strokes = i->second->strokes;
 		if (stroke)
 			*stroke = parent;
 	}
-	if (i->second.action) {
-		si->action = i->second.action;
+	if (i->second->action) {
+		si->action = i->second->action;
 		if (action)
 			*action = parent;
 	}
@@ -258,11 +105,12 @@ RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bo
 boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() const {
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = parent ? parent->get_strokes() :
 		boost::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
-	for (std::set<Unique *>::const_iterator i = deleted.begin(); i != deleted.end(); i++)
+	for (auto i = deleted.begin(); i != deleted.end(); i++)
 		strokes->erase(*i);
-	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
-		if (i->second.strokes.size())
-			(*strokes)[i->first] = i->second.strokes;
+	for (auto i = added.begin(); i != added.end(); i++)
+		if (i->second->strokes.size())
+			(*strokes)[i->first] = i->second->strokes;
+
 	return strokes;
 }
 
@@ -270,18 +118,18 @@ boost::shared_ptr<std::set<Unique *> > ActionListDiff::get_ids(bool include_dele
 	boost::shared_ptr<std::set<Unique *> > ids = parent ? parent->get_ids(false) :
 		boost::shared_ptr<std::set<Unique *> >(new std::set<Unique *>);
 	if (!include_deleted)
-		for (std::set<Unique *>::const_iterator i = deleted.begin(); i != deleted.end(); i++)
+		for (auto i = deleted.begin(); i != deleted.end(); i++)
 			ids->erase(*i);
-	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
+	for (auto i = added.begin(); i != added.end(); i++)
 		ids->insert(i->first);
 	return ids;
 }
 
 void ActionListDiff::all_strokes(std::list<RStroke> &strokes) const {
-	for (std::map<Unique *, StrokeInfo>::const_iterator i = added.begin(); i != added.end(); i++)
-		for (std::set<RStroke>::const_iterator j = i->second.strokes.begin(); j != i->second.strokes.end(); j++)
+	for (auto i = added.begin(); i != added.end(); i++)
+		for (auto j = i->second->strokes.begin(); j != i->second->strokes.end(); j++)
 			strokes.push_back(*j);
-	for (std::list<ActionListDiff>::const_iterator i = children.begin(); i != children.end(); i++)
+	for (auto i = children.begin(); i != children.end(); i++)
 		i->all_strokes(strokes);
 }
 
@@ -291,9 +139,9 @@ RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	r.reset(new Ranking);
 	r->stroke = s;
 	r->score = 0.0;
-	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
-	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
-		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+	auto strokes = get_strokes();
+	for (auto i = strokes->begin(); i!=strokes->end(); i++) {
+		for (auto j = i->second.begin(); j!=i->second.end(); j++) {
 			double score;
 			int match = Stroke::compare(s, *j, score);
 			if (match < 0)
@@ -314,9 +162,9 @@ RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	if (!r->action && s->trivial())
 		return RAction(new Click);
 	if (r->action) {
-        g_message("Executing Action %s\n", r->name.c_str());
+        g_message("Executing Action %s", r->name.c_str());
 	} else {
-        g_message("Couldn't find matching stroke.\n");
+        g_message("Couldn't find matching stroke.");
 	}
 	return r->action;
 }
@@ -326,8 +174,8 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 	if (!s)
 		return;
 	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
-	for (std::map<Unique *, StrokeSet>::const_iterator i = strokes->begin(); i!=strokes->end(); i++) {
-		for (StrokeSet::iterator j = i->second.begin(); j!=i->second.end(); j++) {
+	for (auto i = strokes->begin(); i!=strokes->end(); i++) {
+		for (auto j = i->second.begin(); j!=i->second.end(); j++) {
 			int b = (*j)->button;
 			if (!s->timeout && !b)
 				continue;

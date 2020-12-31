@@ -20,15 +20,12 @@
 #include <csignal>
 #include <fcntl.h>
 
-const char *actions_versions[] = {"-0.5.6", "-0.4.1", "-0.4.0", "", nullptr};
 Source<Window> current_app_window(None);
 std::string config_dir;
 Display *dpy;
 Window ROOT;
 
 boost::shared_ptr<Trace> trace;
-
-static ActionDBWatcher *action_watcher = 0;
 
 static Trace *init_trace() {
     return new Composite();
@@ -100,7 +97,7 @@ private:
 
 class ReloadTrace : public Timeout {
     void timeout() {
-        g_debug("Reloading gesture display\n");
+        g_debug("Reloading gesture display");
         xstate->queue(sigc::mem_fun(*this, &ReloadTrace::reload));
     }
 
@@ -113,21 +110,21 @@ extern const char *gui_buffer;
 
 bool App::local_command_line_vfunc(char **&arg, int &exit_status) {
     if (!register_application()) {
-        g_error("Failed to register the application\n");
+        g_error("Failed to register the application");
     }
     activate();
     return false;
 }
 
 void App::run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationCommandLine> &cmd_line) {
-    for (ActionDB::const_iterator i = actions.begin(); i != actions.end(); i++) {
-        if (i->second.name == std::string(str)) {
-            if (i->second.action)
-                xstate->queue(sigc::bind(sigc::mem_fun(xstate, &XState::run_action), i->second.action));
+    for (auto i = actions.begin(); i != actions.end(); i++) {
+        if (i->second->name == std::string(str)) {
+            if (i->second->action)
+                xstate->queue(sigc::bind(sigc::mem_fun(xstate, &XState::run_action), i->second->action));
             return;
         }
     }
-    g_warning("No action \"%s\" defined\n", str);
+    g_warning("No action \"%s\" defined", str);
 }
 
 int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &command_line) {
@@ -136,13 +133,13 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
     for (int i = 1; arg[i]; i++)
         if (!strcmp(arg[i], "send")) {
             if (!arg[++i])
-                g_warning("Send requires an argument\n");
+                g_warning("Send requires an argument");
             else
                 run_by_name(arg[i], command_line);
         } else if (!strcmp(arg[i], "quit")) {
             quit();
         } else {
-            g_warning("Warning: Unknown command \"%s\".\n", arg[i]);
+            g_warning("Warning: Unknown command \"%s\".", arg[i]);
         }
     remote = true;
     return true;
@@ -182,13 +179,10 @@ void App::on_activate() {
 
     dpy = XOpenDisplay(nullptr);
     if (!dpy) {
-        g_error("Couldn't open display.\n");
+        g_error("Couldn't open display.");
     }
 
     ROOT = DefaultRootWindow(dpy);
-
-    action_watcher = new ActionDBWatcher;
-    action_watcher->init();
 
     xstate = new XState;
     grabber = new Grabber;
@@ -226,11 +220,11 @@ void App::create_config_dir() {
     // check if the directory does not exist
     if (lstat(name, &st) == -1) {
         if (mkdir(config_dir.c_str(), 0777) == -1) {
-            g_error("Error: Couldn't create configuration directory \"%s\"\n", config_dir.c_str());
+            g_error("Error: Couldn't create configuration directory \"%s\"", config_dir.c_str());
         }
     } else {
         if (!S_ISDIR(st.st_mode)) {
-            g_error("Error: \"%s\" is not a directory\n", config_dir.c_str());
+            g_error("Error: \"%s\" is not a directory", config_dir.c_str());
         }
     }
 
@@ -285,7 +279,7 @@ void fake_unicode(gunichar c) {
     if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG)) {
         char buf[7];
         buf[g_unichar_to_utf8(c, buf)] = '\0';
-        g_debug("using unicode input for character %s\n", buf);
+        g_debug("using unicode input for character %s", buf);
     }
     XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Control_L), true, 0);
     XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, XK_Shift_L), true, 0);

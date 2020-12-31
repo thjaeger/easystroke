@@ -39,9 +39,9 @@ void XState::handle_enter_leave(XEvent &ev) {
 	Window w = ev.xcrossing.window;
 	if (ev.type == EnterNotify) {
 		current_app_window.set(get_app_window(w));
-		g_debug("Entered window 0x%lx -> 0x%lx\n", w, current_app_window.get());
+		g_debug("Entered window 0x%lx -> 0x%lx", w, current_app_window.get());
 	} else {
-		g_warning("Error: Bogus Enter/Leave event\n");
+		g_warning("Error: Bogus Enter/Leave event");
 	};
 }
 
@@ -60,7 +60,7 @@ void XState::handle_event(XEvent &ev) {
 		return;
 
 	case ButtonPress:
-		g_debug("Press (master): %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
+		g_debug("Press (master): %d (%d, %d) at t = %ld", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
 		H->press_master(ev.xbutton.button, ev.xbutton.time);
 		return;
 
@@ -68,7 +68,7 @@ void XState::handle_event(XEvent &ev) {
 		if (ev.xclient.window != ping_window)
 			return;
 		if (ev.xclient.message_type == *EASYSTROKE_PING) {
-			g_debug("Pong\n");
+			g_debug("Pong");
 			H->pong();
 		}
 		return;
@@ -116,7 +116,7 @@ void XState::activate_window(Window w, Time t) {
 	if (XGetWindowAttributes(dpy, w, &attr) && attr.override_redirect)
 		return;
 
-	g_debug("Giving focus to window 0x%lx\n", w);
+	g_debug("Giving focus to window 0x%lx", w);
 
 	icccm_client_message(w, *WM_TAKE_FOCUS, t);
 }
@@ -235,11 +235,11 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 					break;
 			} else {
 				current_app_window.set(get_app_window(event->child));
-				g_debug("Active window 0x%lx -> 0x%lx\n", event->child, current_app_window.get());
+				g_debug("Active window 0x%lx -> 0x%lx", event->child, current_app_window.get());
 			}
 			current_dev = grabber->get_xi_dev(event->deviceid);
 			if (!current_dev) {
-				g_warning("Warning: Spurious device event\n");
+				g_warning("Warning: Spurious device event");
 				break;
 			}
 			if (current_dev->master)
@@ -301,7 +301,7 @@ void XState::handle_raw_motion(XIRawEvent *event) {
 	if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG)) {
 		g_debug("Raw motion (XI2): (");
 		print_coordinates(&event->valuators, event->raw_values);
-		g_debug(") at t = %ld\n", event->time);
+		g_debug(") at t = %ld", event->time);
 	}
 
 	H->raw_motion(create_triple(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
@@ -469,7 +469,7 @@ int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
 		snprintf(def, sizeof def, "extension=%s, request_code=%d", xstate->opcodes[e->request_code].c_str(), e->minor_code);
 	char dbtext[128];
 	XGetErrorDatabaseText(dpy, "XRequest", msg, def, dbtext, sizeof dbtext);
-	g_warning("XError: %s: %s\n", text, dbtext);
+	g_warning("XError: %s: %s", text, dbtext);
 
 	return 0;
 }
@@ -506,7 +506,7 @@ class WaitForPongHandler : public Handler, protected Timeout {
 public:
 	WaitForPongHandler() { set_timeout(100); }
 	virtual void timeout() {
-		g_warning("%s timed out\n", "WaitForPongHandler");
+		g_warning("%s timed out", "WaitForPongHandler");
 		xstate->bail_out();
 	}
 	virtual void pong() { parent->replace_child(nullptr); }
@@ -869,7 +869,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		RPreStroke c = cur;
 		if (!is_gesture || grabber->is_instant(button))
 			c.reset(new PreStroke);
-		return Stroke::create(*c, trigger, b, xstate->modifiers, false);
+		return std::make_shared<Stroke>(*c, trigger, b, xstate->modifiers, false);
 	}
 
 	bool timeout() {
@@ -880,7 +880,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 			c.reset(new PreStroke);
 		RStroke s;
 		if (prefs.timeout_gestures || grabber->is_click_hold(button))
-			s = Stroke::create(*c, trigger, 0, xstate->modifiers, true);
+			s = std::make_shared<Stroke>(*c, trigger, 0, xstate->modifiers, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
 		XFlush(dpy);
 		return false;
@@ -888,7 +888,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 
 	void do_instant() {
 		PreStroke ps;
-		RStroke s = Stroke::create(ps, trigger, button, xstate->modifiers, false);
+		auto s = std::make_shared<Stroke>(ps, trigger, button, xstate->modifiers, false);
 		parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
 	}
 

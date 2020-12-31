@@ -230,14 +230,14 @@ bool Grabber::init_xi() {
 			XIQueryVersion(dpy, &major, &minor) == BadRequest ||
 			major < 2) {
 		g_error("This version of Easy Gesture needs an XInput 2.0-aware X server.\n"
-				"Please upgrade your X server to 1.7.\n");
+				"Please upgrade your X server to 1.7.");
 		exit(EXIT_FAILURE);
 	}
 
 	int n;
 	XIDeviceInfo *info = XIQueryDevice(dpy, XIAllDevices, &n);
 	if (!info) {
-		g_warning("Warning: No XInput devices available\n");
+		g_warning("Warning: No XInput devices available");
 		return false;
 	}
 
@@ -249,7 +249,7 @@ bool Grabber::init_xi() {
 	set();
 
 	if (!xi_devs.size()) {
-		g_error("Error: No suitable XInput devices found\n");
+		g_error("Error: No suitable XInput devices found");
 		exit(EXIT_FAILURE);
 	}
 
@@ -295,7 +295,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 			update_excluded();
 			changed = true;
 		} else if (info->flags & XISlaveRemoved) {
-            g_message("Device %d removed.\n", info->deviceid);
+            g_message("Device %d removed.", info->deviceid);
 			xstate->remove_device(info->deviceid);
 			xi_devs.erase(info->deviceid);
 			changed = true;
@@ -369,7 +369,7 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
 		}
 	}
 
-    g_message("Opened Device %d ('%s'%s).\n", dev, info->name, absolute ? ": absolute" : "");
+    g_message("Opened Device %d ('%s'%s).", dev, info->name, absolute ? ": absolute" : "");
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {
@@ -439,7 +439,7 @@ void Grabber::set() {
 	grabbed = act ? current : NONE;
 	if (old == grabbed)
 		return;
-	g_debug("grabbing: %s\n", state_name[grabbed]);
+	g_debug("grabbing: %s", state_name[grabbed]);
 
 	if (old == SELECT)
 		XUngrabPointer(dpy, CurrentTime);
@@ -564,6 +564,6 @@ Window get_app_window(Window w) {
 		}
 		return w2;
 	}
-    g_message("Window 0x%lx does not have an associated top-level window\n", w);
+    g_message("Window 0x%lx does not have an associated top-level window", w);
 	return w;
 }
