@@ -12,10 +12,10 @@ XState *xstate = nullptr;
 
 extern Window get_app_window(Window w);
 extern Source<Window> current_app_window;
-extern boost::shared_ptr<Trace> trace;
+extern std::shared_ptr<Trace> trace;
 
 
-boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 
 static XAtom EASYSTROKE_PING("EASYSTROKE_PING");
 
@@ -859,7 +859,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		}
 		~Connection() { c.disconnect(); }
 	};
-	typedef boost::shared_ptr<Connection> RConnection;
+	typedef std::shared_ptr<Connection> RConnection;
 	sigc::connection init_connection;
 	std::vector<RConnection> connections;
 

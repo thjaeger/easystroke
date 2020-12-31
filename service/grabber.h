@@ -54,7 +54,7 @@ public:
 		void grab_button(ButtonInfo &bi, bool grab);
 	};
 
-	typedef std::map<XID, boost::shared_ptr<XiDevice> > DeviceMap;
+	typedef std::map<XID, std::shared_ptr<XiDevice> > DeviceMap;
 	int opcode, event, error;
 	XiDevice *get_xi_dev(int id);
 private:

@@ -102,9 +102,9 @@ RStrokeInfo ActionListDiff::get_info(Unique *id, bool *deleted, bool *stroke, bo
 	return si;
 }
 
-boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() const {
-	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = parent ? parent->get_strokes() :
-		boost::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
+std::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() const {
+	std::shared_ptr<std::map<Unique *, StrokeSet> > strokes = parent ? parent->get_strokes() :
+		std::shared_ptr<std::map<Unique *, StrokeSet> >(new std::map<Unique *, StrokeSet>);
 	for (auto i = deleted.begin(); i != deleted.end(); i++)
 		strokes->erase(*i);
 	for (auto i = added.begin(); i != added.end(); i++)
@@ -114,9 +114,9 @@ boost::shared_ptr<std::map<Unique *, StrokeSet> > ActionListDiff::get_strokes() 
 	return strokes;
 }
 
-boost::shared_ptr<std::set<Unique *> > ActionListDiff::get_ids(bool include_deleted) const {
-	boost::shared_ptr<std::set<Unique *> > ids = parent ? parent->get_ids(false) :
-		boost::shared_ptr<std::set<Unique *> >(new std::set<Unique *>);
+std::shared_ptr<std::set<Unique *> > ActionListDiff::get_ids(bool include_deleted) const {
+	std::shared_ptr<std::set<Unique *> > ids = parent ? parent->get_ids(false) :
+		std::shared_ptr<std::set<Unique *> >(new std::set<Unique *>);
 	if (!include_deleted)
 		for (auto i = deleted.begin(); i != deleted.end(); i++)
 			ids->erase(*i);
@@ -173,7 +173,7 @@ void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
 		std::map<guint, RRanking> &rs, int b1, int b2) const {
 	if (!s)
 		return;
-	boost::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
+	std::shared_ptr<std::map<Unique *, StrokeSet> > strokes = get_strokes();
 	for (auto i = strokes->begin(); i!=strokes->end(); i++) {
 		for (auto j = i->second.begin(); j!=i->second.end(); j++) {
 			int b = (*j)->button;

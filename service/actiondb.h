@@ -30,7 +30,7 @@ typedef std::shared_ptr<Ranking> RRanking;
 class Unique;
 
 class Modifiers;
-typedef boost::shared_ptr<Modifiers> RModifiers;
+typedef std::shared_ptr<Modifiers> RModifiers;
 
 bool mods_equal(RModifiers m1, RModifiers m2);
 
@@ -156,7 +156,7 @@ public:
 	RAction action;
 	std::string name;
 };
-typedef boost::shared_ptr<StrokeInfo> RStrokeInfo;
+typedef std::shared_ptr<StrokeInfo> RStrokeInfo;
 
 class Ranking {
 	static bool show(RRanking r);
@@ -240,8 +240,8 @@ public:
 			i->add_apps(apps);
 	}
 
-	boost::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
-	boost::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
+	std::shared_ptr<std::map<Unique *, StrokeSet> > get_strokes() const;
+	std::shared_ptr<std::set<Unique *> > get_ids(bool include_deleted) const;
 
 	int count_actions() const {
 		return (parent ? parent->count_actions() : 0) + order.size() - deleted.size();

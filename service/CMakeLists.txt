@@ -5,7 +5,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 find_package(PkgConfig)
 find_package(X11)
-find_package(Boost 1.71 REQUIRED serialization)
 
 pkg_check_modules(GTKMM gtkmm-3.0)
 
@@ -37,12 +36,11 @@ set(SOURCE_FILES
     win.h
         log.cpp log.h)
 
-link_directories(${GTKMM_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
+link_directories(${GTKMM_LIBRARY_DIRS})
 
 include_directories(.
     ${GTKMM_INCLUDE_DIRS}
     ${X11_INCLUDE_DIR} ${X11_XTest_INCLUDE_PATH} ${X11_Xinput_INCLUDE_PATH} ${X11_Xfixes_INCLUDE_PATH}
-    ${Boost_INCLUDE_DIRS}
 )
 add_executable(easy-gestured ${SOURCE_FILES})
 
@@ -50,5 +48,4 @@ target_link_libraries(
     ${CMAKE_PROJECT_NAME}
     ${GTKMM_LIBRARIES}
     ${X11_LIBRARIES} ${X11_XTest_LIB} ${X11_Xinput_LIB} ${X11_Xfixes_LIB}
-    ${Boost_LIBRARIES}
 )

@@ -7,7 +7,7 @@
 enum Type { MISC };
 
 
-extern boost::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+extern std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Source<bool> recording(false);
 
 const Glib::ustring SendKey::get_label() const {

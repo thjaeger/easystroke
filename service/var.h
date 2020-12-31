@@ -1,6 +1,5 @@
 #pragma once
 #include <set>
-#include <boost/shared_ptr.hpp>
 #include <glibmm.h>
 #include "util.h"
 

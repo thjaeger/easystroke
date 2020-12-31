@@ -26,7 +26,7 @@ public:
 	ButtonInfo() : button(0), state(0), instant(false), click_hold(false) {}
 };
 
-typedef boost::shared_ptr<ButtonInfo> RButtonInfo;
+typedef std::shared_ptr<ButtonInfo> RButtonInfo;
 
 struct RGBA {
 	Gdk::Color color;

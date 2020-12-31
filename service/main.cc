@@ -25,7 +25,7 @@ std::string config_dir;
 Display *dpy;
 Window ROOT;
 
-boost::shared_ptr<Trace> trace;
+std::shared_ptr<Trace> trace;
 
 static Trace *init_trace() {
     return new Composite();
