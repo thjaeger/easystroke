@@ -20,7 +20,6 @@
 #include <csignal>
 #include <fcntl.h>
 
-const char *prefs_versions[] = {"-0.5.5", "-0.4.1", "-0.4.0", "", nullptr};
 const char *actions_versions[] = {"-0.5.6", "-0.4.1", "-0.4.0", "", nullptr};
 Source<Window> current_app_window(None);
 std::string config_dir;
@@ -370,7 +369,7 @@ class Modifiers : Timeout {
     static void update_mods() {
         static guint mod_state = 0;
         guint new_state = 0;
-        for (std::set<Modifiers *>::iterator i = all.begin(); i != all.end(); i++)
+        for (auto i = all.begin(); i != all.end(); i++)
             new_state |= (*i)->mods;
         for (int i = 0; i < n_modkeys; i++) {
             guint mask = modkeys[i].mask;

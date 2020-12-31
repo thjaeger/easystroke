@@ -1,7 +1,6 @@
 #include "prefdb.h"
 #include "composite.h"
 #include <gdkmm.h>
-#include <glibmm/i18n.h>
 
 double red, green, blue, alpha, width;
 std::list<Trace::Point> points;
@@ -34,8 +33,8 @@ Composite::Composite() {
 #define N 128
 	int w = gdk_screen_width();
 	int h = gdk_screen_height();
-	num_x = (gdk_screen_width()  - 1)/N + 1;
-	num_y = (gdk_screen_height() - 1)/N + 1;
+	num_x = (w  - 1)/N + 1;
+	num_y = (h - 1)/N + 1;
 	pieces = new Popup**[num_x];
 	for (int i = 0; i < num_x; i++) {
 		pieces[i] = new Popup*[num_y];
@@ -46,7 +45,7 @@ Composite::Composite() {
 }
 
 void Composite::draw(Point p, Point q) {
-	if (!points.size()) {
+	if (points.empty()) {
 		points.push_back(p);
 	}
 	points.push_back(q);
@@ -76,9 +75,9 @@ void Composite::start_() {
 }
 
 void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
-	if (!points.size())
+	if (points.empty())
 		return;
-	std::list<Trace::Point>::iterator i = points.begin();
+	auto i = points.begin();
 	ctx->move_to (i->x, i->y);
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
@@ -91,7 +90,6 @@ void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	ctx->set_source_rgba(red, green, blue, alpha);
 	ctx->set_line_width(width*0.7);
 	ctx->stroke();
-
 }
 
 bool Popup::on_draw(const ::Cairo::RefPtr< ::Cairo::Context>& ctx) {

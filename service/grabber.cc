@@ -5,7 +5,6 @@
 #include <xorg/xserver-properties.h>
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
-#include <glibmm/i18n.h>
 
 extern Source<Window> current_app_window;
 extern Source<bool> recording;

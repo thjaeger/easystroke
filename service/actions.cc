@@ -2,7 +2,6 @@
 #include "actiondb.h"
 #include "win.h"
 #include "prefdb.h"
-#include <glibmm/i18n.h>
 #include <X11/XKBlib.h>
 
 enum Type { MISC };

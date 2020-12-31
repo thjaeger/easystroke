@@ -1,7 +1,6 @@
 #pragma once
 
 #include <exception>
-#include <glibmm/i18n.h>
 
 struct DBusException: public std::exception {
 	virtual const char* what() const throw() { return "Connection to DBus failed"; }
