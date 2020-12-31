@@ -23,10 +23,10 @@ class StrokeSet : public std::set<RStroke> {
 
 class StrokeInfo {
 public:
-	StrokeInfo(RStroke s, Actions::RAction a) : action(a) { strokes.insert(s); }
+	StrokeInfo(RStroke s, std::shared_ptr<Actions::Action> a) : action(a) { strokes.insert(s); }
 	StrokeInfo() {}
 	StrokeSet strokes;
-	Actions::RAction action;
+    std::shared_ptr<Actions::Action> action;
 	std::string name;
 };
 typedef std::shared_ptr<StrokeInfo> RStrokeInfo;
@@ -36,7 +36,7 @@ class Ranking {
 	int x, y;
 public:
 	RStroke stroke, best_stroke;
-    Actions::RAction action;
+    std::shared_ptr<Actions::Action> action;
 	double score;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
@@ -120,9 +120,9 @@ public:
 		return (parent ? parent->count_actions() : 0) + order.size() - deleted.size();
 	}
 	void all_strokes(std::list<RStroke> &strokes) const;
-	Actions::RAction handle(RStroke s, RRanking &r) const;
+    std::shared_ptr<Actions::Action> handle(RStroke s, RRanking &r) const;
 	// b1 is always reported as b2
-	void handle_advanced(RStroke s, std::map<guint, Actions::RAction> &a, std::map<guint, RRanking> &r, int b1, int b2) const;
+	void handle_advanced(RStroke s, std::map<guint, std::shared_ptr<Actions::Action>> &a, std::map<guint, RRanking> &r, int b1, int b2) const;
 
 	~ActionListDiff();
 };

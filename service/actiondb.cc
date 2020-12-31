@@ -133,9 +133,11 @@ void ActionListDiff::all_strokes(std::list<RStroke> &strokes) const {
 		i->all_strokes(strokes);
 }
 
-Actions::RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
-	if (!s)
-		return Actions::RAction();
+std::shared_ptr<Actions::Action> ActionListDiff::handle(RStroke s, RRanking &r) const {
+	if (!s) {
+        g_error("s is undefined");
+    }
+
 	r.reset(new Ranking);
 	r->stroke = s;
 	r->score = 0.0;
@@ -160,7 +162,7 @@ Actions::RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 		}
 	}
 	if (!r->action && s->trivial())
-		return Actions::RAction(new Actions::Click);
+		return std::make_shared<Actions::Click>();
 	if (r->action) {
         g_message("Executing Action %s", r->name.c_str());
 	} else {
@@ -169,7 +171,7 @@ Actions::RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	return r->action;
 }
 
-void ActionListDiff::handle_advanced(RStroke s, std::map<guint, Actions::RAction> &as,
+void ActionListDiff::handle_advanced(RStroke s, std::map<guint, std::shared_ptr<Actions::Action>> &as,
 		std::map<guint, RRanking> &rs, int b1, int b2) const {
 	if (!s)
 		return;

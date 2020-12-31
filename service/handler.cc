@@ -684,7 +684,7 @@ class AdvancedHandler : public Handler {
 	Time click_time;
 	guint replay_button;
 	RTriple replay_orig;
-	std::map<guint, Actions::RAction> as;
+	std::map<guint, std::shared_ptr<Actions::Action>> as;
 	std::map<guint, RRanking> rs;
 	std::map<guint, RModifiers> mods;
 	RModifiers sticky_mods;
@@ -957,7 +957,7 @@ protected:
 			return parent->replace_child(nullptr);
 		}
 		RRanking ranking;
-		Actions::RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
+		auto act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
 		if (!act) {
 			XkbBell(dpy, None, 0, None);
 			return parent->replace_child(nullptr);

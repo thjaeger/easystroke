@@ -33,10 +33,6 @@ namespace Actions {
     public:
         SendKey() {}
 
-        static RSendKey create(guint key, Gdk::ModifierType mods) {
-            return RSendKey(new SendKey(key, mods));
-        }
-
         virtual void run();
 
         virtual RModifiers prepare();
@@ -51,8 +47,6 @@ namespace Actions {
     public:
         Scroll() {}
 
-        static RScroll create(Gdk::ModifierType mods) { return RScroll(new Scroll(mods)); }
-
         virtual const Glib::ustring get_label() const;
     };
 
@@ -62,8 +56,6 @@ namespace Actions {
 
     public:
         Ignore() {}
-
-        static RIgnore create(Gdk::ModifierType mods) { return RIgnore(new Ignore(mods)); }
 
         virtual const Glib::ustring get_label() const;
     };
@@ -77,10 +69,10 @@ namespace Actions {
 
         ButtonInfo get_button_info() const;
 
-        static unsigned int get_button(RAction act) {
+        static unsigned int get_button(std::shared_ptr<Action> act) {
             if (!act)
                 return 0;
-            Button *b = dynamic_cast<Button *>(act.get());
+            auto *b = dynamic_cast<Button *>(act.get());
             if (!b)
                 return 0;
             return b->get_button_info().button;
