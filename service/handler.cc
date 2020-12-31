@@ -8,6 +8,8 @@
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
 #include "actions/modAction.h"
+#include <sstream>
+#include <iomanip>
 
 XState *xstate = nullptr;
 
@@ -176,25 +178,31 @@ void XState::icccm_client_message(Window w, Atom a, Time t) {
 	XSendEvent(context->dpy, w, False, 0, (XEvent *)&ev);
 }
 
-static void print_coordinates(XIValuatorState *valuators, double *values) {
-	int n = 0;
-	for (int i = valuators->mask_len - 1; i >= 0; i--)
-		if (XIMaskIsSet(valuators->mask, i)) {
-			n = i+1;
-			break;
-		}
-	bool first = true;
-	int elt = 0;
-	for (int i = 0; i < n; i++) {
-		if (first)
-			first = false;
-		else
-			printf(", ");
-		if (XIMaskIsSet(valuators->mask, i))
-			printf("%.3f", values[elt++]);
-		else
-			printf("*");
-	}
+static std::string render_coordinates(XIValuatorState *valuators, double *values) {
+    std::ostringstream ss;
+    ss << std::setprecision(3) << std::fixed;
+
+    int n = 0;
+    for (int i = valuators->mask_len - 1; i >= 0; i--) {
+        if (XIMaskIsSet(valuators->mask, i)) {
+            n = i + 1;
+            break;
+        }
+    }
+    bool first = true;
+    int elt = 0;
+    for (int i = 0; i < n; i++) {
+        if (first)
+            first = false;
+        else
+            ss << ", ";
+        if (XIMaskIsSet(valuators->mask, i))
+            ss << values[elt++];
+        else
+            ss <<"*";
+    }
+
+    return ss.str();
 }
 
 static double get_axis(XIValuatorState &valuators, int axis) {
@@ -208,12 +216,13 @@ static double get_axis(XIValuatorState &valuators, int axis) {
 }
 
 void XState::report_xi2_event(XIDeviceEvent *event, const char *type) {
-	printf("%s (XI2): ", type);
-	if (event->detail)
-		printf("%d ", event->detail);
-	printf("(%.3f, %.3f) - (", event->root_x, event->root_y);
-	print_coordinates(&event->valuators, event->valuators.values);
-	printf(") at t = %ld\n", event->time);
+    if (event->detail) {
+        g_debug("%s (XI2): %d (%.3f, %.3f) - (%s) at t = %ld", type, event->detail, event->root_x, event->root_y,
+               render_coordinates(&event->valuators, event->valuators.values).c_str(), event->time);
+    } else {
+        g_debug("%s (XI2): (%.3f, %.3f) - (%s) at t = %ld", type, event->root_x, event->root_y,
+               render_coordinates(&event->valuators, event->valuators.values).c_str(), event->time);
+    }
 }
 
 void XState::handle_xi2_event(XIDeviceEvent *event) {
@@ -221,7 +230,7 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 		case XI_ButtonPress:
 			if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG))
 				report_xi2_event(event, "Press");
-			if (xinput_pressed.size()) {
+			if (!xinput_pressed.empty()) {
 				if (!current_dev || current_dev->dev != event->deviceid)
 					break;
 			} else {
@@ -235,7 +244,7 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 			}
 			if (current_dev->master)
 				XISetClientPointer(context->dpy, None, current_dev->master);
-			if (!xinput_pressed.size()) {
+			if (xinput_pressed.empty()) {
 				guint default_mods = grabber->get_default_mods(event->detail);
 				if (default_mods == AnyModifier || default_mods == (guint)event->mods.base)
 					modifiers = AnyModifier;
@@ -290,9 +299,7 @@ void XState::handle_raw_motion(XIRawEvent *event) {
 		abs_y = false;
 
 	if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG)) {
-		g_debug("Raw motion (XI2): (");
-		print_coordinates(&event->valuators, event->raw_values);
-		g_debug(") at t = %ld", event->time);
+		g_debug("Raw motion (XI2): (%s) at t = %ld", render_coordinates(&event->valuators, event->raw_values).c_str(), event->time);
 	}
 
 	H->raw_motion(create_triple(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
@@ -348,7 +355,7 @@ void Handler::replace_child(Handler *c) {
 		for (Handler *h = child ? child : this; h; h=h->parent) {
 			stack = h->name() + " " + stack;
 		}
-		printf("New event handling stack: %s\n", stack.c_str());
+		g_debug("New event handling stack: %s\n", stack.c_str());
 	}
 	Handler *new_handler = child ? child : this;
 	grabber->grab(new_handler->grab_mode());
