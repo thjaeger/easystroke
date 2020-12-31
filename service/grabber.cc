@@ -6,9 +6,11 @@
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
 
+#include <utility>
+
 extern Source<Window> current_app_window;
 
-Grabber *grabber = 0;
+Grabber *grabber = nullptr;
 
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
 static unsigned char device_mask_data[2];
@@ -21,14 +23,14 @@ template <class X1, class X2> class BiMap {
 	std::map<X2, X1> map2;
 public:
 	void erase1(X1 x1) {
-		typename std::map<X1, X2>::iterator i1 = map1.find(x1);
+		auto i1 = map1.find(x1);
 		if (i1 == map1.end())
 			return;
 		map2.erase(i1->second);
 		map1.erase(i1->first);
 	}
 	void erase2(X2 x2) {
-		typename std::map<X2, X1>::iterator i2 = map2.find(x2);
+		auto i2 = map2.find(x2);
 		if (i2 == map2.end())
 			return;
 		map1.erase(i2->second);
@@ -68,7 +70,6 @@ XAtom _NET_WM_STATE_HIDDEN("_NET_WM_STATE_HIDDEN");
 XAtom _NET_ACTIVE_WINDOW("_NET_ACTIVE_WINDOW");
 
 std::list<Window> minimized;
-unsigned int minimized_n = 0;
 
 void get_frame(Window w) {
 	Window frame = xstate->get_window(w, *_NET_FRAME_WINDOW);
@@ -185,7 +186,7 @@ class IdleNotifier : public Base {
 	sigc::slot<void> f;
 	void run() { f(); }
 public:
-	IdleNotifier(sigc::slot<void> f_) : f(f_) {}
+	explicit IdleNotifier(sigc::slot<void> f_) : f(std::move(f_)) {}
 	virtual void notify() { xstate->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
 };
 
@@ -246,7 +247,7 @@ bool Grabber::init_xi() {
 	xi_grabbed = false;
 	set();
 
-	if (!xi_devs.size()) {
+	if (xi_devs.empty()) {
 		g_error("Error: No suitable XInput devices found");
 		exit(EXIT_FAILURE);
 	}
@@ -298,7 +299,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 			xi_devs.erase(info->deviceid);
 			changed = true;
 		} else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
-			DeviceMap::iterator i = xi_devs.find(info->deviceid);
+			auto i = xi_devs.find(info->deviceid);
 			if (i != xi_devs.end())
 				i->second->master = info->attachment;
 		}
@@ -308,7 +309,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 
 void Grabber::update_excluded() {
 	suspend();
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+	for (auto i = xi_devs.begin(); i != xi_devs.end(); ++i)
 		i->second->active = !prefs.excluded_devices.get()->count(i->second->name);
 	resume();
 }
@@ -350,10 +351,10 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
 	for (int j = 0; j < info->num_classes; j++) {
 		XIAnyClassInfo *dev_class = info->classes[j];
 		if (dev_class->type == ButtonClass) {
-			XIButtonClassInfo *b = (XIButtonClassInfo*)dev_class;
+			auto *b = (XIButtonClassInfo*)dev_class;
 			num_buttons = b->num_buttons;
 		} else if (dev_class->type == ValuatorClass) {
-			XIValuatorClassInfo *v = (XIValuatorClassInfo*)dev_class;
+			auto *v = (XIValuatorClassInfo*)dev_class;
 			if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative) {
 				absolute = true;
 				if (v-> number == 0)
@@ -371,7 +372,7 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
 }
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {
-	DeviceMap::iterator i = xi_devs.find(id);
+	auto i = xi_devs.find(id);
 	return i == xi_devs.end() ? nullptr : i->second.get();
 }
 
@@ -398,9 +399,9 @@ void Grabber::grab_xi(bool grab) {
 	if (!xi_grabbed == !grab)
 		return;
 	xi_grabbed = grab;
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+	for (auto i = xi_devs.begin(); i != xi_devs.end(); ++i)
 		if (i->second->active)
-			for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
+			for (auto j = buttons.begin(); j != buttons.end(); j++)
 				i->second->grab_button(*j, grab);
 }
 
@@ -418,7 +419,7 @@ void Grabber::grab_xi_devs(GrabState grab) {
 	if (xi_devs_grabbed == grab)
 		return;
 	xi_devs_grabbed = grab;
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+	for (auto i = xi_devs.begin(); i != xi_devs.end(); ++i)
 		i->second->grab_device(grab);
 }
 
@@ -494,7 +495,7 @@ void Grabber::update() {
 	buttons.clear();
 	buttons.reserve(extra->size() + 1);
 	buttons.push_back(bi);
-	for (std::vector<ButtonInfo>::const_iterator i = extra->begin(); i != extra->end(); ++i)
+	for (auto i = extra->begin(); i != extra->end(); ++i)
 		if (!i->overlap(bi))
 			buttons.push_back(*i);
 	resume();
