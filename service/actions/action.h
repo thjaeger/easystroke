@@ -1,6 +1,5 @@
 #pragma once
 #include <glibmm/ustring.h>
-
 #include "modifiers.h"
 
 namespace Actions {
@@ -8,7 +7,7 @@ namespace Actions {
     public:
         virtual void run() {}
         virtual std::shared_ptr<Modifiers> prepare() { return nullptr; }
-        virtual const Glib::ustring get_label() const = 0;
+        [[nodiscard]] virtual const Glib::ustring get_label() const = 0;
     };
 
     class Command : public Action {
@@ -16,18 +15,18 @@ namespace Actions {
         std::string cmd;
         Command() = default;
         explicit Command(std::string c) : cmd(std::move(c)) {}
-        virtual void run();
-        virtual const Glib::ustring get_label() const { return cmd; }
+        void run() override;
+        [[nodiscard]] virtual const Glib::ustring get_label() const { return cmd; }
     };
 
     class SendText : public Action {
         Glib::ustring text;
-        SendText(Glib::ustring text_) : text(text_) {}
     public:
-        SendText() {}
+        SendText() = default;
+        explicit SendText(Glib::ustring text_) : text(std::move(text_)) {}
 
-        virtual void run();
-        virtual const Glib::ustring get_label() const { return text; }
+        void run() override;
+        [[nodiscard]] const Glib::ustring get_label() const override { return text; }
     };
 
     class Misc : public Action {
@@ -38,14 +37,13 @@ namespace Actions {
         Misc(Type t) : type(t) {}
     public:
         static const char *types[5];
-        Misc() {}
-        virtual const Glib::ustring get_label() const;
-        virtual void run();
+        Misc() = default;
+        [[nodiscard]] const Glib::ustring get_label() const override;
+        void run() override;
     };
-
-
+    
     class Click : public Action {
-        virtual const Glib::ustring get_label() const { return "Click"; }
+        [[nodiscard]] const Glib::ustring get_label() const override { return "Click"; }
     };
 }
 

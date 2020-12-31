@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 #include "util.h"
 
 class Modifiers : Timeout {

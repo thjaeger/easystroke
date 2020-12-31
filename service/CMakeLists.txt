@@ -12,12 +12,12 @@ pkg_check_modules(GTKMM gtkmm-3.0)
 set(SOURCE_FILES 
     actiondb.cc
     actiondb.h
+    actions/action.cpp
     actions/action.h
     actions/modAction.cpp
     actions/modAction.h
     actions/modifiers.cpp
     actions/modifiers.h
-    actions.cc
     actions.h
     composite.cc
     composite.h

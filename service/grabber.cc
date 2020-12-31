@@ -7,7 +7,6 @@
 #include <X11/Xutil.h>
 
 extern Source<Window> current_app_window;
-extern Source<bool> recording;
 
 Grabber *grabber = 0;
 
@@ -214,7 +213,6 @@ Grabber::Grabber() : children(ROOT) {
 	init_xi();
 	current_class = fun(&get_wm_class, current_app_window);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	recording.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	update();
 	resume();
 }
@@ -476,19 +474,16 @@ guint Grabber::get_default_mods(guint button) {
 void Grabber::update() {
 	auto bi = prefs.button;
 	active = true;
-	if (!recording.get()) {
-		auto i = prefs.exceptions->find(current_class->get());
-		if (i != prefs.exceptions.get()->end()) {
-			if (i->second)
-				bi = *i->second;
-			else
-				active = false;
-		}
-
-		if (prefs.whitelist && !actions.apps.count(current_class->get()))
-			active = false;
-	}
-	const auto extra = prefs.extra_buttons;
+    auto i = prefs.exceptions->find(current_class->get());
+    if (i != prefs.exceptions.get()->end()) {
+        if (i->second)
+            bi = *i->second;
+        else
+            active = false;
+    }
+    if (prefs.whitelist && !actions.apps.count(current_class->get()))
+        active = false;
+    const auto extra = prefs.extra_buttons;
 	if (grabbed_button == bi && buttons.size() == extra->size() + 1 &&
 			std::equal(extra->begin(), extra->end(), ++buttons.begin())) {
 		set();

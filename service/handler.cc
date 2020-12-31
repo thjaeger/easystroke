@@ -15,7 +15,6 @@ extern Window get_app_window(Window w);
 extern Source<Window> current_app_window;
 extern std::shared_ptr<Trace> trace;
 
-
 std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 
 static XAtom EASYSTROKE_PING("EASYSTROKE_PING");
