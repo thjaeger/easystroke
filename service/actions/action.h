@@ -41,10 +41,8 @@ namespace Actions {
         [[nodiscard]] const Glib::ustring get_label() const override;
         void run() override;
     };
-    
+
     class Click : public Action {
         [[nodiscard]] const Glib::ustring get_label() const override { return "Click"; }
     };
 }
-
-#define IS_CLICK(act) (act && dynamic_cast<Actions::Click *>(act.get()))

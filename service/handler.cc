@@ -732,7 +732,7 @@ public:
 			return;
 		}
 		auto act = as[bb];
-		if (IS_SCROLL(act)) {
+		if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
 			click_time = e->t;
 			replay_button = b;
 			replay_orig = e;
@@ -740,12 +740,12 @@ public:
 			sticky_mods.reset();
 			return replace_child(new ScrollAdvancedHandler(m, replay_button));
 		}
-		if (IS_IGNORE(act)) {
+		if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
 			click_time = e->t;
 			replay_button = b;
 			replay_orig = e;
 		}
-		IF_BUTTON(act, b2) {
+        if (auto b2 = Actions::Button::get_button(act)) {
 			// This is kind of a hack:  Store modifiers in
 			// sticky_mods, so that they are automatically released
 			// on the next press
@@ -756,13 +756,15 @@ public:
 			return;
 		}
 		mods[b] = act->prepare();
-		if (IS_KEY(act)) {
+		if (std::dynamic_pointer_cast<Actions::SendKey>(act)) {
 			if (mods_equal(sticky_mods, mods[b]))
 				mods[b] = sticky_mods;
 			else
 				sticky_mods = mods[b];
-		} else
-			sticky_mods.reset();
+		} else {
+            sticky_mods.reset();
+        }
+
 		act->run();
 	}
 	virtual void motion(RTriple e) {
@@ -933,35 +935,38 @@ protected:
 	}
 
 	virtual void release(guint b, RTriple e) {
-		RStroke s = finish(0);
+        RStroke s = finish(0);
 
-		if (prefs.move_back && !xstate->current_dev->absolute)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig->x, orig->y, 0);
-		else
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+        if (prefs.move_back && !xstate->current_dev->absolute)
+            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig->x, orig->y, 0);
+        else
+            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 
-		if (stroke_action) {
-			(*stroke_action)(s);
-			return parent->replace_child(nullptr);
-		}
-		RRanking ranking;
-		auto act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
-		if (!act) {
-			XkbBell(context->dpy, None, 0, None);
-			return parent->replace_child(nullptr);
-		}
-		auto mods = act->prepare();
-		if (IS_CLICK(act))
-			act = std::make_shared<Actions::Button>((Gdk::ModifierType)0, b);
-		else IF_BUTTON(act, b)
-			return parent->replace_child(new ButtonHandler(mods, b));
-		if (IS_IGNORE(act))
-			return parent->replace_child(new IgnoreHandler(mods));
-		if (IS_SCROLL(act))
-			return parent->replace_child(new ScrollHandler(mods));
-		act->run();
-		parent->replace_child(nullptr);
-	}
+        if (stroke_action) {
+            (*stroke_action)(s);
+            return parent->replace_child(nullptr);
+        }
+        RRanking ranking;
+        auto act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
+        if (!act) {
+            XkbBell(context->dpy, None, 0, None);
+            return parent->replace_child(nullptr);
+        }
+        auto mods = act->prepare();
+        if (std::dynamic_pointer_cast<Actions::Click>(act)) {
+            act = std::make_shared<Actions::Button>((Gdk::ModifierType) 0, b);
+        } else if (auto b = Actions::Button::get_button(act)) {
+            return parent->replace_child(new ButtonHandler(mods, b));
+        }
+        if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
+            return parent->replace_child(new IgnoreHandler(mods));
+        }
+        if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
+            return parent->replace_child(new ScrollHandler(mods));
+        }
+        act->run();
+        parent->replace_child(nullptr);
+    }
 public:
 	StrokeHandler(guint b, RTriple e) :
 		button(b),
@@ -1053,12 +1058,17 @@ XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), mo
 }
 
 void XState::run_action(std::shared_ptr<Actions::Action> act) {
-	auto mods = act->prepare();
-	IF_BUTTON(act, b)
-		return handler->replace_child(new ButtonHandler(mods, b));
-	if (IS_IGNORE(act))
-		return handler->replace_child(new IgnoreHandler(mods));
-	if (IS_SCROLL(act))
-		return handler->replace_child(new ScrollHandler(mods));
-	act->run();
+    auto mods = act->prepare();
+    if (auto b = Actions::Button::get_button(act)) {
+        return handler->replace_child(new ButtonHandler(mods, b));
+    }
+
+    if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
+        return handler->replace_child(new IgnoreHandler(mods));
+    }
+
+    if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
+        return handler->replace_child(new ScrollHandler(mods));
+    }
+    act->run();
 }

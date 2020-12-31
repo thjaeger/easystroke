@@ -70,12 +70,15 @@ namespace Actions {
         ButtonInfo get_button_info() const;
 
         static unsigned int get_button(std::shared_ptr<Action> act) {
-            if (!act)
+            if (!act) {
                 return 0;
-            auto *b = dynamic_cast<Button *>(act.get());
-            if (!b)
-                return 0;
-            return b->get_button_info().button;
+            }
+
+            if (auto b = std::dynamic_pointer_cast<Button>(act)) {
+                return b->get_button_info().button;
+            }
+
+            return 0;
         }
 
         virtual const Glib::ustring get_label() const;
@@ -83,8 +86,3 @@ namespace Actions {
         virtual void run();
     };
 }
-
-#define IS_KEY(act) (act && dynamic_cast<Actions::SendKey *>(act.get()))
-#define IS_SCROLL(act) (act && dynamic_cast<Actions::Scroll *>(act.get()))
-#define IS_IGNORE(act) (act && dynamic_cast<Actions::Ignore *>(act.get()))
-#define IF_BUTTON(act, b) if (unsigned int b = Actions::Button::get_button(act))
