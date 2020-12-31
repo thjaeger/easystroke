@@ -28,7 +28,6 @@ public:
     Atom XTEST;
     Atom PROXIMITY;
     Atom WM_STATE;
-    Atom EASYSTROKE_PING;
     Atom NET_WM_WINDOW_TYPE;
     Atom NET_WM_WINDOW_TYPE_DOCK;
     Atom WM_PROTOCOLS;

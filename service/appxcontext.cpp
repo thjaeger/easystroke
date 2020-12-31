@@ -21,7 +21,6 @@ AppXContext::AppXContext() {
     XTEST = internAtom(XI_PROP_XTEST_DEVICE);
     PROXIMITY = internAtom(AXIS_LABEL_PROP_ABS_DISTANCE);
     WM_STATE = internAtom("WM_STATE");
-    EASYSTROKE_PING = internAtom("EASYSTROKE_PING");
 }
 
 AppXContext::~AppXContext() {

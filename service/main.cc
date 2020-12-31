@@ -42,19 +42,6 @@ void Trace::end() {
     end_();
 }
 
-void quit() {
-    static bool dead = false;
-    if (dead)
-        xstate->bail_out();
-    dead = true;
-    Glib::RefPtr<Gio::Application> app = Gio::Application::get_default();
-    xstate->queue(sigc::mem_fun(*app.operator->(), &Gio::Application::quit));
-}
-
-void sig_int(int) {
-    quit();
-}
-
 class App : public Gtk::Application {
 public:
     App(int &argc, char **&argv, const Glib::ustring &application_id,
@@ -70,8 +57,6 @@ private:
     int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &) override;
 
     void run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationCommandLine> &cmd_line);
-
-    void on_quit(const Glib::VariantBase &) { quit(); }
 };
 
 class ReloadTrace : public Timeout {
@@ -105,19 +90,6 @@ void App::run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationComman
 }
 
 int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &command_line) {
-    int argc;
-    char **arg = command_line->get_arguments(argc);
-    for (int i = 1; arg[i]; i++)
-        if (!strcmp(arg[i], "send")) {
-            if (!arg[++i])
-                g_warning("Send requires an argument");
-            else
-                run_by_name(arg[i], command_line);
-        } else if (!strcmp(arg[i], "quit")) {
-            quit();
-        } else {
-            g_warning("Warning: Unknown command \"%s\".", arg[i]);
-        }
     return true;
 }
 
@@ -125,9 +97,6 @@ std::shared_ptr<AppXContext> context = nullptr;
 
 void App::on_activate() {
     unsetenv("DESKTOP_AUTOSTART_ID");
-
-    signal(SIGINT, &sig_int);
-    signal(SIGCHLD, SIG_IGN);
 
     if (context) {
         g_error("Context already configured");
@@ -152,13 +121,6 @@ void App::on_activate() {
     io->connect(sigc::mem_fun(*xstate, &XState::handle));
     io->attach();
     hold();
-}
-
-int main(int argc, char **argv) {
-    g_message("Listening...");
-
-    App app(argc, argv, "org.easystroke.easystroke", Gio::APPLICATION_HANDLES_COMMAND_LINE);
-    return app.run(argc, argv);
 }
 
 void Actions::Button::run() {
@@ -246,13 +208,24 @@ void Actions::SendText::run() {
 
 std::set<Modifiers *> Modifiers::all;
 
+namespace ShutDown {
+    std::function<void(int)> shutdown_handler;
+    void signal_handler(int signal) { shutdown_handler(signal); }
 
-void Actions::Misc::run() {
-    switch (type) {
-        case UNMINIMIZE:
-            grabber->unminimize();
-            return;
-        default:
-            return;
+    void onShutDown(std::function<void(int)> handler) {
+        shutdown_handler = handler;
+        signal(SIGINT, signal_handler);
+        signal(SIGCHLD, SIG_IGN);
     }
+}
+
+int main(int argc, char *argv[]) {
+    App app(argc, argv, "com.github.easy-gesture.daemon", Gio::APPLICATION_HANDLES_COMMAND_LINE);
+
+    ShutDown::onShutDown([&](int signal) {
+        g_info("Shutting down due to signal level %d", signal);
+        app.quit();
+    });
+
+    return app.run();
 }

@@ -29,19 +29,6 @@ namespace Actions {
         [[nodiscard]] const Glib::ustring get_label() const override { return text; }
     };
 
-    class Misc : public Action {
-    public:
-        enum Type { NONE, UNMINIMIZE, SHOWHIDE, DISABLE };
-        Type type;
-    private:
-        Misc(Type t) : type(t) {}
-    public:
-        static const char *types[5];
-        Misc() = default;
-        [[nodiscard]] const Glib::ustring get_label() const override;
-        void run() override;
-    };
-
     class Click : public Action {
         [[nodiscard]] const Glib::ustring get_label() const override { return "Click"; }
     };

@@ -25,12 +25,9 @@ public:
 	void ungrab(int deviceid);
 
 	bool idle();
-	void ping();
 	void bail_out();
-	void select();
 	void run_action(const std::shared_ptr<Actions::Action>& act);
 	void queue(sigc::slot<void> f);
-	std::string select_window();
 
 	static void activate_window(Window w, Time t);
 	static Window get_window(Window w, Atom prop);
@@ -73,7 +70,6 @@ public:
 	virtual void press(guint b, RTriple e) {}
 	virtual void release(guint b, RTriple e) {}
 	virtual void press_master(guint b, Time t) {}
-	virtual void pong() {}
 	void replace_child(Handler *c);
 	virtual void init() {}
 	virtual ~Handler() {

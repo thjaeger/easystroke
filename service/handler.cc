@@ -2,7 +2,6 @@
 #include "log.h"
 #include "globals.h"
 #include "trace.h"
-#include <gtkmm.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XTest.h>
 #include <X11/XKBlib.h>
@@ -67,10 +66,6 @@ void XState::handle_event(XEvent &ev) {
 	case ClientMessage:
 		if (ev.xclient.window != ping_window)
 			return;
-		if (ev.xclient.message_type == context->EASYSTROKE_PING) {
-			g_debug("Pong");
-			H->pong();
-		}
 		return;
 
 	case MappingNotify:
@@ -478,16 +473,6 @@ int XState::xIOErrorHandler(Display *dpy2) {
     g_error("Connection to X server lost");
 }
 
-void XState::ping() {
-	XClientMessageEvent ev;
-	ev.type = ClientMessage;
-	ev.window = ping_window;
-	ev.message_type = context->EASYSTROKE_PING;
-	ev.format = 32;
-	XSendEvent(context->dpy, ping_window, False, 0, (XEvent *)&ev);
-	XFlush(context->dpy);
-}
-
 void XState::remove_device(int deviceid) {
 	if (current_dev && current_dev->dev == deviceid)
 		current_dev = nullptr;
@@ -497,19 +482,6 @@ void XState::ungrab(int deviceid) {
 	if (current_dev && current_dev->dev == deviceid)
 		xinput_pressed.clear();
 }
-
-class WaitForPongHandler : public Handler, protected Timeout {
-public:
-	WaitForPongHandler() { set_timeout(100); }
-	void timeout() override {
-		g_warning("%s timed out", "WaitForPongHandler");
-		xstate->bail_out();
-	}
-	void pong() override { parent->replace_child(nullptr); }
-	std::string name() override { return "WaitForPong"; }
-	Grabber::State grab_mode() override { return parent->grab_mode(); }
-};
-
 
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;
@@ -1037,17 +1009,6 @@ public:
 	}
 	std::string name() override { return "Idle"; }
 	Grabber::State grab_mode() override { return Grabber::BUTTON; }
-};
-
-class SelectHandler : public Handler {
-	void press_master(guint b, Time t) override {
-		parent->replace_child(new WaitForPongHandler);
-		xstate->ping();
-		xstate->queue(sigc::ptr_fun(&gtk_main_quit));
-	}
-public:
-	std::string name() override { return "Select"; }
-	Grabber::State grab_mode() override { return Grabber::SELECT; }
 };
 
 XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), modifiers(0) {

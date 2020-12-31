@@ -28,10 +28,6 @@ const Glib::ustring Actions::Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-const Glib::ustring Actions::Misc::get_label() const { return types[type]; }
-
-const char *Actions::Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", nullptr };
-
 ActionDB::ActionDB() {
 	root.name = "Default";
 
