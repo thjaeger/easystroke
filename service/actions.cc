@@ -10,11 +10,11 @@ enum Type { MISC };
 extern std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 Source<bool> recording(false);
 
-const Glib::ustring SendKey::get_label() const {
+const Glib::ustring Actions::SendKey::get_label() const {
 	return Gtk::AccelGroup::get_label(key, mods);
 }
 
-const Glib::ustring ModAction::get_label() const {
+const Glib::ustring Actions::ModAction::get_label() const {
 	if (!mods)
 		return "No Modifiers";
 	Glib::ustring label = Gtk::AccelGroup::get_label(0, mods);
@@ -34,14 +34,14 @@ Glib::ustring ButtonInfo::get_button_text() const {
 	return str + Glib::ustring::compose("Button %1", button);
 }
 
-const Glib::ustring Scroll::get_label() const {
+const Glib::ustring Actions::Scroll::get_label() const {
 	if (mods)
 		return ModAction::get_label() + " + Scroll";
 	else
 		return "Scroll";
 }
 
-const Glib::ustring Ignore::get_label() const {
+const Glib::ustring Actions::Ignore::get_label() const {
 	if (mods)
 		return ModAction::get_label();
 	else

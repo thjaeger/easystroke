@@ -162,13 +162,13 @@ int main(int argc, char **argv) {
     return app.run(argc, argv);
 }
 
-void Button::run() {
+void Actions::Button::run() {
     grabber->suspend();
     xstate->fake_click(button);
     grabber->resume();
 }
 
-void SendKey::run() {
+void Actions::SendKey::run() {
     if (!key)
         return;
     guint code = XKeysymToKeycode(dpy, key);
@@ -238,7 +238,7 @@ bool fake_char(gunichar c) {
     return true;
 }
 
-void SendText::run() {
+void Actions::SendText::run() {
     for (Glib::ustring::iterator i = text.begin(); i != text.end(); i++)
         if (!fake_char(*i))
             fake_unicode(*i);
@@ -300,11 +300,11 @@ public:
 
 std::set<Modifiers *> Modifiers::all;
 
-RModifiers ModAction::prepare() {
+RModifiers Actions::ModAction::prepare() {
     return RModifiers(new Modifiers(mods, get_label()));
 }
 
-RModifiers SendKey::prepare() {
+RModifiers Actions::SendKey::prepare() {
     if (!mods)
         return RModifiers();
     return RModifiers(new Modifiers(mods, ModAction::get_label()));
@@ -314,7 +314,7 @@ bool mods_equal(RModifiers m1, RModifiers m2) {
     return m1 && m2 && *m1 == *m2;
 }
 
-void Misc::run() {
+void Actions::Misc::run() {
     switch (type) {
         case UNMINIMIZE:
             grabber->unminimize();

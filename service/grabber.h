@@ -33,7 +33,6 @@ extern Grabber *grabber;
 class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
-	friend class Button;
 public:
 	Children children;
 	enum State { NONE, BUTTON, SELECT, RAW };
@@ -77,8 +76,6 @@ private:
 	void update_excluded();
 
 	void grab(State s) { current = s; set(); }
-	void suspend() { suspended++; set(); }
-	void resume() { if (suspended) suspended--; set(); }
 	void update();
 public:
 	Grabber();
@@ -96,6 +93,8 @@ public:
 	guint get_default_mods(guint button);
 
 	void unminimize();
+    void suspend() { suspended++; set(); }
+    void resume() { if (suspended) suspended--; set(); }
 };
 
 class GrabFailedException : public std::exception {

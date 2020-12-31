@@ -7,6 +7,7 @@
 #include <X11/extensions/XTest.h>
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
+#include "actions/modAction.h"
 
 XState *xstate = nullptr;
 
@@ -683,7 +684,7 @@ class AdvancedHandler : public Handler {
 	Time click_time;
 	guint replay_button;
 	RTriple replay_orig;
-	std::map<guint, RAction> as;
+	std::map<guint, Actions::RAction> as;
 	std::map<guint, RRanking> rs;
 	std::map<guint, RModifiers> mods;
 	RModifiers sticky_mods;
@@ -742,7 +743,7 @@ public:
 				XTestFakeButtonEvent(dpy, b, true, CurrentTime);
 			return;
 		}
-		RAction act = as[bb];
+		auto act = as[bb];
 		if (IS_SCROLL(act)) {
 			click_time = e->t;
 			replay_button = b;
@@ -956,14 +957,14 @@ protected:
 			return parent->replace_child(nullptr);
 		}
 		RRanking ranking;
-		RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
+		Actions::RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
 		if (!act) {
 			XkbBell(dpy, None, 0, None);
 			return parent->replace_child(nullptr);
 		}
 		RModifiers mods = act->prepare();
 		if (IS_CLICK(act))
-			act = Button::create((Gdk::ModifierType)0, b);
+			act = std::make_shared<Actions::Button>((Gdk::ModifierType)0, b);
 		else IF_BUTTON(act, b)
 			return parent->replace_child(new ButtonHandler(mods, b));
 		if (IS_IGNORE(act))
@@ -1063,7 +1064,7 @@ XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), mo
 	handler->init();
 }
 
-void XState::run_action(RAction act) {
+void XState::run_action(std::shared_ptr<Actions::Action> act) {
 	RModifiers mods = act->prepare();
 	IF_BUTTON(act, b)
 		return handler->replace_child(new ButtonHandler(mods, b));

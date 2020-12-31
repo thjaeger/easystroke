@@ -8,152 +8,25 @@
 #include "gesture.h"
 #include "prefdb.h"
 
-class Action;
-class Command;
-class SendKey;
-class SendText;
-class Scroll;
-class Ignore;
-class Button;
-class Misc;
-class Ranking;
-
-typedef std::shared_ptr<Action> RAction;
-typedef std::shared_ptr<SendKey> RSendKey;
-typedef std::shared_ptr<SendText> RSendText;
-typedef std::shared_ptr<Scroll> RScroll;
-typedef std::shared_ptr<Ignore> RIgnore;
-typedef std::shared_ptr<Button> RButton;
-typedef std::shared_ptr<Misc> RMisc;
-typedef std::shared_ptr<Ranking> RRanking;
+#include "actions/modifiers.h"
+#include "actions/action.h"
+#include "actions/modAction.h"
 
 class Unique;
 
-class Modifiers;
-typedef std::shared_ptr<Modifiers> RModifiers;
+class Ranking;
+typedef std::shared_ptr<Ranking> RRanking;
 
-bool mods_equal(RModifiers m1, RModifiers m2);
-
-class Action {
-public:
-	virtual void run() {}
-	virtual RModifiers prepare() { return RModifiers(); }
-	virtual const Glib::ustring get_label() const = 0;
-};
-
-class Command : public Action {
-public:
-	std::string cmd;
-	Command() = default;
-    explicit Command(std::string c) : cmd(std::move(c)) {}
-	virtual void run();
-	virtual const Glib::ustring get_label() const { return cmd; }
-};
-
-class ModAction : public Action {
-protected:
-	ModAction() {}
-	Gdk::ModifierType mods;
-	ModAction(Gdk::ModifierType mods_) : mods(mods_) {}
-	virtual RModifiers prepare();
-public:
-	virtual const Glib::ustring get_label() const;
-};
-
-class SendKey : public ModAction {
-	guint key;
-	SendKey(guint key_, Gdk::ModifierType mods) :
-		ModAction(mods), key(key_) {}
-public:
-	SendKey() {}
-	static RSendKey create(guint key, Gdk::ModifierType mods) {
-		return RSendKey(new SendKey(key, mods));
-	}
-
-	virtual void run();
-	virtual RModifiers prepare();
-	virtual const Glib::ustring get_label() const;
-};
-#define IS_KEY(act) (act && dynamic_cast<SendKey *>(act.get()))
-
-class SendText : public Action {
-	Glib::ustring text;
-	SendText(Glib::ustring text_) : text(text_) {}
-public:
-	SendText() {}
-	static RSendText create(Glib::ustring text) { return RSendText(new SendText(text)); }
-
-	virtual void run();
-	virtual const Glib::ustring get_label() const { return text; }
-};
-
-class Scroll : public ModAction {
-	Scroll(Gdk::ModifierType mods) : ModAction(mods) {}
-public:
-	Scroll() {}
-	static RScroll create(Gdk::ModifierType mods) { return RScroll(new Scroll(mods)); }
-	virtual const Glib::ustring get_label() const;
-};
-#define IS_SCROLL(act) (act && dynamic_cast<Scroll *>(act.get()))
-
-class Ignore : public ModAction {
-	Ignore(Gdk::ModifierType mods) : ModAction(mods) {}
-public:
-	Ignore() {}
-	static RIgnore create(Gdk::ModifierType mods) { return RIgnore(new Ignore(mods)); }
-	virtual const Glib::ustring get_label() const;
-};
-#define IS_IGNORE(act) (act && dynamic_cast<Ignore *>(act.get()))
-
-class Button : public ModAction {
-	Button(Gdk::ModifierType mods, guint button_) : ModAction(mods), button(button_) {}
-	guint button;
-public:
-	Button() {}
-	ButtonInfo get_button_info() const;
-	static unsigned int get_button(RAction act) {
-		if (!act)
-			return 0;
-		Button *b = dynamic_cast<Button *>(act.get());
-		if (!b)
-			return 0;
-		return b->get_button_info().button;
-	}
-	static RButton create(Gdk::ModifierType mods, guint button_) { return RButton(new Button(mods, button_)); }
-	virtual const Glib::ustring get_label() const;
-	virtual void run();
-};
-#define IF_BUTTON(act, b) if (unsigned int b = Button::get_button(act))
-
-class Misc : public Action {
-public:
-	enum Type { NONE, UNMINIMIZE, SHOWHIDE, DISABLE };
-	Type type;
-private:
-	Misc(Type t) : type(t) {}
-public:
-	static const char *types[5];
-	Misc() {}
-	virtual const Glib::ustring get_label() const;
-	static RMisc create(Type t) { return RMisc(new Misc(t)); }
-	virtual void run();
-};
 
 class StrokeSet : public std::set<RStroke> {
 };
 
-// Internal use only
-class Click : public Action {
-	virtual const Glib::ustring get_label() const { return "Click"; }
-};
-#define IS_CLICK(act) (act && dynamic_cast<Click *>(act.get()))
-
 class StrokeInfo {
 public:
-	StrokeInfo(RStroke s, RAction a) : action(a) { strokes.insert(s); }
+	StrokeInfo(RStroke s, Actions::RAction a) : action(a) { strokes.insert(s); }
 	StrokeInfo() {}
 	StrokeSet strokes;
-	RAction action;
+	Actions::RAction action;
 	std::string name;
 };
 typedef std::shared_ptr<StrokeInfo> RStrokeInfo;
@@ -163,7 +36,7 @@ class Ranking {
 	int x, y;
 public:
 	RStroke stroke, best_stroke;
-	RAction action;
+    Actions::RAction action;
 	double score;
 	std::string name;
 	std::multimap<double, std::pair<std::string, RStroke> > r;
@@ -247,9 +120,9 @@ public:
 		return (parent ? parent->count_actions() : 0) + order.size() - deleted.size();
 	}
 	void all_strokes(std::list<RStroke> &strokes) const;
-	RAction handle(RStroke s, RRanking &r) const;
+	Actions::RAction handle(RStroke s, RRanking &r) const;
 	// b1 is always reported as b2
-	void handle_advanced(RStroke s, std::map<guint, RAction> &a, std::map<guint, RRanking> &r, int b1, int b2) const;
+	void handle_advanced(RStroke s, std::map<guint, Actions::RAction> &a, std::map<guint, RRanking> &r, int b1, int b2) const;
 
 	~ActionListDiff();
 };

@@ -28,7 +28,7 @@ public:
 	void ping();
 	void bail_out();
 	void select();
-	void run_action(RAction act);
+	void run_action(Actions::RAction act);
 	void queue(sigc::slot<void> f);
 	std::string select_window();
 

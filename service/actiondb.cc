@@ -6,7 +6,7 @@
 
 using namespace std;
 
-void Command::run() {
+void Actions::Command::run() {
 	pid_t pid = fork();
 	switch (pid) {
 		case 0:
@@ -17,20 +17,20 @@ void Command::run() {
 	}
 }
 
-ButtonInfo Button::get_button_info() const {
+ButtonInfo Actions::Button::get_button_info() const {
 	ButtonInfo bi;
 	bi.button = button;
 	bi.state = mods;
 	return bi;
 }
 
-const Glib::ustring Button::get_label() const {
+const Glib::ustring Actions::Button::get_label() const {
 	return get_button_info().get_button_text();
 }
 
-const Glib::ustring Misc::get_label() const { return types[type]; }
+const Glib::ustring Actions::Misc::get_label() const { return types[type]; }
 
-const char *Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", nullptr };
+const char *Actions::Misc::types[5] = { "None", "Unminimize", "Show/Hide", "Disable (Enable)", nullptr };
 
 ActionDB::ActionDB() {
 	root.name = "Default";
@@ -52,17 +52,17 @@ ActionDB::ActionDB() {
 
     root.add(std::make_shared<StrokeInfo>(
         std::make_shared<Stroke>(upStroke, 0, 0, 32768, false),
-        std::make_shared<Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"))
+        std::make_shared<Actions::Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"))
     );
 
     root.add(std::make_shared<StrokeInfo>(
             std::make_shared<Stroke>(leftStroke, 0, 0, 32768, false),
-            std::make_shared<Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"))
+            std::make_shared<Actions::Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"))
     );
 
     root.add(std::make_shared<StrokeInfo>(
             std::make_shared<Stroke>(rightStroke, 0, 0, 32768, false),
-            std::make_shared<Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"))
+            std::make_shared<Actions::Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"))
     );
 }
 
@@ -133,9 +133,9 @@ void ActionListDiff::all_strokes(std::list<RStroke> &strokes) const {
 		i->all_strokes(strokes);
 }
 
-RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
+Actions::RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	if (!s)
-		return RAction();
+		return Actions::RAction();
 	r.reset(new Ranking);
 	r->stroke = s;
 	r->score = 0.0;
@@ -160,7 +160,7 @@ RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 		}
 	}
 	if (!r->action && s->trivial())
-		return RAction(new Click);
+		return Actions::RAction(new Actions::Click);
 	if (r->action) {
         g_message("Executing Action %s", r->name.c_str());
 	} else {
@@ -169,7 +169,7 @@ RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	return r->action;
 }
 
-void ActionListDiff::handle_advanced(RStroke s, std::map<guint, RAction> &as,
+void ActionListDiff::handle_advanced(RStroke s, std::map<guint, Actions::RAction> &as,
 		std::map<guint, RRanking> &rs, int b1, int b2) const {
 	if (!s)
 		return;
