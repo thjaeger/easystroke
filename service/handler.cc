@@ -344,8 +344,8 @@ void XState::fake_click(guint b) {
 }
 
 void Handler::replace_child(Handler *c) {
-	if (child)
-		delete child;
+    delete child;
+
 	child = c;
 	if (child)
 		child->parent = this;
@@ -361,7 +361,7 @@ void Handler::replace_child(Handler *c) {
 	grabber->grab(new_handler->grab_mode());
 	if (child)
 		child->init();
-	while (xstate->queued.size() && xstate->idle()) {
+	while (!xstate->queued.empty() && xstate->idle()) {
 		(*xstate->queued.begin())();
 		xstate->queued.pop_front();
 	}
@@ -371,29 +371,29 @@ class IgnoreHandler : public Handler {
     std::shared_ptr<Modifiers> mods;
 	bool proximity;
 public:
-	IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(mods_), proximity(xstate->in_proximity && prefs.proximity) {}
-	virtual void press(guint b, RTriple e) {
+	IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)), proximity(xstate->in_proximity && prefs.proximity) {}
+	void press(guint b, RTriple e) override {
 		if (xstate->current_dev->master) {
 			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
 		}
 	}
-	virtual void motion(RTriple e) {
+	void motion(RTriple e) override {
 		if (xstate->current_dev->master)
 			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 		if (proximity && !xstate->in_proximity)
 			parent->replace_child(nullptr);
 	}
-	virtual void release(guint b, RTriple e) {
+	void release(guint b, RTriple e) override {
 		if (xstate->current_dev->master) {
 			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
 		}
-		if (proximity ? !xstate->in_proximity : !xstate->xinput_pressed.size())
+		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
-	virtual std::string name() { return "Ignore"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	std::string name() override { return "Ignore"; }
+	Grabber::State grab_mode() override { return Grabber::NONE; }
 };
 
 class ButtonHandler : public Handler {
@@ -402,12 +402,12 @@ class ButtonHandler : public Handler {
 	bool proximity;
 public:
 	ButtonHandler(std::shared_ptr<Modifiers> mods_, guint button_) :
-		mods(mods_),
+		mods(std::move(mods_)),
 		button(button_),
 		real_button(0),
 		proximity(xstate->in_proximity && prefs.proximity)
 	{}
-	virtual void press(guint b, RTriple e) {
+	void press(guint b, RTriple e) override {
 		if (xstate->current_dev->master) {
 			if (!real_button)
 				real_button = b;
@@ -417,24 +417,24 @@ public:
 			XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
 		}
 	}
-	virtual void motion(RTriple e) {
+	void motion(RTriple e) override {
 		if (xstate->current_dev->master)
 			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 		if (proximity && !xstate->in_proximity)
 			parent->replace_child(nullptr);
 	}
-	virtual void release(guint b, RTriple e) {
+	void release(guint b, RTriple e) override {
 		if (xstate->current_dev->master) {
 			if (real_button == b)
 				b = button;
 			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 			XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
 		}
-		if (proximity ? !xstate->in_proximity : !xstate->xinput_pressed.size())
+		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
-	virtual std::string name() { return "Button"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	std::string name() override { return "Button"; }
+	Grabber::State grab_mode() override { return Grabber::NONE; }
 };
 
 void XState::bail_out() {
@@ -501,13 +501,13 @@ void XState::ungrab(int deviceid) {
 class WaitForPongHandler : public Handler, protected Timeout {
 public:
 	WaitForPongHandler() { set_timeout(100); }
-	virtual void timeout() {
+	void timeout() override {
 		g_warning("%s timed out", "WaitForPongHandler");
 		xstate->bail_out();
 	}
-	virtual void pong() { parent->replace_child(nullptr); }
-	virtual std::string name() { return "WaitForPong"; }
-	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
+	void pong() override { parent->replace_child(nullptr); }
+	std::string name() override { return "WaitForPong"; }
+	Grabber::State grab_mode() override { return parent->grab_mode(); }
 };
 
 
@@ -538,7 +538,7 @@ protected:
 		return v * exp(log(abs(v))/3);
 	}
 protected:
-	void move_back() {
+	void move_back() const {
 		if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
 			return;
 		XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig_x, orig_y, 0);
@@ -604,22 +604,22 @@ class ScrollHandler : public AbstractScrollHandler {
     std::shared_ptr<Modifiers> mods;
 	bool proximity;
 public:
-	ScrollHandler(std::shared_ptr<Modifiers> mods_) : mods(mods_) {
+	explicit ScrollHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)) {
 		proximity = xstate->in_proximity && prefs.proximity;
 	}
-	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
+	void raw_motion(RTriple e, bool abs_x, bool abs_y) override {
 		if (proximity && !xstate->in_proximity) {
 			parent->replace_child(nullptr);
 			move_back();
 		}
-		if (xstate->xinput_pressed.size())
+		if (!xstate->xinput_pressed.empty())
 			AbstractScrollHandler::raw_motion(e, abs_x, abs_y);
 	}
-	virtual void press_master(guint b, Time t) {
+	void press_master(guint b, Time t) override {
 		xstate->fake_core_button(b, false);
 	}
-	virtual void release(guint b, RTriple e) {
-		if ((proximity && xstate->in_proximity) || xstate->xinput_pressed.size())
+	void release(guint b, RTriple e) override {
+		if ((proximity && xstate->in_proximity) || !xstate->xinput_pressed.empty())
 			return;
 		parent->replace_child(0);
 		move_back();
@@ -632,45 +632,45 @@ class ScrollAdvancedHandler : public AbstractScrollHandler {
     std::shared_ptr<Modifiers> m;
 	guint &rb;
 public:
-	ScrollAdvancedHandler(std::shared_ptr<Modifiers> m_, guint &rb_) : m(m_), rb(rb_) {}
-	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
+	ScrollAdvancedHandler(std::shared_ptr<Modifiers> m_, guint &rb_) : m(std::move(m_)), rb(rb_) {}
+	void fake_wheel(int b1, int n1, int b2, int n2) override {
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
 		rb = 0;
 	}
-	virtual void release(guint b, RTriple e) {
+	void release(guint b, RTriple e) override {
 		Handler *p = parent;
 		p->replace_child(nullptr);
 		p->release(b, e);
 		move_back();
 	}
-	virtual void press(guint b, RTriple e) {
+	void press(guint b, RTriple e) override {
 		Handler *p = parent;
 		p->replace_child(nullptr);
 		p->press(b, e);
 		move_back();
 	}
-	virtual std::string name() { return "ScrollAdvanced"; }
-	virtual Grabber::State grab_mode() { return Grabber::RAW; }
+	std::string name() override { return "ScrollAdvanced"; }
+	Grabber::State grab_mode() override { return Grabber::RAW; }
 };
 
 class AdvancedStrokeActionHandler : public Handler {
 	RStroke s;
 public:
-	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(s_) {}
-	virtual void press(guint b, RTriple e) {
+	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(std::move(s_)) {}
+	void press(guint b, RTriple e) override {
 		if (stroke_action) {
 			s->button = b;
 			(*stroke_action)(s);
 		}
 	}
-	virtual void release(guint b, RTriple e) {
+	void release(guint b, RTriple e) override {
 		if (stroke_action)
 			(*stroke_action)(s);
-		if (xstate->xinput_pressed.size() == 0)
+		if (xstate->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
-	virtual std::string name() { return "InstantStrokeAction"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	std::string name() override { return "InstantStrokeAction"; }
+	Grabber::State grab_mode() override { return Grabber::NONE; }
 };
 
 class AdvancedHandler : public Handler {
@@ -706,9 +706,9 @@ public:
 
 	}
 	virtual void init() {
-		if (replay && replay->size()) {
+		if (replay && !replay->empty()) {
 			bool replay_first = !as.count(button2);
-			PreStroke::iterator i = replay->begin();
+			auto i = replay->begin();
 			if (replay_first)
 				press(button2 ? button2 : button1, *i);
 			while (i != replay->end())
@@ -994,7 +994,7 @@ public:
 			get_timeouts(prefs.timeout_profile, &init_timeout, &final_timeout);
 		use_timeout = init_timeout;
 	}
-	virtual void init() {
+	void init() override {
 		if (grabber->is_instant(button))
 			return do_instant();
 		if (grabber->is_click_hold(button)) {
@@ -1013,9 +1013,9 @@ public:
 		init_connection = Glib::signal_timeout().connect(
 				sigc::mem_fun(*this, &StrokeHandler::timeout), init_timeout);
 	}
-	~StrokeHandler() { trace->end(); }
-	virtual std::string name() { return "Stroke"; }
-	virtual Grabber::State grab_mode() { return Grabber::NONE; }
+	~StrokeHandler() override { trace->end(); }
+	std::string name() override { return "Stroke"; }
+	Grabber::State grab_mode() override { return Grabber::NONE; }
 };
 
 class IdleHandler : public Handler {
@@ -1029,25 +1029,25 @@ protected:
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
-	IdleHandler(XState *xstate_) {
+	explicit IdleHandler(XState *xstate_) {
 		xstate = xstate_;
 	}
-	virtual ~IdleHandler() {
+	~IdleHandler() override {
 		XUngrabKey(context->dpy, XKeysymToKeycode(context->dpy,XK_Escape), AnyModifier, context->ROOT);
 	}
-	virtual std::string name() { return "Idle"; }
-	virtual Grabber::State grab_mode() { return Grabber::BUTTON; }
+	std::string name() override { return "Idle"; }
+	Grabber::State grab_mode() override { return Grabber::BUTTON; }
 };
 
 class SelectHandler : public Handler {
-	virtual void press_master(guint b, Time t) {
+	void press_master(guint b, Time t) override {
 		parent->replace_child(new WaitForPongHandler);
 		xstate->ping();
 		xstate->queue(sigc::ptr_fun(&gtk_main_quit));
 	}
 public:
-	virtual std::string name() { return "Select"; }
-	virtual Grabber::State grab_mode() { return Grabber::SELECT; }
+	std::string name() override { return "Select"; }
+	Grabber::State grab_mode() override { return Grabber::SELECT; }
 };
 
 XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), modifiers(0) {
@@ -1064,7 +1064,7 @@ XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), mo
 	handler->init();
 }
 
-void XState::run_action(std::shared_ptr<Actions::Action> act) {
+void XState::run_action(const std::shared_ptr<Actions::Action>& act) {
     auto mods = act->prepare();
     if (auto b = Actions::Button::get_button(act)) {
         return handler->replace_child(new ButtonHandler(mods, b));
