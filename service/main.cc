@@ -1,8 +1,13 @@
 
-#include "win.h"
+#include <gtkmm.h>
+#include <X11/Xutil.h>
+#include <X11/extensions/XTest.h>
+#include <X11/extensions/Xfixes.h>
+
+#include "util.h"
+#include "prefdb.h"
 #include "main.h"
 #include "actiondb.h"
-#include "prefdb.h"
 #include "trace.h"
 #include "composite.h"
 #include "grabber.h"
@@ -10,14 +15,9 @@
 #include "log.h"
 
 #include <glib.h>
-#include <glibmm/i18n.h>
 
-#include <X11/Xutil.h>
-#include <X11/extensions/XTest.h>
-#include <X11/extensions/Xfixes.h>
-
-#include <string.h>
-#include <signal.h>
+#include <cstring>
+#include <csignal>
 #include <fcntl.h>
 
 const char *prefs_versions[] = {"-0.5.5", "-0.4.1", "-0.4.0", "", nullptr};
@@ -188,7 +188,6 @@ void App::on_activate() {
 
     ROOT = DefaultRootWindow(dpy);
 
-    prefs.init();
     action_watcher = new ActionDBWatcher;
     action_watcher->init();
 
@@ -202,8 +201,6 @@ void App::on_activate() {
     Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
     g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
     screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
-    Notifier *trace_notify = new Notifier(sigc::ptr_fun(&schedule_reload_trace));
-    prefs.color.connect(trace_notify);
 
     XTestGrabControl(dpy, True);
 
@@ -433,9 +430,4 @@ void Misc::run() {
 bool is_file(std::string filename) {
     struct stat st;
     return lstat(filename.c_str(), &st) != -1 && S_ISREG(st.st_mode);
-}
-
-bool is_dir(std::string dirname) {
-    struct stat st;
-    return lstat(dirname.c_str(), &st) != -1 && S_ISDIR(st.st_mode);
 }

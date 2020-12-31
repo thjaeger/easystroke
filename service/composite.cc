@@ -67,12 +67,12 @@ void Composite::draw(Point p, Point q) {
 }
 
 void Composite::start_() {
-	RGBA rgba = prefs.color.get();
+	RGBA rgba = prefs.color;
 	red = rgba.color.get_red_p();
 	green = rgba.color.get_green_p();
 	blue = rgba.color.get_blue_p();
 	alpha = ((double)rgba.alpha)/65535.0;
-	width = prefs.trace_width.get();
+	width = prefs.trace_width;
 }
 
 void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {

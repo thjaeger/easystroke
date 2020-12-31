@@ -1,8 +1,4 @@
-#include "actiondb.h"
-#include "main.h"
-#include "win.h"
 #include <glibmm/i18n.h>
-
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -14,6 +10,10 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/export.hpp>
 #include <boost/serialization/shared_ptr.hpp>
+
+#include "actiondb.h"
+#include "main.h"
+#include "win.h"
 
 BOOST_CLASS_EXPORT(StrokeSet)
 

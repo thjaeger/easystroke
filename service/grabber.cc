@@ -213,8 +213,6 @@ Grabber::Grabber() : children(ROOT) {
 	grabbed_button.state = 0;
 	cursor_select = XCreateFontCursor(dpy, XC_crosshair);
 	init_xi();
-	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
-	prefs.button.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	current_class = fun(&get_wm_class, current_app_window);
 	current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
 	recording.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
@@ -247,7 +245,6 @@ bool Grabber::init_xi() {
 	for (int i = 0; i < n; i++)
 		new_device(info + i);
 	XIFreeDeviceInfo(info);
-	prefs.excluded_devices.connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update_excluded)));
 	update_excluded();
 	xi_grabbed = false;
 	set();
@@ -315,7 +312,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 void Grabber::update_excluded() {
 	suspend();
 	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
-		i->second->active = !prefs.excluded_devices.ref().count(i->second->name);
+		i->second->active = !prefs.excluded_devices.get()->count(i->second->name);
 	resume();
 }
 
@@ -457,53 +454,53 @@ void Grabber::set() {
 }
 
 bool Grabber::is_instant(guint b) {
-	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
+	for (auto i = buttons.begin(); i != buttons.end(); i++)
 		if (i->button == b && i->instant)
 			return true;
 	return false;
 }
 
 bool Grabber::is_click_hold(guint b) {
-	for (std::vector<ButtonInfo>::iterator i = buttons.begin(); i != buttons.end(); i++)
+	for (auto i = buttons.begin(); i != buttons.end(); i++)
 		if (i->button == b && i->click_hold)
 			return true;
 	return false;
 }
 
 guint Grabber::get_default_mods(guint button) {
-	for (std::vector<ButtonInfo>::const_iterator i = buttons.begin(); i != buttons.end(); ++i)
+	for (auto i = buttons.begin(); i != buttons.end(); ++i)
 		if (i->button == button)
 			return i->state;
 	return AnyModifier;
 }
 
 void Grabber::update() {
-	ButtonInfo bi = prefs.button.ref();
+	auto bi = prefs.button;
 	active = true;
 	if (!recording.get()) {
-		std::map<std::string, RButtonInfo>::const_iterator i = prefs.exceptions.ref().find(current_class->get());
-		if (i != prefs.exceptions.ref().end()) {
+		auto i = prefs.exceptions->find(current_class->get());
+		if (i != prefs.exceptions.get()->end()) {
 			if (i->second)
 				bi = *i->second;
 			else
 				active = false;
 		}
 
-		if (prefs.whitelist.get() && !actions.apps.count(current_class->get()))
+		if (prefs.whitelist && !actions.apps.count(current_class->get()))
 			active = false;
 	}
-	const std::vector<ButtonInfo> &extra = prefs.extra_buttons.ref();
-	if (grabbed_button == bi && buttons.size() == extra.size() + 1 &&
-			std::equal(extra.begin(), extra.end(), ++buttons.begin())) {
+	const auto extra = prefs.extra_buttons;
+	if (grabbed_button == bi && buttons.size() == extra->size() + 1 &&
+			std::equal(extra->begin(), extra->end(), ++buttons.begin())) {
 		set();
 		return;
 	}
 	suspend();
 	grabbed_button = bi;
 	buttons.clear();
-	buttons.reserve(extra.size() + 1);
+	buttons.reserve(extra->size() + 1);
 	buttons.push_back(bi);
-	for (std::vector<ButtonInfo>::const_iterator i = extra.begin(); i != extra.end(); ++i)
+	for (std::vector<ButtonInfo>::const_iterator i = extra->begin(); i != extra->end(); ++i)
 		if (!i->overlap(bi))
 			buttons.push_back(*i);
 	resume();

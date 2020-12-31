@@ -373,7 +373,7 @@ class IgnoreHandler : public Handler {
 	RModifiers mods;
 	bool proximity;
 public:
-	IgnoreHandler(RModifiers mods_) : mods(mods_), proximity(xstate->in_proximity && prefs.proximity.get()) {}
+	IgnoreHandler(RModifiers mods_) : mods(mods_), proximity(xstate->in_proximity && prefs.proximity) {}
 	virtual void press(guint b, RTriple e) {
 		if (xstate->current_dev->master) {
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
@@ -407,7 +407,7 @@ public:
 		mods(mods_),
 		button(button_),
 		real_button(0),
-		proximity(xstate->in_proximity && prefs.proximity.get())
+		proximity(xstate->in_proximity && prefs.proximity)
 	{}
 	virtual void press(guint b, RTriple e) {
 		if (xstate->current_dev->master) {
@@ -525,7 +525,7 @@ class AbstractScrollHandler : public Handler {
 
 protected:
 	AbstractScrollHandler() : have_x(false), have_y(false), last_x(0.0), last_y(0.0), last_t(0), offset_x(0.0), offset_y(0.0) {
-		if (!prefs.move_back.get() || (xstate->current_dev && xstate->current_dev->absolute))
+		if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
 			return;
 		Window dummy1, dummy2;
 		int dummy3, dummy4;
@@ -543,7 +543,7 @@ protected:
 	}
 protected:
 	void move_back() {
-		if (!prefs.move_back.get() || (xstate->current_dev && xstate->current_dev->absolute))
+		if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
 			return;
 		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig_x, orig_y, 0);
 	}
@@ -573,7 +573,7 @@ public:
 		int dt = e->t - last_t;
 		last_t = e->t;
 
-		double factor = (prefs.scroll_invert.get() ? 1.0 : -1.0) * prefs.scroll_speed.get();
+		double factor = (prefs.scroll_invert ? 1.0 : -1.0) * prefs.scroll_speed;
 		offset_x += factor * curve(dx/dt)*dt/20.0;
 		offset_y += factor * curve(dy/dt)*dt/10.0;
 		int b1 = 0, n1 = 0, b2 = 0, n2 = 0;
@@ -609,7 +609,7 @@ class ScrollHandler : public AbstractScrollHandler {
 	bool proximity;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
-		proximity = xstate->in_proximity && prefs.proximity.get();
+		proximity = xstate->in_proximity && prefs.proximity;
 	}
 	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
 		if (proximity && !xstate->in_proximity) {
@@ -879,7 +879,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		if (!is_gesture)
 			c.reset(new PreStroke);
 		RStroke s;
-		if (prefs.timeout_gestures.get() || grabber->is_click_hold(button))
+		if (prefs.timeout_gestures || grabber->is_click_hold(button))
 			s = Stroke::create(*c, trigger, 0, xstate->modifiers, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
 		XFlush(dpy);
@@ -946,7 +946,7 @@ protected:
 	virtual void release(guint b, RTriple e) {
 		RStroke s = finish(0);
 
-		if (prefs.move_back.get() && !xstate->current_dev->absolute)
+		if (prefs.move_back && !xstate->current_dev->absolute)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
 		else
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
@@ -981,16 +981,16 @@ public:
 		drawing(false),
 		last(e),
 		orig(e),
-		init_timeout(prefs.init_timeout.get()),
-		final_timeout(prefs.final_timeout.get()),
+		init_timeout(prefs.init_timeout),
+		final_timeout(prefs.final_timeout),
 		radius(16)
 	{
-		const std::map<std::string, TimeoutType> &dt = prefs.device_timeout.ref();
-		std::map<std::string, TimeoutType>::const_iterator j = dt.find(xstate->current_dev->name);
-		if (j != dt.end())
+		auto dt = prefs.device_timeout;
+		auto j = dt->find(xstate->current_dev->name);
+		if (j != dt->end())
 			get_timeouts(j->second, &init_timeout, &final_timeout);
 		else
-			get_timeouts(prefs.timeout_profile.get(), &init_timeout, &final_timeout);
+			get_timeouts(prefs.timeout_profile, &init_timeout, &final_timeout);
 		use_timeout = init_timeout;
 	}
 	virtual void init() {

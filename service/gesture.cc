@@ -45,7 +45,7 @@ template<class Archive> void Stroke::load(Archive & ar, const unsigned int versi
 	ar & button;
 	if (version >= 2)
 		ar & trigger;
-	if (version < 4 && (!button || trigger == (int)prefs.button.get().button))
+	if (version < 4 && (!button || trigger == (int)prefs.button.button))
 		trigger = 0;
 	if (version < 3)
 		return;
