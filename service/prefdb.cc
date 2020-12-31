@@ -9,19 +9,22 @@ make_shared_map(std::initializer_list<typename std::map<Key,T>::value_type> il)
 }
 
 PrefDB::PrefDB() :
+    exceptions(make_shared_map<std::string, RButtonInfo>({})),
 	button(Button2),
 	proximity(false),
 	init_timeout(250),
 	final_timeout(250),
 	timeout_profile(TimeoutDefault),
 	timeout_gestures(false),
+	excluded_devices(std::make_shared<std::set<std::string>>()),
 	color(Gdk::Color("#980101")),
 	trace_width(3),
+	extra_buttons(std::make_shared<std::vector<ButtonInfo>>()),
 	scroll_invert(true),
 	scroll_speed(2.0),
-	move_back(false),
-	whitelist(false),
-	device_timeout(make_shared_map<std::string, TimeoutType>({}))
+    move_back(false),
+	device_timeout(make_shared_map<std::string, TimeoutType>({})),
+    whitelist(false)
 {}
 
 bool ButtonInfo::overlap(const ButtonInfo &bi) const {
