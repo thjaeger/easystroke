@@ -9,7 +9,7 @@ make_shared_map(std::initializer_list<typename std::map<Key,T>::value_type> il)
 }
 
 PrefDB::PrefDB() :
-    exceptions(make_shared_map<std::string, RButtonInfo>({})),
+    exceptions(make_shared_map<std::string, std::shared_ptr<ButtonInfo>>({})),
 	button(Button2),
 	proximity(false),
 	init_timeout(250),

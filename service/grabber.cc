@@ -187,7 +187,7 @@ class IdleNotifier : public Base {
 	void run() { f(); }
 public:
 	explicit IdleNotifier(sigc::slot<void> f_) : f(std::move(f_)) {}
-	virtual void notify() { xstate->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
+	void notify() override { xstate->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
 };
 
 void Grabber::unminimize() {
@@ -200,7 +200,8 @@ void Grabber::unminimize() {
 
 const char *Grabber::state_name[4] = { "None", "Button", "Select", "Raw" };
 
-Grabber::Grabber() : children(ROOT) {
+Grabber::Grabber()
+    : children(ROOT) {
 	current = BUTTON;
 	suspended = 0;
 	suspend();
@@ -249,7 +250,6 @@ bool Grabber::init_xi() {
 
 	if (xi_devs.empty()) {
 		g_error("Error: No suitable XInput devices found");
-		exit(EXIT_FAILURE);
 	}
 
 	device_mask.deviceid = XIAllDevices;
@@ -310,7 +310,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
 void Grabber::update_excluded() {
 	suspend();
 	for (auto i = xi_devs.begin(); i != xi_devs.end(); ++i)
-		i->second->active = !prefs.excluded_devices.get()->count(i->second->name);
+		i->second->active = !prefs.excluded_devices->count(i->second->name);
 	resume();
 }
 

@@ -26,15 +26,13 @@ public:
 	ButtonInfo() : button(0), state(0), instant(false), click_hold(false) {}
 };
 
-typedef std::shared_ptr<ButtonInfo> RButtonInfo;
-
 struct RGBA {
 	Gdk::Color color;
 	guint16 alpha;
 	RGBA() : alpha(65535) {}
-	RGBA(Gdk::Color c) : color(c), alpha(65535) {}
+	explicit RGBA(Gdk::Color c) : color(std::move(c)), alpha(65535) {}
 
-	bool operator==(const RGBA rgba) {
+	bool operator==(const RGBA& rgba) const {
 		return color == rgba.color && alpha == rgba.alpha;
 	}
 };
@@ -44,7 +42,7 @@ class PrefDB {
 public:
 	PrefDB();
 
-	std::shared_ptr<std::map<std::string, RButtonInfo>> exceptions;
+	std::shared_ptr<std::map<std::string, std::shared_ptr<ButtonInfo>>> exceptions;
 	ButtonInfo button;
 	bool proximity;
 	int init_timeout;

@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <set>
+#include <utility>
 #include "util.h"
 
 class Modifiers : Timeout {
@@ -12,7 +13,7 @@ class Modifiers : Timeout {
     guint mods;
     Glib::ustring str;
 public:
-    Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_) {
+    Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(std::move(str_)) {
         all.insert(this);
         update_mods();
     }
@@ -24,7 +25,7 @@ public:
     void timeout() override {
     }
 
-    ~Modifiers() {
+    ~Modifiers() override {
         all.erase(this);
         update_mods();
     }
