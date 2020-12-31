@@ -1,4 +1,5 @@
 #pragma once
+#include <glibmm/ustring.h>
 
 #include "modifiers.h"
 
@@ -6,7 +7,7 @@ namespace Actions {
     class Action {
     public:
         virtual void run() {}
-        virtual RModifiers prepare() { return RModifiers(); }
+        virtual std::shared_ptr<Modifiers> prepare() { return nullptr; }
         virtual const Glib::ustring get_label() const = 0;
     };
 

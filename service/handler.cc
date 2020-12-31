@@ -371,10 +371,10 @@ void Handler::replace_child(Handler *c) {
 }
 
 class IgnoreHandler : public Handler {
-	RModifiers mods;
+    std::shared_ptr<Modifiers> mods;
 	bool proximity;
 public:
-	IgnoreHandler(RModifiers mods_) : mods(mods_), proximity(xstate->in_proximity && prefs.proximity) {}
+	IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(mods_), proximity(xstate->in_proximity && prefs.proximity) {}
 	virtual void press(guint b, RTriple e) {
 		if (xstate->current_dev->master) {
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
@@ -400,11 +400,11 @@ public:
 };
 
 class ButtonHandler : public Handler {
-	RModifiers mods;
+    std::shared_ptr<Modifiers> mods;
 	guint button, real_button;
 	bool proximity;
 public:
-	ButtonHandler(RModifiers mods_, guint button_) :
+	ButtonHandler(std::shared_ptr<Modifiers> mods_, guint button_) :
 		mods(mods_),
 		button(button_),
 		real_button(0),
@@ -606,10 +606,10 @@ public:
 };
 
 class ScrollHandler : public AbstractScrollHandler {
-	RModifiers mods;
+    std::shared_ptr<Modifiers> mods;
 	bool proximity;
 public:
-	ScrollHandler(RModifiers mods_) : mods(mods_) {
+	ScrollHandler(std::shared_ptr<Modifiers> mods_) : mods(mods_) {
 		proximity = xstate->in_proximity && prefs.proximity;
 	}
 	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
@@ -634,10 +634,10 @@ public:
 };
 
 class ScrollAdvancedHandler : public AbstractScrollHandler {
-	RModifiers m;
+    std::shared_ptr<Modifiers> m;
 	guint &rb;
 public:
-	ScrollAdvancedHandler(RModifiers m_, guint &rb_) : m(m_), rb(rb_) {}
+	ScrollAdvancedHandler(std::shared_ptr<Modifiers> m_, guint &rb_) : m(m_), rb(rb_) {}
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
 		rb = 0;
@@ -686,8 +686,8 @@ class AdvancedHandler : public Handler {
 	RTriple replay_orig;
 	std::map<guint, std::shared_ptr<Actions::Action>> as;
 	std::map<guint, RRanking> rs;
-	std::map<guint, RModifiers> mods;
-	RModifiers sticky_mods;
+	std::map<guint, std::shared_ptr<Modifiers>> mods;
+    std::shared_ptr<Modifiers> sticky_mods;
 	guint button1, button2;
 	RPreStroke replay;
 
@@ -748,7 +748,7 @@ public:
 			click_time = e->t;
 			replay_button = b;
 			replay_orig = e;
-			RModifiers m = act->prepare();
+            auto m = act->prepare();
 			sticky_mods.reset();
 			return replace_child(new ScrollAdvancedHandler(m, replay_button));
 		}
@@ -962,7 +962,7 @@ protected:
 			XkbBell(dpy, None, 0, None);
 			return parent->replace_child(nullptr);
 		}
-		RModifiers mods = act->prepare();
+		auto mods = act->prepare();
 		if (IS_CLICK(act))
 			act = std::make_shared<Actions::Button>((Gdk::ModifierType)0, b);
 		else IF_BUTTON(act, b)
@@ -1065,7 +1065,7 @@ XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), mo
 }
 
 void XState::run_action(std::shared_ptr<Actions::Action> act) {
-	RModifiers mods = act->prepare();
+	auto mods = act->prepare();
 	IF_BUTTON(act, b)
 		return handler->replace_child(new ButtonHandler(mods, b));
 	if (IS_IGNORE(act))

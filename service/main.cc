@@ -4,6 +4,7 @@
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xfixes.h>
 
+#include "globals.h"
 #include "util.h"
 #include "prefdb.h"
 #include "main.h"
@@ -244,75 +245,9 @@ void Actions::SendText::run() {
             fake_unicode(*i);
 }
 
-static struct {
-    guint mask;
-    guint sym;
-} modkeys[] = {
-        {GDK_SHIFT_MASK,   XK_Shift_L},
-        {GDK_CONTROL_MASK, XK_Control_L},
-        {GDK_MOD1_MASK,    XK_Alt_L},
-        {GDK_MOD2_MASK, 0},
-        {GDK_MOD3_MASK, 0},
-        {GDK_MOD4_MASK, 0},
-        {GDK_MOD5_MASK, 0},
-        {GDK_SUPER_MASK,   XK_Super_L},
-        {GDK_HYPER_MASK,   XK_Hyper_L},
-        {GDK_META_MASK,    XK_Meta_L},
-};
-static int n_modkeys = 10;
-
-class Modifiers : Timeout {
-    static std::set<Modifiers *> all;
-
-    static void update_mods() {
-        static guint mod_state = 0;
-        guint new_state = 0;
-        for (auto i = all.begin(); i != all.end(); i++)
-            new_state |= (*i)->mods;
-        for (int i = 0; i < n_modkeys; i++) {
-            guint mask = modkeys[i].mask;
-            if ((mod_state & mask) ^ (new_state & mask))
-                XTestFakeKeyEvent(dpy, XKeysymToKeycode(dpy, modkeys[i].sym), new_state & mask, 0);
-        }
-        mod_state = new_state;
-    }
-
-    guint mods;
-    Glib::ustring str;
-public:
-    Modifiers(guint mods_, Glib::ustring str_) : mods(mods_), str(str_) {
-        all.insert(this);
-        update_mods();
-    }
-
-    bool operator==(const Modifiers &m) {
-        return mods == m.mods && str == m.str;
-    }
-
-    void timeout() override {
-    }
-
-    ~Modifiers() {
-        all.erase(this);
-        update_mods();
-    }
-};
 
 std::set<Modifiers *> Modifiers::all;
 
-RModifiers Actions::ModAction::prepare() {
-    return RModifiers(new Modifiers(mods, get_label()));
-}
-
-RModifiers Actions::SendKey::prepare() {
-    if (!mods)
-        return RModifiers();
-    return RModifiers(new Modifiers(mods, ModAction::get_label()));
-}
-
-bool mods_equal(RModifiers m1, RModifiers m2) {
-    return m1 && m2 && *m1 == *m2;
-}
 
 void Actions::Misc::run() {
     switch (type) {

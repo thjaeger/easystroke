@@ -13,6 +13,7 @@ set(SOURCE_FILES
     actiondb.cc
     actiondb.h
     actions/action.h
+    actions/modAction.cpp
     actions/modAction.h
     actions/modifiers.cpp
     actions/modifiers.h
@@ -23,6 +24,7 @@ set(SOURCE_FILES
     desktop.cc
     gesture.cc
     gesture.h
+    globals.h
     grabber.cc
     grabber.h
     handler.cc

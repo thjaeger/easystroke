@@ -18,7 +18,7 @@ namespace Actions {
 
         ModAction(Gdk::ModifierType mods_) : mods(mods_) {}
 
-        virtual RModifiers prepare();
+        virtual std::shared_ptr<Modifiers> prepare();
 
     public:
         virtual const Glib::ustring get_label() const;
@@ -35,7 +35,7 @@ namespace Actions {
 
         virtual void run();
 
-        virtual RModifiers prepare();
+        virtual std::shared_ptr<Modifiers> prepare();
 
         virtual const Glib::ustring get_label() const;
     };
