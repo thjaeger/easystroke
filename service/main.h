@@ -10,7 +10,6 @@ void quit();
 extern std::string config_dir;
 extern const char *prefs_versions[];
 extern const char *actions_versions[];
-extern int verbosity;
 extern bool experimental;
 
 extern "C" {

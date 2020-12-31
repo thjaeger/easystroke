@@ -110,7 +110,7 @@ void Command::run() {
 			execlp("/bin/sh", "sh", "-c", cmd.c_str(), nullptr);
 			exit(1);
 		case -1:
-			printf("Error: can't execute command \"%s\": fork() failed\n", cmd.c_str());
+			g_warning("can't execute command \"%s\": fork() failed\n", cmd.c_str());
 	}
 }
 
@@ -189,11 +189,10 @@ void ActionDBWatcher::init() {
 				if (!ifs.fail()) {
 					boost::archive::text_iarchive ia(ifs);
 					ia >> actions;
-					if (verbosity >= 2)
-						printf("Loaded actions.\n");
+                    g_debug("Loaded actions.\n");
 				}
 			} catch (exception &e) {
-				printf("Error: Couldn't read action database: %s.\n", e.what());
+				g_warning("Error: Couldn't read action database: %s.\n", e.what());
 			}
 			break;
 		}
@@ -210,10 +209,9 @@ void ActionDBWatcher::timeout() {
 		ofs.close();
 		if (rename(tmp.c_str(), filename.c_str()))
 			throw std::runtime_error("rename() failed");
-		if (verbosity >= 2)
-			printf("Saved actions.\n");
+		g_message("Saved actions.\n");
 	} catch (exception &e) {
-		printf("Error: Couldn't save action database: %s.\n", e.what());
+		g_warning("Error: Couldn't save action database: %s.\n", e.what());
 		if (!good_state)
 			return;
 		good_state = false;
@@ -316,11 +314,9 @@ RAction ActionListDiff::handle(RStroke s, RRanking &r) const {
 	if (!r->action && s->trivial())
 		return RAction(new Click);
 	if (r->action) {
-		if (verbosity >= 1)
-			printf("Executing Action %s\n", r->name.c_str());
+        g_message("Executing Action %s\n", r->name.c_str());
 	} else {
-		if (verbosity >= 1)
-			printf("Couldn't find matching stroke.\n");
+        g_message("Couldn't find matching stroke.\n");
 	}
 	return r->action;
 }

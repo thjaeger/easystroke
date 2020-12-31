@@ -35,7 +35,7 @@ set(SOURCE_FILES
     var.h
     win.cc
     win.h
-)
+        log.cpp log.h)
 
 link_directories(${GTKMM_LIBRARY_DIRS} ${Boost_LIBRARY_DIRS})
 

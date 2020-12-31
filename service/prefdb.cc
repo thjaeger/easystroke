@@ -127,10 +127,9 @@ void PrefDB::timeout() {
 		ofs.close();
 		if (rename(tmp.c_str(), filename.c_str()))
 			throw std::runtime_error("rename() failed");
-		if (verbosity >= 2)
-			printf("Saved preferences.\n");
+        g_debug("Saved preferences.\n");
 	} catch (std::exception &e) {
-		printf("Error: Couldn't save preferences: %s.\n", e.what());
+		g_warning("Error: Couldn't save preferences: %s.\n", e.what());
 		if (!good_state)
 			return;
 		good_state = false;
@@ -156,11 +155,11 @@ void PrefDB::init() {
 				if (!ifs.fail()) {
 					boost::archive::text_iarchive ia(ifs);
 					ia >> *this;
-					if (verbosity >= 2)
-						std::cout << "Loaded preferences." << std::endl;
+
+                    g_debug("Loaded preferences.");
 				}
 			} catch (...) {
-				printf("Error: Couldn't read preferences.\n");
+				g_warning("Error: Couldn't read preferences.\n");
 			}
 			break;
 		}

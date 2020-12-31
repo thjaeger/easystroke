@@ -15,6 +15,6 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
     if [[ "$1" == -r ]]; then
         echo "RUNNING..."
-        ./easy-gestured
+        G_MESSAGES_DEBUG=all ./easy-gestured
     fi
 )
