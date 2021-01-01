@@ -16,13 +16,13 @@ RTriple create_triple(float x, float y, Time t) {
 Stroke::Stroke(PreStroke &ps, int trigger_, int button_, unsigned int modifiers_, bool timeout_)
     : trigger(trigger_), button(button_), modifiers(modifiers_), timeout(timeout_) {
 	if (ps.valid()) {
-		stroke_t *s = stroke_alloc(ps.size());
-		for (auto i : ps) {
-            stroke_add_point(s, i->x, i->y);
+        stroke = std::make_shared<Stroke2>();
+        for (auto i : ps) {
+            stroke->addPoint(i->x, i->y);
         }
-		stroke_finish(s);
-		stroke.reset(s, &stroke_free);
-	}
+
+        stroke->finish();
+    }
 }
 
 int Stroke::compare(RStroke a, RStroke b, double &score) {
@@ -49,7 +49,7 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
         }
         return -1;
     }
-    double cost = stroke_compare(a->stroke.get(), b->stroke.get(), nullptr, nullptr);
+    double cost = Stroke2::compare(*a->stroke, *b->stroke, nullptr, nullptr);
     if (cost >= stroke_infinity) {
         return -1;
     }

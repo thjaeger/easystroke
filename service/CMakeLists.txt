@@ -36,7 +36,7 @@ set(SOURCE_FILES
     main.cc
     prefdb.cc
     prefdb.h
-    stroke.c
+    stroke.cpp
     stroke.h
     trace.cpp
     trace.h

@@ -27,14 +27,14 @@ public:
 	int button;
 	unsigned int modifiers;
 	bool timeout;
-	std::shared_ptr<stroke_t> stroke;
+	std::shared_ptr<Stroke2> stroke;
 
 	Stroke() : trigger(0), button(0), modifiers(AnyModifier), timeout(false) {}
     Stroke(PreStroke &s, int trigger_, int button_, unsigned int modifiers_, bool timeout_);
 
 	static int compare(RStroke, RStroke, double &);
 
-	unsigned int size() const { return stroke ? stroke_get_size(stroke.get()) : 0; }
+	unsigned int size() const { return stroke ? stroke->size() : 0; }
 	bool trivial() const { return size() == 0 && button == 0; }
 };
 
