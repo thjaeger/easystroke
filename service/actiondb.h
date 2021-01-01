@@ -12,8 +12,6 @@
 #include "actions/action.h"
 #include "actions/modAction.h"
 
-class Unique;
-
 class Ranking;
 typedef std::shared_ptr<Ranking> RRanking;
 
@@ -27,21 +25,10 @@ public:
 };
 
 class Ranking {
-	static bool show(RRanking r);
-	int x, y;
+	int x;
 public:
-	RStroke stroke, best_stroke;
-    std::shared_ptr<Actions::Action> action;
 	double score;
 	std::string name;
-	std::multimap<double, std::pair<std::string, RStroke> > r;
-	static void queue_show(RRanking r, RTriple e);
-};
-
-class Unique {
-public:
-	int level;
-	int i;
 };
 
 class ActionDB {

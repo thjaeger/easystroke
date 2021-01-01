@@ -3,10 +3,8 @@
 #include <string>
 
 #include "actiondb.h"
-#include "win.h"
 
 using namespace std;
-
 
 ActionDB::ActionDB() {
 	auto upStroke = PreStroke();
@@ -55,7 +53,6 @@ std::shared_ptr<Actions::Action> ActionDB::handle(RStroke s, const std::string& 
             continue;
         }
 
-        auto si = i;
         if (score > winning_score) {
             winning_score = score;
             if (match) {
@@ -92,27 +89,21 @@ void ActionDB::handle_advanced(RStroke s, std::map<guint, std::shared_ptr<Action
             continue;
         }
 
-        Ranking *r;
+        shared_ptr<Ranking> r;
         if (b == b1)
             b = b2;
         if (rs.count(b)) {
-            r = rs[b].get();
+            r = rs[b];
         } else {
-            r = new Ranking;
-            rs[b].reset(r);
-            r->stroke = RStroke(new Stroke(*s));
+            r = make_shared<Ranking>();
+            rs[b] = r;
             r->score = -1;
         }
-        auto si = i;
-        r->r.insert(pair<double, pair<std::string, RStroke> >
-                            (score, pair<std::string, RStroke>(si->name, i->stroke)));
         if (score > r->score) {
             r->score = score;
             if (match) {
-                r->name = si->name;
-                r->action = si->action;
-                r->best_stroke = i->stroke;
-                as[b] = si->action;
+                r->name = i->name;
+                as[b] = i->action;
             }
         }
     }

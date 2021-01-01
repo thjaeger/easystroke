@@ -466,7 +466,7 @@ void Grabber::update() {
 	auto bi = prefs.button;
 	active = true;
     auto i = prefs.exceptions->find(current_class->get());
-    if (i != prefs.exceptions.get()->end()) {
+    if (i != prefs.exceptions->end()) {
         if (i->second)
             bi = *i->second;
         else

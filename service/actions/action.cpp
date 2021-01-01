@@ -1,5 +1,4 @@
 #include "action.h"
-#include "win.h"
 #include "prefdb.h"
 
 #include "globals.h"

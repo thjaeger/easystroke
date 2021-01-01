@@ -1,4 +1,7 @@
-#include "win.h"
+#include <gtkmm.h>
+
+#include "gesture.h"
+#include "util.h"
 
 void Stroke::draw(Cairo::RefPtr<Cairo::Surface> surface, int x, int y, int w, int h, double width, bool inv) const {
 	const Cairo::RefPtr<Cairo::Context> ctx = Cairo::Context::create (surface);
@@ -124,6 +127,3 @@ Glib::RefPtr<Gdk::Pixbuf> Stroke::drawEmpty_(int size) {
 	return pb;
 }
 
-Source<bool> disabled(false);
-
-extern const char *version_string;

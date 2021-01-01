@@ -37,13 +37,12 @@ set(SOURCE_FILES
     prefdb.cc
     prefdb.h
     stroke.c
+    stroke.cpp
     stroke.h
     trace.cpp
     trace.h
     util.h
     var.h
-    win.cc
-    win.h
 )
 
 link_directories(${GTKMM_LIBRARY_DIRS})
