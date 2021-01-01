@@ -14,7 +14,6 @@ XState *xstate = nullptr;
 
 extern Window get_app_window(Window w);
 extern Source<Window> current_app_window;
-extern std::shared_ptr<Trace> trace;
 
 std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
 
@@ -26,8 +25,9 @@ void XState::queue(sigc::slot<void> f) {
 	if (idle()) {
 		f();
 		XFlush(context->dpy);
-	} else
-		queued.push_back(f);
+	} else {
+        queued.push_back(f);
+    }
 }
 
 void XState::handle_enter_leave(XEvent &ev) {
@@ -666,9 +666,11 @@ class AdvancedHandler : public Handler {
 	AdvancedHandler(RStroke s, RTriple e_, guint b1, guint b2, RPreStroke replay_) :
 		e(e_), remap_from(0), remap_to(0), click_time(0), replay_button(0),
 		button1(b1), button2(b2), replay(replay_) {
-			if (s)
-				actions.get_action_list(grabber->current_class->get())->handle_advanced(s, as, rs, b1, b2);
-		}
+        if (s) {
+            actions.handle_advanced(s, as, rs, b1, b2, grabber->current_class->get());
+        }
+    }
+
 public:
 	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, RPreStroke replay) {
 		if (stroke_action && s)
@@ -677,7 +679,7 @@ public:
 			return new AdvancedHandler(s, e, b1, b2, replay);
 
 	}
-	virtual void init() {
+	void init() override {
 		if (replay && !replay->empty()) {
 			bool replay_first = !as.count(button2);
 			auto i = replay->begin();
@@ -692,7 +694,7 @@ public:
 		}
 		replay.reset();
 	}
-	virtual void press(guint b, RTriple e) {
+	void press(guint b, RTriple e) override {
 		if (xstate->current_dev->master)
 			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
 		click_time = 0;
@@ -908,12 +910,12 @@ protected:
 		last = e;
 	}
 
-	virtual void press(guint b, RTriple e) {
+	void press(guint b, RTriple e) override {
 		RStroke s = finish(b);
 		parent->replace_child(AdvancedHandler::create(s, e, button, b, cur));
 	}
 
-	virtual void release(guint b, RTriple e) {
+	void release(guint b, RTriple e) override {
         RStroke s = finish(0);
 
         if (prefs.move_back && !xstate->current_dev->absolute)
@@ -926,7 +928,7 @@ protected:
             return parent->replace_child(nullptr);
         }
         RRanking ranking;
-        auto act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
+        auto act = actions.handle(s, grabber->current_class->get());
         if (!act) {
             XkbBell(context->dpy, None, 0, None);
             return parent->replace_child(nullptr);

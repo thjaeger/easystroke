@@ -6,7 +6,6 @@
 
 #include <X11/extensions/XTest.h>
 
-
 static struct {
     guint mask;
     guint sym;
@@ -25,16 +24,18 @@ static struct {
 
 static int n_modkeys = 10;
 
+std::set<Modifiers *> Modifiers::all;
+
 void Modifiers::update_mods() {
-    static guint mod_state = 0;
-    guint new_state = 0;
+    static auto mod_state = 0;
+    auto new_state = 0;
 
     for (auto i : all) {
         new_state |= i->mods;
     }
 
     for (int i = 0; i < n_modkeys; i++) {
-        guint mask = modkeys[i].mask;
+        auto mask = modkeys[i].mask;
         if ((mod_state & mask) ^ (new_state & mask)) {
             XTestFakeKeyEvent(context->dpy, XKeysymToKeycode(context->dpy, modkeys[i].sym), new_state & mask, 0);
         }

@@ -22,11 +22,12 @@ Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), r
 }
 
 void Popup::invalidate(int x1, int y1, int x2, int y2) {
-	if (get_mapped()) {
-		Gdk::Rectangle inv(x1 - rect.get_x(), y1 - rect.get_y(), x2-x1, y2-y1);
-		get_window()->invalidate_rect(inv, false);
-	} else
-		show();
+    if (get_mapped()) {
+        Gdk::Rectangle inv(x1 - rect.get_x(), y1 - rect.get_y(), x2 - x1, y2 - y1);
+        get_window()->invalidate_rect(inv, false);
+    } else {
+        show();
+    }
 }
 
 Composite::Composite() {
@@ -37,11 +38,11 @@ Composite::Composite() {
 	num_y = (h - 1)/N + 1;
 	pieces = new Popup**[num_x];
 	for (int i = 0; i < num_x; i++) {
-		pieces[i] = new Popup*[num_y];
-		for (int j = 0; j < num_y; j++)
-			pieces[i][j] = new Popup(i*N,j*N,MIN((i+1)*N,w),MIN((j+1)*N,h));
-
-	}
+        pieces[i] = new Popup *[num_y];
+        for (int j = 0; j < num_y; j++) {
+            pieces[i][j] = new Popup(i * N, j * N, MIN((i + 1) * N, w), MIN((j + 1) * N, h));
+        }
+    }
 }
 
 void Composite::draw(Point p, Point q) {
@@ -59,6 +60,7 @@ void Composite::draw(Point p, Point q) {
 	if (x1 < 0)
 		x1 = 0;
 	if (y1 < 0)
+
 		y1 = 0;
 	for (int i = x1/N; i<num_x && i<=x2/N; i++)
 		for (int j = y1/N; j<num_y && j<=y2/N; j++)

@@ -8,7 +8,6 @@
 #include "prefdb.h"
 #include "actiondb.h"
 #include "trace.h"
-#include "composite.h"
 #include "grabber.h"
 #include "handler.h"
 
@@ -18,27 +17,6 @@
 #include <csignal>
 
 Source<Window> current_app_window(None);
-
-std::shared_ptr<Trace> trace;
-
-static Trace *init_trace() {
-    return new Composite();
-}
-
-void Trace::start(Trace::Point p) {
-    last = p;
-    active = true;
-    XFixesHideCursor(context->dpy, context->ROOT);
-    start_();
-}
-
-void Trace::end() {
-    if (!active)
-        return;
-    active = false;
-    XFixesShowCursor(context->dpy, context->ROOT);
-    end_();
-}
 
 class App : public Gtk::Application {
 public:
@@ -61,7 +39,7 @@ class ReloadTrace : public Timeout {
         xstate->queue(sigc::mem_fun(*this, &ReloadTrace::reload));
     }
 
-    void reload() { trace.reset(init_trace()); }
+    void reload() { resetTrace(); }
 } reload_trace;
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
@@ -95,7 +73,8 @@ void App::on_activate() {
     XGrabPointer(context->dpy, context->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
     XUngrabPointer(context->dpy, CurrentTime);
 
-    trace.reset(init_trace());
+    resetTrace();
+
     Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
     g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
     screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
@@ -107,8 +86,6 @@ void App::on_activate() {
     io->attach();
     hold();
 }
-
-std::set<Modifiers *> Modifiers::all;
 
 namespace ShutDown {
     std::function<void(int)> shutdown_handler;

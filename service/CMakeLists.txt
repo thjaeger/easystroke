@@ -38,6 +38,7 @@ set(SOURCE_FILES
     prefdb.h
     stroke.c
     stroke.h
+    trace.cpp
     trace.h
     util.h
     var.h

@@ -2,7 +2,6 @@
 #include "grabber.h"
 #include "globals.h"
 #include <X11/extensions/XTest.h>
-#include <xorg/xserver-properties.h>
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
 
@@ -473,8 +472,11 @@ void Grabber::update() {
         else
             active = false;
     }
-    if (prefs.whitelist && !actions.apps.count(current_class->get()))
+
+    if (actions.disAllowApplication(current_class->get())) {
         active = false;
+    }
+
     const auto extra = prefs.extra_buttons;
 	if (grabbed_button == bi && buttons.size() == extra->size() + 1 &&
 			std::equal(extra->begin(), extra->end(), ++buttons.begin())) {

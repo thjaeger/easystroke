@@ -107,3 +107,17 @@ void Actions::SendText::run() {
         if (!fake_char(*i))
             fake_unicode(*i);
 }
+
+void Actions::Command::run() {
+    pid_t pid = fork();
+    switch (pid) {
+        case 0:
+            execlp("/bin/sh", "sh", "-c", cmd.c_str(), nullptr);
+            exit(1);
+        case -1:
+            g_warning("can't execute command \"%s\": fork() failed", cmd.c_str());
+            break;
+        default:
+            break;
+    }
+}

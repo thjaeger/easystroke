@@ -38,4 +38,15 @@ namespace Actions {
         else
             return "Ignore";
     }
+
+    ButtonInfo Button::get_button_info() const {
+        ButtonInfo bi;
+        bi.button = button;
+        bi.state = mods;
+        return bi;
+    }
+
+    const Glib::ustring Button::get_label() const {
+        return get_button_info().get_button_text();
+    }
 }

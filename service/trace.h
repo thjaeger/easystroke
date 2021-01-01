@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 class Trace {
 public:
 	struct Point { float x; float y; };
@@ -18,3 +20,7 @@ public:
 	virtual void timeout() {}
 	virtual ~Trace() {}
 };
+
+void resetTrace();
+
+extern std::shared_ptr<Trace> trace;
