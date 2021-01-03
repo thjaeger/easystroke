@@ -6,7 +6,7 @@
 #include "handler.h"
 #include "log.h"
 
-extern std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+extern std::shared_ptr<sigc::slot<void, std::shared_ptr<Gesture>>> stroke_action;
 
 Glib::ustring ButtonInfo::get_button_text() const {
 	Glib::ustring str;

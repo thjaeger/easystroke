@@ -9,13 +9,14 @@
 #include "actions/modAction.h"
 #include <sstream>
 #include <iomanip>
+#include <utility>
 
 XState *xstate = nullptr;
 
 extern Window get_app_window(Window w);
 extern Source<Window> current_app_window;
 
-std::shared_ptr<sigc::slot<void, RStroke> > stroke_action;
+std::shared_ptr<sigc::slot<void, std::shared_ptr<Gesture>> > stroke_action;
 
 bool XState::idle() {
 	return !handler->child;
@@ -248,7 +249,7 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 			}
 			xinput_pressed.insert(event->detail);
 			in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
-			H->press(event->detail, create_triple(event->root_x, event->root_y, event->time));
+			H->press(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
 			break;
 		case XI_ButtonRelease:
 			if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG))
@@ -257,14 +258,14 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 				break;
 			xinput_pressed.erase(event->detail);
 			in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
-			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
+			H->release(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
 			break;
 		case XI_Motion:
 			if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG))
 				report_xi2_event(event, "Motion");
 			if (!current_dev || current_dev->dev != event->deviceid)
 				break;
-			H->motion(create_triple(event->root_x, event->root_y, event->time));
+			H->motion(CursorPosition(event->root_x, event->root_y, event->time));
 			break;
 		case XI_RawMotion:
 			in_proximity = get_axis(((XIRawEvent *)event)->valuators, current_dev->proximity_axis);
@@ -297,7 +298,7 @@ void XState::handle_raw_motion(XIRawEvent *event) {
 		g_debug("Raw motion (XI2): (%s) at t = %ld", render_coordinates(&event->valuators, event->raw_values).c_str(), event->time);
 	}
 
-	H->raw_motion(create_triple(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
+	H->raw_motion(CursorPosition(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
 }
 
 #undef H
@@ -367,21 +368,21 @@ class IgnoreHandler : public Handler {
 	bool proximity;
 public:
 	IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)), proximity(xstate->in_proximity && prefs.proximity) {}
-	void press(guint b, RTriple e) override {
+	void press(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 			XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
 		}
 	}
-	void motion(RTriple e) override {
+	void motion(CursorPosition e) override {
 		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 		if (proximity && !xstate->in_proximity)
 			parent->replace_child(nullptr);
 	}
-	void release(guint b, RTriple e) override {
+	void release(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 			XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
 		}
 		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
@@ -402,27 +403,27 @@ public:
 		real_button(0),
 		proximity(xstate->in_proximity && prefs.proximity)
 	{}
-	void press(guint b, RTriple e) override {
+	void press(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
 			if (!real_button)
 				real_button = b;
 			if (real_button == b)
 				b = button;
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 			XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
 		}
 	}
-	void motion(RTriple e) override {
+	void motion(CursorPosition e) override {
 		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 		if (proximity && !xstate->in_proximity)
 			parent->replace_child(nullptr);
 	}
-	void release(guint b, RTriple e) override {
+	void release(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
 			if (real_button == b)
 				b = button;
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 			XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
 		}
 		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
@@ -485,9 +486,9 @@ void XState::ungrab(int deviceid) {
 
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;
-	float last_x, last_y;
+    double last_x, last_y;
 	Time last_t;
-	float offset_x, offset_y;
+    double offset_x, offset_y;
 	Glib::ustring str;
 	int orig_x, orig_y;
 
@@ -516,30 +517,30 @@ protected:
 		XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig_x, orig_y, 0);
 	}
 public:
-	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
-		float dx = abs_x ? (have_x ? e->x - last_x : 0) : e->x;
-		float dy = abs_y ? (have_y ? e->y - last_y : 0) : e->y;
+	virtual void raw_motion(CursorPosition e, bool abs_x, bool abs_y) {
+		double dx = abs_x ? (have_x ? e.x - last_x : 0) : e.x;
+        double dy = abs_y ? (have_y ? e.y - last_y : 0) : e.y;
 
 		if (abs_x) {
-			last_x = e->x;
+			last_x = e.x;
 			have_x = true;
 		}
 
 		if (abs_y) {
-			last_y = e->y;
+			last_y = e.y;
 			have_y = true;
 		}
 
 		if (!last_t) {
-			last_t = e->t;
+			last_t = e.t;
 			return;
 		}
 
-		if (e->t == last_t)
+		if (e.t == last_t)
 			return;
 
-		int dt = e->t - last_t;
-		last_t = e->t;
+		int dt = e.t - last_t;
+		last_t = e.t;
 
 		double factor = (prefs.scroll_invert ? 1.0 : -1.0) * prefs.scroll_speed;
 		offset_x += factor * curve(dx/dt)*dt/20.0;
@@ -579,7 +580,7 @@ public:
 	explicit ScrollHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)) {
 		proximity = xstate->in_proximity && prefs.proximity;
 	}
-	void raw_motion(RTriple e, bool abs_x, bool abs_y) override {
+	void raw_motion(CursorPosition e, bool abs_x, bool abs_y) override {
 		if (proximity && !xstate->in_proximity) {
 			parent->replace_child(nullptr);
 			move_back();
@@ -590,7 +591,7 @@ public:
 	void press_master(guint b, Time t) override {
 		xstate->fake_core_button(b, false);
 	}
-	void release(guint b, RTriple e) override {
+	void release(guint b, CursorPosition e) override {
 		if ((proximity && xstate->in_proximity) || !xstate->xinput_pressed.empty())
 			return;
 		parent->replace_child(0);
@@ -609,13 +610,13 @@ public:
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
 		rb = 0;
 	}
-	void release(guint b, RTriple e) override {
+	void release(guint b, CursorPosition e) override {
 		Handler *p = parent;
 		p->replace_child(nullptr);
 		p->release(b, e);
 		move_back();
 	}
-	void press(guint b, RTriple e) override {
+	void press(guint b, CursorPosition e) override {
 		Handler *p = parent;
 		p->replace_child(nullptr);
 		p->press(b, e);
@@ -626,16 +627,16 @@ public:
 };
 
 class AdvancedStrokeActionHandler : public Handler {
-	RStroke s;
+    std::shared_ptr<Gesture> s;
 public:
-	AdvancedStrokeActionHandler(RStroke s_, RTriple e) : s(std::move(s_)) {}
-	void press(guint b, RTriple e) override {
+	AdvancedStrokeActionHandler(std::shared_ptr<Gesture> s_, CursorPosition e) : s(std::move(s_)) {}
+	void press(guint b, CursorPosition e) override {
 		if (stroke_action) {
 			s->button = b;
 			(*stroke_action)(s);
 		}
 	}
-	void release(guint b, RTriple e) override {
+	void release(guint b, CursorPosition e) override {
 		if (stroke_action)
 			(*stroke_action)(s);
 		if (xstate->xinput_pressed.empty())
@@ -646,33 +647,34 @@ public:
 };
 
 class AdvancedHandler : public Handler {
-	RTriple e;
+    CursorPosition e;
 	guint remap_from, remap_to;
 	Time click_time;
 	guint replay_button;
-	RTriple replay_orig;
+    CursorPosition replay_orig;
 	std::map<guint, std::shared_ptr<Actions::Action>> as;
-	std::map<guint, RRanking> rs;
+	std::map<guint, double> rs;
 	std::map<guint, std::shared_ptr<Modifiers>> mods;
     std::shared_ptr<Modifiers> sticky_mods;
 	guint button1, button2;
-	RPreStroke replay;
+    std::shared_ptr<std::vector<CursorPosition>> replay;
 
-	void show_ranking(guint b, RTriple e) {
+	void show_ranking(guint b, CursorPosition e) {
 		if (!rs.count(b))
 			return;
 		rs.erase(b);
 	}
-	AdvancedHandler(RStroke s, RTriple e_, guint b1, guint b2, RPreStroke replay_) :
+
+	AdvancedHandler(std::shared_ptr<Gesture> s, CursorPosition e_, guint b1, guint b2, std::shared_ptr<std::vector<CursorPosition>> replay_) :
 		e(e_), remap_from(0), remap_to(0), click_time(0), replay_button(0),
-		button1(b1), button2(b2), replay(replay_) {
+		button1(b1), button2(b2), replay(std::move(replay_)) {
         if (s) {
-            actions.handle_advanced(s, as, rs, b1, b2, grabber->current_class->get());
+            actions.handle_advanced(*s, as, rs, b1, b2, grabber->current_class->get());
         }
     }
 
 public:
-	static Handler *create(RStroke s, RTriple e, guint b1, guint b2, RPreStroke replay) {
+	static Handler *create(std::shared_ptr<Gesture> s, CursorPosition e, guint b1, guint b2, std::shared_ptr<std::vector<CursorPosition>> replay) {
 		if (stroke_action && s)
 			return new AdvancedStrokeActionHandler(s, e);
 		else
@@ -694,9 +696,9 @@ public:
 		}
 		replay.reset();
 	}
-	void press(guint b, RTriple e) override {
+	void press(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 		click_time = 0;
 		if (remap_to) {
 			xstate->fake_core_button(remap_to, false);
@@ -714,7 +716,7 @@ public:
 		}
 		auto act = as[bb];
 		if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
-			click_time = e->t;
+			click_time = e.t;
 			replay_button = b;
 			replay_orig = e;
             auto m = act->prepare();
@@ -722,7 +724,7 @@ public:
 			return replace_child(new ScrollAdvancedHandler(m, replay_button));
 		}
 		if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
-			click_time = e->t;
+			click_time = e.t;
 			replay_button = b;
 			replay_orig = e;
 		}
@@ -748,15 +750,15 @@ public:
 
 		act->run();
 	}
-	virtual void motion(RTriple e) {
-		if (replay_button && hypot(replay_orig->x - e->x, replay_orig->y - e->y) > 16)
+	virtual void motion(CursorPosition e) {
+		if (replay_button && hypot(replay_orig.x - e.x, replay_orig.y - e.y) > 16)
 			replay_button = 0;
 		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 	}
-	virtual void release(guint b, RTriple e) {
+	virtual void release(guint b, CursorPosition e) {
 		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 		if (remap_to) {
 			xstate->fake_core_button(remap_to, false);
 		}
@@ -767,7 +769,7 @@ public:
 				XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
 		}
 		if (xstate->xinput_pressed.size() == 0) {
-			if (e->t < click_time + 250 && b == replay_button) {
+			if (e.t < click_time + 250 && b == replay_button) {
 				sticky_mods.reset();
 				mods.clear();
 				xstate->fake_click(b);
@@ -817,10 +819,10 @@ static void get_timeouts(TimeoutType type, int *init, int *final) {
 class StrokeHandler : public Handler, public sigc::trackable {
 	guint button;
 	guint trigger;
-	RPreStroke cur;
+	std::shared_ptr<std::vector<CursorPosition>> cur;
 	bool is_gesture;
 	bool drawing;
-	RTriple last, orig;
+	CursorPosition last, orig;
 	bool use_timeout;
 	int init_timeout, final_timeout, radius;
 	struct Connection {
@@ -835,32 +837,32 @@ class StrokeHandler : public Handler, public sigc::trackable {
 	sigc::connection init_connection;
 	std::vector<RConnection> connections;
 
-	RStroke finish(guint b) {
+	std::shared_ptr<Gesture> finish(guint b) {
 		trace->end();
 		XFlush(context->dpy);
-		RPreStroke c = cur;
+        auto c = cur;
 		if (!is_gesture || grabber->is_instant(button))
-			c.reset(new PreStroke);
-		return std::make_shared<Stroke>(*c, trigger, b, xstate->modifiers, false);
+			c->clear();
+		return std::make_shared<Gesture>(*c, trigger, b, xstate->modifiers, false);
 	}
 
 	bool timeout() {
         g_debug("Aborting stroke...");
 		trace->end();
-		RPreStroke c = cur;
+		auto c = cur;
 		if (!is_gesture)
-			c.reset(new PreStroke);
-		RStroke s;
+			c->clear();
+        std::shared_ptr<Gesture> s;
 		if (prefs.timeout_gestures || grabber->is_click_hold(button))
-			s = std::make_shared<Stroke>(*c, trigger, 0, xstate->modifiers, true);
+			s = std::make_shared<Gesture>(*c, trigger, 0, xstate->modifiers, true);
 		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
 		XFlush(context->dpy);
 		return false;
 	}
 
 	void do_instant() {
-		PreStroke ps;
-		auto s = std::make_shared<Stroke>(ps, trigger, button, xstate->modifiers, false);
+		std::vector<CursorPosition> ps;
+		auto s = std::make_shared<Gesture>(ps, trigger, button, xstate->modifiers, false);
 		parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
 	}
 
@@ -870,11 +872,11 @@ class StrokeHandler : public Handler, public sigc::trackable {
 	}
 protected:
 	void abort_stroke() {
-		parent->replace_child(AdvancedHandler::create(RStroke(), last, button, 0, cur));
+		parent->replace_child(AdvancedHandler::create(std::shared_ptr<Gesture>(), last, button, 0, cur));
 	}
-	virtual void motion(RTriple e) {
-		cur->add(e);
-		float dist = hypot(e->x-orig->x, e->y-orig->y);
+	virtual void motion(CursorPosition e) {
+		cur->push_back(e);
+		float dist = hypot(e.x-orig.x, e.y-orig.y);
 		if (!is_gesture && dist > 16) {
 			if (use_timeout && !final_timeout)
 				return abort_stroke();
@@ -884,10 +886,8 @@ protected:
 		if (!drawing && dist > 4 && (!use_timeout || final_timeout)) {
 			drawing = true;
 			bool first = true;
-			for (auto i = cur->begin(); i != cur->end(); i++) {
-				Trace::Point p;
-				p.x = (*i)->x;
-				p.y = (*i)->y;
+			for (auto i : *cur) {
+				auto p = Trace::Point(i.x, i.y);
 				if (first) {
 					trace->start(p);
 					first = false;
@@ -896,39 +896,35 @@ protected:
 				}
 			}
 		} else if (drawing) {
-			Trace::Point p;
-			p.x = e->x;
-			p.y = e->y;
-			trace->draw(p);
+			trace->draw(Trace::Point(e.x, e.y));
 		}
 		if (use_timeout && is_gesture) {
 			connections.erase(remove_if(connections.begin(), connections.end(),
 						sigc::bind(sigc::mem_fun(*this, &StrokeHandler::expired),
-							hypot(e->x - last->x, e->y - last->y))), connections.end());
+							hypot(e.x - last.x, e.y - last.y))), connections.end());
 			connections.push_back(RConnection(new Connection(this, radius, final_timeout)));
 		}
 		last = e;
 	}
 
-	void press(guint b, RTriple e) override {
-		RStroke s = finish(b);
+	void press(guint b, CursorPosition e) override {
+		auto s = finish(b);
 		parent->replace_child(AdvancedHandler::create(s, e, button, b, cur));
 	}
 
-	void release(guint b, RTriple e) override {
-        RStroke s = finish(0);
+	void release(guint b, CursorPosition e) override {
+        auto s = finish(0);
 
         if (prefs.move_back && !xstate->current_dev->absolute)
-            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig->x, orig->y, 0);
+            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig.x, orig.y, 0);
         else
-            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e->x, e->y, 0);
+            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
 
         if (stroke_action) {
             (*stroke_action)(s);
             return parent->replace_child(nullptr);
         }
-        RRanking ranking;
-        auto act = actions.handle(s, grabber->current_class->get());
+        auto act = actions.handle(*s, grabber->current_class->get());
         if (!act) {
             XkbBell(context->dpy, None, 0, None);
             return parent->replace_child(nullptr);
@@ -949,7 +945,7 @@ protected:
         parent->replace_child(nullptr);
     }
 public:
-	StrokeHandler(guint b, RTriple e) :
+	StrokeHandler(guint b, CursorPosition e) :
 		button(b),
 		trigger(grabber->get_default_button() == (int)b ? 0 : b),
 		is_gesture(false),
@@ -976,8 +972,8 @@ public:
 			init_timeout = 500;
 			final_timeout = 0;
 		}
-		cur = PreStroke::create();
-		cur->add(orig);
+		cur = std::make_shared<std::vector<CursorPosition>>();
+		cur->push_back(orig);
 		if (!use_timeout)
 			return;
 		if (final_timeout && final_timeout < 32 && radius < 16*32/final_timeout) {
@@ -997,9 +993,9 @@ protected:
 	virtual void init() {
 		xstate->update_core_mapping();
 	}
-	virtual void press(guint b, RTriple e) {
+	virtual void press(guint b, CursorPosition e) {
 		if (current_app_window.get())
-			XState::activate_window(current_app_window.get(), e->t);
+			XState::activate_window(current_app_window.get(), e.t);
 		replace_child(new StrokeHandler(b, e));
 	}
 public:

@@ -6,41 +6,21 @@
 
 #include <X11/X.h>
 
-class Stroke;
-class PreStroke;
-
-typedef std::shared_ptr<Stroke> RStroke;
-typedef std::shared_ptr<PreStroke> RPreStroke;
-
-struct Triple {
-	float x;
-	float y;
-	Time t;
-};
-typedef std::shared_ptr<Triple> RTriple;
-void update_triple(RTriple e, float x, float y, Time t);
-RTriple create_triple(float x, float y, Time t);
-
-class Stroke {
+class Gesture {
 public:
+    Stroke stroke;
 	int trigger;
 	int button;
 	unsigned int modifiers;
 	bool timeout;
-	std::shared_ptr<Stroke2> stroke;
 
-	Stroke() : trigger(0), button(0), modifiers(AnyModifier), timeout(false) {}
-    Stroke(PreStroke &s, int trigger_, int button_, unsigned int modifiers_, bool timeout_);
+    Gesture(const std::vector<CursorPosition>& cp, int trigger, int button, unsigned int modifiers, bool timeout);
 
-	static int compare(RStroke, RStroke, double &);
+    [[nodiscard]] static std::tuple<bool, double> compare(const Gesture& a, const Gesture& b);
 
-	unsigned int size() const { return stroke ? stroke->size() : 0; }
-	bool trivial() const { return size() == 0 && button == 0; }
-};
+    [[nodiscard]] static std::tuple<bool, double> compareNoButton(const Gesture& a, const Gesture& b);
 
-class PreStroke : public std::vector<RTriple> {
-public:
-	static RPreStroke create() { return RPreStroke(new PreStroke()); }
-	void add(RTriple p) { push_back(p); }
-	bool valid() const { return size() > 2; }
+    [[nodiscard]] std::size_t size() const { return stroke.size(); }
+
+	[[nodiscard]] bool trivial() const { return size() == 0 && button == 0; }
 };

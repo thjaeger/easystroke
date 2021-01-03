@@ -12,23 +12,18 @@
 #include "actions/action.h"
 #include "actions/modAction.h"
 
-class Ranking;
-typedef std::shared_ptr<Ranking> RRanking;
-
 class StrokeInfo {
 public:
-	StrokeInfo(std::shared_ptr<Stroke> s, std::shared_ptr<Actions::Action> a) : action(std::move(a)), stroke(std::move(s)) { }
+	StrokeInfo(std::shared_ptr<Gesture> g, std::shared_ptr<Actions::Action> a) : action(std::move(a)), gesture(std::move(g)) { }
 	StrokeInfo() = default;
-    std::shared_ptr<Stroke> stroke;
+    std::shared_ptr<Gesture> gesture;
     std::shared_ptr<Actions::Action> action;
 	std::string name;
 };
 
 class Ranking {
-	int x;
 public:
 	double score;
-	std::string name;
 };
 
 class ActionDB {
@@ -38,11 +33,13 @@ private:
 public:
     ActionDB();
 
-    std::shared_ptr<Actions::Action> handle(RStroke s, const std::string& application);
+    std::shared_ptr<Actions::Action> handle(const Gesture &s, const std::string &application);
 
-    void handle_advanced(RStroke sharedPtr, std::map<guint, std::shared_ptr<Actions::Action>> as, std::map<guint, RRanking> map1, guint i, guint i1, const std::string& application);
+    void handle_advanced(
+            const Gesture &s, std::map<guint, std::shared_ptr<Actions::Action>> as, std::map<guint, double> map1,
+            guint i, guint i1, const std::string &application);
 
-    bool disAllowApplication(const std::string& application) {
+    bool disAllowApplication(const std::string &application) {
         return prefs.whitelist && !apps.count(application);
     }
 };

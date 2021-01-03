@@ -7,49 +7,47 @@
 using namespace std;
 
 ActionDB::ActionDB() {
-	auto upStroke = PreStroke();
-	upStroke.add(create_triple(1, 10, 0));
-	upStroke.add(create_triple(1, 1, 1));
-    upStroke.add(create_triple(1, 1, 1));
+    auto upStroke = std::vector<CursorPosition>();
+    upStroke.emplace_back(1, 10, 0);
+    upStroke.emplace_back(1, 1, 1);
+    upStroke.emplace_back(1, 1, 1);
 
-    auto leftStroke = PreStroke();
-    leftStroke.add(create_triple(10, 1, 0));
-    leftStroke.add(create_triple(1, 1, 1));
-    leftStroke.add(create_triple(1, 1, 1));
+    auto leftStroke = std::vector<CursorPosition>();
+    leftStroke.emplace_back(10, 1, 0);
+    leftStroke.emplace_back(1, 1, 1);
+    leftStroke.emplace_back(1, 1, 1);
 
-    auto rightStroke = PreStroke();
-    rightStroke.add(create_triple(1, 1, 0));
-    rightStroke.add(create_triple(10, 1, 1));
-    rightStroke.add(create_triple(10, 1, 1));
+    auto rightStroke = std::vector<CursorPosition>();
+    rightStroke.emplace_back(1, 1, 0);
+    rightStroke.emplace_back(10, 1, 1);
+    rightStroke.emplace_back(10, 1, 1);
 
     global.push_back(std::make_shared<StrokeInfo>(
-        std::make_shared<Stroke>(upStroke, 0, 0, 32768, false),
-        std::make_shared<Actions::Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"))
+            std::make_shared<Gesture>(upStroke, 0, 0, 32768, false),
+            std::make_shared<Actions::Command>(
+                    "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause"))
     );
 
     global.push_back(std::make_shared<StrokeInfo>(
-            std::make_shared<Stroke>(leftStroke, 0, 0, 32768, false),
-            std::make_shared<Actions::Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"))
+            std::make_shared<Gesture>(leftStroke, 0, 0, 32768, false),
+            std::make_shared<Actions::Command>(
+                    "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Previous"))
     );
 
     global.push_back(std::make_shared<StrokeInfo>(
-            std::make_shared<Stroke>(rightStroke, 0, 0, 32768, false),
-            std::make_shared<Actions::Command>("dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"))
+            std::make_shared<Gesture>(rightStroke, 0, 0, 32768, false),
+            std::make_shared<Actions::Command>(
+                    "dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next"))
     );
 }
 
-std::shared_ptr<Actions::Action> ActionDB::handle(RStroke s, const std::string& application) {
-	if (!s) {
-        g_error("s is undefined");
-    }
-
+std::shared_ptr<Actions::Action> ActionDB::handle(const Gesture& s, const std::string& application) {
 	shared_ptr<StrokeInfo> winner = nullptr;
 	auto winning_score = 0.0;
 
 	for (const auto& i : global) {
-        double score;
-        int match = Stroke::compare(s, i->stroke, score);
-        if (match < 0) {
+        auto [match, score] = Gesture::compare(s, *i->gesture);
+        if (!match) {
             continue;
         }
 
@@ -61,7 +59,7 @@ std::shared_ptr<Actions::Action> ActionDB::handle(RStroke s, const std::string& 
         }
 	}
 
-	if (!winner && s->trivial())
+	if (!winner && s.trivial())
 		return std::make_shared<Actions::Click>();
 	if (winner) {
         g_message("Executing Action %s", winner->name.c_str());
@@ -72,39 +70,32 @@ std::shared_ptr<Actions::Action> ActionDB::handle(RStroke s, const std::string& 
 	}
 }
 
-void ActionDB::handle_advanced(RStroke s, std::map<guint, std::shared_ptr<Actions::Action>> as, std::map<guint, RRanking> rs, guint b1, guint b2, const std::string& application) {
-	if (!s) {
-        g_error("s is undefined");
-    }
+void ActionDB::handle_advanced(
+    const Gesture& s, std::map<guint, std::shared_ptr<Actions::Action>> as, std::map<guint, double> rs,
+    guint b1, guint b2, const std::string& application) {
 
-	for (auto i : global) {
-        int b = i->stroke->button;
-        if (!s->timeout && !b)
-            continue;
-        s->button = b;
-        double score;
-        int match = Stroke::compare(s, i->stroke, score);
-        if (match < 0)
-        {
+    for (const auto& i : global) {
+        int b = i->gesture->button;
+        if (!s.timeout && !b) {
             continue;
         }
 
-        shared_ptr<Ranking> r;
-        if (b == b1)
+        auto[match, score] = Gesture::compareNoButton(s, *i->gesture);
+        if (!match) {
+            continue;
+        }
+
+        if (b == b1) {
             b = b2;
-        if (rs.count(b)) {
-            r = rs[b];
-        } else {
-            r = make_shared<Ranking>();
-            rs[b] = r;
-            r->score = -1;
         }
-        if (score > r->score) {
-            r->score = score;
-            if (match) {
-                r->name = i->name;
-                as[b] = i->action;
-            }
+
+        if (!rs.count(b)) {
+            rs[b] = -1;
+        }
+
+        if (score > rs[b]) {
+            rs[b] = score;
+            as[b] = i->action;
         }
     }
 }

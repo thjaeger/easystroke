@@ -4,7 +4,13 @@
 
 class Trace {
 public:
-	struct Point { float x; float y; };
+	struct Point {
+	    Point() = default;
+	    Point(double x, double y): x(x), y(y) {}
+	    double x;
+	    double y;
+	};
+
 private:
 	Point last;
 	bool active;
