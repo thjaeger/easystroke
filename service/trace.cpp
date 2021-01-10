@@ -12,7 +12,7 @@ void resetTrace() {
 void Trace::start(Trace::Point p) {
     last = p;
     active = true;
-    XFixesHideCursor(context->dpy, context->ROOT);
+    context->xServer->hideCursor(context->xServer->ROOT);
     start_();
 }
 
@@ -20,6 +20,6 @@ void Trace::end() {
     if (!active)
         return;
     active = false;
-    XFixesShowCursor(context->dpy, context->ROOT);
+    context->xServer->showCursor(context->xServer->ROOT);
     end_();
 }

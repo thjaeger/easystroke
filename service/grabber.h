@@ -41,7 +41,7 @@ public:
 		int master;
 		XiDevice(Grabber *, XIDeviceInfo *);
 		void grab_device(GrabState grab);
-		void grab_button(ButtonInfo &bi, bool grab);
+		void grab_button(ButtonInfo &bi, bool grab) const;
 	};
 
 	typedef std::map<XID, std::shared_ptr<XiDevice> > DeviceMap;

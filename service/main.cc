@@ -19,6 +19,9 @@
 Source<Window> current_app_window(None);
 
 class App : public Gtk::Application {
+private:
+    std::shared_ptr<XServerProxy> xServer;
+
 public:
     App(int &argc, char **&argv, const Glib::ustring &application_id,
         Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE) :
@@ -61,17 +64,19 @@ std::shared_ptr<AppXContext> context = nullptr;
 void App::on_activate() {
     unsetenv("DESKTOP_AUTOSTART_ID");
 
+    this->xServer = XServerProxy::Open();
+
     if (context) {
         g_error("Context already configured");
     }
 
-    context = std::make_shared<AppXContext>();
+    context = std::make_shared<AppXContext>(this->xServer);
 
     xstate = new XState;
     grabber = new Grabber;
     // Force enter events to be generated
-    XGrabPointer(context->dpy, context->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-    XUngrabPointer(context->dpy, CurrentTime);
+    this->xServer->grabPointer(this->xServer->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+    this->xServer->ungrabPointer(CurrentTime);
 
     resetTrace();
 
@@ -79,9 +84,9 @@ void App::on_activate() {
     g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
     screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
 
-    XTestGrabControl(context->dpy, True);
+    this->xServer->grabControl(True);
 
-    Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(ConnectionNumber(context->dpy), Glib::IO_IN);
+    Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(this->xServer->getConnectionNumber(), Glib::IO_IN);
     io->connect(sigc::mem_fun(*xstate, &XState::handle));
     io->attach();
     hold();

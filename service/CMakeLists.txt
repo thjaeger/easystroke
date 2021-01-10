@@ -18,8 +18,6 @@ set(SOURCE_FILES
     actions/modAction.h
     actions/modifiers.cpp
     actions/modifiers.h
-    actions.h
-    appxcontext.cpp
     appxcontext.h
     composite.cc
     composite.h
@@ -42,7 +40,8 @@ set(SOURCE_FILES
     trace.h
     util.h
     var.h
-)
+        xserverproxy.cpp
+        xserverproxy.h)
 
 link_directories(${GTKMM_LIBRARY_DIRS})
 

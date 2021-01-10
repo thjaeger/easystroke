@@ -25,8 +25,8 @@ public:
 	void ungrab(int deviceid);
 
 	bool idle();
-	void bail_out();
-	void run_action(const std::shared_ptr<Actions::Action>& act);
+
+    void run_action(const std::shared_ptr<Actions::Action>& act);
 	void queue(sigc::slot<void> f);
 
 	static void activate_window(Window w, Time t);

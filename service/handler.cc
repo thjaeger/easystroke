@@ -24,9 +24,9 @@ bool XState::idle() {
 
 void XState::queue(sigc::slot<void> f) {
 	if (idle()) {
-		f();
-		XFlush(context->dpy);
-	} else {
+        f();
+        context->xServer->flush();
+    } else {
         queued.push_back(f);
     }
 }
@@ -55,123 +55,125 @@ void XState::handle_event(XEvent &ev) {
 		return;
 
 	case PropertyNotify:
-		if (current_app_window.get() == ev.xproperty.window && ev.xproperty.atom == XA_WM_CLASS)
-			current_app_window.notify();
-		return;
+        if (current_app_window.get() == ev.xproperty.window && ev.xproperty.atom == XA_WM_CLASS)
+            current_app_window.notify();
+            return;
 
-	case ButtonPress:
-		g_debug("Press (master): %d (%d, %d) at t = %ld", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-		H->press_master(ev.xbutton.button, ev.xbutton.time);
-		return;
+        case ButtonPress:
+            g_debug("Press (master): %d (%d, %d) at t = %ld", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y,
+                    ev.xbutton.time);
+            H->press_master(ev.xbutton.button, ev.xbutton.time);
+            return;
 
-	case ClientMessage:
-		if (ev.xclient.window != ping_window)
-			return;
-		return;
+        case ClientMessage:
+            if (ev.xclient.window != ping_window)
+                return;
+            return;
 
-	case MappingNotify:
-		if (ev.xmapping.request == MappingPointer)
-			update_core_mapping();
-		if (ev.xmapping.request == MappingKeyboard || ev.xmapping.request == MappingModifier)
-			XRefreshKeyboardMapping(&ev.xmapping);
-		return;
-	case GenericEvent:
-		if (ev.xcookie.extension == grabber->opcode && XGetEventData(context->dpy, &ev.xcookie)) {
-			handle_xi2_event((XIDeviceEvent *)ev.xcookie.data);
-			XFreeEventData(context->dpy, &ev.xcookie);
-		}
-	}
+        case MappingNotify:
+            if (ev.xmapping.request == MappingPointer)
+                update_core_mapping();
+            if (ev.xmapping.request == MappingKeyboard || ev.xmapping.request == MappingModifier)
+                XRefreshKeyboardMapping(&ev.xmapping);
+            return;
+        case GenericEvent:
+            if (ev.xcookie.extension == grabber->opcode && context->xServer->getEventData(&ev.xcookie)) {
+                handle_xi2_event((XIDeviceEvent *) ev.xcookie.data);
+                context->xServer->freeEventData(&ev.xcookie);
+            }
+    }
 }
 
 void XState::activate_window(Window w, Time t) {
-	if (w == get_window(context->ROOT, context->NET_ACTIVE_WINDOW))
-		return;
+    if (w == get_window(context->xServer->ROOT, context->xServer->atoms.NET_ACTIVE_WINDOW))
+        return;
 
-	Atom window_type = get_atom(w, context->NET_WM_WINDOW_TYPE);
-	if (window_type == context->NET_WM_WINDOW_TYPE_DOCK)
-		return;
+    Atom window_type = get_atom(w, context->xServer->atoms.NET_WM_WINDOW_TYPE);
+    if (window_type == context->xServer->atoms.NET_WM_WINDOW_TYPE_DOCK)
+        return;
 
-	XWMHints *wm_hints = XGetWMHints(context->dpy, w);
-	if (wm_hints) {
-		bool input = wm_hints->input;
-		XFree(wm_hints);
-		if (!input)
-			return;
-	}
+    auto *wm_hints = context->xServer->getWMHints(w);
+    if (wm_hints) {
+        bool input = wm_hints->input;
+        XServerProxy::free(wm_hints);
+        if (!input)
+            return;
+    }
 
-	if (!has_atom(w, context->WM_PROTOCOLS, context->WM_TAKE_FOCUS))
-		return;
+    if (!has_atom(w, context->xServer->atoms.WM_PROTOCOLS, context->xServer->atoms.WM_TAKE_FOCUS))
+        return;
 
-	XWindowAttributes attr;
-	if (XGetWindowAttributes(context->dpy, w, &attr) && attr.override_redirect)
-		return;
+    XWindowAttributes attr;
+    if (context->xServer->getWindowAttributes(w, &attr) && attr.override_redirect) {
+        return;
+    }
 
-	g_debug("Giving focus to window 0x%lx", w);
+    g_debug("Giving focus to window 0x%lx", w);
 
-	icccm_client_message(w, context->WM_TAKE_FOCUS, t);
+    icccm_client_message(w, context->xServer->atoms.WM_TAKE_FOCUS, t);
 }
 
 Window XState::get_window(Window w, Atom prop) {
-	Atom actual_type;
-	int actual_format;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = nullptr;
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *prop_return = nullptr;
 
-	if (XGetWindowProperty(context->dpy, w, prop, 0, sizeof(Atom), False, XA_WINDOW, &actual_type, &actual_format,
-				&nitems, &bytes_after, &prop_return) != Success)
-		return None;
-	if (!prop_return)
-		return None;
-	Window ret = *(Window *)prop_return;
-	XFree(prop_return);
-	return ret;
+    if (context->xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_WINDOW, &actual_type, &actual_format,
+                                         &nitems, &bytes_after, &prop_return) != Success)
+        return None;
+    if (!prop_return)
+        return None;
+    Window ret = *(Window *) prop_return;
+    XServerProxy::free(prop_return);
+    return ret;
 }
 
 Atom XState::get_atom(Window w, Atom prop) {
-	Atom actual_type;
-	int actual_format;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = nullptr;
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *prop_return = nullptr;
 
-	if (XGetWindowProperty(context->dpy, w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
-				&nitems, &bytes_after, &prop_return) != Success)
-		return None;
-	if (!prop_return)
-		return None;
-	Atom atom = *(Atom *)prop_return;
-	XFree(prop_return);
-	return atom;
+    if (context->xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
+                                         &nitems, &bytes_after, &prop_return) != Success)
+        return None;
+    if (!prop_return)
+        return None;
+    Atom atom = *(Atom *) prop_return;
+    XServerProxy::free(prop_return);
+    return atom;
 }
 
 bool XState::has_atom(Window w, Atom prop, Atom value) {
-	Atom actual_type;
-	int actual_format;
-	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = nullptr;
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *prop_return = nullptr;
 
-	if (XGetWindowProperty(context->dpy, w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
-				&nitems, &bytes_after, &prop_return) != Success)
-		return None;
-	if (!prop_return)
-		return None;
-	Atom *atoms = (Atom *)prop_return;
-	bool ans = false;
-	for (unsigned long i = 0; i < nitems; i++)
-		if (atoms[i] == value)
-			ans = true;
-	XFree(prop_return);
-	return ans;
+    if (context->xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
+                                         &nitems, &bytes_after, &prop_return) != Success)
+        return None;
+    if (!prop_return)
+        return None;
+    Atom *atoms = (Atom *) prop_return;
+    bool ans = false;
+    for (unsigned long i = 0; i < nitems; i++)
+        if (atoms[i] == value)
+            ans = true;
+    XServerProxy::free(prop_return);
+    return ans;
 }
 
 void XState::icccm_client_message(Window w, Atom a, Time t) {
-	XClientMessageEvent ev;
-	ev.type = ClientMessage;
-	ev.window = w;
-	ev.message_type = context->WM_PROTOCOLS;
-	ev.format = 32;
-	ev.data.l[0] = a;
-	ev.data.l[1] = t;
-	XSendEvent(context->dpy, w, False, 0, (XEvent *)&ev);
+    XClientMessageEvent ev;
+    ev.type = ClientMessage;
+    ev.window = w;
+    ev.message_type = context->xServer->atoms.WM_PROTOCOLS;
+    ev.format = 32;
+    ev.data.l[0] = a;
+    ev.data.l[1] = t;
+    context->xServer->sendEvent(w, False, 0, (XEvent *) &ev);
 }
 
 static std::string render_coordinates(XIValuatorState *valuators, double *values) {
@@ -239,7 +241,7 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 				break;
 			}
 			if (current_dev->master)
-				XISetClientPointer(context->dpy, None, current_dev->master);
+                context->xServer->setClientPointer(None, current_dev->master);
 			if (xinput_pressed.empty()) {
 				guint default_mods = grabber->get_default_mods(event->detail);
 				if (default_mods == AnyModifier || default_mods == (guint)event->mods.base)
@@ -304,34 +306,34 @@ void XState::handle_raw_motion(XIRawEvent *event) {
 #undef H
 
 bool XState::handle(Glib::IOCondition) {
-	while (XPending(context->dpy)) {
-		try {
-			XEvent ev;
-			XNextEvent(context->dpy, &ev);
-			if (!grabber->handle(ev))
-				handle_event(ev);
-		} catch (GrabFailedException &e) {
-		    g_error("%s", e.what());
-		}
-	}
-	return true;
+    while (context->xServer->countPendingEvents()) {
+        try {
+            XEvent ev;
+            context->xServer->nextEvent(&ev);
+            if (!grabber->handle(ev))
+                handle_event(ev);
+        } catch (GrabFailedException &e) {
+            g_error("%s", e.what());
+        }
+    }
+    return true;
 }
 
 void XState::update_core_mapping() {
-	unsigned char map[MAX_BUTTONS];
-	int n = XGetPointerMapping(context->dpy, map, MAX_BUTTONS);
-	core_inv_map.clear();
-	for (int i = n-1; i; i--)
-		if (map[i] == i+1)
-			core_inv_map.erase(i+1);
-		else
-			core_inv_map[map[i]] = i+1;
+    unsigned char map[MAX_BUTTONS];
+    int n = context->xServer->getPointerMapping(map, MAX_BUTTONS);
+    core_inv_map.clear();
+    for (int i = n - 1; i; i--)
+        if (map[i] == i + 1)
+            core_inv_map.erase(i + 1);
+        else
+            core_inv_map[map[i]] = i + 1;
 }
 
 void XState::fake_core_button(guint b, bool press) {
-	if (core_inv_map.count(b))
-		b = core_inv_map[b];
-	XTestFakeButtonEvent(context->dpy, b, press, CurrentTime);
+    if (core_inv_map.count(b))
+        b = core_inv_map[b];
+    context->xServer->fakeButtonEvent(b, press, CurrentTime);
 }
 
 void XState::fake_click(guint b) {
@@ -370,21 +372,21 @@ public:
 	IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)), proximity(xstate->in_proximity && prefs.proximity) {}
 	void press(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-			XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
-		}
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+            context->xServer->fakeButtonEvent(b, true, CurrentTime);
+        }
 	}
 	void motion(CursorPosition e) override {
-		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-		if (proximity && !xstate->in_proximity)
-			parent->replace_child(nullptr);
-	}
+        if (xstate->current_dev->master)
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+        if (proximity && !xstate->in_proximity)
+            parent->replace_child(nullptr);
+    }
 	void release(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-			XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
-		}
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+            context->xServer->fakeButtonEvent(b, false, CurrentTime);
+        }
 		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
@@ -405,27 +407,27 @@ public:
 	{}
 	void press(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
-			if (!real_button)
-				real_button = b;
-			if (real_button == b)
-				b = button;
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-			XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
-		}
+            if (!real_button)
+                real_button = b;
+            if (real_button == b)
+                b = button;
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+            context->xServer->fakeButtonEvent(b, true, CurrentTime);
+        }
 	}
 	void motion(CursorPosition e) override {
-		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-		if (proximity && !xstate->in_proximity)
-			parent->replace_child(nullptr);
-	}
+        if (xstate->current_dev->master)
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+        if (proximity && !xstate->in_proximity)
+            parent->replace_child(nullptr);
+    }
 	void release(guint b, CursorPosition e) override {
 		if (xstate->current_dev->master) {
-			if (real_button == b)
-				b = button;
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-			XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
-		}
+            if (real_button == b)
+                b = button;
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+            context->xServer->fakeButtonEvent(b, false, CurrentTime);
+        }
 		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
@@ -433,15 +435,8 @@ public:
 	Grabber::State grab_mode() override { return Grabber::NONE; }
 };
 
-void XState::bail_out() {
-	handler->replace_child(nullptr);
-	xinput_pressed.clear();
-	XFlush(context->dpy);
-}
-
-
 int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
-	if (context->dpy != dpy2)
+	if (!context->xServer->isSameDisplayAs(dpy2))
 		return xstate->oldHandler(dpy2, e);
 	if (e->error_code == BadWindow) {
 		switch (e->request_code) {
@@ -453,7 +448,7 @@ int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	}
 
 	char text[64];
-	XGetErrorText(context->dpy, e->error_code, text, sizeof text);
+    context->xServer->getErrorText(e->error_code, text, sizeof text);
 	char msg[16];
 	snprintf(msg, sizeof msg, "%d", e->request_code);
 	char def[128];
@@ -462,14 +457,14 @@ int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
 	else
 		snprintf(def, sizeof def, "extension=%s, request_code=%d", xstate->opcodes[e->request_code].c_str(), e->minor_code);
 	char dbtext[128];
-	XGetErrorDatabaseText(context->dpy, "XRequest", msg, def, dbtext, sizeof dbtext);
+    context->xServer->getErrorDatabaseText("XRequest", msg, def, dbtext, sizeof dbtext);
 	g_warning("XError: %s: %s", text, dbtext);
 
 	return 0;
 }
 
 int XState::xIOErrorHandler(Display *dpy2) {
-	if (context->dpy != dpy2)
+	if (!context->xServer->isSameDisplayAs(dpy2))
 		return xstate->oldIOHandler(dpy2);
     g_error("Connection to X server lost");
 }
@@ -494,13 +489,13 @@ class AbstractScrollHandler : public Handler {
 
 protected:
 	AbstractScrollHandler() : have_x(false), have_y(false), last_x(0.0), last_y(0.0), last_t(0), offset_x(0.0), offset_y(0.0) {
-		if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
-			return;
-		Window dummy1, dummy2;
-		int dummy3, dummy4;
-		unsigned int dummy5;
-		XQueryPointer(context->dpy, context->ROOT, &dummy1, &dummy2, &orig_x, &orig_y, &dummy3, &dummy4, &dummy5);
-	}
+        if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
+            return;
+        Window dummy1, dummy2;
+        int dummy3, dummy4;
+        unsigned int dummy5;
+        context->xServer->queryPointer(context->xServer->ROOT, &dummy1, &dummy2, &orig_x, &orig_y, &dummy3, &dummy4, &dummy5);
+    }
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		for (int i = 0; i<n1; i++)
 			xstate->fake_click(b1);
@@ -512,10 +507,10 @@ protected:
 	}
 protected:
 	void move_back() const {
-		if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
-			return;
-		XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig_x, orig_y, 0);
-	}
+        if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
+            return;
+        context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), orig_x, orig_y, 0);
+    }
 public:
 	virtual void raw_motion(CursorPosition e, bool abs_x, bool abs_y) {
 		double dx = abs_x ? (have_x ? e.x - last_x : 0) : e.x;
@@ -697,33 +692,33 @@ public:
 		replay.reset();
 	}
 	void press(guint b, CursorPosition e) override {
-		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-		click_time = 0;
-		if (remap_to) {
-			xstate->fake_core_button(remap_to, false);
-		}
-		remap_from = 0;
-		remap_to = 0;
-		replay_button = 0;
-		guint bb = (b == button1) ? button2 : b;
-		show_ranking(bb, e);
-		if (!as.count(bb)) {
-			sticky_mods.reset();
-			if (xstate->current_dev->master)
-				XTestFakeButtonEvent(context->dpy, b, true, CurrentTime);
-			return;
-		}
-		auto act = as[bb];
-		if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
-			click_time = e.t;
-			replay_button = b;
-			replay_orig = e;
+        if (xstate->current_dev->master)
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+        click_time = 0;
+        if (remap_to) {
+            xstate->fake_core_button(remap_to, false);
+        }
+        remap_from = 0;
+        remap_to = 0;
+        replay_button = 0;
+        guint bb = (b == button1) ? button2 : b;
+        show_ranking(bb, e);
+        if (!as.count(bb)) {
+            sticky_mods.reset();
+            if (xstate->current_dev->master)
+                context->xServer->fakeButtonEvent(b, true, CurrentTime);
+            return;
+        }
+        auto act = as[bb];
+        if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
+            click_time = e.t;
+            replay_button = b;
+            replay_orig = e;
             auto m = act->prepare();
-			sticky_mods.reset();
-			return replace_child(new ScrollAdvancedHandler(m, replay_button));
-		}
-		if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
+            sticky_mods.reset();
+            return replace_child(new ScrollAdvancedHandler(m, replay_button));
+        }
+        if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
 			click_time = e.t;
 			replay_button = b;
 			replay_orig = e;
@@ -751,37 +746,37 @@ public:
 		act->run();
 	}
 	virtual void motion(CursorPosition e) {
-		if (replay_button && hypot(replay_orig.x - e.x, replay_orig.y - e.y) > 16)
-			replay_button = 0;
-		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-	}
+        if (replay_button && hypot(replay_orig.x - e.x, replay_orig.y - e.y) > 16)
+            replay_button = 0;
+        if (xstate->current_dev->master)
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+    }
 	virtual void release(guint b, CursorPosition e) {
-		if (xstate->current_dev->master)
-			XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
-		if (remap_to) {
-			xstate->fake_core_button(remap_to, false);
-		}
-		guint bb = (b == button1) ? button2 : b;
-		if (!as.count(bb)) {
-			sticky_mods.reset();
-			if (xstate->current_dev->master)
-				XTestFakeButtonEvent(context->dpy, b, false, CurrentTime);
-		}
-		if (xstate->xinput_pressed.size() == 0) {
-			if (e.t < click_time + 250 && b == replay_button) {
-				sticky_mods.reset();
-				mods.clear();
-				xstate->fake_click(b);
-			}
-			return parent->replace_child(nullptr);
-		}
-		replay_button = 0;
-		mods.erase((b == button1) ? button2 : b);
-		if (remap_from)
-			sticky_mods.reset();
-		remap_from = 0;
-	}
+        if (xstate->current_dev->master)
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
+        if (remap_to) {
+            xstate->fake_core_button(remap_to, false);
+        }
+        guint bb = (b == button1) ? button2 : b;
+        if (!as.count(bb)) {
+            sticky_mods.reset();
+            if (xstate->current_dev->master)
+                context->xServer->fakeButtonEvent(b, false, CurrentTime);
+        }
+        if (xstate->xinput_pressed.size() == 0) {
+            if (e.t < click_time + 250 && b == replay_button) {
+                sticky_mods.reset();
+                mods.clear();
+                xstate->fake_click(b);
+            }
+            return parent->replace_child(nullptr);
+        }
+        replay_button = 0;
+        mods.erase((b == button1) ? button2 : b);
+        if (remap_from)
+            sticky_mods.reset();
+        remap_from = 0;
+    }
 	virtual std::string name() { return "Advanced"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
@@ -838,27 +833,27 @@ class StrokeHandler : public Handler, public sigc::trackable {
 	std::vector<RConnection> connections;
 
 	std::shared_ptr<Gesture> finish(guint b) {
-		trace->end();
-		XFlush(context->dpy);
+        trace->end();
+        context->xServer->flush();
         auto c = cur;
-		if (!is_gesture || grabber->is_instant(button))
-			c->clear();
-		return std::make_shared<Gesture>(*c, trigger, b, xstate->modifiers, false);
-	}
+        if (!is_gesture || grabber->is_instant(button))
+            c->clear();
+        return std::make_shared<Gesture>(*c, trigger, b, xstate->modifiers, false);
+    }
 
 	bool timeout() {
         g_debug("Aborting stroke...");
-		trace->end();
-		auto c = cur;
-		if (!is_gesture)
-			c->clear();
+        trace->end();
+        auto c = cur;
+        if (!is_gesture)
+            c->clear();
         std::shared_ptr<Gesture> s;
-		if (prefs.timeout_gestures || grabber->is_click_hold(button))
-			s = std::make_shared<Gesture>(*c, trigger, 0, xstate->modifiers, true);
-		parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
-		XFlush(context->dpy);
-		return false;
-	}
+        if (prefs.timeout_gestures || grabber->is_click_hold(button))
+            s = std::make_shared<Gesture>(*c, trigger, 0, xstate->modifiers, true);
+        parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
+        context->xServer->flush();
+        return false;
+    }
 
 	void do_instant() {
 		std::vector<CursorPosition> ps;
@@ -916,9 +911,9 @@ protected:
         auto s = finish(0);
 
         if (prefs.move_back && !xstate->current_dev->absolute)
-            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), orig.x, orig.y, 0);
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), orig.x, orig.y, 0);
         else
-            XTestFakeMotionEvent(context->dpy, DefaultScreen(context->dpy), e.x, e.y, 0);
+            context->xServer->fakeMotionEvent(context->xServer->getDefaultScreen(), e.x, e.y, 0);
 
         if (stroke_action) {
             (*stroke_action)(s);
@@ -926,7 +921,7 @@ protected:
         }
         auto act = actions.handle(*s, grabber->current_class->get());
         if (!act) {
-            XkbBell(context->dpy, None, 0, None);
+            context->xServer->ringBell(None, 0, None);
             return parent->replace_child(nullptr);
         }
         auto mods = act->prepare();
@@ -1003,24 +998,24 @@ public:
 		xstate = xstate_;
 	}
 	~IdleHandler() override {
-		XUngrabKey(context->dpy, XKeysymToKeycode(context->dpy,XK_Escape), AnyModifier, context->ROOT);
+        context->xServer->ungrabKey(context->xServer->keysymToKeycode(XK_Escape), AnyModifier, context->xServer->ROOT);
 	}
 	std::string name() override { return "Idle"; }
 	Grabber::State grab_mode() override { return Grabber::BUTTON; }
 };
 
 XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), modifiers(0) {
-	int n, opcode, event, error;
-	char **ext = XListExtensions(context->dpy, &n);
-	for (int i = 0; i < n; i++)
-		if (XQueryExtension(context->dpy, ext[i], &opcode, &event, &error))
-			opcodes[opcode] = ext[i];
-	XFreeExtensionList(ext);
-	oldHandler = XSetErrorHandler(xErrorHandler);
-	oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
-	ping_window = XCreateSimpleWindow(context->dpy, context->ROOT, 0, 0, 1, 1, 0, 0, 0);
-	handler = new IdleHandler(this);
-	handler->init();
+    int n, opcode, event, error;
+    char **ext = context->xServer->listExtensions(&n);
+    for (int i = 0; i < n; i++)
+        if (context->xServer->queryExtension(ext[i], &opcode, &event, &error))
+            opcodes[opcode] = ext[i];
+    XServerProxy::freeExtensionList(ext);
+    oldHandler = XSetErrorHandler(xErrorHandler);
+    oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
+    ping_window = context->xServer->createSimpleWindow(context->xServer->ROOT, 0, 0, 1, 1, 0, 0, 0);
+    handler = new IdleHandler(this);
+    handler->init();
 }
 
 void XState::run_action(const std::shared_ptr<Actions::Action>& act) {
