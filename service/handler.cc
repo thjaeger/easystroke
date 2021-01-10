@@ -28,10 +28,8 @@ void Handler::replace_child(Handler *c) {
 	global_grabber->grab(new_handler->grab_mode());
 	if (child)
 		child->init();
-	while (!global_eventLoop->queued.empty() && global_eventLoop->idle()) {
-		(*global_eventLoop->queued.begin())();
-		global_eventLoop->queued.pop_front();
-	}
+
+	global_eventLoop->processQueue();
 }
 
 class IgnoreHandler : public Handler {

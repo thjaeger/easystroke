@@ -9,7 +9,6 @@
 class Handler;
 
 class EventLoop {
-    friend class Handler;
 public:
     EventLoop();
 
@@ -37,6 +36,7 @@ public:
     std::set<guint> xinput_pressed;
     guint modifiers;
     std::map<guint, guint> core_inv_map;
+    void processQueue();
 private:
     std::unique_ptr<Handler> handler;
 

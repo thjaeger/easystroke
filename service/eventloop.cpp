@@ -23,6 +23,13 @@ void EventLoop::queue(std::function<void()> f) {
     }
 }
 
+void EventLoop::processQueue() {
+    while (!this->queued.empty() && this->idle()) {
+        this->queued.front()();
+        this->queued.pop_front();
+    }
+}
+
 void EventLoop::handle_event(XEvent &ev) {
     switch (ev.type) {
         case EnterNotify:
