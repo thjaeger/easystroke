@@ -122,7 +122,7 @@ namespace Events {
             auto previousWindowName = currentApplication->classHint->windowClass;
 
             currentApplication = std::move(newApplication);
-            global_eventLoop->queue([]() { global_grabber->update(); });
+            global_eventLoop->queue([]() { global_eventLoop->grabber->update(); });
             g_debug("Changed current window from %s to %s", previousWindowName.c_str(), currentApplication->classHint->windowClass.c_str());
         }
     }

@@ -37,6 +37,8 @@ public:
     guint modifiers;
     std::map<guint, guint> core_inv_map;
     void processQueue();
+
+    std::shared_ptr<Grabber> grabber;
 private:
     std::unique_ptr<Handler> handler;
 

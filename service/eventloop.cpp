@@ -53,14 +53,12 @@ void EventLoop::handle_event(XEvent &ev) {
             return;
 
         case GenericEvent:
-            if (ev.xcookie.extension == global_grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
+            if (ev.xcookie.extension == this->grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
                 handle_xi2_event((XIDeviceEvent *) ev.xcookie.data);
                 global_xServer->freeEventData(&ev.xcookie);
             }
     }
 }
-
-
 
 static std::string render_coordinates(XIValuatorState *valuators, double *values) {
     std::ostringstream ss;
@@ -83,7 +81,7 @@ static std::string render_coordinates(XIValuatorState *valuators, double *values
         if (XIMaskIsSet(valuators->mask, i))
             ss << values[elt++];
         else
-            ss <<"*";
+            ss << "*";
     }
 
     return ss.str();
@@ -120,7 +118,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             } else {
                 this->windowObserver.setCurrentWindow(event->child);
             }
-            current_dev = global_grabber->get_xi_dev(event->deviceid);
+            current_dev = this->grabber->get_xi_dev(event->deviceid);
             if (!current_dev) {
                 g_warning("Warning: Spurious device event");
                 break;
@@ -128,8 +126,8 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             if (current_dev->master)
                 global_xServer->setClientPointer(None, current_dev->master);
             if (xinput_pressed.empty()) {
-                guint default_mods = global_grabber->get_default_mods(event->detail);
-                if (default_mods == AnyModifier || default_mods == (guint)event->mods.base)
+                guint default_mods = this->grabber->get_default_mods(event->detail);
+                if (default_mods == AnyModifier || default_mods == (guint) event->mods.base)
                     modifiers = AnyModifier;
                 else
                     modifiers = event->mods.base;
@@ -155,11 +153,11 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             handler->top()->motion(CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_RawMotion:
-            in_proximity = get_axis(((XIRawEvent *)event)->valuators, current_dev->proximity_axis);
-            handle_raw_motion((XIRawEvent *)event);
+            in_proximity = get_axis(((XIRawEvent *) event)->valuators, current_dev->proximity_axis);
+            handle_raw_motion((XIRawEvent *) event);
             break;
         case XI_HierarchyChanged:
-            global_grabber->hierarchy_changed((XIHierarchyEvent *)event);
+            this->grabber->hierarchy_changed((XIHierarchyEvent *) event);
     }
 }
 
@@ -195,8 +193,9 @@ bool EventLoop::handle(Glib::IOCondition) {
         try {
             XEvent ev;
             global_xServer->nextEvent(&ev);
-            if (!global_grabber->handle(ev))
+            if (!this->grabber->handle(ev)) {
                 handle_event(ev);
+            }
         } catch (GrabFailedException &e) {
             g_error("%s", e.what());
         }
@@ -285,4 +284,5 @@ EventLoop::EventLoop() : current_dev(nullptr), in_proximity(false), modifiers(0)
     oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
     handler = HandlerFactory::makeIdleHandler(this);
     handler->init();
+    this->grabber = std::make_shared<Grabber>();
 }

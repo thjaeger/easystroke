@@ -83,8 +83,6 @@ public:
     void update();
 };
 
-extern Grabber *global_grabber;
-
 class GrabFailedException : public std::exception {
 	char *msg;
 public:
