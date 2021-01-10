@@ -20,17 +20,16 @@ set(SOURCE_FILES
         actions/modifiers.h
         composite.cc
         composite.h
-        desktop.cc
-        eventloop.cpp
-        eventloop.h
+        events/eventloop.cpp
+        events/eventloop.h
+        events/grabber.cc
+        events/grabber.h
+        events/handler.cc
+        events/handler.h
         events/windowobserver.cpp
         events/windowobserver.h
         gesture.cc
         gesture.h
-        grabber.cc
-        grabber.h
-        handler.cc
-        handler.h
         log.cpp
         log.h
         main.cc

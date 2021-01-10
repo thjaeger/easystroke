@@ -2,7 +2,7 @@
 
 #include "gesture.h"
 
-#include "grabber.h"
+#include "events/grabber.h"
 #include "actiondb.h"
 #include "events/windowobserver.h"
 

@@ -6,9 +6,9 @@
 #include "util.h"
 #include "actiondb.h"
 #include "trace.h"
-#include "grabber.h"
-#include "handler.h"
-#include "eventloop.h"
+#include "events/grabber.h"
+#include "events/handler.h"
+#include "events/eventloop.h"
 
 #include <glib.h>
 

@@ -1,6 +1,6 @@
 #include "eventloop.h"
 
-#include "handler.h"
+#include "events/handler.h"
 #include "log.h"
 #include "xserverproxy.h"
 #include <X11/Xutil.h>
