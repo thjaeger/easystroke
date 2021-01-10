@@ -39,7 +39,7 @@ set(SOURCE_FILES
     util.h
     var.h
         xserverproxy.cpp
-        xserverproxy.h)
+        xserverproxy.h eventloop.cpp eventloop.h)
 
 link_directories(${GTKMM_LIBRARY_DIRS})
 

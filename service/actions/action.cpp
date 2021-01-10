@@ -4,6 +4,7 @@
 #include "xserverproxy.h"
 #include "grabber.h"
 #include "handler.h"
+#include "eventloop.h"
 #include "log.h"
 
 extern std::shared_ptr<sigc::slot<void, std::shared_ptr<Gesture>>> stroke_action;

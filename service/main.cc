@@ -1,6 +1,5 @@
 
 #include <gtkmm.h>
-#include <X11/extensions/XTest.h>
 #include <X11/extensions/Xfixes.h>
 
 #include "xserverproxy.h"
@@ -10,6 +9,7 @@
 #include "trace.h"
 #include "grabber.h"
 #include "handler.h"
+#include "eventloop.h"
 
 #include <glib.h>
 
