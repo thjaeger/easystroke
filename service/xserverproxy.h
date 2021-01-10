@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include <gtkmm.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/XInput2.h>
@@ -27,6 +28,15 @@ public:
     Atom NET_WM_WINDOW_TYPE_DOCK;
     Atom WM_PROTOCOLS;
     Atom WM_TAKE_FOCUS;
+};
+
+struct WindowClassHint {
+    WindowClassHint(std::string windowName, std::string windowClass)
+            : windowName(std::move(windowName)),
+              windowClass(std::move(windowClass)) {}
+
+    std::string windowName;
+    std::string windowClass;
 };
 
 /**
@@ -82,7 +92,7 @@ public:
 
     Atom getAtom(Window w, Atom prop);
 
-    Status getClassHint(Window w, XClassHint *class_hints_return) const;
+    [[nodiscard]] std::unique_ptr<WindowClassHint> getClassHint(Window w) const;
 
     int getConnectionNumber();
 

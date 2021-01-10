@@ -22,15 +22,7 @@ public:
 	virtual ~Out() {}
 };
 
-template <class T> class In {
-public:
-	virtual void set(const T x) = 0;
-	virtual ~In() {}
-};
-
-template <class T> class IO : public In<T>, public Out<T> {};
-
-template <class T> class Source : public IO<T>, private Base {
+template <class T> class Source : public Out<T>, private Base {
 	T x;
 public:
 	explicit Source(T x_) : x(x_) {}

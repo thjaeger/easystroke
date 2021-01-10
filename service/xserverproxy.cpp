@@ -113,8 +113,22 @@ Atom XServerProxy::getAtom(Window w, Atom prop) {
     return atom;
 }
 
-Status XServerProxy::getClassHint(Window w, XClassHint *class_hints_return) const {
-    return XGetClassHint(this->dpy, w, class_hints_return);
+std::unique_ptr<WindowClassHint> XServerProxy::getClassHint(Window w) const {
+    if (!w) {
+        return std::make_unique<WindowClassHint>("", "");
+    }
+
+    XClassHint ch;
+    if (!XGetClassHint(this->dpy, w, &ch)) {
+        return std::make_unique<WindowClassHint>("", "");
+    }
+
+    auto result = std::make_unique<WindowClassHint>(ch.res_name, ch.res_class);
+
+    XServerProxy::free(ch.res_name);
+    XServerProxy::free(ch.res_class);
+
+    return result;
 }
 
 int XServerProxy::getConnectionNumber() {

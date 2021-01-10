@@ -10,18 +10,16 @@ namespace Events {
     }
 
     std::string get_wm_class(Window w) {
-        if (!w)
-            return "";
-        XClassHint ch;
-        if (!global_xServer->getClassHint(w, &ch)) {
-            return "";
-        }
-
-        std::string ans = ch.res_name;
-        XServerProxy::free(ch.res_name);
-        XServerProxy::free(ch.res_class);
-        return ans;
+        return global_xServer->getClassHint(w)->windowClass;
     }
+
+    class ApplicationWindow {
+    public:
+        explicit ApplicationWindow(Window window) : window(window), classHint(global_xServer->getClassHint(window)) {}
+
+        Window window;
+        std::unique_ptr<WindowClassHint> classHint;
+    };
 
     class IdleNotifier : public Base {
         void run() {
@@ -35,10 +33,13 @@ namespace Events {
     };
 
     WindowObserver::WindowObserver()
-            : currentAppWindow(Source<Window>(None)) {
+            : currentAppWindow(Source<Window>(None)),
+              currentApplicationWindow(std::make_unique<ApplicationWindow>(None)) {
         current_class = fun(&get_wm_class, this->currentAppWindow);
         current_class->connect(new IdleNotifier());
     }
+
+    WindowObserver::~WindowObserver() = default;
 
     void WindowObserver::handleEnterLeave(XEvent &ev) {
         if (ev.xcrossing.mode == NotifyGrab) {
@@ -50,9 +51,7 @@ namespace Events {
         }
 
         if (ev.type == EnterNotify) {
-            auto w = ev.xcrossing.window;
-            currentAppWindow.set(getAppWindow(w));
-            g_debug("Entered window 0x%lx -> 0x%lx", w, currentAppWindow.get());
+            this->setCurrentWindow(ev.xcrossing.window);
         } else {
             g_warning("Error: Bogus Enter/Leave event");
         };
@@ -115,11 +114,20 @@ namespace Events {
     }
 
     std::string WindowObserver::getCurrentWindowClass() {
-        return this->current_class->get();
+        if (!this->currentApplicationWindow) {
+            return "";
+        }
+
+        return this->currentApplicationWindow->classHint->windowClass;
     }
 
     void WindowObserver::setCurrentWindow(Window newWindow) {
-        currentAppWindow.set(getAppWindow(newWindow));
-        g_debug("Active window 0x%lx -> 0x%lx", newWindow, currentAppWindow.get());
+        auto newAppWindow = getAppWindow(newWindow);
+        if (newAppWindow == currentAppWindow.get()) {
+            return;
+        }
+
+        currentAppWindow.set(newAppWindow);
+        g_debug("Changed current window 0x%lx -> 0x%lx", newWindow, currentAppWindow.get());
     }
 }

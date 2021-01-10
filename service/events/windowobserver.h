@@ -8,13 +8,17 @@
 #include "var.h"
 
 namespace Events {
+    class ApplicationWindow;
+
     class WindowObserver {
-    public:
-        // TODO: Make private
+    private:
+        std::unique_ptr<ApplicationWindow> currentApplicationWindow;
         Source<Window> currentAppWindow;
         Out<std::string> *current_class;
 
+    public:
         WindowObserver();
+        ~WindowObserver();
 
         void handleEnterLeave(XEvent &ev);
 
