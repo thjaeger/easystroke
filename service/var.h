@@ -9,20 +9,13 @@ public:
 	virtual ~Base() {}
 };
 
-class Notifier : public Base {
-	sigc::slot<void> f;
-public:
-	Notifier(sigc::slot<void> f_) : f(f_) {}
-	virtual void notify() { f(); }
-};
-
 class Atomic {
 	std::set<Base *> update_queue;
 public:
 	void defer(Base *out) { update_queue.insert(out); }
 	~Atomic() {
-		for (std::set<Base *>::iterator i = update_queue.begin(); i != update_queue.end(); i++)
-			(*i)->notify();
+		for (auto i : update_queue)
+			i->notify();
 	}
 };
 
@@ -30,8 +23,8 @@ template <class T> class Out {
 	std::set<Base *> out;
 protected:
 	void update() {
-		for (std::set<Base *>::iterator i = out.begin(); i != out.end(); i++)
-			(*i)->notify();
+		for (auto i : out)
+			i->notify();
 	}
 public:
 	void connect(Base *s) { out.insert(s); }
@@ -50,35 +43,16 @@ template <class T> class IO : public In<T>, public Out<T> {};
 template <class T> class Source : public IO<T>, private Base {
 	T x;
 public:
-	Source() {}
 	Source(T x_) : x(x_) {}
-	virtual void set(const T x_) {
-		x = x_;
-		Out<T>::update();
-	}
-	virtual T get() const { return x; }
-	const T &ref() const { return x; }
-	// write_refs are evil
-	T &write_ref(Atomic &a) {
-		a.defer(this);
-		return x;
-	}
-	virtual void notify() { Out<T>::update(); }
-	// unsafe_refs even more so
-	T &unsafe_ref() { return x; }
-};
 
-template <class T> class Var : public IO<T>, private Base {
-	Out<T> &in;
-	T x;
-public:
-	Var(Out<T> &in_) : in(in_), x(in.get()) { in.connect(this); }
-	virtual void notify() { set(in.get()); }
 	virtual void set(const T x_) {
 		x = x_;
 		Out<T>::update();
 	}
+
 	virtual T get() const { return x; }
+
+	virtual void notify() { Out<T>::update(); }
 };
 
 template <class X, class Y> class Fun : public Out<Y>, private Base {
@@ -93,19 +67,3 @@ public:
 template <class X, class Y> Fun<X, Y> *fun(Y (*f)(X), Out<X> &in) {
 	return new Fun<X, Y>(sigc::ptr_fun(f), in);
 }
-
-class Watcher : private Base {
-public:
-	template <class T> void watch(Out<T> &v) { v.connect(this); }
-};
-
-class TimeoutWatcher : public Watcher, Timeout {
-	int ms;
-public:
-	TimeoutWatcher(int ms_) : ms(ms_) {}
-	virtual void notify() { set_timeout(ms); }
-	void execute_now() {
-		if (remove_timeout())
-			timeout();
-	}
-};

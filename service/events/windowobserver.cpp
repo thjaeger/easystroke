@@ -82,4 +82,8 @@ namespace Events {
 
         global_xServer->sendEvent(w, False, 0, (XEvent *) &ev);
     }
+
+    std::string WindowObserver::getCurrentWindowClass() {
+        return global_grabber->current_class->get();
+    }
 }

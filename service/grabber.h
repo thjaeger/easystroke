@@ -18,9 +18,6 @@ public:
 	void destroy(Window);
 };
 
-class Grabber;
-extern Grabber *grabber;
-
 class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
@@ -83,10 +80,11 @@ public:
 	int get_default_button() { return grabbed_button.button; }
 	guint get_default_mods(guint button);
 
-	void unminimize();
     void suspend() { suspended++; set(); }
     void resume() { if (suspended) suspended--; set(); }
 };
+
+extern Grabber *global_grabber;
 
 class GrabFailedException : public std::exception {
 	char *msg;

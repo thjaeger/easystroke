@@ -25,7 +25,7 @@ void Handler::replace_child(Handler *c) {
 		g_debug("New event handling stack: %s\n", stack.c_str());
 	}
 	Handler *new_handler = child ? child : this;
-	grabber->grab(new_handler->grab_mode());
+	global_grabber->grab(new_handler->grab_mode());
 	if (child)
 		child->init();
 	while (!global_eventLoop->queued.empty() && global_eventLoop->idle()) {
@@ -289,7 +289,7 @@ class AdvancedHandler : public Handler {
 		e(e_), remap_from(0), remap_to(0), click_time(0), replay_button(0),
 		button1(b1), button2(b2), replay(std::move(replay_)) {
         if (s) {
-            actions.handle_advanced(*s, as, rs, b1, b2, grabber->current_class->get());
+            actions.handle_advanced(*s, as, rs, b1, b2, Events::WindowObserver::getCurrentWindowClass());
         }
     }
 
@@ -461,7 +461,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
         trace->end();
         global_xServer->flush();
         auto c = cur;
-        if (!is_gesture || grabber->is_instant(button))
+        if (!is_gesture || global_grabber->is_instant(button))
             c->clear();
         return std::make_shared<Gesture>(*c, trigger, b, global_eventLoop->modifiers, false);
     }
@@ -473,7 +473,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
         if (!is_gesture)
             c->clear();
         std::shared_ptr<Gesture> s;
-        if (prefs.timeout_gestures || grabber->is_click_hold(button))
+        if (prefs.timeout_gestures || global_grabber->is_click_hold(button))
             s = std::make_shared<Gesture>(*c, trigger, 0, global_eventLoop->modifiers, true);
         parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
         global_xServer->flush();
@@ -546,7 +546,7 @@ protected:
             (*stroke_action)(s);
             return parent->replace_child(nullptr);
         }
-        auto act = actions.handle(*s, grabber->current_class->get());
+        auto act = actions.handle(*s, Events::WindowObserver::getCurrentWindowClass());
         if (!act) {
             global_xServer->ringBell(None, 0, None);
             return parent->replace_child(nullptr);
@@ -569,7 +569,7 @@ protected:
 public:
 	StrokeHandler(guint b, CursorPosition e) :
 		button(b),
-		trigger(grabber->get_default_button() == (int)b ? 0 : b),
+		trigger(global_grabber->get_default_button() == (int)b ? 0 : b),
 		is_gesture(false),
 		drawing(false),
 		last(e),
@@ -587,9 +587,9 @@ public:
 		use_timeout = init_timeout;
 	}
 	void init() override {
-		if (grabber->is_instant(button))
+		if (global_grabber->is_instant(button))
 			return do_instant();
-		if (grabber->is_click_hold(button)) {
+		if (global_grabber->is_click_hold(button)) {
             use_timeout = true;
             init_timeout = 500;
             final_timeout = 0;

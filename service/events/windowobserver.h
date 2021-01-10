@@ -19,5 +19,7 @@ namespace Events {
         void handlePropertyNotify(XEvent &ev);
 
         static void tryActivateCurrentWindow(Time t);
+
+        static std::string getCurrentWindowClass();
     };
 }

@@ -8,7 +8,7 @@
 
 #include <utility>
 
-Grabber *grabber = nullptr;
+Grabber *global_grabber = nullptr;
 
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
 static unsigned char device_mask_data[2];
@@ -184,14 +184,6 @@ public:
 	explicit IdleNotifier(sigc::slot<void> f_) : f(std::move(f_)) {}
 	void notify() override { global_eventLoop->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
 };
-
-void Grabber::unminimize() {
-	if (minimized.empty())
-		return;
-	Window w = minimized.back();
-	minimized.pop_back();
-	activate(w, CurrentTime);
-}
 
 const char *Grabber::state_name[4] = { "None", "Button", "Select", "Raw" };
 
@@ -476,7 +468,7 @@ guint Grabber::get_default_mods(guint button) {
 void Grabber::update() {
 	auto bi = prefs.button;
 	active = true;
-    auto i = prefs.exceptions->find(current_class->get());
+    auto i = prefs.exceptions->find(Events::WindowObserver::getCurrentWindowClass());
     if (i != prefs.exceptions->end()) {
         if (i->second)
             bi = *i->second;
@@ -484,7 +476,7 @@ void Grabber::update() {
             active = false;
     }
 
-    if (actions.disAllowApplication(current_class->get())) {
+    if (actions.disAllowApplication(Events::WindowObserver::getCurrentWindowClass())) {
         active = false;
     }
 

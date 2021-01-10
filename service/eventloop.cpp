@@ -46,7 +46,7 @@ void EventLoop::handle_event(XEvent &ev) {
             return;
 
         case GenericEvent:
-            if (ev.xcookie.extension == grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
+            if (ev.xcookie.extension == global_grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
                 handle_xi2_event((XIDeviceEvent *) ev.xcookie.data);
                 global_xServer->freeEventData(&ev.xcookie);
             }
@@ -114,7 +114,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
                 Events::current_app_window.set(Events::getAppWindow(event->child));
                 g_debug("Active window 0x%lx -> 0x%lx", event->child, Events::current_app_window.get());
             }
-            current_dev = grabber->get_xi_dev(event->deviceid);
+            current_dev = global_grabber->get_xi_dev(event->deviceid);
             if (!current_dev) {
                 g_warning("Warning: Spurious device event");
                 break;
@@ -122,7 +122,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             if (current_dev->master)
                 global_xServer->setClientPointer(None, current_dev->master);
             if (xinput_pressed.empty()) {
-                guint default_mods = grabber->get_default_mods(event->detail);
+                guint default_mods = global_grabber->get_default_mods(event->detail);
                 if (default_mods == AnyModifier || default_mods == (guint)event->mods.base)
                     modifiers = AnyModifier;
                 else
@@ -153,7 +153,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             handle_raw_motion((XIRawEvent *)event);
             break;
         case XI_HierarchyChanged:
-            grabber->hierarchy_changed((XIHierarchyEvent *)event);
+            global_grabber->hierarchy_changed((XIHierarchyEvent *)event);
     }
 }
 
@@ -189,7 +189,7 @@ bool EventLoop::handle(Glib::IOCondition) {
         try {
             XEvent ev;
             global_xServer->nextEvent(&ev);
-            if (!grabber->handle(ev))
+            if (!global_grabber->handle(ev))
                 handle_event(ev);
         } catch (GrabFailedException &e) {
             g_error("%s", e.what());

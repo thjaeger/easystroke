@@ -63,7 +63,7 @@ void App::on_activate() {
     this->xServer = XServerProxy::Open();
 
     global_eventLoop = new EventLoop;
-    grabber = new Grabber;
+    global_grabber = new Grabber;
     // Force enter events to be generated
     this->xServer->grabPointer(this->xServer->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
     this->xServer->ungrabPointer(CurrentTime);
