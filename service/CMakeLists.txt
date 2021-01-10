@@ -8,8 +8,8 @@ find_package(X11)
 
 pkg_check_modules(GTKMM gtkmm-3.0)
 
-# Hint: Use ls -1 and remove non-project files
-set(SOURCE_FILES 
+# List can be generated with: `find -type f \( -name '*.cc' -o -name '*.cpp' -o -name '*.h' \) ! -path './cmake-build-*' | sed "s|^\./||" | sort ` (Find all files, with right extension, not in the build folder, strip leading "./" and sort it
+set(SOURCE_FILES
     actiondb.cc
     actiondb.h
     actions/action.cpp
@@ -18,12 +18,16 @@ set(SOURCE_FILES
     actions/modAction.h
     actions/modifiers.cpp
     actions/modifiers.h
-        composite.cc
+    composite.cc
     composite.h
     desktop.cc
+    eventloop.cpp
+    eventloop.h
+    events/windowobserver.cpp
+    events/windowobserver.h
     gesture.cc
     gesture.h
-        grabber.cc
+    grabber.cc
     grabber.h
     handler.cc
     handler.h
@@ -38,8 +42,9 @@ set(SOURCE_FILES
     trace.h
     util.h
     var.h
-        xserverproxy.cpp
-        xserverproxy.h eventloop.cpp eventloop.h)
+    xserverproxy.cpp
+    xserverproxy.h
+)
 
 link_directories(${GTKMM_LIBRARY_DIRS})
 

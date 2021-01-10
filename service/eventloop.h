@@ -1,18 +1,19 @@
 #pragma once
 
 #include "gesture.h"
+
 #include "grabber.h"
 #include "actiondb.h"
+#include "events/windowobserver.h"
 
 class Handler;
 
-class XState {
+class EventLoop {
     friend class Handler;
 public:
-    XState();
+    EventLoop();
 
     bool handle(Glib::IOCondition);
-    void handle_enter_leave(XEvent &ev);
     void handle_event(XEvent &ev);
     void handle_xi2_event(XIDeviceEvent *event);
     void handle_raw_motion(XIRawEvent *event);
@@ -29,18 +30,13 @@ public:
 
     void queue(sigc::slot<void> f);
 
-    static void activate_window(Window w, Time t);
-
-    static void icccm_client_message(Window w, Atom a, Time t);
-
     Grabber::XiDevice *current_dev;
     bool in_proximity;
-    bool accepted;
     std::set<guint> xinput_pressed;
     guint modifiers;
     std::map<guint, guint> core_inv_map;
 private:
-    Window ping_window;
+    Events::WindowObserver windowObserver;
     std::unique_ptr<Handler> handler;
 
     static int xErrorHandler(Display *dpy2, XErrorEvent *e);
@@ -51,4 +47,4 @@ private:
     std::map<int, std::string> opcodes;
 };
 
-extern XState *xstate;
+extern EventLoop *global_eventLoop;

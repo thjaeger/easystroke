@@ -8,9 +8,6 @@
 #include <utility>
 #include "eventloop.h"
 
-extern Window get_app_window(Window w);
-extern Source<Window> current_app_window;
-
 std::shared_ptr<sigc::slot<void, std::shared_ptr<Gesture>> > stroke_action;
 
 void Handler::replace_child(Handler *c) {
@@ -31,9 +28,9 @@ void Handler::replace_child(Handler *c) {
 	grabber->grab(new_handler->grab_mode());
 	if (child)
 		child->init();
-	while (!xstate->queued.empty() && xstate->idle()) {
-		(*xstate->queued.begin())();
-		xstate->queued.pop_front();
+	while (!global_eventLoop->queued.empty() && global_eventLoop->idle()) {
+		(*global_eventLoop->queued.begin())();
+		global_eventLoop->queued.pop_front();
 	}
 }
 
@@ -41,25 +38,25 @@ class IgnoreHandler : public Handler {
     std::shared_ptr<Modifiers> mods;
 	bool proximity;
 public:
-	explicit IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)), proximity(xstate->in_proximity && prefs.proximity) {}
+	explicit IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)), proximity(global_eventLoop->in_proximity && prefs.proximity) {}
 	void press(guint b, CursorPosition e) override {
-		if (xstate->current_dev->master) {
+		if (global_eventLoop->current_dev->master) {
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
             global_xServer->fakeButtonEvent(b, true, CurrentTime);
         }
 	}
 	void motion(CursorPosition e) override {
-        if (xstate->current_dev->master)
+        if (global_eventLoop->current_dev->master)
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
-        if (proximity && !xstate->in_proximity)
+        if (proximity && !global_eventLoop->in_proximity)
             parent->replace_child(nullptr);
     }
 	void release(guint b, CursorPosition e) override {
-		if (xstate->current_dev->master) {
+		if (global_eventLoop->current_dev->master) {
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
             global_xServer->fakeButtonEvent(b, false, CurrentTime);
         }
-		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
+		if (proximity ? !global_eventLoop->in_proximity : global_eventLoop->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
 	std::string name() override { return "Ignore"; }
@@ -75,10 +72,10 @@ public:
 		mods(std::move(mods_)),
 		button(button_),
 		real_button(0),
-		proximity(xstate->in_proximity && prefs.proximity)
+		proximity(global_eventLoop->in_proximity && prefs.proximity)
 	{}
 	void press(guint b, CursorPosition e) override {
-		if (xstate->current_dev->master) {
+		if (global_eventLoop->current_dev->master) {
             if (!real_button)
                 real_button = b;
             if (real_button == b)
@@ -88,19 +85,19 @@ public:
         }
 	}
 	void motion(CursorPosition e) override {
-        if (xstate->current_dev->master)
+        if (global_eventLoop->current_dev->master)
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
-        if (proximity && !xstate->in_proximity)
+        if (proximity && !global_eventLoop->in_proximity)
             parent->replace_child(nullptr);
     }
 	void release(guint b, CursorPosition e) override {
-		if (xstate->current_dev->master) {
+		if (global_eventLoop->current_dev->master) {
             if (real_button == b)
                 b = button;
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
             global_xServer->fakeButtonEvent(b, false, CurrentTime);
         }
-		if (proximity ? !xstate->in_proximity : xstate->xinput_pressed.empty())
+		if (proximity ? !global_eventLoop->in_proximity : global_eventLoop->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
 	std::string name() override { return "Button"; }
@@ -117,7 +114,7 @@ class AbstractScrollHandler : public Handler {
 
 protected:
 	AbstractScrollHandler() : have_x(false), have_y(false), last_x(0.0), last_y(0.0), last_t(0), offset_x(0.0), offset_y(0.0) {
-        if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
+        if (!prefs.move_back || (global_eventLoop->current_dev && global_eventLoop->current_dev->absolute))
             return;
         Window dummy1, dummy2;
         int dummy3, dummy4;
@@ -126,16 +123,16 @@ protected:
     }
 	virtual void fake_wheel(int b1, int n1, int b2, int n2) {
 		for (int i = 0; i<n1; i++)
-			xstate->fake_click(b1);
+			global_eventLoop->fake_click(b1);
 		for (int i = 0; i<n2; i++)
-			xstate->fake_click(b2);
+			global_eventLoop->fake_click(b2);
 	}
 	static float curve(float v) {
 		return v * exp(log(abs(v))/3);
 	}
 protected:
 	void move_back() const {
-        if (!prefs.move_back || (xstate->current_dev && xstate->current_dev->absolute))
+        if (!prefs.move_back || (global_eventLoop->current_dev && global_eventLoop->current_dev->absolute))
             return;
         global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), orig_x, orig_y, 0);
     }
@@ -201,21 +198,21 @@ class ScrollHandler : public AbstractScrollHandler {
 	bool proximity;
 public:
 	explicit ScrollHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)) {
-		proximity = xstate->in_proximity && prefs.proximity;
+		proximity = global_eventLoop->in_proximity && prefs.proximity;
 	}
 	void raw_motion(CursorPosition e, bool abs_x, bool abs_y) override {
-		if (proximity && !xstate->in_proximity) {
+		if (proximity && !global_eventLoop->in_proximity) {
 			parent->replace_child(nullptr);
 			move_back();
 		}
-		if (!xstate->xinput_pressed.empty())
+		if (!global_eventLoop->xinput_pressed.empty())
 			AbstractScrollHandler::raw_motion(e, abs_x, abs_y);
 	}
 	void press_master(guint b, Time t) override {
-		xstate->fake_core_button(b, false);
+		global_eventLoop->fake_core_button(b, false);
 	}
 	void release(guint b, CursorPosition e) override {
-		if ((proximity && xstate->in_proximity) || !xstate->xinput_pressed.empty())
+		if ((proximity && global_eventLoop->in_proximity) || !global_eventLoop->xinput_pressed.empty())
 			return;
 		parent->replace_child(0);
 		move_back();
@@ -262,7 +259,7 @@ public:
 	void release(guint b, CursorPosition e) override {
 		if (stroke_action)
 			(*stroke_action)(s);
-		if (xstate->xinput_pressed.empty())
+		if (global_eventLoop->xinput_pressed.empty())
 			parent->replace_child(nullptr);
 	}
 	std::string name() override { return "InstantStrokeAction"; }
@@ -320,11 +317,11 @@ public:
 		replay.reset();
 	}
 	void press(guint b, CursorPosition e) override {
-        if (xstate->current_dev->master)
+        if (global_eventLoop->current_dev->master)
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
         click_time = 0;
         if (remap_to) {
-            xstate->fake_core_button(remap_to, false);
+            global_eventLoop->fake_core_button(remap_to, false);
         }
         remap_from = 0;
         remap_to = 0;
@@ -333,7 +330,7 @@ public:
         show_ranking(bb, e);
         if (!as.count(bb)) {
             sticky_mods.reset();
-            if (xstate->current_dev->master)
+            if (global_eventLoop->current_dev->master)
                 global_xServer->fakeButtonEvent(b, true, CurrentTime);
             return;
         }
@@ -358,7 +355,7 @@ public:
 			sticky_mods = act->prepare();
 			remap_from = b;
 			remap_to = b2;
-			xstate->fake_core_button(b2, true);
+			global_eventLoop->fake_core_button(b2, true);
 			return;
 		}
 		mods[b] = act->prepare();
@@ -376,26 +373,26 @@ public:
 	void motion(CursorPosition e) override {
         if (replay_button && hypot(replay_orig.x - e.x, replay_orig.y - e.y) > 16)
             replay_button = 0;
-        if (xstate->current_dev->master)
+        if (global_eventLoop->current_dev->master)
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
     }
 	void release(guint b, CursorPosition e) override {
-        if (xstate->current_dev->master)
+        if (global_eventLoop->current_dev->master)
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
         if (remap_to) {
-            xstate->fake_core_button(remap_to, false);
+            global_eventLoop->fake_core_button(remap_to, false);
         }
         guint bb = (b == button1) ? button2 : b;
         if (!as.count(bb)) {
             sticky_mods.reset();
-            if (xstate->current_dev->master)
+            if (global_eventLoop->current_dev->master)
                 global_xServer->fakeButtonEvent(b, false, CurrentTime);
         }
-        if (xstate->xinput_pressed.empty()) {
+        if (global_eventLoop->xinput_pressed.empty()) {
             if (e.t < click_time + 250 && b == replay_button) {
                 sticky_mods.reset();
                 mods.clear();
-                xstate->fake_click(b);
+                global_eventLoop->fake_click(b);
             }
             return parent->replace_child(nullptr);
         }
@@ -466,7 +463,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
         auto c = cur;
         if (!is_gesture || grabber->is_instant(button))
             c->clear();
-        return std::make_shared<Gesture>(*c, trigger, b, xstate->modifiers, false);
+        return std::make_shared<Gesture>(*c, trigger, b, global_eventLoop->modifiers, false);
     }
 
 	bool timeout() {
@@ -477,7 +474,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
             c->clear();
         std::shared_ptr<Gesture> s;
         if (prefs.timeout_gestures || grabber->is_click_hold(button))
-            s = std::make_shared<Gesture>(*c, trigger, 0, xstate->modifiers, true);
+            s = std::make_shared<Gesture>(*c, trigger, 0, global_eventLoop->modifiers, true);
         parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
         global_xServer->flush();
         return false;
@@ -485,7 +482,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
 
     void do_instant() {
         std::vector<CursorPosition> ps;
-        auto s = std::make_shared<Gesture>(ps, trigger, button, xstate->modifiers, false);
+        auto s = std::make_shared<Gesture>(ps, trigger, button, global_eventLoop->modifiers, false);
         parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
     }
 
@@ -540,7 +537,7 @@ protected:
 	void release(guint b, CursorPosition e) override {
         auto s = finish(0);
 
-        if (prefs.move_back && !xstate->current_dev->absolute)
+        if (prefs.move_back && !global_eventLoop->current_dev->absolute)
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), orig.x, orig.y, 0);
         else
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
@@ -582,7 +579,7 @@ public:
 		radius(16)
 	{
 		auto dt = prefs.device_timeout;
-		auto j = dt->find(xstate->current_dev->name);
+		auto j = dt->find(global_eventLoop->current_dev->name);
 		if (j != dt->end())
 			get_timeouts(j->second, &init_timeout, &final_timeout);
 		else
@@ -619,16 +616,15 @@ public:
 class IdleHandler : public Handler {
 protected:
 	void init() override {
-		xstate->update_core_mapping();
+		global_eventLoop->update_core_mapping();
 	}
 	void press(guint b, CursorPosition e) override {
-		if (current_app_window.get())
-			XState::activate_window(current_app_window.get(), e.t);
+	    Events::WindowObserver::tryActivateCurrentWindow(e.t);
 		replace_child(new StrokeHandler(b, e));
 	}
 public:
-	explicit IdleHandler(XState *xstate_) {
-		xstate = xstate_;
+	explicit IdleHandler(EventLoop *xstate_) {
+        global_eventLoop = xstate_;
 	}
 	~IdleHandler() override {
         global_xServer->ungrabKey(global_xServer->keysymToKeycode(XK_Escape), AnyModifier, global_xServer->ROOT);
@@ -637,7 +633,7 @@ public:
 	Grabber::State grab_mode() override { return Grabber::BUTTON; }
 };
 
-std::unique_ptr<Handler> HandlerFactory::makeIdleHandler(XState *xstate_) {
+std::unique_ptr<Handler> HandlerFactory::makeIdleHandler(EventLoop *xstate_) {
     return std::make_unique<IdleHandler>(xstate_);
 }
 

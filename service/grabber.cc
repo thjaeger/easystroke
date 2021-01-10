@@ -8,8 +8,6 @@
 
 #include <utility>
 
-extern Source<Window> current_app_window;
-
 Grabber *grabber = nullptr;
 
 static unsigned int ignore_mods[4] = { 0, LockMask, Mod2Mask, LockMask | Mod2Mask };
@@ -184,7 +182,7 @@ class IdleNotifier : public Base {
 	void run() { f(); }
 public:
 	explicit IdleNotifier(sigc::slot<void> f_) : f(std::move(f_)) {}
-	void notify() override { xstate->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
+	void notify() override { global_eventLoop->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
 };
 
 void Grabber::unminimize() {
@@ -210,7 +208,7 @@ Grabber::Grabber()
     grabbed_button.state = 0;
     cursor_select = global_xServer->createFontCursor(XC_crosshair);
     init_xi();
-    current_class = fun(&get_wm_class, current_app_window);
+    current_class = fun(&get_wm_class, Events::current_app_window);
     current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
     update();
     resume();
@@ -291,7 +289,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
             changed = true;
         } else if (info->flags & XISlaveRemoved) {
             g_message("Device %d removed.", info->deviceid);
-            xstate->remove_device(info->deviceid);
+            global_eventLoop->remove_device(info->deviceid);
             xi_devs.erase(info->deviceid);
             changed = true;
         } else if (info->flags & (XISlaveAttached | XISlaveDetached)) {
@@ -392,7 +390,7 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) const {
                                            False, &device_mask, nmods, modifiers);
     else {
         global_xServer->ungrabInterfaceButton(dev, bi.button, global_xServer->ROOT, nmods, modifiers);
-        xstate->ungrab(dev);
+        global_eventLoop->ungrab(dev);
     }
 }
 
@@ -409,7 +407,7 @@ void Grabber::grab_xi(bool grab) {
 void Grabber::XiDevice::grab_device(GrabState grab) {
     if (grab == GrabNo) {
         global_xServer->ungrabDevice(dev, CurrentTime);
-        xstate->ungrab(dev);
+        global_eventLoop->ungrab(dev);
         return;
     }
     global_xServer->grabDevice(dev, global_xServer->ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
@@ -546,25 +544,27 @@ Window find_wm_state(Window w) {
     return found;
 }
 
-Window get_app_window(Window w) {
-	if (!w)
-		return w;
+namespace grabbers {
+    Window get_app_window(Window w) {
+        if (!w)
+            return w;
 
-	if (frame_win.contains1(w))
-		return frame_win.find1(w);
+        if (frame_win.contains1(w))
+            return frame_win.find1(w);
 
-	if (frame_child.contains1(w))
-		return frame_child.find1(w);
+        if (frame_child.contains1(w))
+            return frame_child.find1(w);
 
-	Window w2 = find_wm_state(w);
-	if (w2) {
-		frame_child.add(w, w2);
-		if (w2 != w) {
-            w = w2;
-            global_xServer->selectInput(w2, StructureNotifyMask | PropertyChangeMask);
+        Window w2 = find_wm_state(w);
+        if (w2) {
+            frame_child.add(w, w2);
+            if (w2 != w) {
+                w = w2;
+                global_xServer->selectInput(w2, StructureNotifyMask | PropertyChangeMask);
+            }
+            return w2;
         }
-		return w2;
-	}
-    g_message("Window 0x%lx does not have an associated top-level window", w);
-	return w;
+        g_message("Window 0x%lx does not have an associated top-level window", w);
+        return w;
+    }
 }

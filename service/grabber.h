@@ -95,3 +95,7 @@ public:
 	virtual const char* what() const throw() { return msg ? msg : "Grab Failed"; }
 	~GrabFailedException() throw() { free(msg); }
 };
+
+namespace grabbers {
+    Window get_app_window(Window w);
+}

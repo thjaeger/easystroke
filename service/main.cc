@@ -4,7 +4,6 @@
 
 #include "xserverproxy.h"
 #include "util.h"
-#include "prefdb.h"
 #include "actiondb.h"
 #include "trace.h"
 #include "grabber.h"
@@ -16,7 +15,6 @@
 #include <cstring>
 #include <csignal>
 
-Source<Window> current_app_window(None);
 
 class App : public Gtk::Application {
 private:
@@ -39,7 +37,7 @@ private:
 class ReloadTrace : public Timeout {
     void timeout() {
         g_debug("Reloading gesture display");
-        xstate->queue(sigc::mem_fun(*this, &ReloadTrace::reload));
+        global_eventLoop->queue(sigc::mem_fun(*this, &ReloadTrace::reload));
     }
 
     void reload() { resetTrace(); }
@@ -64,7 +62,7 @@ void App::on_activate() {
 
     this->xServer = XServerProxy::Open();
 
-    xstate = new XState;
+    global_eventLoop = new EventLoop;
     grabber = new Grabber;
     // Force enter events to be generated
     this->xServer->grabPointer(this->xServer->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
@@ -79,7 +77,7 @@ void App::on_activate() {
     this->xServer->grabControl(True);
 
     Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(this->xServer->getConnectionNumber(), Glib::IO_IN);
-    io->connect(sigc::mem_fun(*xstate, &XState::handle));
+    io->connect(sigc::mem_fun(*global_eventLoop, &EventLoop::handle));
     io->attach();
     hold();
 }

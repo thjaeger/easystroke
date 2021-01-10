@@ -5,20 +5,16 @@
 #include "xserverproxy.h"
 #include <X11/Xutil.h>
 #include <X11/Xproto.h>
-#include "actions/modAction.h"
 #include <sstream>
 #include <iomanip>
 
-XState *xstate = nullptr;
+EventLoop *global_eventLoop = nullptr;
 
-extern Window get_app_window(Window w);
-extern Source<Window> current_app_window;
-
-bool XState::idle() {
+bool EventLoop::idle() {
     return !handler->child;
 }
 
-void XState::queue(sigc::slot<void> f) {
+void EventLoop::queue(sigc::slot<void> f) {
     if (idle()) {
         f();
         global_xServer->flush();
@@ -27,43 +23,19 @@ void XState::queue(sigc::slot<void> f) {
     }
 }
 
-void XState::handle_enter_leave(XEvent &ev) {
-    if (ev.xcrossing.mode == NotifyGrab)
-        return;
-    if (ev.xcrossing.detail == NotifyInferior)
-        return;
-    Window w = ev.xcrossing.window;
-    if (ev.type == EnterNotify) {
-        current_app_window.set(get_app_window(w));
-        g_debug("Entered window 0x%lx -> 0x%lx", w, current_app_window.get());
-    } else {
-        g_warning("Error: Bogus Enter/Leave event");
-    };
-}
-
-#define H (handler->top())
-void XState::handle_event(XEvent &ev) {
-
-    switch(ev.type) {
+void EventLoop::handle_event(XEvent &ev) {
+    switch (ev.type) {
         case EnterNotify:
         case LeaveNotify:
-            handle_enter_leave(ev);
-            return;
+            return this->windowObserver.handleEnterLeave(ev);
 
         case PropertyNotify:
-            if (current_app_window.get() == ev.xproperty.window && ev.xproperty.atom == XA_WM_CLASS)
-                current_app_window.notify();
-            return;
+            return this->windowObserver.handlePropertyNotify(ev);
 
         case ButtonPress:
             g_debug("Press (master): %d (%d, %d) at t = %ld", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y,
                     ev.xbutton.time);
-            H->press_master(ev.xbutton.button, ev.xbutton.time);
-            return;
-
-        case ClientMessage:
-            if (ev.xclient.window != ping_window)
-                return;
+            handler->top()->press_master(ev.xbutton.button, ev.xbutton.time);
             return;
 
         case MappingNotify:
@@ -72,6 +44,7 @@ void XState::handle_event(XEvent &ev) {
             if (ev.xmapping.request == MappingKeyboard || ev.xmapping.request == MappingModifier)
                 XRefreshKeyboardMapping(&ev.xmapping);
             return;
+
         case GenericEvent:
             if (ev.xcookie.extension == grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
                 handle_xi2_event((XIDeviceEvent *) ev.xcookie.data);
@@ -80,45 +53,6 @@ void XState::handle_event(XEvent &ev) {
     }
 }
 
-void XState::activate_window(Window w, Time t) {
-    if (w == global_xServer->getWindow(global_xServer->ROOT, global_xServer->atoms.NET_ACTIVE_WINDOW))
-        return;
-
-    auto window_type = global_xServer->getAtom(w, global_xServer->atoms.NET_WM_WINDOW_TYPE);
-    if (window_type == global_xServer->atoms.NET_WM_WINDOW_TYPE_DOCK)
-        return;
-
-    auto *wm_hints = global_xServer->getWMHints(w);
-    if (wm_hints) {
-        bool input = wm_hints->input;
-        XServerProxy::free(wm_hints);
-        if (!input)
-            return;
-    }
-
-    if (!global_xServer->hasAtom(w, global_xServer->atoms.WM_PROTOCOLS, global_xServer->atoms.WM_TAKE_FOCUS))
-        return;
-
-    XWindowAttributes attr;
-    if (global_xServer->getWindowAttributes(w, &attr) && attr.override_redirect) {
-        return;
-    }
-
-    g_debug("Giving focus to window 0x%lx", w);
-
-    icccm_client_message(w, global_xServer->atoms.WM_TAKE_FOCUS, t);
-}
-
-void XState::icccm_client_message(Window w, Atom a, Time t) {
-    XClientMessageEvent ev;
-    ev.type = ClientMessage;
-    ev.window = w;
-    ev.message_type = global_xServer->atoms.WM_PROTOCOLS;
-    ev.format = 32;
-    ev.data.l[0] = a;
-    ev.data.l[1] = t;
-    global_xServer->sendEvent(w, False, 0, (XEvent *) &ev);
-}
 
 
 static std::string render_coordinates(XIValuatorState *valuators, double *values) {
@@ -158,7 +92,7 @@ static double get_axis(XIValuatorState &valuators, int axis) {
     return *val;
 }
 
-void XState::report_xi2_event(XIDeviceEvent *event, const char *type) {
+void EventLoop::report_xi2_event(XIDeviceEvent *event, const char *type) {
     if (event->detail) {
         g_debug("%s (XI2): %d (%.3f, %.3f) - (%s) at t = %ld", type, event->detail, event->root_x, event->root_y,
                 render_coordinates(&event->valuators, event->valuators.values).c_str(), event->time);
@@ -168,7 +102,7 @@ void XState::report_xi2_event(XIDeviceEvent *event, const char *type) {
     }
 }
 
-void XState::handle_xi2_event(XIDeviceEvent *event) {
+void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
     switch (event->evtype) {
         case XI_ButtonPress:
             if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG))
@@ -177,8 +111,8 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
                 if (!current_dev || current_dev->dev != event->deviceid)
                     break;
             } else {
-                current_app_window.set(get_app_window(event->child));
-                g_debug("Active window 0x%lx -> 0x%lx", event->child, current_app_window.get());
+                Events::current_app_window.set(Events::getAppWindow(event->child));
+                g_debug("Active window 0x%lx -> 0x%lx", event->child, Events::current_app_window.get());
             }
             current_dev = grabber->get_xi_dev(event->deviceid);
             if (!current_dev) {
@@ -196,7 +130,7 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
             }
             xinput_pressed.insert(event->detail);
             in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
-            H->press(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
+            handler->top()->press(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_ButtonRelease:
             if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG))
@@ -205,14 +139,14 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
                 break;
             xinput_pressed.erase(event->detail);
             in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
-            H->release(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
+            handler->top()->release(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_Motion:
             if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG))
                 report_xi2_event(event, "Motion");
             if (!current_dev || current_dev->dev != event->deviceid)
                 break;
-            H->motion(CursorPosition(event->root_x, event->root_y, event->time));
+            handler->top()->motion(CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_RawMotion:
             in_proximity = get_axis(((XIRawEvent *)event)->valuators, current_dev->proximity_axis);
@@ -223,7 +157,7 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
     }
 }
 
-void XState::handle_raw_motion(XIRawEvent *event) {
+void EventLoop::handle_raw_motion(XIRawEvent *event) {
     if (!current_dev || current_dev->dev != event->deviceid)
         return;
     double x = 0.0, y = 0.0;
@@ -242,15 +176,15 @@ void XState::handle_raw_motion(XIRawEvent *event) {
         abs_y = false;
 
     if (log_utils::isEnabled(G_LOG_LEVEL_DEBUG)) {
-        g_debug("Raw motion (XI2): (%s) at t = %ld", render_coordinates(&event->valuators, event->raw_values).c_str(), event->time);
+        g_debug("Raw motion (XI2): (%s) at t = %ld", render_coordinates(&event->valuators, event->raw_values).c_str(),
+                event->time);
     }
 
-    H->raw_motion(CursorPosition(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x, abs_y);
+    handler->top()->raw_motion(CursorPosition(x * current_dev->scale_x, y * current_dev->scale_y, event->time), abs_x,
+                               abs_y);
 }
 
-#undef H
-
-bool XState::handle(Glib::IOCondition) {
+bool EventLoop::handle(Glib::IOCondition) {
     while (global_xServer->countPendingEvents()) {
         try {
             XEvent ev;
@@ -264,7 +198,7 @@ bool XState::handle(Glib::IOCondition) {
     return true;
 }
 
-void XState::update_core_mapping() {
+void EventLoop::update_core_mapping() {
     unsigned char map[MAX_BUTTONS];
     int n = global_xServer->getPointerMapping(map, MAX_BUTTONS);
     core_inv_map.clear();
@@ -275,20 +209,20 @@ void XState::update_core_mapping() {
             core_inv_map[map[i]] = i + 1;
 }
 
-void XState::fake_core_button(guint b, bool press) {
+void EventLoop::fake_core_button(guint b, bool press) {
     if (core_inv_map.count(b))
         b = core_inv_map[b];
     global_xServer->fakeButtonEvent(b, press, CurrentTime);
 }
 
-void XState::fake_click(guint b) {
+void EventLoop::fake_click(guint b) {
     fake_core_button(b, true);
     fake_core_button(b, false);
 }
 
-int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
+int EventLoop::xErrorHandler(Display *dpy2, XErrorEvent *e) {
     if (!global_xServer->isSameDisplayAs(dpy2))
-        return xstate->oldHandler(dpy2, e);
+        return global_eventLoop->oldHandler(dpy2, e);
     if (e->error_code == BadWindow) {
         switch (e->request_code) {
             case X_ChangeWindowAttributes:
@@ -306,7 +240,8 @@ int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
     if (e->request_code < 128)
         snprintf(def, sizeof def, "request_code=%d, minor_code=%d", e->request_code, e->minor_code);
     else
-        snprintf(def, sizeof def, "extension=%s, request_code=%d", xstate->opcodes[e->request_code].c_str(), e->minor_code);
+        snprintf(def, sizeof def, "extension=%s, request_code=%d", global_eventLoop->opcodes[e->request_code].c_str(),
+                 e->minor_code);
     char dbtext[128];
     global_xServer->getErrorDatabaseText("XRequest", msg, def, dbtext, sizeof dbtext);
     g_warning("XError: %s: %s", text, dbtext);
@@ -314,32 +249,34 @@ int XState::xErrorHandler(Display *dpy2, XErrorEvent *e) {
     return 0;
 }
 
-int XState::xIOErrorHandler(Display *dpy2) {
+int EventLoop::xIOErrorHandler(Display *dpy2) {
     if (!global_xServer->isSameDisplayAs(dpy2))
-        return xstate->oldIOHandler(dpy2);
+        return global_eventLoop->oldIOHandler(dpy2);
     g_error("Connection to X server lost");
 }
 
-void XState::remove_device(int deviceid) {
+void EventLoop::remove_device(int deviceid) {
     if (current_dev && current_dev->dev == deviceid)
         current_dev = nullptr;
 }
 
-void XState::ungrab(int deviceid) {
+void EventLoop::ungrab(int deviceid) {
     if (current_dev && current_dev->dev == deviceid)
         xinput_pressed.clear();
 }
 
-XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), modifiers(0) {
+EventLoop::EventLoop() : current_dev(nullptr), in_proximity(false), modifiers(0) {
     int n, opcode, event, error;
     char **ext = global_xServer->listExtensions(&n);
-    for (int i = 0; i < n; i++)
-        if (global_xServer->queryExtension(ext[i], &opcode, &event, &error))
+    for (int i = 0; i < n; i++) {
+        if (global_xServer->queryExtension(ext[i], &opcode, &event, &error)) {
             opcodes[opcode] = ext[i];
+        }
+    }
+
     XServerProxy::freeExtensionList(ext);
     oldHandler = XSetErrorHandler(xErrorHandler);
     oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
-    ping_window = global_xServer->createSimpleWindow(global_xServer->ROOT, 0, 0, 1, 1, 0, 0, 0);
     handler = HandlerFactory::makeIdleHandler(this);
     handler->init();
 }

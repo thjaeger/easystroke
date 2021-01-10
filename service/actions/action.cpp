@@ -25,7 +25,7 @@ Glib::ustring ButtonInfo::get_button_text() const {
 
 void Actions::Button::run() {
     grabber->suspend();
-    xstate->fake_click(button);
+    global_eventLoop->fake_click(button);
     grabber->resume();
 }
 

@@ -3,7 +3,7 @@
 #include "grabber.h"
 #include "actiondb.h"
 
-class XState;
+class EventLoop;
 
 class Handler {
 public:
@@ -36,5 +36,5 @@ public:
 
 class HandlerFactory {
 public:
-    static std::unique_ptr<Handler> makeIdleHandler(XState *xstate_);
+    static std::unique_ptr<Handler> makeIdleHandler(EventLoop *xstate_);
 };
