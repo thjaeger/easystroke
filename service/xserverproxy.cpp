@@ -1,25 +1,26 @@
 #include "xserverproxy.h"
 #include <xorg/xserver-properties.h>
 #include <X11/XKBlib.h>
+#include <X11/Xatom.h>
 
 std::shared_ptr<XServerProxy> global_xServer;
 
-Atom internAtom(Display* dpy, const std::string& name) {
+Atom internAtom(Display *dpy, const std::string &name) {
     return XInternAtom(dpy, name.c_str(), false);
 }
 
-XAtoms::XAtoms(Display* dpy):
-    NET_FRAME_WINDOW(internAtom(dpy, "_NET_FRAME_WINDOW")),
-    NET_WM_STATE(internAtom(dpy, "_NET_WM_STATE")),
-    NET_WM_STATE_HIDDEN(internAtom(dpy, "_NET_WM_STATE_HIDDEN")),
-    NET_ACTIVE_WINDOW(internAtom(dpy, "_NET_ACTIVE_WINDOW")),
-    NET_WM_WINDOW_TYPE (internAtom(dpy, "_NET_WM_WINDOW_TYPE")),
-    NET_WM_WINDOW_TYPE_DOCK(internAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK")),
-    WM_PROTOCOLS(internAtom(dpy, "WM_PROTOCOLS")),
-    WM_TAKE_FOCUS(internAtom(dpy, "WM_TAKE_FOCUS")),
-    XTEST(internAtom(dpy, XI_PROP_XTEST_DEVICE)),
-    PROXIMITY(internAtom(dpy, AXIS_LABEL_PROP_ABS_DISTANCE)),
-    WM_STATE(internAtom(dpy, "WM_STATE"))
+XAtoms::XAtoms(Display *dpy) :
+        NET_FRAME_WINDOW(internAtom(dpy, "_NET_FRAME_WINDOW")),
+        NET_WM_STATE(internAtom(dpy, "_NET_WM_STATE")),
+        NET_WM_STATE_HIDDEN(internAtom(dpy, "_NET_WM_STATE_HIDDEN")),
+        NET_ACTIVE_WINDOW(internAtom(dpy, "_NET_ACTIVE_WINDOW")),
+        NET_WM_WINDOW_TYPE(internAtom(dpy, "_NET_WM_WINDOW_TYPE")),
+        NET_WM_WINDOW_TYPE_DOCK(internAtom(dpy, "_NET_WM_WINDOW_TYPE_DOCK")),
+        WM_PROTOCOLS(internAtom(dpy, "WM_PROTOCOLS")),
+        WM_TAKE_FOCUS(internAtom(dpy, "WM_TAKE_FOCUS")),
+        XTEST(internAtom(dpy, XI_PROP_XTEST_DEVICE)),
+        PROXIMITY(internAtom(dpy, AXIS_LABEL_PROP_ABS_DISTANCE)),
+        WM_STATE(internAtom(dpy, "WM_STATE"))
 {
 }
 
@@ -96,6 +97,22 @@ int XServerProxy::freeModifiermap(XModifierKeymap *modmap) {
     return XFreeModifiermap(modmap);
 }
 
+Atom XServerProxy::getAtom(Window w, Atom prop) {
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *prop_return = nullptr;
+
+    if (global_xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
+                                          &nitems, &bytes_after, &prop_return) != Success)
+        return None;
+    if (!prop_return)
+        return None;
+    Atom atom = *(Atom *) prop_return;
+    XServerProxy::free(prop_return);
+    return atom;
+}
+
 Status XServerProxy::getClassHint(Window w, XClassHint *class_hints_return) const {
     return XGetClassHint(this->dpy, w, class_hints_return);
 }
@@ -157,6 +174,23 @@ int XServerProxy::getPointerMapping(unsigned char *map_return, int nmap) const {
     return XGetPointerMapping(this->dpy, map_return, nmap);
 }
 
+Window XServerProxy::getWindow(Window w, Atom prop) {
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *prop_return = nullptr;
+
+    if (this->getWindowProperty(
+            w, prop, 0, sizeof(Atom), False, XA_WINDOW, &actual_type, &actual_format,
+            &nitems, &bytes_after, &prop_return) != Success)
+        return None;
+    if (!prop_return)
+        return None;
+    Window ret = *(Window *) prop_return;
+    XServerProxy::free(prop_return);
+    return ret;
+}
+
 Status XServerProxy::getWindowAttributes(Window w, XWindowAttributes *window_attributes_return) const {
     return XGetWindowAttributes(this->dpy, w, window_attributes_return);
 }
@@ -184,10 +218,10 @@ Status XServerProxy::grabDevice(
                         mask);
 }
 
-int XServerProxy::grabInterfaceButton(int deviceid, int button, Window grab_window, Cursor cursor, int grab_mode,
+int XServerProxy::grabInterfaceButton(int deviceId, int button, Window grab_window, Cursor cursor, int grab_mode,
                                       int paired_device_mode, int owner_events, XIEventMask *mask, int num_modifiers,
                                       XIGrabModifiers *modifiers_inout) const {
-    return XIGrabButton(this->dpy, deviceid, button, grab_window, cursor, grab_mode, paired_device_mode, owner_events,
+    return XIGrabButton(this->dpy, deviceId, button, grab_window, cursor, grab_mode, paired_device_mode, owner_events,
                         mask, num_modifiers, modifiers_inout);
 }
 
@@ -196,6 +230,26 @@ int XServerProxy::grabPointer(
         Window confine_to, Cursor cursor, Time time) const {
     return XGrabPointer(this->dpy, grab_window, owner_events, event_mask, pointer_mode, keyboard_mode, confine_to,
                         cursor, time);
+}
+
+bool XServerProxy::hasAtom(Window w, Atom prop, Atom value) {
+    Atom actual_type;
+    int actual_format;
+    unsigned long nitems, bytes_after;
+    unsigned char *prop_return = nullptr;
+
+    if (global_xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
+                                          &nitems, &bytes_after, &prop_return) != Success)
+        return None;
+    if (!prop_return)
+        return None;
+    Atom *atoms = (Atom *) prop_return;
+    bool ans = false;
+    for (unsigned long i = 0; i < nitems; i++)
+        if (atoms[i] == value)
+            ans = true;
+    XServerProxy::free(prop_return);
+    return ans;
 }
 
 void XServerProxy::hideCursor(Window win) const {

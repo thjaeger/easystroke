@@ -65,7 +65,7 @@ BiMap<Window, Window> frame_child;
 std::list<Window> minimized;
 
 void get_frame(Window w) {
-    Window frame = XState::get_window(w, global_xServer->atoms.NET_FRAME_WINDOW);
+    Window frame = global_xServer->getWindow(w, global_xServer->atoms.NET_FRAME_WINDOW);
     if (!frame)
         return;
     frame_win.add(frame, w);
@@ -118,7 +118,7 @@ bool Children::handle(XEvent &ev) {
                     return true;
                 }
                 bool was_hidden = std::find(minimized.begin(), minimized.end(), ev.xproperty.window) != minimized.end();
-                bool is_hidden = XState::has_atom(ev.xproperty.window, global_xServer->atoms.NET_WM_STATE,
+                bool is_hidden = global_xServer->hasAtom(ev.xproperty.window, global_xServer->atoms.NET_WM_STATE,
                                                   global_xServer->atoms.NET_WM_STATE_HIDDEN);
                 if (was_hidden && !is_hidden)
                     minimized.remove(ev.xproperty.window);

@@ -81,10 +81,10 @@ void XState::handle_event(XEvent &ev) {
 }
 
 void XState::activate_window(Window w, Time t) {
-    if (w == get_window(global_xServer->ROOT, global_xServer->atoms.NET_ACTIVE_WINDOW))
+    if (w == global_xServer->getWindow(global_xServer->ROOT, global_xServer->atoms.NET_ACTIVE_WINDOW))
         return;
 
-    Atom window_type = get_atom(w, global_xServer->atoms.NET_WM_WINDOW_TYPE);
+    auto window_type = global_xServer->getAtom(w, global_xServer->atoms.NET_WM_WINDOW_TYPE);
     if (window_type == global_xServer->atoms.NET_WM_WINDOW_TYPE_DOCK)
         return;
 
@@ -96,7 +96,7 @@ void XState::activate_window(Window w, Time t) {
             return;
     }
 
-    if (!has_atom(w, global_xServer->atoms.WM_PROTOCOLS, global_xServer->atoms.WM_TAKE_FOCUS))
+    if (!global_xServer->hasAtom(w, global_xServer->atoms.WM_PROTOCOLS, global_xServer->atoms.WM_TAKE_FOCUS))
         return;
 
     XWindowAttributes attr;
@@ -107,58 +107,6 @@ void XState::activate_window(Window w, Time t) {
     g_debug("Giving focus to window 0x%lx", w);
 
     icccm_client_message(w, global_xServer->atoms.WM_TAKE_FOCUS, t);
-}
-
-Window XState::get_window(Window w, Atom prop) {
-    Atom actual_type;
-    int actual_format;
-    unsigned long nitems, bytes_after;
-    unsigned char *prop_return = nullptr;
-
-    if (global_xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_WINDOW, &actual_type, &actual_format,
-                                          &nitems, &bytes_after, &prop_return) != Success)
-        return None;
-    if (!prop_return)
-        return None;
-    Window ret = *(Window *) prop_return;
-    XServerProxy::free(prop_return);
-    return ret;
-}
-
-Atom XState::get_atom(Window w, Atom prop) {
-    Atom actual_type;
-    int actual_format;
-    unsigned long nitems, bytes_after;
-    unsigned char *prop_return = nullptr;
-
-    if (global_xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
-                                          &nitems, &bytes_after, &prop_return) != Success)
-        return None;
-    if (!prop_return)
-        return None;
-    Atom atom = *(Atom *) prop_return;
-    XServerProxy::free(prop_return);
-    return atom;
-}
-
-bool XState::has_atom(Window w, Atom prop, Atom value) {
-    Atom actual_type;
-    int actual_format;
-    unsigned long nitems, bytes_after;
-    unsigned char *prop_return = nullptr;
-
-    if (global_xServer->getWindowProperty(w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
-                                          &nitems, &bytes_after, &prop_return) != Success)
-        return None;
-    if (!prop_return)
-        return None;
-    Atom *atoms = (Atom *) prop_return;
-    bool ans = false;
-    for (unsigned long i = 0; i < nitems; i++)
-        if (atoms[i] == value)
-            ans = true;
-    XServerProxy::free(prop_return);
-    return ans;
 }
 
 void XState::icccm_client_message(Window w, Atom a, Time t) {

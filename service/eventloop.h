@@ -30,9 +30,7 @@ public:
     void queue(sigc::slot<void> f);
 
     static void activate_window(Window w, Time t);
-    static Window get_window(Window w, Atom prop);
-    static Atom get_atom(Window w, Atom prop);
-    static bool has_atom(Window w, Atom prop, Atom value);
+
     static void icccm_client_message(Window w, Atom a, Time t);
 
     Grabber::XiDevice *current_dev;

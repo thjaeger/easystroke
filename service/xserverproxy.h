@@ -80,6 +80,8 @@ public:
 
     static int freeModifiermap(XModifierKeymap *modmap);
 
+    Atom getAtom(Window w, Atom prop);
+
     Status getClassHint(Window w, XClassHint *class_hints_return) const;
 
     int getConnectionNumber();
@@ -126,6 +128,8 @@ public:
 
     int getPointerMapping(unsigned char *map_return, int nmap) const;
 
+    Window getWindow(Window w, Atom prop);
+
     Status getWindowAttributes(Window w, XWindowAttributes *window_attributes_return) const;
 
     int getWindowProperty(
@@ -158,7 +162,7 @@ public:
     ) const;
 
     int grabInterfaceButton(
-            int deviceid,
+            int deviceId,
             int button,
             Window grab_window,
             Cursor cursor,
@@ -180,6 +184,8 @@ public:
             Cursor cursor,
             Time time
     ) const;
+
+    bool hasAtom(Window w, Atom prop, Atom value);
 
     void hideCursor(Window win) const;
 
