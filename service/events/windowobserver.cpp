@@ -1,12 +1,43 @@
 #include "windowobserver.h"
+
+#include "eventloop.h"
 #include "grabber.h"
 #include "xserverproxy.h"
 
 namespace Events {
-    Source<Window> current_app_window(None);
-
     Window getAppWindow(Window w) {
         return grabbers::get_app_window(w);
+    }
+
+    std::string get_wm_class(Window w) {
+        if (!w)
+            return "";
+        XClassHint ch;
+        if (!global_xServer->getClassHint(w, &ch)) {
+            return "";
+        }
+
+        std::string ans = ch.res_name;
+        XServerProxy::free(ch.res_name);
+        XServerProxy::free(ch.res_class);
+        return ans;
+    }
+
+    class IdleNotifier : public Base {
+        void run() {
+            global_grabber->update();
+        }
+
+    public:
+        void notify() override {
+            global_eventLoop->queue(sigc::mem_fun(*this, &IdleNotifier::run));
+        }
+    };
+
+    WindowObserver::WindowObserver()
+            : currentAppWindow(Source<Window>(None)) {
+        current_class = fun(&get_wm_class, this->currentAppWindow);
+        current_class->connect(new IdleNotifier());
     }
 
     void WindowObserver::handleEnterLeave(XEvent &ev) {
@@ -20,26 +51,26 @@ namespace Events {
 
         if (ev.type == EnterNotify) {
             auto w = ev.xcrossing.window;
-            current_app_window.set(Events::getAppWindow(w));
-            g_debug("Entered window 0x%lx -> 0x%lx", w, current_app_window.get());
+            currentAppWindow.set(getAppWindow(w));
+            g_debug("Entered window 0x%lx -> 0x%lx", w, currentAppWindow.get());
         } else {
             g_warning("Error: Bogus Enter/Leave event");
         };
     }
 
     void WindowObserver::handlePropertyNotify(XEvent &ev) {
-        if (current_app_window.get() == ev.xproperty.window &&
+        if (currentAppWindow.get() == ev.xproperty.window &&
             ev.xproperty.atom == XA_WM_CLASS) {
-            current_app_window.notify();
+            currentAppWindow.notify();
         }
     }
 
     void WindowObserver::tryActivateCurrentWindow(Time t) {
-        if (!Events::current_app_window.get()) {
+        if (!currentAppWindow.get()) {
             return;
         }
 
-        auto w = Events::current_app_window.get();
+        auto w = currentAppWindow.get();
         if (w == global_xServer->getWindow(global_xServer->ROOT, global_xServer->atoms.NET_ACTIVE_WINDOW)) {
             return;
         }
@@ -84,6 +115,11 @@ namespace Events {
     }
 
     std::string WindowObserver::getCurrentWindowClass() {
-        return global_grabber->current_class->get();
+        return this->current_class->get();
+    }
+
+    void WindowObserver::setCurrentWindow(Window newWindow) {
+        currentAppWindow.set(getAppWindow(newWindow));
+        g_debug("Active window 0x%lx -> 0x%lx", newWindow, currentAppWindow.get());
     }
 }

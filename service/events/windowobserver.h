@@ -8,18 +8,22 @@
 #include "var.h"
 
 namespace Events {
-    extern Source<Window> current_app_window;
-
-    Window getAppWindow(Window w);
-
     class WindowObserver {
     public:
+        // TODO: Make private
+        Source<Window> currentAppWindow;
+        Out<std::string> *current_class;
+
+        WindowObserver();
+
         void handleEnterLeave(XEvent &ev);
 
         void handlePropertyNotify(XEvent &ev);
 
-        static void tryActivateCurrentWindow(Time t);
+        void tryActivateCurrentWindow(Time t);
 
-        static std::string getCurrentWindowClass();
+        std::string getCurrentWindowClass();
+
+        void setCurrentWindow(Window newWindow);
     };
 }

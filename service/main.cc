@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <csignal>
+#include <execinfo.h>
 
 
 class App : public Gtk::Application {
@@ -93,7 +94,18 @@ namespace ShutDown {
     }
 }
 
+void segFaultHandler(int sig) {
+    void *array[10];
+    auto size = backtrace(array, 10);
+
+    g_warning("SegFault stack trace starting");
+    backtrace_symbols_fd(array, size, STDERR_FILENO);
+    g_error("Segfault :(");
+}
+
 int main(int argc, char *argv[]) {
+    signal(SIGSEGV, segFaultHandler);
+
     App app(argc, argv, "com.github.easy-gesture.daemon", Gio::APPLICATION_HANDLES_COMMAND_LINE);
 
     ShutDown::onShutDown([&](int signal) {

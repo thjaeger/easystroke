@@ -13,6 +13,8 @@ class EventLoop {
 public:
     EventLoop();
 
+    Events::WindowObserver windowObserver;
+
     bool handle(Glib::IOCondition);
     void handle_event(XEvent &ev);
     void handle_xi2_event(XIDeviceEvent *event);
@@ -36,7 +38,6 @@ public:
     guint modifiers;
     std::map<guint, guint> core_inv_map;
 private:
-    Events::WindowObserver windowObserver;
     std::unique_ptr<Handler> handler;
 
     static int xErrorHandler(Display *dpy2, XErrorEvent *e);

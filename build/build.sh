@@ -10,7 +10,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
     mkdir -p $TARGET
     cd $TARGET
 
-    cmake -DCMAKE_BUILD_TYPE=Debug ../
+    cmake -DCMAKE_BUILD_TYPE=Debug ../ -DDebug_Dynamic=True
     make
 
     if [[ "$1" == -r ]]; then

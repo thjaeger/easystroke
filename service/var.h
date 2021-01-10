@@ -9,16 +9,6 @@ public:
 	virtual ~Base() {}
 };
 
-class Atomic {
-	std::set<Base *> update_queue;
-public:
-	void defer(Base *out) { update_queue.insert(out); }
-	~Atomic() {
-		for (auto i : update_queue)
-			i->notify();
-	}
-};
-
 template <class T> class Out {
 	std::set<Base *> out;
 protected:
@@ -43,7 +33,7 @@ template <class T> class IO : public In<T>, public Out<T> {};
 template <class T> class Source : public IO<T>, private Base {
 	T x;
 public:
-	Source(T x_) : x(x_) {}
+	explicit Source(T x_) : x(x_) {}
 
 	virtual void set(const T x_) {
 		x = x_;

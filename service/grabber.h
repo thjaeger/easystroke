@@ -64,12 +64,10 @@ private:
 	void update_excluded();
 
 	void grab(State s) { current = s; set(); }
-	void update();
 public:
 	Grabber();
 	~Grabber();
 	bool handle(XEvent &ev) { return children.handle(ev); }
-	Out<std::string> *current_class;
 
 	void new_device(XIDeviceInfo *);
 
@@ -82,6 +80,7 @@ public:
 
     void suspend() { suspended++; set(); }
     void resume() { if (suspended) suspended--; set(); }
+    void update();
 };
 
 extern Grabber *global_grabber;

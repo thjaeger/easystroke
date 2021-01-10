@@ -163,28 +163,6 @@ static void activate(Window w, Time t) {
                              (XEvent *) &ev);
 }
 
-std::string get_wm_class(Window w) {
-    if (!w)
-        return "";
-    XClassHint ch;
-    if (!global_xServer->getClassHint(w, &ch)) {
-        return "";
-    }
-
-    std::string ans = ch.res_name;
-    XServerProxy::free(ch.res_name);
-    XServerProxy::free(ch.res_class);
-    return ans;
-}
-
-class IdleNotifier : public Base {
-	sigc::slot<void> f;
-	void run() { f(); }
-public:
-	explicit IdleNotifier(sigc::slot<void> f_) : f(std::move(f_)) {}
-	void notify() override { global_eventLoop->queue(sigc::mem_fun(*this, &IdleNotifier::run)); }
-};
-
 const char *Grabber::state_name[4] = { "None", "Button", "Select", "Raw" };
 
 Grabber::Grabber()
@@ -200,8 +178,7 @@ Grabber::Grabber()
     grabbed_button.state = 0;
     cursor_select = global_xServer->createFontCursor(XC_crosshair);
     init_xi();
-    current_class = fun(&get_wm_class, Events::current_app_window);
-    current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
+
     update();
     resume();
 }
@@ -468,7 +445,7 @@ guint Grabber::get_default_mods(guint button) {
 void Grabber::update() {
 	auto bi = prefs.button;
 	active = true;
-    auto i = prefs.exceptions->find(Events::WindowObserver::getCurrentWindowClass());
+    auto i = prefs.exceptions->find(global_eventLoop->windowObserver.getCurrentWindowClass());
     if (i != prefs.exceptions->end()) {
         if (i->second)
             bi = *i->second;
@@ -476,7 +453,7 @@ void Grabber::update() {
             active = false;
     }
 
-    if (actions.disAllowApplication(Events::WindowObserver::getCurrentWindowClass())) {
+    if (actions.disAllowApplication(global_eventLoop->windowObserver.getCurrentWindowClass())) {
         active = false;
     }
 

@@ -111,8 +111,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
                 if (!current_dev || current_dev->dev != event->deviceid)
                     break;
             } else {
-                Events::current_app_window.set(Events::getAppWindow(event->child));
-                g_debug("Active window 0x%lx -> 0x%lx", event->child, Events::current_app_window.get());
+                this->windowObserver.setCurrentWindow(event->child);
             }
             current_dev = global_grabber->get_xi_dev(event->deviceid);
             if (!current_dev) {

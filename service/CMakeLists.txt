@@ -46,6 +46,10 @@ set(SOURCE_FILES
     xserverproxy.h
 )
 
+if (Debug_Dynamic)
+    SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -g -rdynamic")
+endif()
+
 link_directories(${GTKMM_LIBRARY_DIRS})
 
 include_directories(.
