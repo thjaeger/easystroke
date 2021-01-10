@@ -5,19 +5,19 @@
 #include "actiondb.h"
 
 #include <gesture.h>
-#include "var.h"
 
 namespace Events {
-    class ApplicationWindow;
+    class BasicApplicationInfo;
 
     class WindowObserver {
     private:
-        std::unique_ptr<ApplicationWindow> currentApplicationWindow;
-        Source<Window> currentAppWindow;
-        Out<std::string> *current_class;
+        std::unique_ptr<BasicApplicationInfo> currentApplication;
+
+        void setCurrentApplication(Window applicationWindow);
 
     public:
         WindowObserver();
+
         ~WindowObserver();
 
         void handleEnterLeave(XEvent &ev);

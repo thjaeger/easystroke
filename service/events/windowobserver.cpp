@@ -9,30 +9,23 @@ namespace Events {
         return grabbers::get_app_window(w);
     }
 
-    std::string get_wm_class(Window w) {
-        return global_xServer->getClassHint(w)->windowClass;
-    }
-
-    class ApplicationWindow {
+    class BasicApplicationInfo {
     public:
-        explicit ApplicationWindow(Window window) : window(window), classHint(global_xServer->getClassHint(window)) {}
+        explicit BasicApplicationInfo(Window window) : window(window),
+                                                       classHint(global_xServer->getClassHint(window)) {}
 
         Window window;
         std::unique_ptr<WindowClassHint> classHint;
-    };
 
-    class IdleNotifier : public Base {
-    public:
-        void notify() override {
-            global_eventLoop->queue([]() { global_grabber->update(); });
+        [[nodiscard]] bool isEqualTo(const BasicApplicationInfo& other) const {
+            return this->window == other.window &&
+            this->classHint->windowClass == other.classHint->windowClass &&
+                   this->classHint->windowName == other.classHint->windowName;
         }
     };
 
     WindowObserver::WindowObserver()
-            : currentAppWindow(Source<Window>(None)),
-              currentApplicationWindow(std::make_unique<ApplicationWindow>(None)) {
-        current_class = fun(&get_wm_class, this->currentAppWindow);
-        current_class->connect(new IdleNotifier());
+            : currentApplication(std::make_unique<BasicApplicationInfo>(None)) {
     }
 
     WindowObserver::~WindowObserver() = default;
@@ -54,18 +47,18 @@ namespace Events {
     }
 
     void WindowObserver::handlePropertyNotify(XEvent &ev) {
-        if (currentAppWindow.get() == ev.xproperty.window &&
+        if (currentApplication->window == ev.xproperty.window &&
             ev.xproperty.atom == XA_WM_CLASS) {
-            currentAppWindow.notify();
+            setCurrentApplication(ev.xproperty.window);
         }
     }
 
     void WindowObserver::tryActivateCurrentWindow(Time t) {
-        if (!currentAppWindow.get()) {
+        auto w = currentApplication->window;
+        if (!w) {
             return;
         }
 
-        auto w = currentAppWindow.get();
         if (w == global_xServer->getWindow(global_xServer->ROOT, global_xServer->atoms.NET_ACTIVE_WINDOW)) {
             return;
         }
@@ -110,20 +103,27 @@ namespace Events {
     }
 
     std::string WindowObserver::getCurrentWindowClass() {
-        if (!this->currentApplicationWindow) {
-            return "";
-        }
-
-        return this->currentApplicationWindow->classHint->windowClass;
+        return this->currentApplication->classHint->windowClass;
     }
 
     void WindowObserver::setCurrentWindow(Window newWindow) {
         auto newAppWindow = getAppWindow(newWindow);
-        if (newAppWindow == currentAppWindow.get()) {
+        if (newAppWindow == currentApplication->window) {
             return;
         }
 
-        currentAppWindow.set(newAppWindow);
-        g_debug("Changed current window 0x%lx -> 0x%lx", newWindow, currentAppWindow.get());
+        setCurrentApplication(newAppWindow);
+    }
+
+    void WindowObserver::setCurrentApplication(Window applicationWindow) {
+        auto newApplication = std::make_unique<BasicApplicationInfo>(applicationWindow);
+
+        if (!newApplication->isEqualTo(*currentApplication)) {
+            auto previousWindowName = currentApplication->classHint->windowClass;
+
+            currentApplication = std::move(newApplication);
+            global_eventLoop->queue([]() { global_grabber->update(); });
+            g_debug("Changed current window from %s to %s", previousWindowName.c_str(), currentApplication->classHint->windowClass.c_str());
+        }
     }
 }

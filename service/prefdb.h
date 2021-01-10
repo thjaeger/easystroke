@@ -5,8 +5,6 @@
 #include <memory>
 #include <gdkmm/color.h>
 
-#include "var.h"
-
 enum TimeoutType { TimeoutOff, TimeoutDefault, TimeoutMedium, TimeoutAggressive, TimeoutFlick, TimeoutCustom, TimeoutConservative };
 
 class ButtonInfo {
