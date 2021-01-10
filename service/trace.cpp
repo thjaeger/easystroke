@@ -1,7 +1,7 @@
 #include "trace.h"
 
 #include "composite.h"
-#include "globals.h"
+#include "xserverproxy.h"
 
 std::shared_ptr<Trace> trace;
 
@@ -12,7 +12,7 @@ void resetTrace() {
 void Trace::start(Trace::Point p) {
     last = p;
     active = true;
-    context->xServer->hideCursor(context->xServer->ROOT);
+    global_xServer->hideCursor(global_xServer->ROOT);
     start_();
 }
 
@@ -20,6 +20,6 @@ void Trace::end() {
     if (!active)
         return;
     active = false;
-    context->xServer->showCursor(context->xServer->ROOT);
+    global_xServer->showCursor(global_xServer->ROOT);
     end_();
 }

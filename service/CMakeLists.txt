@@ -18,14 +18,12 @@ set(SOURCE_FILES
     actions/modAction.h
     actions/modifiers.cpp
     actions/modifiers.h
-    appxcontext.h
-    composite.cc
+        composite.cc
     composite.h
     desktop.cc
     gesture.cc
     gesture.h
-    globals.h
-    grabber.cc
+        grabber.cc
     grabber.h
     handler.cc
     handler.h

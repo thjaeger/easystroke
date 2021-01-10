@@ -3,7 +3,7 @@
 #include <X11/extensions/XTest.h>
 #include <X11/extensions/Xfixes.h>
 
-#include "globals.h"
+#include "xserverproxy.h"
 #include "util.h"
 #include "prefdb.h"
 #include "actiondb.h"
@@ -59,18 +59,10 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
     return true;
 }
 
-std::shared_ptr<AppXContext> context = nullptr;
-
 void App::on_activate() {
     unsetenv("DESKTOP_AUTOSTART_ID");
 
     this->xServer = XServerProxy::Open();
-
-    if (context) {
-        g_error("Context already configured");
-    }
-
-    context = std::make_shared<AppXContext>(this->xServer);
 
     xstate = new XState;
     grabber = new Grabber;

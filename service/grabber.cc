@@ -1,6 +1,6 @@
 #include "handler.h"
 #include "grabber.h"
-#include "globals.h"
+#include "xserverproxy.h"
 #include <X11/extensions/XTest.h>
 #include <X11/cursorfont.h>
 #include <X11/Xutil.h>
@@ -64,17 +64,17 @@ BiMap<Window, Window> frame_child;
 std::list<Window> minimized;
 
 void get_frame(Window w) {
-    Window frame = XState::get_window(w, context->xServer->atoms.NET_FRAME_WINDOW);
+    Window frame = XState::get_window(w, global_xServer->atoms.NET_FRAME_WINDOW);
     if (!frame)
         return;
     frame_win.add(frame, w);
 }
 
 Children::Children(Window w) : parent(w) {
-    context->xServer->selectInput(parent, SubstructureNotifyMask);
+    global_xServer->selectInput(parent, SubstructureNotifyMask);
     unsigned int n;
     Window dummyw1, dummyw2, *ch;
-    context->xServer->queryTree(parent, &dummyw1, &dummyw2, &ch, &n);
+    global_xServer->queryTree(parent, &dummyw1, &dummyw2, &ch, &n);
     for (unsigned int i = 0; i < n; i++)
         add(ch[i]);
     XServerProxy::free(ch);
@@ -104,21 +104,21 @@ bool Children::handle(XEvent &ev) {
 				remove(ev.xreparent.window);
 			return true;
 		case PropertyNotify:
-			if (ev.xproperty.atom == context->xServer->atoms.NET_FRAME_WINDOW) {
+			if (ev.xproperty.atom == global_xServer->atoms.NET_FRAME_WINDOW) {
 				if (ev.xproperty.state == PropertyDelete)
 					frame_win.erase1(ev.xproperty.window);
 				if (ev.xproperty.state == PropertyNewValue)
 					get_frame(ev.xproperty.window);
 				return true;
 			}
-			if (ev.xproperty.atom == context->xServer->atoms.NET_WM_STATE) {
+			if (ev.xproperty.atom == global_xServer->atoms.NET_WM_STATE) {
                 if (ev.xproperty.state == PropertyDelete) {
                     minimized.remove(ev.xproperty.window);
                     return true;
                 }
                 bool was_hidden = std::find(minimized.begin(), minimized.end(), ev.xproperty.window) != minimized.end();
-                bool is_hidden = XState::has_atom(ev.xproperty.window, context->xServer->atoms.NET_WM_STATE,
-                                                  context->xServer->atoms.NET_WM_STATE_HIDDEN);
+                bool is_hidden = XState::has_atom(ev.xproperty.window, global_xServer->atoms.NET_WM_STATE,
+                                                  global_xServer->atoms.NET_WM_STATE_HIDDEN);
                 if (was_hidden && !is_hidden)
                     minimized.remove(ev.xproperty.window);
                 if (is_hidden && !was_hidden)
@@ -135,12 +135,12 @@ void Children::add(Window w) {
     if (!w)
         return;
 
-    context->xServer->selectInput(w, EnterWindowMask | PropertyChangeMask);
+    global_xServer->selectInput(w, EnterWindowMask | PropertyChangeMask);
     get_frame(w);
 }
 
 void Children::remove(Window w) {
-    context->xServer->selectInput(w, 0);
+    global_xServer->selectInput(w, 0);
     destroy(w);
 }
 
@@ -153,14 +153,14 @@ static void activate(Window w, Time t) {
     XClientMessageEvent ev;
     ev.type = ClientMessage;
     ev.window = w;
-    ev.message_type = context->xServer->atoms.NET_ACTIVE_WINDOW;
+    ev.message_type = global_xServer->atoms.NET_ACTIVE_WINDOW;
     ev.format = 32;
     ev.data.l[0] = 0; // 1 app, 2 pager
     ev.data.l[1] = t;
     ev.data.l[2] = 0;
     ev.data.l[3] = 0;
     ev.data.l[4] = 0;
-    context->xServer->sendEvent(context->xServer->ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask,
+    global_xServer->sendEvent(global_xServer->ROOT, False, SubstructureNotifyMask | SubstructureRedirectMask,
                              (XEvent *) &ev);
 }
 
@@ -168,7 +168,7 @@ std::string get_wm_class(Window w) {
     if (!w)
         return "";
     XClassHint ch;
-    if (!context->xServer->getClassHint(w, &ch)) {
+    if (!global_xServer->getClassHint(w, &ch)) {
         return "";
     }
 
@@ -197,7 +197,7 @@ void Grabber::unminimize() {
 const char *Grabber::state_name[4] = { "None", "Button", "Select", "Raw" };
 
 Grabber::Grabber()
-    : children(context->xServer->ROOT) {
+    : children(global_xServer->ROOT) {
     current = BUTTON;
     suspended = 0;
     suspend();
@@ -207,7 +207,7 @@ Grabber::Grabber()
     xi_devs_grabbed = GrabNo;
     grabbed_button.button = 0;
     grabbed_button.state = 0;
-    cursor_select = context->xServer->createFontCursor(XC_crosshair);
+    cursor_select = global_xServer->createFontCursor(XC_crosshair);
     init_xi();
     current_class = fun(&get_wm_class, current_app_window);
     current_class->connect(new IdleNotifier(sigc::mem_fun(*this, &Grabber::update)));
@@ -216,21 +216,21 @@ Grabber::Grabber()
 }
 
 Grabber::~Grabber() {
-    context->xServer->freeCursor(cursor_select);
+    global_xServer->freeCursor(cursor_select);
 }
 
 bool Grabber::init_xi() {
     /* XInput Extension available? */
     int major = 2, minor = 0;
-    if (!context->xServer->queryExtension("XInputExtension", &opcode, &event, &error) ||
-        context->xServer->queryInterfaceVersion(&major, &minor) == BadRequest ||
+    if (!global_xServer->queryExtension("XInputExtension", &opcode, &event, &error) ||
+        global_xServer->queryInterfaceVersion(&major, &minor) == BadRequest ||
         major < 2) {
         g_error("This version of Easy Gesture needs an XInput 2.0-aware X server.\n"
                 "Please upgrade your X server to 1.7.");
     }
 
     int n;
-    auto *info = context->xServer->queryDevice(XIAllDevices, &n);
+    auto *info = global_xServer->queryDevice(XIAllDevices, &n);
     if (!info) {
         g_warning("Warning: No XInput devices available");
         return false;
@@ -270,7 +270,7 @@ bool Grabber::init_xi() {
     global_mask.mask_len = sizeof(data);
     XISetMask(global_mask.mask, XI_HierarchyChanged);
 
-    context->xServer->selectInterfaceEvents(context->xServer->ROOT, &global_mask, 1);
+    global_xServer->selectInterfaceEvents(global_xServer->ROOT, &global_mask, 1);
 
     return true;
 }
@@ -281,7 +281,7 @@ bool Grabber::hierarchy_changed(XIHierarchyEvent *event) {
         XIHierarchyInfo *info = event->info + i;
         if (info->flags & XISlaveAdded) {
             int n;
-            auto *dev_info = context->xServer->queryDevice(info->deviceid, &n);
+            auto *dev_info = global_xServer->queryDevice(info->deviceid, &n);
             if (!dev_info)
                 continue;
             new_device(dev_info);
@@ -314,7 +314,7 @@ bool is_xtest_device(int dev) {
     int format;
     unsigned long num_items, bytes_after;
     unsigned char *data;
-    if (Success != context->xServer->getInterfaceProperty(dev, context->xServer->atoms.XTEST, 0, 1, False, XA_INTEGER,
+    if (Success != global_xServer->getInterfaceProperty(dev, global_xServer->atoms.XTEST, 0, 1, False, XA_INTEGER,
                                                        &type, &format, &num_items, &bytes_after, &data))
         return false;
     bool ret = num_items && format == 8 && *((int8_t *) data);
@@ -350,15 +350,15 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
             if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative) {
                 absolute = true;
                 if (v->number == 0) {
-                    scale_x = (double) context->xServer->getDisplayWidth() /
+                    scale_x = (double) global_xServer->getDisplayWidth() /
                               (double) (v->max - v->min);
                 } else {
-                    scale_y = (double) context->xServer->getDisplayHeight() /
+                    scale_y = (double) global_xServer->getDisplayHeight() /
                               (double) (v->max - v->min);
                 }
             }
 
-            if (v->label == context->xServer->atoms.PROXIMITY) {
+            if (v->label == global_xServer->atoms.PROXIMITY) {
                 proximity_axis = v->number;
             }
         }
@@ -387,10 +387,10 @@ void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) const {
             modifiers[i].modifiers = bi.state ^ ignore_mods[i];
     }
     if (grab)
-        context->xServer->grabInterfaceButton(dev, bi.button, context->xServer->ROOT, None, GrabModeAsync, GrabModeAsync,
+        global_xServer->grabInterfaceButton(dev, bi.button, global_xServer->ROOT, None, GrabModeAsync, GrabModeAsync,
                                            False, &device_mask, nmods, modifiers);
     else {
-        context->xServer->ungrabInterfaceButton(dev, bi.button, context->xServer->ROOT, nmods, modifiers);
+        global_xServer->ungrabInterfaceButton(dev, bi.button, global_xServer->ROOT, nmods, modifiers);
         xstate->ungrab(dev);
     }
 }
@@ -407,11 +407,11 @@ void Grabber::grab_xi(bool grab) {
 
 void Grabber::XiDevice::grab_device(GrabState grab) {
     if (grab == GrabNo) {
-        context->xServer->ungrabDevice(dev, CurrentTime);
+        global_xServer->ungrabDevice(dev, CurrentTime);
         xstate->ungrab(dev);
         return;
     }
-    context->xServer->grabDevice(dev, context->xServer->ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
+    global_xServer->grabDevice(dev, global_xServer->ROOT, CurrentTime, None, GrabModeAsync, GrabModeAsync, False,
                               grab == GrabYes ? &device_mask : &raw_mask);
 }
 
@@ -441,11 +441,11 @@ void Grabber::set() {
     g_debug("grabbing: %s", state_name[grabbed]);
 
     if (old == SELECT)
-        context->xServer->ungrabPointer(CurrentTime);
+        global_xServer->ungrabPointer(CurrentTime);
 
     if (grabbed == SELECT) {
-        int code = context->xServer->grabPointer(context->xServer->ROOT, False, ButtonPressMask,
-                                              GrabModeAsync, GrabModeAsync, context->xServer->ROOT, cursor_select,
+        int code = global_xServer->grabPointer(global_xServer->ROOT, False, ButtonPressMask,
+                                              GrabModeAsync, GrabModeAsync, global_xServer->ROOT, cursor_select,
                                               CurrentTime);
         if (code != GrabSuccess) {
             throw GrabFailedException(code);
@@ -512,8 +512,8 @@ static bool has_wm_state(Window w) {
     unsigned long nitems_return;
     unsigned long bytes_after_return;
     unsigned char *prop_return;
-    if (Success != context->xServer->getWindowProperty(
-            w, context->xServer->atoms.WM_STATE, 0, 2, False,
+    if (Success != global_xServer->getWindowProperty(
+            w, global_xServer->atoms.WM_STATE, 0, 2, False,
             AnyPropertyType, &actual_type_return,
             &actual_format_return, &nitems_return,
             &bytes_after_return, &prop_return))
@@ -530,7 +530,7 @@ Window find_wm_state(Window w) {
     Window found = None;
     unsigned int n;
     Window dummyw1, dummyw2, *ch;
-    if (!context->xServer->queryTree(w, &dummyw1, &dummyw2, &ch, &n))
+    if (!global_xServer->queryTree(w, &dummyw1, &dummyw2, &ch, &n))
         return None;
     for (unsigned int i = 0; i != n; i++)
         if (has_wm_state(ch[i]))
@@ -560,7 +560,7 @@ Window get_app_window(Window w) {
 		frame_child.add(w, w2);
 		if (w2 != w) {
             w = w2;
-            context->xServer->selectInput(w2, StructureNotifyMask | PropertyChangeMask);
+            global_xServer->selectInput(w2, StructureNotifyMask | PropertyChangeMask);
         }
 		return w2;
 	}

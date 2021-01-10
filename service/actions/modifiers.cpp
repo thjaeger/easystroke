@@ -1,6 +1,6 @@
 #include <set>
 
-#include "globals.h"
+#include "xserverproxy.h"
 #include "modifiers.h"
 #include "util.h"
 
@@ -37,7 +37,7 @@ void Modifiers::update_mods() {
     for (int i = 0; i < n_modkeys; i++) {
         auto mask = modkeys[i].mask;
         if ((mod_state & mask) ^ (new_state & mask)) {
-            context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(modkeys[i].sym), new_state & mask, 0);
+            global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(modkeys[i].sym), new_state & mask, 0);
         }
     }
     mod_state = new_state;

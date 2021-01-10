@@ -1,7 +1,7 @@
 #include "action.h"
 #include "prefdb.h"
 
-#include "globals.h"
+#include "xserverproxy.h"
 #include "grabber.h"
 #include "handler.h"
 #include "log.h"
@@ -31,9 +31,9 @@ void Actions::Button::run() {
 void Actions::SendKey::run() {
     if (!key)
         return;
-    guint code = context->xServer->keysymToKeycode(key);
-    context->xServer->fakeKeyEvent(code, true, 0);
-    context->xServer->fakeKeyEvent(code, false, 0);
+    guint code = global_xServer->keysymToKeycode(key);
+    global_xServer->fakeKeyEvent(code, true, 0);
+    global_xServer->fakeKeyEvent(code, false, 0);
 }
 
 void fake_unicode(gunichar c) {
@@ -45,24 +45,24 @@ void fake_unicode(gunichar c) {
         buf[g_unichar_to_utf8(c, buf)] = '\0';
         g_debug("using unicode input for character %s", buf);
     }
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_Control_L), true, 0);
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_Shift_L), true, 0);
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_u), true, 0);
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_u), false, 0);
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_Shift_L), false, 0);
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_Control_L), false, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_Control_L), true, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_Shift_L), true, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_u), true, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_u), false, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_Shift_L), false, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_Control_L), false, 0);
     char buf[16];
     snprintf(buf, sizeof(buf), "%x", c);
     for (int i = 0; buf[i]; i++)
         if (buf[i] >= '0' && buf[i] <= '9') {
-            context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(numcode[buf[i] - '0']), true, 0);
-            context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(numcode[buf[i] - '0']), false, 0);
+            global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(numcode[buf[i] - '0']), true, 0);
+            global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(numcode[buf[i] - '0']), false, 0);
         } else if (buf[i] >= 'a' && buf[i] <= 'f') {
-            context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(hexcode[buf[i] - 'a']), true, 0);
-            context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(hexcode[buf[i] - 'a']), false, 0);
+            global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(hexcode[buf[i] - 'a']), true, 0);
+            global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(hexcode[buf[i] - 'a']), false, 0);
         }
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_space), true, 0);
-    context->xServer->fakeKeyEvent(context->xServer->keysymToKeycode(XK_space), false, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_space), true, 0);
+    global_xServer->fakeKeyEvent(global_xServer->keysymToKeycode(XK_space), false, 0);
 }
 
 bool fake_char(gunichar c) {
@@ -71,12 +71,12 @@ bool fake_char(gunichar c) {
     KeySym keysym = XStringToKeysym(buf);
     if (keysym == NoSymbol)
         return false;
-    KeyCode keycode = context->xServer->keysymToKeycode(keysym);
+    KeyCode keycode = global_xServer->keysymToKeycode(keysym);
     if (!keycode)
         return false;
     KeyCode modifier = 0;
     int n;
-    KeySym *mapping = context->xServer->getKeyboardMapping(keycode, 1, &n);
+    KeySym *mapping = global_xServer->getKeyboardMapping(keycode, 1, &n);
     if (mapping[0] != keysym) {
         int i;
         for (i = 1; i < n; i++)
@@ -84,19 +84,19 @@ bool fake_char(gunichar c) {
                 break;
         if (i == n)
             return false;
-        auto *keymap = context->xServer->getModifierMapping();
+        auto *keymap = global_xServer->getModifierMapping();
         modifier = keymap->modifiermap[i];
         XServerProxy::freeModifiermap(keymap);
     }
     XServerProxy::free(mapping);
     if (modifier) {
-        context->xServer->fakeKeyEvent(modifier, true, 0);
+        global_xServer->fakeKeyEvent(modifier, true, 0);
     }
 
-    context->xServer->fakeKeyEvent(keycode, true, 0);
-    context->xServer->fakeKeyEvent(keycode, false, 0);
+    global_xServer->fakeKeyEvent(keycode, true, 0);
+    global_xServer->fakeKeyEvent(keycode, false, 0);
     if (modifier) {
-        context->xServer->fakeKeyEvent(modifier, false, 0);
+        global_xServer->fakeKeyEvent(modifier, false, 0);
     }
     return true;
 }

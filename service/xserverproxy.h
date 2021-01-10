@@ -242,3 +242,5 @@ public:
 
     int ungrabPointer(Time time) const;
 };
+
+extern std::shared_ptr<XServerProxy> global_xServer;

@@ -2,6 +2,8 @@
 #include <xorg/xserver-properties.h>
 #include <X11/XKBlib.h>
 
+std::shared_ptr<XServerProxy> global_xServer;
+
 Atom internAtom(Display* dpy, const std::string& name) {
     return XInternAtom(dpy, name.c_str(), false);
 }
@@ -22,13 +24,20 @@ XAtoms::XAtoms(Display* dpy):
 }
 
 std::shared_ptr<XServerProxy> XServerProxy::Open() {
+    if (global_xServer) {
+        g_error("Global xServer already configured");
+    }
+
+
     auto dpy = XOpenDisplay(nullptr);
     if (!dpy) {
         g_error("Couldn't open display.");
     }
 
     auto atoms = XAtoms(dpy);
-    return std::make_shared<XServerProxy>(dpy, atoms);
+    auto result = std::make_shared<XServerProxy>(dpy, atoms);
+    global_xServer = result;
+    return result;
 }
 
 XServerProxy::XServerProxy(Display *dpy, XAtoms atoms) : dpy(dpy), ROOT(DefaultRootWindow(dpy)), atoms(atoms) {
