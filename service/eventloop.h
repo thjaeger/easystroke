@@ -30,7 +30,7 @@ public:
 
     bool idle();
 
-    void queue(sigc::slot<void> f);
+    void queue(std::function<void()> f);
 
     Grabber::XiDevice *current_dev;
     bool in_proximity;
@@ -44,7 +44,7 @@ private:
     static int xIOErrorHandler(Display *dpy2);
     int (*oldHandler)(Display *, XErrorEvent *);
     int (*oldIOHandler)(Display *);
-    std::list<sigc::slot<void> > queued;
+    std::list<std::function<void()>> queued;
     std::map<int, std::string> opcodes;
 };
 

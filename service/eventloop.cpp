@@ -14,7 +14,7 @@ bool EventLoop::idle() {
     return !handler->child;
 }
 
-void EventLoop::queue(sigc::slot<void> f) {
+void EventLoop::queue(std::function<void()> f) {
     if (idle()) {
         f();
         global_xServer->flush();

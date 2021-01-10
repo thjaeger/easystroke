@@ -22,13 +22,9 @@ namespace Events {
     };
 
     class IdleNotifier : public Base {
-        void run() {
-            global_grabber->update();
-        }
-
     public:
         void notify() override {
-            global_eventLoop->queue(sigc::mem_fun(*this, &IdleNotifier::run));
+            global_eventLoop->queue([]() { global_grabber->update(); });
         }
     };
 
