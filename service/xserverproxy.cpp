@@ -1,4 +1,5 @@
 #include "xserverproxy.h"
+
 #include <xorg/xserver-properties.h>
 #include <X11/XKBlib.h>
 #include <X11/Xatom.h>

@@ -36,12 +36,10 @@ private:
 };
 
 class ReloadTrace : public Timeout {
-    void timeout() {
+    void timeout() override {
         g_debug("Reloading gesture display");
-        global_eventLoop->queue(sigc::mem_fun(*this, &ReloadTrace::reload));
+        global_eventLoop->queue([]() { resetTrace(); });
     }
-
-    void reload() { resetTrace(); }
 } reload_trace;
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }

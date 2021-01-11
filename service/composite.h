@@ -16,8 +16,8 @@ class Composite : public Trace {
 	int num_x, num_y;
 	Popup ***pieces;
 	virtual void draw(Point p, Point q);
-	virtual void start_();
-	virtual void end_();
+	void start_() override;
+	void end_() override;
 public:
 	Composite();
 	virtual ~Composite();

@@ -10,16 +10,16 @@
 extern std::shared_ptr<sigc::slot<void, std::shared_ptr<Gesture>>> stroke_action;
 
 Glib::ustring ButtonInfo::get_button_text() const {
-	Glib::ustring str;
-	if (instant)
-		str += "(Instantly) ";
-	if (click_hold)
-		str += "(Click & Hold) ";
-	if (state == AnyModifier)
-		str += Glib::ustring() + "(" + "Any Modifier" + " +) ";
-	else
-		str += Gtk::AccelGroup::get_label(0, (Gdk::ModifierType)state);
-	return str + Glib::ustring::compose("Button %1", button);
+    Glib::ustring str;
+    if (instant)
+        str += "(Instantly) ";
+    if (click_hold)
+        str += "(Click & Hold) ";
+    if (state == AnyModifier)
+        str += Glib::ustring() + "(" + "Any Modifier" + " +) ";
+    else
+        str += Gtk::AccelGroup::get_label(0, (Gdk::ModifierType) state);
+    return str + Glib::ustring::compose("Button %1", button);
 }
 
 
@@ -103,9 +103,11 @@ bool fake_char(gunichar c) {
 }
 
 void Actions::SendText::run() {
-    for (Glib::ustring::iterator i = text.begin(); i != text.end(); i++)
-        if (!fake_char(*i))
+    for (Glib::ustring::iterator i = text.begin(); i != text.end(); i++) {
+        if (!fake_char(*i)) {
             fake_unicode(*i);
+        }
+    }
 }
 
 void Actions::Command::run() {
