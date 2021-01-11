@@ -7,22 +7,10 @@
 
 #define MAX_BUTTONS 256
 
-
-class Children {
-	Window parent;
-public:
-	Children(Window);
-	bool handle(XEvent &ev);
-	void add(Window);
-	void remove(Window);
-	void destroy(Window);
-};
-
 class Grabber {
 	friend class Handler;
 	friend class StrokeHandler;
 public:
-	Children children;
 	enum State { NONE, BUTTON, SELECT, RAW };
 	enum GrabState { GrabNo, GrabYes, GrabRaw };
 	static const char *state_name[4];
@@ -67,7 +55,6 @@ private:
 public:
 	Grabber();
 	~Grabber();
-	bool handle(XEvent &ev) { return children.handle(ev); }
 
 	void new_device(XIDeviceInfo *);
 

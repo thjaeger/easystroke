@@ -33,14 +33,11 @@ void EventLoop::processQueue() {
 }
 
 void EventLoop::handle_event(XEvent &ev) {
+    if (this->windowObserver->handle(ev)) {
+        return;
+    }
+
     switch (ev.type) {
-        case EnterNotify:
-        case LeaveNotify:
-            return this->windowObserver.handleEnterLeave(ev);
-
-        case PropertyNotify:
-            return this->windowObserver.handlePropertyNotify(ev);
-
         case ButtonPress:
             g_debug("Press (master): %d (%d, %d) at t = %ld", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y,
                     ev.xbutton.time);
@@ -118,7 +115,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
                 if (!current_dev || current_dev->dev != event->deviceid)
                     break;
             } else {
-                this->windowObserver.setCurrentWindow(event->child);
+                this->windowObserver->setCurrentWindow(event->child);
             }
             current_dev = this->grabber->get_xi_dev(event->deviceid);
             if (!current_dev) {
@@ -191,13 +188,11 @@ void EventLoop::handle_raw_motion(XIRawEvent *event) {
 }
 
 bool EventLoop::handle(Glib::IOCondition) {
-    while (global_xServer->countPendingEvents()) {
+    while (this->xServer->countPendingEvents()) {
         try {
             XEvent ev;
-            global_xServer->nextEvent(&ev);
-            if (!this->grabber->handle(ev)) {
-                handle_event(ev);
-            }
+            this->xServer->nextEvent(&ev);
+            handle_event(ev);
         } catch (GrabFailedException &e) {
             g_error("%s", e.what());
         }
@@ -284,8 +279,9 @@ class ReloadTrace : public Timeout {
 
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
-EventLoop::EventLoop(std::shared_ptr<XServerProxy> xServer) : xServer(std::move(xServer)), current_dev(nullptr),
-                                                              in_proximity(false), modifiers(0) {
+EventLoop::EventLoop(std::shared_ptr<XServerProxy> xServer)
+        : xServer(std::move(xServer)), current_dev(nullptr),
+          in_proximity(false), modifiers(0) {
     int n, opcode, event, error;
     char **ext = global_xServer->listExtensions(&n);
     for (int i = 0; i < n; i++) {
@@ -299,6 +295,7 @@ EventLoop::EventLoop(std::shared_ptr<XServerProxy> xServer) : xServer(std::move(
     oldIOHandler = XSetIOErrorHandler(xIOErrorHandler);
     handler = HandlerFactory::makeIdleHandler(this);
     handler->init();
+    this->windowObserver = std::make_unique<Events::WindowObserver>(this->xServer->ROOT);
     this->grabber = std::make_shared<Grabber>();
 
     // Force enter events to be generated

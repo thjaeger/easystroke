@@ -287,7 +287,7 @@ class AdvancedHandler : public Handler {
 		e(e_), remap_from(0), remap_to(0), click_time(0), replay_button(0),
 		button1(b1), button2(b2), replay(std::move(replay_)) {
         if (s) {
-            actions.handle_advanced(*s, as, rs, b1, b2, global_eventLoop->windowObserver.getCurrentWindowClass());
+            actions.handle_advanced(*s, as, rs, b1, b2, global_eventLoop->windowObserver->getCurrentWindowClass());
         }
     }
 
@@ -544,7 +544,7 @@ protected:
             (*stroke_action)(s);
             return parent->replace_child(nullptr);
         }
-        auto act = actions.handle(*s, global_eventLoop->windowObserver.getCurrentWindowClass());
+        auto act = actions.handle(*s, global_eventLoop->windowObserver->getCurrentWindowClass());
         if (!act) {
             global_xServer->ringBell(None, 0, None);
             return parent->replace_child(nullptr);
@@ -617,7 +617,7 @@ protected:
 		global_eventLoop->update_core_mapping();
 	}
 	void press(guint b, CursorPosition e) override {
-	    global_eventLoop->windowObserver.tryActivateCurrentWindow(e.t);
+	    global_eventLoop->windowObserver->tryActivateCurrentWindow(e.t);
 		replace_child(new StrokeHandler(b, e));
 	}
 public:

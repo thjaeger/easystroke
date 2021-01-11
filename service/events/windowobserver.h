@@ -15,8 +15,10 @@ namespace Events {
 
         void setCurrentApplication(Window applicationWindow);
 
+        Window parent;
+
     public:
-        WindowObserver();
+        explicit WindowObserver(Window window);
 
         ~WindowObserver();
 
@@ -29,5 +31,13 @@ namespace Events {
         std::string getCurrentWindowClass();
 
         void setCurrentWindow(Window newWindow);
+
+        bool handle(XEvent &ev);
+
+        void add(Window);
+
+        void remove(Window);
+
+        void destroy(Window);
     };
 }

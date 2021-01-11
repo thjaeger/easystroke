@@ -24,7 +24,7 @@ private:
 public:
     EventLoop(std::shared_ptr<XServerProxy> xServer);
 
-    Events::WindowObserver windowObserver;
+    std::unique_ptr<Events::WindowObserver> windowObserver;
 
     bool handle(Glib::IOCondition);
     void handle_event(XEvent &ev);
