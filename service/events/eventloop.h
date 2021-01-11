@@ -1,5 +1,6 @@
 #pragma once
 
+#include <xserverproxy.h>
 #include "gesture.h"
 
 #include "events/grabber.h"
@@ -9,8 +10,19 @@
 class Handler;
 
 class EventLoop {
+private:
+    std::shared_ptr<XServerProxy> xServer;
+
+    std::unique_ptr<Handler> handler;
+
+    static int xErrorHandler(Display *dpy2, XErrorEvent *e);
+    static int xIOErrorHandler(Display *dpy2);
+    int (*oldHandler)(Display *, XErrorEvent *);
+    int (*oldIOHandler)(Display *);
+    std::list<std::function<void()>> queued;
+    std::map<int, std::string> opcodes;
 public:
-    EventLoop();
+    EventLoop(std::shared_ptr<XServerProxy> xServer);
 
     Events::WindowObserver windowObserver;
 
@@ -39,15 +51,6 @@ public:
     void processQueue();
 
     std::shared_ptr<Grabber> grabber;
-private:
-    std::unique_ptr<Handler> handler;
-
-    static int xErrorHandler(Display *dpy2, XErrorEvent *e);
-    static int xIOErrorHandler(Display *dpy2);
-    int (*oldHandler)(Display *, XErrorEvent *);
-    int (*oldIOHandler)(Display *);
-    std::list<std::function<void()>> queued;
-    std::map<int, std::string> opcodes;
 };
 
 extern EventLoop *global_eventLoop;

@@ -1,10 +1,7 @@
 
 #include <gtkmm.h>
-#include <X11/extensions/Xfixes.h>
-
 #include "xserverproxy.h"
 #include "util.h"
-#include "actiondb.h"
 #include "trace.h"
 #include "events/grabber.h"
 #include "events/handler.h"
@@ -12,15 +9,12 @@
 
 #include <glib.h>
 
-#include <cstring>
 #include <csignal>
+#include <utility>
 #include <execinfo.h>
 
 
 class App : public Gtk::Application {
-private:
-    std::shared_ptr<XServerProxy> xServer;
-
 public:
     App(int &argc, char **&argv, const Glib::ustring &application_id,
         Gio::ApplicationFlags flags = Gio::APPLICATION_FLAGS_NONE) :
@@ -34,15 +28,6 @@ private:
 
     int on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &) override;
 };
-
-class ReloadTrace : public Timeout {
-    void timeout() override {
-        g_debug("Reloading gesture display");
-        global_eventLoop->queue([]() { resetTrace(); });
-    }
-} reload_trace;
-
-static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
 bool App::local_command_line_vfunc(char **&arg, int &exit_status) {
     if (!register_application()) {
@@ -59,24 +44,9 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
 void App::on_activate() {
     unsetenv("DESKTOP_AUTOSTART_ID");
 
-    this->xServer = XServerProxy::Open();
+    auto xServer = XServerProxy::Open();
+    global_eventLoop = new EventLoop(xServer);
 
-    global_eventLoop = new EventLoop;
-    // Force enter events to be generated
-    this->xServer->grabPointer(this->xServer->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
-    this->xServer->ungrabPointer(CurrentTime);
-
-    resetTrace();
-
-    Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
-    g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
-    screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
-
-    this->xServer->grabControl(True);
-
-    Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(this->xServer->getConnectionNumber(), Glib::IO_IN);
-    io->connect(sigc::mem_fun(*global_eventLoop, &EventLoop::handle));
-    io->attach();
     hold();
 }
 
@@ -85,7 +55,7 @@ namespace ShutDown {
     void signal_handler(int signal) { shutdown_handler(signal); }
 
     void onShutDown(std::function<void(int)> handler) {
-        shutdown_handler = handler;
+        shutdown_handler = std::move(handler);
         signal(SIGINT, signal_handler);
         signal(SIGCHLD, SIG_IGN);
     }

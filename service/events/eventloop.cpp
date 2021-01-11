@@ -7,6 +7,8 @@
 #include <X11/Xproto.h>
 #include <sstream>
 #include <iomanip>
+#include <utility>
+#include "trace.h"
 
 EventLoop *global_eventLoop = nullptr;
 
@@ -242,11 +244,12 @@ int EventLoop::xErrorHandler(Display *dpy2, XErrorEvent *e) {
     char msg[16];
     snprintf(msg, sizeof msg, "%d", e->request_code);
     char def[128];
-    if (e->request_code < 128)
+    if (e->request_code < 128) {
         snprintf(def, sizeof def, "request_code=%d, minor_code=%d", e->request_code, e->minor_code);
-    else
+    } else {
         snprintf(def, sizeof def, "extension=%s, request_code=%d", global_eventLoop->opcodes[e->request_code].c_str(),
                  e->minor_code);
+    }
     char dbtext[128];
     global_xServer->getErrorDatabaseText("XRequest", msg, def, dbtext, sizeof dbtext);
     g_warning("XError: %s: %s", text, dbtext);
@@ -261,16 +264,28 @@ int EventLoop::xIOErrorHandler(Display *dpy2) {
 }
 
 void EventLoop::remove_device(int deviceid) {
-    if (current_dev && current_dev->dev == deviceid)
+    if (current_dev && current_dev->dev == deviceid) {
         current_dev = nullptr;
+    }
 }
 
 void EventLoop::ungrab(int deviceid) {
-    if (current_dev && current_dev->dev == deviceid)
+    if (current_dev && current_dev->dev == deviceid) {
         xinput_pressed.clear();
+    }
 }
 
-EventLoop::EventLoop() : current_dev(nullptr), in_proximity(false), modifiers(0) {
+class ReloadTrace : public Timeout {
+    void timeout() override {
+        g_debug("Reloading gesture display");
+        global_eventLoop->queue([]() { resetTrace(); });
+    }
+} reload_trace;
+
+static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
+
+EventLoop::EventLoop(std::shared_ptr<XServerProxy> xServer) : xServer(std::move(xServer)), current_dev(nullptr),
+                                                              in_proximity(false), modifiers(0) {
     int n, opcode, event, error;
     char **ext = global_xServer->listExtensions(&n);
     for (int i = 0; i < n; i++) {
@@ -285,4 +300,20 @@ EventLoop::EventLoop() : current_dev(nullptr), in_proximity(false), modifiers(0)
     handler = HandlerFactory::makeIdleHandler(this);
     handler->init();
     this->grabber = std::make_shared<Grabber>();
+
+    // Force enter events to be generated
+    this->xServer->grabPointer(this->xServer->ROOT, False, 0, GrabModeAsync, GrabModeAsync, None, None, CurrentTime);
+    this->xServer->ungrabPointer(CurrentTime);
+
+    resetTrace();
+
+    Glib::RefPtr<Gdk::Screen> screen = Gdk::Display::get_default()->get_default_screen();
+    g_signal_connect(screen->gobj(), "composited-changed", &schedule_reload_trace, nullptr);
+    screen->signal_size_changed().connect(sigc::ptr_fun(&schedule_reload_trace));
+
+    this->xServer->grabControl(True);
+
+    Glib::RefPtr<Glib::IOSource> io = Glib::IOSource::create(this->xServer->getConnectionNumber(), Glib::IO_IN);
+    io->connect(sigc::mem_fun(*global_eventLoop, &EventLoop::handle));
+    io->attach();
 }
