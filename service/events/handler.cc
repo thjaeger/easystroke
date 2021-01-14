@@ -459,7 +459,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
         trace->end();
         global_xServer->flush();
         auto c = cur;
-        if (!is_gesture || global_eventLoop->grabber->is_instant(button))
+        if (!is_gesture || global_eventLoop->grabber->buttonGrabber->is_instant(button))
             c->clear();
         return std::make_shared<Gesture>(*c, trigger, b, global_eventLoop->modifiers, false);
     }
@@ -471,7 +471,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
         if (!is_gesture)
             c->clear();
         std::shared_ptr<Gesture> s;
-        if (prefs.timeout_gestures || global_eventLoop->grabber->is_click_hold(button))
+        if (prefs.timeout_gestures || global_eventLoop->grabber->buttonGrabber->is_click_hold(button))
             s = std::make_shared<Gesture>(*c, trigger, 0, global_eventLoop->modifiers, true);
         parent->replace_child(AdvancedHandler::create(s, last, button, 0, cur));
         global_xServer->flush();
@@ -567,7 +567,7 @@ protected:
 public:
 	StrokeHandler(guint b, CursorPosition e) :
 		button(b),
-		trigger(global_eventLoop->grabber->get_default_button() == (int)b ? 0 : b),
+		trigger(global_eventLoop->grabber->buttonGrabber->get_default_button() == (int)b ? 0 : b),
 		is_gesture(false),
 		drawing(false),
 		last(e),
@@ -585,9 +585,9 @@ public:
 		use_timeout = init_timeout;
 	}
 	void init() override {
-		if (global_eventLoop->grabber->is_instant(button))
+		if (global_eventLoop->grabber->buttonGrabber->is_instant(button))
 			return do_instant();
-		if (global_eventLoop->grabber->is_click_hold(button)) {
+		if (global_eventLoop->grabber->buttonGrabber->is_click_hold(button)) {
             use_timeout = true;
             init_timeout = 500;
             final_timeout = 0;

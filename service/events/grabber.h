@@ -6,8 +6,9 @@
 #include <X11/extensions/XInput2.h>
 #include <X11/Xatom.h>
 
-
+#include "buttongrabber.h"
 #include "device.h"
+#include "devicegrabber.h"
 #include "deviceobserver.h"
 #include "prefdb.h"
 #include "pointergrabber.h"
@@ -19,37 +20,27 @@ class Grabber {
 	friend class StrokeHandler;
 private:
     std::unique_ptr<Events::PointerGrabber> pointer;
+    explicit Grabber(const std::shared_ptr<Events::DeviceObserver>& deviceObserver);
 
 public:
     // TODO: Should be private
-    std::unique_ptr<Events::DeviceObserver> devices;
+    std::shared_ptr<Events::DeviceObserver> devices;
+    std::unique_ptr<Events::DeviceGrabber> deviceGrabber;
+    std::unique_ptr<Events::ButtonGrabber> buttonGrabber;
 
 	enum State { NONE, BUTTON, SELECT, RAW };
 
 private:
 
 	State current, grabbed;
-	bool xi_grabbed;
-	Events::GrabState xi_devs_grabbed;
 	int suspended;
 	bool active;
-	ButtonInfo grabbed_button;
-	std::vector<ButtonInfo> buttons;
 
 	void set();
-	void grab_xi(bool);
-	void grab_xi_devs(Events::GrabState);
 
 	void grab(State s) { current = s; set(); }
 public:
 	Grabber();
-
-
-	bool is_instant(guint b);
-	bool is_click_hold(guint b);
-
-	int get_default_button() { return grabbed_button.button; }
-	guint get_default_mods(guint button);
 
     void suspend() { suspended++; set(); }
     void resume() { if (suspended) suspended--; set(); }

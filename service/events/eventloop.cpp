@@ -125,7 +125,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             if (current_dev->master)
                 global_xServer->setClientPointer(None, current_dev->master);
             if (xinput_pressed.empty()) {
-                guint default_mods = this->grabber->get_default_mods(event->detail);
+                guint default_mods = this->grabber->buttonGrabber->get_default_mods(event->detail);
                 if (default_mods == AnyModifier || default_mods == (guint) event->mods.base)
                     modifiers = AnyModifier;
                 else
