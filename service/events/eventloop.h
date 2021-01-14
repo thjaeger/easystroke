@@ -43,7 +43,7 @@ public:
 
     void queue(std::function<void()> f);
 
-    Grabber::XiDevice *current_dev;
+    Events::XiDevice *current_dev;
     bool in_proximity;
     std::set<guint> xinput_pressed;
     guint modifiers;

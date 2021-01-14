@@ -20,6 +20,8 @@ set(SOURCE_FILES
         actions/modifiers.h
         composite.cc
         composite.h
+        events/device.cpp
+        events/device.h
         events/eventloop.cpp
         events/eventloop.h
         events/grabber.cc

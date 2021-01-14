@@ -1,9 +1,14 @@
 #pragma once
-#include "prefdb.h"
-#include <string>
+
+#include <gtkmm.h>
 #include <map>
+#include <string>
 #include <X11/extensions/XInput2.h>
 #include <X11/Xatom.h>
+
+#include "prefdb.h"
+
+#include "device.h"
 
 #define MAX_BUTTONS 256
 
@@ -12,33 +17,18 @@ class Grabber {
 	friend class StrokeHandler;
 public:
 	enum State { NONE, BUTTON, SELECT, RAW };
-	enum GrabState { GrabNo, GrabYes, GrabRaw };
 	static const char *state_name[4];
 
-	struct XiDevice {
-		int dev;
-		std::string name;
-		bool absolute;
-		bool active;
-		int proximity_axis;
-		double scale_x, scale_y;
-		int num_buttons;
-		int master;
-		XiDevice(Grabber *, XIDeviceInfo *);
-		void grab_device(GrabState grab);
-		void grab_button(ButtonInfo &bi, bool grab) const;
-	};
-
-	typedef std::map<XID, std::shared_ptr<XiDevice> > DeviceMap;
+	typedef std::map<XID, std::shared_ptr<Events::XiDevice> > DeviceMap;
 	int opcode, event, error;
-	XiDevice *get_xi_dev(int id);
+	Events::XiDevice *get_xi_dev(int id);
 private:
 	bool init_xi();
 
 	DeviceMap xi_devs;
 	State current, grabbed;
 	bool xi_grabbed;
-	GrabState xi_devs_grabbed;
+	Events::GrabState xi_devs_grabbed;
 	int suspended;
 	bool active;
 	Cursor cursor_select;
@@ -47,7 +37,7 @@ private:
 
 	void set();
 	void grab_xi(bool);
-	void grab_xi_devs(GrabState);
+	void grab_xi_devs(Events::GrabState);
 
 	void update_excluded();
 
