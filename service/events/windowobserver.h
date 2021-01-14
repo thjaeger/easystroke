@@ -9,6 +9,9 @@
 namespace Events {
     class BasicApplicationInfo;
 
+    /**
+     * Keeps track of all the top level windows (applications) in the XServer, and which one is currently "active" (under the pointer)
+     */
     class WindowObserver {
     private:
         std::unique_ptr<BasicApplicationInfo> currentApplication;
@@ -16,6 +19,12 @@ namespace Events {
         void setCurrentApplication(Window applicationWindow);
 
         Window parent;
+
+        void add(Window);
+
+        void remove(Window);
+
+        void destroy(Window);
 
     public:
         explicit WindowObserver(Window window);
@@ -33,11 +42,5 @@ namespace Events {
         void setCurrentWindow(Window newWindow);
 
         bool handle(XEvent &ev);
-
-        void add(Window);
-
-        void remove(Window);
-
-        void destroy(Window);
     };
 }

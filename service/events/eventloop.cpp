@@ -52,7 +52,7 @@ void EventLoop::handle_event(XEvent &ev) {
             return;
 
         case GenericEvent:
-            if (ev.xcookie.extension == this->grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
+            if (ev.xcookie.extension == this->grabber->devices->opcode && global_xServer->getEventData(&ev.xcookie)) {
                 handle_xi2_event((XIDeviceEvent *) ev.xcookie.data);
                 global_xServer->freeEventData(&ev.xcookie);
             }
@@ -117,7 +117,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             } else {
                 this->windowObserver->setCurrentWindow(event->child);
             }
-            current_dev = this->grabber->get_xi_dev(event->deviceid);
+            current_dev = this->grabber->devices->get_xi_dev(event->deviceid);
             if (!current_dev) {
                 g_warning("Warning: Spurious device event");
                 break;
@@ -156,7 +156,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             handle_raw_motion((XIRawEvent *) event);
             break;
         case XI_HierarchyChanged:
-            this->grabber->hierarchy_changed((XIHierarchyEvent *) event);
+            this->grabber->devices->hierarchy_changed((XIHierarchyEvent *) event);
     }
 }
 
@@ -193,7 +193,7 @@ bool EventLoop::handle(Glib::IOCondition) {
             XEvent ev;
             this->xServer->nextEvent(&ev);
             handle_event(ev);
-        } catch (GrabFailedException &e) {
+        } catch (Events::GrabFailedException &e) {
             g_error("%s", e.what());
         }
     }

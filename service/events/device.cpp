@@ -64,7 +64,6 @@ void Events::XiDevice::grab_button(ButtonInfo &bi, bool grab) const {
     }
 }
 
-
 void Events::XiDevice::grab_device(Events::GrabState grab) {
     if (grab == Events::GrabNo) {
         global_xServer->ungrabDevice(dev, CurrentTime);
