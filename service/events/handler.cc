@@ -33,10 +33,10 @@ void Handler::replace_child(Handler *c) {
 }
 
 class IgnoreHandler : public Handler {
-    std::shared_ptr<Modifiers> mods;
-	bool proximity;
+    bool proximity;
 public:
-	explicit IgnoreHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)), proximity(global_eventLoop->in_proximity && prefs.proximity) {}
+	explicit IgnoreHandler() : proximity(global_eventLoop->in_proximity && prefs.proximity) {}
+
 	void press(guint b, CursorPosition e) override {
 		if (global_eventLoop->current_dev->master) {
             global_xServer->fakeMotionEvent(global_xServer->getDefaultScreen(), e.x, e.y, 0);
@@ -62,16 +62,15 @@ public:
 };
 
 class ButtonHandler : public Handler {
-    std::shared_ptr<Modifiers> mods;
-	guint button, real_button;
+    guint button, real_button;
 	bool proximity;
 public:
-	ButtonHandler(std::shared_ptr<Modifiers> mods_, guint button_) :
-		mods(std::move(mods_)),
+	explicit ButtonHandler(guint button_) :
 		button(button_),
 		real_button(0),
 		proximity(global_eventLoop->in_proximity && prefs.proximity)
 	{}
+
 	void press(guint b, CursorPosition e) override {
 		if (global_eventLoop->current_dev->master) {
             if (!real_button)
@@ -107,8 +106,7 @@ class AbstractScrollHandler : public Handler {
     double last_x, last_y;
 	Time last_t;
     double offset_x, offset_y;
-	Glib::ustring str;
-	int orig_x, orig_y;
+    int orig_x, orig_y;
 
 protected:
 	AbstractScrollHandler() : have_x(false), have_y(false), last_x(0.0), last_y(0.0), last_t(0), offset_x(0.0), offset_y(0.0) {
@@ -192,12 +190,12 @@ public:
 };
 
 class ScrollHandler : public AbstractScrollHandler {
-    std::shared_ptr<Modifiers> mods;
-	bool proximity;
+    bool proximity;
 public:
-	explicit ScrollHandler(std::shared_ptr<Modifiers> mods_) : mods(std::move(mods_)) {
+	explicit ScrollHandler() {
 		proximity = global_eventLoop->in_proximity && prefs.proximity;
 	}
+
 	void raw_motion(CursorPosition e, bool abs_x, bool abs_y) override {
 		if (proximity && !global_eventLoop->in_proximity) {
 			parent->replace_child(nullptr);
@@ -220,14 +218,12 @@ public:
 };
 
 class ScrollAdvancedHandler : public AbstractScrollHandler {
-    std::shared_ptr<Modifiers> m;
-	guint &rb;
 public:
-	ScrollAdvancedHandler(std::shared_ptr<Modifiers> m_, guint &rb_) : m(std::move(m_)), rb(rb_) {}
+	ScrollAdvancedHandler() = default;
+
 	void fake_wheel(int b1, int n1, int b2, int n2) override {
 		AbstractScrollHandler::fake_wheel(b1, n1, b2, n2);
-		rb = 0;
-	}
+    }
 	void release(guint b, CursorPosition e) override {
 		Handler *p = parent;
 		p->replace_child(nullptr);
@@ -247,7 +243,7 @@ public:
 class AdvancedStrokeActionHandler : public Handler {
     std::shared_ptr<Gesture> s;
 public:
-	AdvancedStrokeActionHandler(std::shared_ptr<Gesture> s_, CursorPosition e) : s(std::move(s_)) {}
+	explicit AdvancedStrokeActionHandler(std::shared_ptr<Gesture> s_) : s(std::move(s_)) {}
 	void press(guint b, CursorPosition e) override {
 		if (stroke_action) {
 			s->button = b;
@@ -283,7 +279,7 @@ class AdvancedHandler : public Handler {
 		rs.erase(b);
 	}
 
-	AdvancedHandler(std::shared_ptr<Gesture> s, CursorPosition e_, guint b1, guint b2, std::shared_ptr<std::vector<CursorPosition>> replay_) :
+	AdvancedHandler(const std::shared_ptr<Gesture>& s, CursorPosition e_, guint b1, guint b2, std::shared_ptr<std::vector<CursorPosition>> replay_) :
 		e(e_), remap_from(0), remap_to(0), click_time(0), replay_button(0),
 		button1(b1), button2(b2), replay(std::move(replay_)) {
         if (s) {
@@ -294,7 +290,7 @@ class AdvancedHandler : public Handler {
 public:
 	static Handler *create(std::shared_ptr<Gesture> s, CursorPosition e, guint b1, guint b2, std::shared_ptr<std::vector<CursorPosition>> replay) {
 		if (stroke_action && s)
-			return new AdvancedStrokeActionHandler(s, e);
+			return new AdvancedStrokeActionHandler(s);
 		else
 			return new AdvancedHandler(s, e, b1, b2, std::move(replay));
 
@@ -339,7 +335,7 @@ public:
             replay_orig = e;
             auto m = act->prepare();
             sticky_mods.reset();
-            return replace_child(new ScrollAdvancedHandler(m, replay_button));
+            return replace_child(new ScrollAdvancedHandler());
         }
         if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
 			click_time = e.t;
@@ -451,9 +447,9 @@ class StrokeHandler : public Handler, public sigc::trackable {
 		}
 		~Connection() { c.disconnect(); }
 	};
-	typedef std::shared_ptr<Connection> RConnection;
+
 	sigc::connection init_connection;
-	std::vector<RConnection> connections;
+	std::vector<std::shared_ptr<Connection>> connections;
 
 	std::shared_ptr<Gesture> finish(guint b) {
         trace->end();
@@ -484,7 +480,7 @@ class StrokeHandler : public Handler, public sigc::trackable {
         parent->replace_child(AdvancedHandler::create(s, orig, button, button, cur));
     }
 
-    bool expired(RConnection c, double dist) {
+    bool expired(const std::shared_ptr<Connection>& c, double dist) {
         c->dist -= dist;
         return c->dist < 0;
     }
@@ -553,13 +549,13 @@ protected:
         if (std::dynamic_pointer_cast<Actions::Click>(act)) {
             act = std::make_shared<Actions::Button>((Gdk::ModifierType) 0, b);
         } else if (auto b = Actions::Button::get_button(act)) {
-            return parent->replace_child(new ButtonHandler(mods, b));
+            return parent->replace_child(new ButtonHandler(b));
         }
         if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
-            return parent->replace_child(new IgnoreHandler(mods));
+            return parent->replace_child(new IgnoreHandler());
         }
         if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
-            return parent->replace_child(new ScrollHandler(mods));
+            return parent->replace_child(new ScrollHandler());
         }
         act->run();
         parent->replace_child(nullptr);
@@ -638,15 +634,15 @@ std::unique_ptr<Handler> HandlerFactory::makeIdleHandler(EventLoop *xstate_) {
 void Handler::runAction(const std::shared_ptr<Actions::Action>& act) {
     auto mods = act->prepare();
     if (auto b = Actions::Button::get_button(act)) {
-        return this->replace_child(new ButtonHandler(mods, b));
+        return this->replace_child(new ButtonHandler(b));
     }
 
     if (std::dynamic_pointer_cast<Actions::Ignore>(act)) {
-        return this->replace_child(new IgnoreHandler(mods));
+        return this->replace_child(new IgnoreHandler());
     }
 
     if (std::dynamic_pointer_cast<Actions::Scroll>(act)) {
-        return this->replace_child(new ScrollHandler(mods));
+        return this->replace_child(new ScrollHandler());
     }
     act->run();
 }
