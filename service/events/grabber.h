@@ -7,7 +7,6 @@
 #include <X11/Xatom.h>
 
 #include "buttongrabber.h"
-#include "device.h"
 #include "devicegrabber.h"
 #include "deviceobserver.h"
 #include "prefdb.h"

@@ -1,8 +1,23 @@
 #pragma once
 
-#include "device.h"
+#include <gtkmm.h>
+#include <X11/extensions/XInput2.h>
+
+#include "prefdb.h"
 
 namespace Events {
+
+    struct XiDevice {
+        int dev;
+        std::string name;
+        bool absolute;
+        bool active;
+        int proximity_axis;
+        double scale_x, scale_y;
+        int num_buttons;
+        int master;
+        explicit XiDevice(XIDeviceInfo *info);
+    };
 
     /**
      * Observes changes to devices (e.g. mouse/keyboard) and maintains a list of currently active devices.

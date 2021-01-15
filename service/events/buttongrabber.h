@@ -30,5 +30,7 @@ namespace Events {
         bool isFirstButton(ButtonInfo bi);
 
         void setGrabbedButton(ButtonInfo bi);
+
+        void grab_button(XiDevice& device, ButtonInfo &bi, bool grab) const;
     };
 }

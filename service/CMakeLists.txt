@@ -20,8 +20,6 @@ set(SOURCE_FILES
         actions/modifiers.h
         composite.cc
         composite.h
-        events/device.cpp
-        events/device.h
         events/devicegrabber.cpp
         events/devicegrabber.h
         events/deviceobserver.cpp

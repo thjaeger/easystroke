@@ -9,6 +9,38 @@
 
 namespace Events {
 
+    XiDevice::XiDevice(XIDeviceInfo *info)
+            : absolute(false), active(true), proximity_axis(-1), scale_x(1.0), scale_y(1.0), num_buttons(0) {
+        dev = info->deviceid;
+        name = info->name;
+        master = info->attachment;
+        for (int j = 0; j < info->num_classes; j++) {
+            XIAnyClassInfo *dev_class = info->classes[j];
+            if (dev_class->type == ButtonClass) {
+                auto *b = (XIButtonClassInfo*)dev_class;
+                num_buttons = b->num_buttons;
+            } else if (dev_class->type == ValuatorClass) {
+                auto *v = (XIValuatorClassInfo *) dev_class;
+                if ((v->number == 0 || v->number == 1) && v->mode != XIModeRelative) {
+                    absolute = true;
+                    if (v->number == 0) {
+                        scale_x = (double) global_xServer->getDisplayWidth() /
+                                  (double) (v->max - v->min);
+                    } else {
+                        scale_y = (double) global_xServer->getDisplayHeight() /
+                                  (double) (v->max - v->min);
+                    }
+                }
+
+                if (v->label == global_xServer->atoms.PROXIMITY) {
+                    proximity_axis = v->number;
+                }
+            }
+        }
+
+        g_message("Opened Device %d ('%s'%s).", dev, info->name, absolute ? ": absolute" : "");
+    }
+
     DeviceObserver::DeviceObserver() {
         /* XInput Extension available? */
         int major = 2, minor = 0;
@@ -36,8 +68,6 @@ namespace Events {
         if (xi_devs.empty()) {
             g_error("Error: No suitable XInput devices found");
         }
-
-        Events::XiDevice::init();
 
         XIEventMask global_mask;
         unsigned char data[2] = {0, 0};

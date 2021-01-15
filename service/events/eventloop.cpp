@@ -59,7 +59,7 @@ void EventLoop::handle_event(XEvent &ev) {
     }
 }
 
-static std::string render_coordinates(XIValuatorState *valuators, double *values) {
+static std::string  render_coordinates(XIValuatorState *valuators, double *values) {
     std::ostringstream ss;
     ss << std::setprecision(3) << std::fixed;
 
@@ -280,8 +280,10 @@ class ReloadTrace : public Timeout {
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
 EventLoop::EventLoop(std::shared_ptr<XServerProxy> xServer)
-        : xServer(std::move(xServer)), current_dev(nullptr),
-          in_proximity(false), modifiers(0) {
+        : xServer(std::move(xServer)),
+          current_dev(nullptr),
+          in_proximity(false),
+          modifiers(0) {
     int n, opcode, event, error;
     char **ext = global_xServer->listExtensions(&n);
     for (int i = 0; i < n; i++) {

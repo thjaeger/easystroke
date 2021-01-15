@@ -22,7 +22,7 @@ private:
     std::list<std::function<void()>> queued;
     std::map<int, std::string> opcodes;
 public:
-    EventLoop(std::shared_ptr<XServerProxy> xServer);
+    explicit EventLoop(std::shared_ptr<XServerProxy> xServer);
 
     std::unique_ptr<Events::WindowObserver> windowObserver;
 

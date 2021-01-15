@@ -53,9 +53,7 @@ std::shared_ptr<Actions::Action> ActionDB::handle(const Gesture& s, const std::s
 
         if (score > winning_score) {
             winning_score = score;
-            if (match) {
-                winner = i;
-            }
+            winner = i;
         }
 	}
 
