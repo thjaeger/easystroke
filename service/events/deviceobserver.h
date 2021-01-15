@@ -17,6 +17,8 @@ namespace Events {
         int num_buttons;
         int master;
         explicit XiDevice(XIDeviceInfo *info);
+
+        bool inProximity(const XIValuatorState &valuators);
     };
 
     /**

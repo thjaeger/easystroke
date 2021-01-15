@@ -86,16 +86,6 @@ static std::string  render_coordinates(XIValuatorState *valuators, double *value
     return ss.str();
 }
 
-static double get_axis(XIValuatorState &valuators, int axis) {
-    if (axis < 0 || !XIMaskIsSet(valuators.mask, axis))
-        return 0.0;
-    double *val = valuators.values;
-    for (int i = 0; i < axis; i++)
-        if (XIMaskIsSet(valuators.mask, i))
-            val++;
-    return *val;
-}
-
 void EventLoop::report_xi2_event(XIDeviceEvent *event, const char *type) {
     if (event->detail) {
         g_debug("%s (XI2): %d (%.3f, %.3f) - (%s) at t = %ld", type, event->detail, event->root_x, event->root_y,
@@ -132,7 +122,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
                     modifiers = event->mods.base;
             }
             xinput_pressed.insert(event->detail);
-            in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
+            in_proximity = current_dev->inProximity(event->valuators);
             handler->top()->press(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_ButtonRelease:
@@ -141,7 +131,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             if (!current_dev || current_dev->dev != event->deviceid)
                 break;
             xinput_pressed.erase(event->detail);
-            in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
+            in_proximity = current_dev->inProximity(event->valuators);
             handler->top()->release(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_Motion:
@@ -152,7 +142,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             handler->top()->motion(CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_RawMotion:
-            in_proximity = get_axis(((XIRawEvent *) event)->valuators, current_dev->proximity_axis);
+            in_proximity = current_dev->inProximity(((XIRawEvent *) event)->valuators);
             handle_raw_motion((XIRawEvent *) event);
             break;
         case XI_HierarchyChanged:

@@ -41,6 +41,20 @@ namespace Events {
         g_message("Opened Device %d ('%s'%s).", dev, info->name, absolute ? ": absolute" : "");
     }
 
+    static double get_axis(const XIValuatorState &valuators, int axis) {
+        if (axis < 0 || !XIMaskIsSet(valuators.mask, axis))
+            return 0.0;
+        double *val = valuators.values;
+        for (int i = 0; i < axis; i++)
+            if (XIMaskIsSet(valuators.mask, i))
+                val++;
+        return *val;
+    }
+
+    bool XiDevice::inProximity(const XIValuatorState &valuators) {
+        return get_axis(valuators, this->proximity_axis);
+    }
+
     DeviceObserver::DeviceObserver() {
         /* XInput Extension available? */
         int major = 2, minor = 0;
