@@ -1,10 +1,10 @@
-# Notices for easystroke
+# Notices for Easy Gesture
 
 This project is licensed under the licensing terms described in [./LICENSE.md](./LICENSE.md)
 
 ## Third-party Content
 
-### easystroke (original)
+### easystroke
 
 This project was based on easystroke by Thomas Jaegar under the following [license](https://github.com/thjaeger/easystroke/blob/master/LICENSE):
 

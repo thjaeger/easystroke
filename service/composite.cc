@@ -1,29 +1,13 @@
-/*
- * Copyright (c) 2008-2009, Thomas Jaeger <ThJaeger@gmail.com>
- *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
- *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
- * SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION
- * OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
- * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
- */
 #include "prefdb.h"
 #include "composite.h"
 #include <gdkmm.h>
-#include <glibmm/i18n.h>
 
 double red, green, blue, alpha, width;
 std::list<Trace::Point> points;
 
 Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), rect(x1, y1, x2-x1, y2-y1) {
 	if (!is_composited())
-		throw std::runtime_error(_("'composite' not available"));
+		throw std::runtime_error("'composite' not available");
 
 	Glib::RefPtr<Gdk::Visual> visual = get_screen()->get_rgba_visual();
 	gtk_widget_set_visual(Widget::gobj(), visual->gobj());
@@ -38,30 +22,31 @@ Popup::Popup(int x1, int y1, int x2, int y2) : Gtk::Window(Gtk::WINDOW_POPUP), r
 }
 
 void Popup::invalidate(int x1, int y1, int x2, int y2) {
-	if (get_mapped()) {
-		Gdk::Rectangle inv(x1 - rect.get_x(), y1 - rect.get_y(), x2-x1, y2-y1);
-		get_window()->invalidate_rect(inv, false);
-	} else
-		show();
+    if (get_mapped()) {
+        Gdk::Rectangle inv(x1 - rect.get_x(), y1 - rect.get_y(), x2 - x1, y2 - y1);
+        get_window()->invalidate_rect(inv, false);
+    } else {
+        show();
+    }
 }
 
 Composite::Composite() {
 #define N 128
 	int w = gdk_screen_width();
 	int h = gdk_screen_height();
-	num_x = (gdk_screen_width()  - 1)/N + 1;
-	num_y = (gdk_screen_height() - 1)/N + 1;
+	num_x = (w  - 1)/N + 1;
+	num_y = (h - 1)/N + 1;
 	pieces = new Popup**[num_x];
 	for (int i = 0; i < num_x; i++) {
-		pieces[i] = new Popup*[num_y];
-		for (int j = 0; j < num_y; j++)
-			pieces[i][j] = new Popup(i*N,j*N,MIN((i+1)*N,w),MIN((j+1)*N,h));
-
-	}
+        pieces[i] = new Popup *[num_y];
+        for (int j = 0; j < num_y; j++) {
+            pieces[i][j] = new Popup(i * N, j * N, MIN((i + 1) * N, w), MIN((j + 1) * N, h));
+        }
+    }
 }
 
 void Composite::draw(Point p, Point q) {
-	if (!points.size()) {
+	if (points.empty()) {
 		points.push_back(p);
 	}
 	points.push_back(q);
@@ -75,6 +60,7 @@ void Composite::draw(Point p, Point q) {
 	if (x1 < 0)
 		x1 = 0;
 	if (y1 < 0)
+
 		y1 = 0;
 	for (int i = x1/N; i<num_x && i<=x2/N; i++)
 		for (int j = y1/N; j<num_y && j<=y2/N; j++)
@@ -82,18 +68,18 @@ void Composite::draw(Point p, Point q) {
 }
 
 void Composite::start_() {
-	RGBA rgba = prefs.color.get();
+	RGBA rgba = prefs.color;
 	red = rgba.color.get_red_p();
 	green = rgba.color.get_green_p();
 	blue = rgba.color.get_blue_p();
 	alpha = ((double)rgba.alpha)/65535.0;
-	width = prefs.trace_width.get();
+	width = prefs.trace_width;
 }
 
 void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
-	if (!points.size())
+	if (points.empty())
 		return;
-	std::list<Trace::Point>::iterator i = points.begin();
+	auto i = points.begin();
 	ctx->move_to (i->x, i->y);
 	for (; i != points.end(); i++)
 		ctx->line_to (i->x, i->y);
@@ -106,7 +92,6 @@ void Popup::draw_line(Cairo::RefPtr<Cairo::Context> ctx) {
 	ctx->set_source_rgba(red, green, blue, alpha);
 	ctx->set_line_width(width*0.7);
 	ctx->stroke();
-
 }
 
 bool Popup::on_draw(const ::Cairo::RefPtr< ::Cairo::Context>& ctx) {

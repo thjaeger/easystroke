@@ -3,7 +3,7 @@ Configure Tap Zones and use them as buttons and separate scroll wheels. I've det
 Configure Tap Zones- http://ubuntuforums.org/showthread.php?t=1824870
 Set up tap zones to perform buttons and scroll wheels-  http://ubuntuforums.org/showthread.php?t=1859936
 
-*Using Easystroke to perform like Scrybe Gesture Workflows — Searching and Shopping*
+*Using Easy Gesture to perform like Scrybe Gesture Workflows — Searching and Shopping*
 
 First install xsel
 
@@ -44,11 +44,11 @@ any other search engines can be done using this.
 
 ## Mapping mouse buttons to keyboard shortcuts
 
-If you have a mouse button that you don't need, you can use easystroke to remap it to any command or keyboard shortcut.  Just add the button as an additional button (or use the gesture button if you don't want to use gestures).  Since you don't want to use the button for gestures, select "Instant Gestures" on the bottom of the button dialog.  To assign an action to the button, just press the button when recording a new gesture.  To assign a modifier to the mouse button, you can use the "Ignore" action type.
+If you have a mouse button that you don't need, you can use Easy Gesture to remap it to any command or keyboard shortcut.  Just add the button as an additional button (or use the gesture button if you don't want to use gestures).  Since you don't want to use the button for gestures, select "Instant Gestures" on the bottom of the button dialog.  To assign an action to the button, just press the button when recording a new gesture.  To assign a modifier to the mouse button, you can use the "Ignore" action type.
 
 ## Emulating a scroll wheel using a button
 
-If you don't have a scroll wheel, you can make easystroke emulate one by pressing a button and moving the cursor.  Add the button as an additional button of type "instant gestures" as above, and record a new gesture by clicking the button, then change the action's type to "Scroll".
+If you don't have a scroll wheel, you can make Easy Gesture emulate one by pressing a button and moving the cursor.  Add the button as an additional button of type "instant gestures" as above, and record a new gesture by clicking the button, then change the action's type to "Scroll".
 
 ## xte
 _xte_ is a handy little command-line tool that can emulate key presses and mouse clicks. In Debian/Ubuntu, it can be found in the xautomation package.
@@ -91,7 +91,7 @@ But Xrandr is perfectly capable of notifying applications of screen changes, so 
 
 # Useful Tablet PC apps
 
-These applications have nothing to do with easystroke per se, but I've found them highly valuable, so I'd like to spread the word.
+These applications have nothing to do with Easy Gesture per se, but I've found them highly valuable, so I'd like to spread the word.
   * [xournal](http://xournal.sourceforge.net/) is a great note-taking application. It supports PDF annotation and can take advantage of the full digitizer resolution.
   * [cellwriter](http://risujin.org/cellwriter) is a handwriting input panel/onscreen keyboard with a very pleasant and intuitive user interface.
   * [Grab and Drag](http://grabanddrag.mozdev.org/) is a firefox add-on that makes scrolling with a pen a breeze. It also works for thunderbird, by the way.
