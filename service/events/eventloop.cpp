@@ -52,14 +52,14 @@ void EventLoop::handle_event(XEvent &ev) {
             return;
 
         case GenericEvent:
-            if (ev.xcookie.extension == this->grabber->opcode && global_xServer->getEventData(&ev.xcookie)) {
+            if (ev.xcookie.extension == this->grabber->devices->opcode && global_xServer->getEventData(&ev.xcookie)) {
                 handle_xi2_event((XIDeviceEvent *) ev.xcookie.data);
                 global_xServer->freeEventData(&ev.xcookie);
             }
     }
 }
 
-static std::string render_coordinates(XIValuatorState *valuators, double *values) {
+static std::string  render_coordinates(XIValuatorState *valuators, double *values) {
     std::ostringstream ss;
     ss << std::setprecision(3) << std::fixed;
 
@@ -86,16 +86,6 @@ static std::string render_coordinates(XIValuatorState *valuators, double *values
     return ss.str();
 }
 
-static double get_axis(XIValuatorState &valuators, int axis) {
-    if (axis < 0 || !XIMaskIsSet(valuators.mask, axis))
-        return 0.0;
-    double *val = valuators.values;
-    for (int i = 0; i < axis; i++)
-        if (XIMaskIsSet(valuators.mask, i))
-            val++;
-    return *val;
-}
-
 void EventLoop::report_xi2_event(XIDeviceEvent *event, const char *type) {
     if (event->detail) {
         g_debug("%s (XI2): %d (%.3f, %.3f) - (%s) at t = %ld", type, event->detail, event->root_x, event->root_y,
@@ -117,7 +107,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             } else {
                 this->windowObserver->setCurrentWindow(event->child);
             }
-            current_dev = this->grabber->get_xi_dev(event->deviceid);
+            current_dev = this->grabber->devices->get_xi_dev(event->deviceid);
             if (!current_dev) {
                 g_warning("Warning: Spurious device event");
                 break;
@@ -125,14 +115,14 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             if (current_dev->master)
                 global_xServer->setClientPointer(None, current_dev->master);
             if (xinput_pressed.empty()) {
-                guint default_mods = this->grabber->get_default_mods(event->detail);
+                auto default_mods = this->grabber->buttonGrabber->get_default_mods(event->detail);
                 if (default_mods == AnyModifier || default_mods == (guint) event->mods.base)
                     modifiers = AnyModifier;
                 else
                     modifiers = event->mods.base;
             }
             xinput_pressed.insert(event->detail);
-            in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
+            in_proximity = current_dev->inProximity(event->valuators);
             handler->top()->press(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_ButtonRelease:
@@ -141,7 +131,7 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             if (!current_dev || current_dev->dev != event->deviceid)
                 break;
             xinput_pressed.erase(event->detail);
-            in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
+            in_proximity = current_dev->inProximity(event->valuators);
             handler->top()->release(event->detail, CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_Motion:
@@ -152,11 +142,11 @@ void EventLoop::handle_xi2_event(XIDeviceEvent *event) {
             handler->top()->motion(CursorPosition(event->root_x, event->root_y, event->time));
             break;
         case XI_RawMotion:
-            in_proximity = get_axis(((XIRawEvent *) event)->valuators, current_dev->proximity_axis);
+            in_proximity = current_dev->inProximity(((XIRawEvent *) event)->valuators);
             handle_raw_motion((XIRawEvent *) event);
             break;
         case XI_HierarchyChanged:
-            this->grabber->hierarchy_changed((XIHierarchyEvent *) event);
+            this->grabber->devices->hierarchy_changed((XIHierarchyEvent *) event);
     }
 }
 
@@ -193,7 +183,7 @@ bool EventLoop::handle(Glib::IOCondition) {
             XEvent ev;
             this->xServer->nextEvent(&ev);
             handle_event(ev);
-        } catch (GrabFailedException &e) {
+        } catch (Events::GrabFailedException &e) {
             g_error("%s", e.what());
         }
     }
@@ -280,8 +270,10 @@ class ReloadTrace : public Timeout {
 static void schedule_reload_trace() { reload_trace.set_timeout(1000); }
 
 EventLoop::EventLoop(std::shared_ptr<XServerProxy> xServer)
-        : xServer(std::move(xServer)), current_dev(nullptr),
-          in_proximity(false), modifiers(0) {
+        : xServer(std::move(xServer)),
+          current_dev(nullptr),
+          in_proximity(false),
+          modifiers(0) {
     int n, opcode, event, error;
     char **ext = global_xServer->listExtensions(&n);
     for (int i = 0; i < n; i++) {
