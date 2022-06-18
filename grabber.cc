@@ -424,10 +424,18 @@ void Grabber::grab_xi(bool grab) {
 	if (!xi_grabbed == !grab)
 		return;
 	xi_grabbed = grab;
-	for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
-		if (i->second->active)
-			for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
-				i->second->grab_button(*j, grab);
+    if (! experimental) { //standard behaviour; only grab enabled devices
+        for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+                if (i->second->active)
+                    for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
+                        i->second->grab_button(*j, grab );
+    }
+    else { //modified behaviour; also grab additional buttons of disabled devices
+        for (DeviceMap::iterator i = xi_devs.begin(); i != xi_devs.end(); ++i)
+                for (std::vector<ButtonInfo>::iterator j = buttons.begin(); j != buttons.end(); j++)
+                    if (i->second->active || j!=buttons.begin() )
+                        i->second->grab_button(*j, grab );
+    }
 }
 
 void Grabber::XiDevice::grab_device(GrabState grab) {
