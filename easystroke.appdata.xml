@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2014 Thomas Jaeger <ThJaeger@gmail.com> -->
+<component type="desktop">
+ <id>easystroke.desktop</id>
+ <metadata_license>CC0-1.0</metadata_license>
+ <project_license>ISC</project_license>
+ <name>Easystroke</name>
+ <summary>Gesture-recognition application for X11</summary>
+ <description>
+  <p>
+   Easystroke is a gesture-recognition application for X11. Gestures or strokes
+   are movements that you make with you mouse (or your pen, finger etc.) while
+   holding down a specific mouse button. Easystroke will execute certain actions
+   if it recognizes the stroke; currently easystroke can emulate key presses,
+   execute shell commands, hold down modifiers and emulate a scroll wheel.
+  </p>
+  <p>
+   The program was designed with Tablet PCs in mind and can be used effectively
+   even without access to a keyboard. Easystroke tries to provide an intuitive
+   and efficient user interface, while at the same time being highly configurable
+   and offering many advanced features.
+  </p>
+ </description>
+ <screenshots>
+  <screenshot type="default">
+   <image width="1024" height="576">
+    https://alexpl.fedorapeople.org/AppData/easystroke/screens/easystroke_01.png
+   </image>
+  </screenshot>
+  <screenshot>
+   <image width="1024" height="576">
+    https://alexpl.fedorapeople.org/AppData/easystroke/screens/easystroke_02.png
+   </image>
+  </screenshot>
+  <screenshot>
+   <image width="1024" height="576">
+    https://alexpl.fedorapeople.org/AppData/easystroke/screens/easystroke_03.png
+   </image>
+  </screenshot>
+ </screenshots>
+ <url type="homepage">https://github.com/thjaeger/easystroke/wiki</url>
+ <updatecontact>ThJaeger@gmail.com</updatecontact>
+</component>

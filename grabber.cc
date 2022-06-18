@@ -367,7 +367,7 @@ void Grabber::new_device(XIDeviceInfo *info) {
 		}
 }
 
-Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(false), proximity_axis(-1), scale_x(1.0), scale_y(1.0), num_buttons(0) {
+Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(false), active(true), proximity_axis(-1), scale_x(1.0), scale_y(1.0), num_buttons(0) {
 	static XAtom PROXIMITY(AXIS_LABEL_PROP_ABS_DISTANCE);
 	dev = info->deviceid;
 	name = info->name;
@@ -398,7 +398,7 @@ Grabber::XiDevice::XiDevice(Grabber *parent, XIDeviceInfo *info) : absolute(fals
 
 Grabber::XiDevice *Grabber::get_xi_dev(int id) {
 	DeviceMap::iterator i = xi_devs.find(id);
-	return i == xi_devs.end() ? NULL : i->second.get();
+	return i == xi_devs.end() ? nullptr : i->second.get();
 }
 
 void Grabber::XiDevice::grab_button(ButtonInfo &bi, bool grab) {

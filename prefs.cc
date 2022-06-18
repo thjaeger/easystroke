@@ -299,9 +299,9 @@ Prefs::Prefs() {
 
 	CellRendererTextish *button_renderer = cell_renderer_textish_new ();
 	button_renderer->mode = CELL_RENDERER_TEXTISH_MODE_Popup;
-	GtkTreeViewColumn *col_button = gtk_tree_view_column_new_with_attributes(_("Button"), GTK_CELL_RENDERER (button_renderer), "text", cols.button.index(), NULL);
+	GtkTreeViewColumn *col_button = gtk_tree_view_column_new_with_attributes(_("Button"), GTK_CELL_RENDERER (button_renderer), "text", cols.button.index(), nullptr);
 	gtk_tree_view_append_column(tv->gobj(), col_button);
-	g_object_set(button_renderer, "editable", true, NULL);
+	g_object_set(button_renderer, "editable", true, nullptr);
 	g_signal_connect(button_renderer, "editing-started", G_CALLBACK(on_prefs_editing_started), this);
 
 	bbutton->signal_clicked().connect(sigc::mem_fun(*this, &Prefs::on_select_button));
@@ -426,6 +426,8 @@ void Prefs::on_edit_extra() {
 	etv->get_cursor(path, col);
 	if (!path.gobj())
 		return;
+	if (path.empty())
+		return;
 	Gtk::TreeIter iter = *etm->get_iter(path);
 	std::vector<ButtonInfo>::iterator i = (*iter)[ecs.i];
 	SelectButton sb(*i, true, true);
@@ -447,6 +449,8 @@ void Prefs::on_remove_extra() {
 	Gtk::TreeViewColumn *col;
 	etv->get_cursor(path, col);
 	if (!path.gobj())
+		return;
+	if (path.empty())
 		return;
 	Gtk::TreeIter iter = *etm->get_iter(path);
 	Atomic a;

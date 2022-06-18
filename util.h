@@ -19,11 +19,11 @@
 #include <glibmm.h>
 
 class Timeout {
-	// Invariant: c == &connection || c == NULL
+	// Invariant: c == &connection || c == nullptr
 	sigc::connection *c;
 	sigc::connection connection;
 	// We have to account for the possibilty that timeout() destroys the object
-	bool to() { c = NULL; timeout(); return false; }
+	bool to() { c = nullptr; timeout(); return false; }
 public:
 	Timeout() : c(0) {}
 protected:

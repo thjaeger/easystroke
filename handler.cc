@@ -23,8 +23,10 @@
 #include <X11/extensions/XTest.h>
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
+#include <cmath>  // std::abs(float)
+using std::abs;
 
-XState *xstate = NULL;
+XState *xstate = nullptr;
 
 extern Window get_app_window(Window w);
 extern Source<Window> current_app_window;
@@ -143,7 +145,7 @@ Window XState::get_window(Window w, Atom prop) {
 	Atom actual_type;
 	int actual_format;
 	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = NULL;
+	unsigned char *prop_return = nullptr;
 
 	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, XA_WINDOW, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
@@ -159,7 +161,7 @@ Atom XState::get_atom(Window w, Atom prop) {
 	Atom actual_type;
 	int actual_format;
 	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = NULL;
+	unsigned char *prop_return = nullptr;
 
 	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
@@ -175,7 +177,7 @@ bool XState::has_atom(Window w, Atom prop, Atom value) {
 	Atom actual_type;
 	int actual_format;
 	unsigned long nitems, bytes_after;
-	unsigned char *prop_return = NULL;
+	unsigned char *prop_return = nullptr;
 
 	if (XGetWindowProperty(dpy, w, prop, 0, sizeof(Atom), False, XA_ATOM, &actual_type, &actual_format,
 				&nitems, &bytes_after, &prop_return) != Success)
@@ -404,7 +406,7 @@ public:
 		if (xstate->current_dev->master)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 		if (proximity && !xstate->in_proximity)
-			parent->replace_child(NULL);
+			parent->replace_child(nullptr);
 	}
 	virtual void release(guint b, RTriple e) {
 		if (xstate->current_dev->master) {
@@ -412,7 +414,7 @@ public:
 			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
 		}
 		if (proximity ? !xstate->in_proximity : !xstate->xinput_pressed.size())
-			parent->replace_child(NULL);
+			parent->replace_child(nullptr);
 	}
 	virtual std::string name() { return "Ignore"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -443,7 +445,7 @@ public:
 		if (xstate->current_dev->master)
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 		if (proximity && !xstate->in_proximity)
-			parent->replace_child(NULL);
+			parent->replace_child(nullptr);
 	}
 	virtual void release(guint b, RTriple e) {
 		if (xstate->current_dev->master) {
@@ -453,14 +455,14 @@ public:
 			XTestFakeButtonEvent(dpy, b, false, CurrentTime);
 		}
 		if (proximity ? !xstate->in_proximity : !xstate->xinput_pressed.size())
-			parent->replace_child(NULL);
+			parent->replace_child(nullptr);
 	}
 	virtual std::string name() { return "Button"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
 };
 
 void XState::bail_out() {
-	handler->replace_child(NULL);
+	handler->replace_child(nullptr);
 	xinput_pressed.clear();
 	XFlush(dpy);
 }
@@ -513,7 +515,7 @@ void XState::ping() {
 
 void XState::remove_device(int deviceid) {
 	if (current_dev && current_dev->dev == deviceid)
-		current_dev = NULL;
+		current_dev = nullptr;
 }
 
 void XState::ungrab(int deviceid) {
@@ -528,12 +530,10 @@ public:
 		printf("Warning: %s timed out\n", "WaitForPongHandler");
 		xstate->bail_out();
 	}
-	virtual void pong() { parent->replace_child(NULL); }
+	virtual void pong() { parent->replace_child(nullptr); }
 	virtual std::string name() { return "WaitForPong"; }
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
-
-static inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;
@@ -544,8 +544,8 @@ class AbstractScrollHandler : public Handler {
 	int orig_x, orig_y;
 
 protected:
-	AbstractScrollHandler() : last_t(0), offset_x(0.0), offset_y(0.0) {
-		if (!prefs.move_back.get() || xstate->current_dev->absolute)
+	AbstractScrollHandler() : have_x(false), have_y(false), last_x(0.0), last_y(0.0), last_t(0), offset_x(0.0), offset_y(0.0) {
+		if (!prefs.move_back.get() || (xstate->current_dev && xstate->current_dev->absolute))
 			return;
 		Window dummy1, dummy2;
 		int dummy3, dummy4;
@@ -563,7 +563,7 @@ protected:
 	}
 protected:
 	void move_back() {
-		if (!prefs.move_back.get() || xstate->current_dev->absolute)
+		if (!prefs.move_back.get())
 			return;
 		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig_x, orig_y, 0);
 	}
@@ -626,7 +626,6 @@ public:
 
 class ScrollHandler : public AbstractScrollHandler {
 	RModifiers mods;
-	int orig_x, orig_y;
 	bool proximity;
 public:
 	ScrollHandler(RModifiers mods_) : mods(mods_) {
@@ -634,7 +633,7 @@ public:
 	}
 	virtual void raw_motion(RTriple e, bool abs_x, bool abs_y) {
 		if (proximity && !xstate->in_proximity) {
-			parent->replace_child(NULL);
+			parent->replace_child(nullptr);
 			move_back();
 		}
 		if (xstate->xinput_pressed.size())
@@ -664,13 +663,13 @@ public:
 	}
 	virtual void release(guint b, RTriple e) {
 		Handler *p = parent;
-		p->replace_child(NULL);
+		p->replace_child(nullptr);
 		p->release(b, e);
 		move_back();
 	}
 	virtual void press(guint b, RTriple e) {
 		Handler *p = parent;
-		p->replace_child(NULL);
+		p->replace_child(nullptr);
 		p->press(b, e);
 		move_back();
 	}
@@ -692,7 +691,7 @@ public:
 		if (stroke_action)
 			(*stroke_action)(s);
 		if (xstate->xinput_pressed.size() == 0)
-			parent->replace_child(NULL);
+			parent->replace_child(nullptr);
 	}
 	virtual std::string name() { return "InstantStrokeAction"; }
 	virtual Grabber::State grab_mode() { return Grabber::NONE; }
@@ -822,7 +821,7 @@ public:
 				mods.clear();
 				xstate->fake_click(b);
 			}
-			return parent->replace_child(NULL);
+			return parent->replace_child(nullptr);
 		}
 		replay_button = 0;
 		mods.erase((b == button1) ? button2 : b);
@@ -969,14 +968,14 @@ protected:
 	virtual void release(guint b, RTriple e) {
 		RStroke s = finish(0);
 
-		if (prefs.move_back.get() && !xstate->current_dev->absolute)
+		if (prefs.move_back.get())
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
 		else
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);
 
 		if (stroke_action) {
 			(*stroke_action)(s);
-			return parent->replace_child(NULL);
+			return parent->replace_child(nullptr);
 		}
 		RRanking ranking;
 		RAction act = actions.get_action_list(grabber->current_class->get())->handle(s, ranking);
@@ -984,7 +983,7 @@ protected:
 			Ranking::queue_show(ranking, e);
 		if (!act) {
 			XkbBell(dpy, None, 0, None);
-			return parent->replace_child(NULL);
+			return parent->replace_child(nullptr);
 		}
 		RModifiers mods = act->prepare();
 		if (IS_CLICK(act))
@@ -1009,7 +1008,7 @@ protected:
 		unsetenv("EASYSTROKE_Y1");
 		unsetenv("EASYSTROKE_X2");
 		unsetenv("EASYSTROKE_Y2");
-		parent->replace_child(NULL);
+		parent->replace_child(nullptr);
 	}
 public:
 	StrokeHandler(guint b, RTriple e) :
@@ -1099,7 +1098,7 @@ std::string XState::select_window() {
 	return grabber->current_class->get();
 }
 
-XState::XState() : current_dev(NULL), in_proximity(false), accepted(true) {
+XState::XState() : current_dev(nullptr), in_proximity(false), accepted(true), modifiers(0) {
 	int n, opcode, event, error;
 	char **ext = XListExtensions(dpy, &n);
 	for (int i = 0; i < n; i++)
@@ -1115,6 +1114,8 @@ XState::XState() : current_dev(NULL), in_proximity(false), accepted(true) {
 
 void XState::run_action(RAction act) {
 	RModifiers mods = act->prepare();
+	IF_BUTTON(act, b)
+		return handler->replace_child(new ButtonHandler(mods, b));
 	if (IS_IGNORE(act))
 		return handler->replace_child(new IgnoreHandler(mods));
 	if (IS_SCROLL(act))

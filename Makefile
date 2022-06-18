@@ -21,9 +21,11 @@ LOCALEDIR= $(PREFIX)/share/locale
 DFLAGS   =
 OFLAGS   = -O2
 AOFLAGS  = -O3
-STROKEFLAGS  = -Wall -std=c99 $(DFLAGS)
-CXXFLAGS = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtkmm-3.0 dbus-glib-1 --cflags`
-CFLAGS   = -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" `pkg-config gtk+-3.0 --cflags` -DGETTEXT_PACKAGE='"easystroke"'
+STROKEFLAGS  = -Wall -std=c11 $(DFLAGS)
+CXXSTD = -std=c++11
+INCLUDES = $(shell pkg-config gtkmm-3.0 dbus-glib-1 --cflags)
+CXXFLAGS = $(CXXSTD) -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" $(INCLUDES)
+CFLAGS   = -std=c11 -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" $(INCLUDES) -DGETTEXT_PACKAGE='"easystroke"'
 LDFLAGS  = $(DFLAGS)
 
 LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst `pkg-config gtkmm-3.0 dbus-glib-1 --libs`
@@ -51,7 +53,7 @@ DIST     = easystroke-$(VERSION)
 
 all: $(BINARY) $(MOFILES)
 
-.PHONY: all clean translate update-translations compile-translations
+.PHONY: all clean translate update-translations compile-translations complete
 
 clean:
 	$(RM) $(OFILES) $(BINARY) $(GENFILES) $(DEPFILES) $(MANPAGE) $(GZFILES) po/*.pot
@@ -146,3 +148,9 @@ tmp/$(DIST): $(GIT)
 $(DIST).tar.gz: tmp/$(DIST)
 	tar -czf $@ -C tmp/ $(DIST)
 	$(RM) -r tmp
+
+complete: .clang_complete
+
+.clang_complete: Makefile
+	@echo $(CXXSTD) > $@
+	@$(foreach inc,$(INCLUDES),echo $(inc) >> $@;)

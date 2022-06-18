@@ -14,7 +14,6 @@
  * CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include "gesture.h"
-#include "prefdb.h"
 
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
@@ -33,41 +32,6 @@ RTriple create_triple(float x, float y, Time t) {
 	RTriple e(new Triple);
 	update_triple(e, x, y, t);
 	return e;
-}
-
-template<class Archive> void Stroke::save(Archive & ar, const unsigned int version) const {
-	std::vector<Point> ps;
-	for (unsigned int i = 0; i < size(); i++)
-		ps.push_back(points(i));
-	ar & ps;
-	ar & button;
-	ar & trigger;
-	ar & timeout;
-	ar & modifiers;
-}
-
-template<class Archive> void Stroke::load(Archive & ar, const unsigned int version) {
-	std::vector<Point> ps;
-	ar & ps;
-	if (ps.size()) {
-		stroke_t *s = stroke_alloc(ps.size());
-		for (std::vector<Point>::iterator i = ps.begin(); i != ps.end(); ++i)
-			stroke_add_point(s, i->x, i->y);
-		stroke_finish(s);
-		stroke.reset(s, &stroke_free);
-	}
-	if (version == 0) return;
-	ar & button;
-	if (version >= 2)
-		ar & trigger;
-	if (version < 4 && (!button || trigger == (int)prefs.button.get().button))
-		trigger = 0;
-	if (version < 3)
-		return;
-	ar & timeout;
-	if (version < 5)
-		return;
-	ar & modifiers;
 }
 
 Stroke::Stroke(PreStroke &ps, int trigger_, int button_, unsigned int modifiers_, bool timeout_) : trigger(trigger_), button(button_), modifiers(modifiers_), timeout(timeout_) {
@@ -99,7 +63,7 @@ int Stroke::compare(RStroke a, RStroke b, double &score) {
 		}
 		return -1;
 	}
-	double cost = stroke_compare(a->stroke.get(), b->stroke.get(), NULL, NULL);
+	double cost = stroke_compare(a->stroke.get(), b->stroke.get(), nullptr, nullptr);
 	if (cost >= stroke_infinity)
 		return -1;
 	score = MAX(1.0 - 2.5*cost, 0.0);

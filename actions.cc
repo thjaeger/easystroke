@@ -51,10 +51,11 @@ void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context)
 	context->set_icon(pb, pb->get_width(), pb->get_height());
 }
 
-bool negate(bool b) { return !b; }
-
 TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
-	get_selection()->set_select_function(sigc::group(&negate, sigc::ref(pending)));
+	get_selection()->set_select_function(
+		[this](Glib::RefPtr<Gtk::TreeModel> const&, Gtk::TreeModel::Path const&, bool) {
+			return !pending;
+		});
 }
 
 enum Type { COMMAND, KEY, TEXT, SCROLL, IGNORE, BUTTON, MISC };
@@ -131,6 +132,7 @@ Actions::Actions() :
 	Gtk::Button *button_add, *button_add_app, *button_add_group;
 	widgets->get_widget("button_add_action", button_add);
 	widgets->get_widget("button_delete_action", button_delete);
+	widgets->get_widget("button_dup_action", button_dup);
 	widgets->get_widget("button_record", button_record);
 	widgets->get_widget("button_add_app", button_add_app);
 	widgets->get_widget("button_add_group", button_add_group);
@@ -141,6 +143,7 @@ Actions::Actions() :
 	widgets->get_widget("vpaned_apps", vpaned_apps);
 	button_record->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_record));
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
+	button_dup->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_dup));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
 	button_add_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_app));
 	button_add_group->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_group));
@@ -193,12 +196,12 @@ Actions::Actions() :
 	int i = 0;
 	while (Misc::types[i]) i++;
 	CellRendererTextish *arg_renderer = cell_renderer_textish_new_with_items ((gchar**)Misc::types, i);
-	GtkTreeViewColumn *col_arg = gtk_tree_view_column_new_with_attributes(_("Details"), GTK_CELL_RENDERER (arg_renderer), "text", cols.arg.index(), NULL);
+	GtkTreeViewColumn *col_arg = gtk_tree_view_column_new_with_attributes(_("Details"), GTK_CELL_RENDERER (arg_renderer), "text", cols.arg.index(), nullptr);
 	gtk_tree_view_append_column(tv.gobj(), col_arg);
 
-	gtk_tree_view_column_set_cell_data_func (col_arg, GTK_CELL_RENDERER (arg_renderer), on_actions_cell_data_arg, this, NULL);
+	gtk_tree_view_column_set_cell_data_func (col_arg, GTK_CELL_RENDERER (arg_renderer), on_actions_cell_data_arg, this, nullptr);
 	gtk_tree_view_column_set_resizable(col_arg, true);
-	g_object_set(arg_renderer, "editable", true, NULL);
+	g_object_set(arg_renderer, "editable", true, nullptr);
 	g_signal_connect(arg_renderer, "key-edited", G_CALLBACK(on_actions_accel_edited), this);
 	g_signal_connect(arg_renderer, "combo-edited", G_CALLBACK(on_actions_combo_edited), this);
 	g_signal_connect(arg_renderer, "edited", G_CALLBACK(on_actions_text_edited), this);
@@ -262,7 +265,7 @@ void Actions::on_cell_data_arg(GtkCellRenderer *cell, gchar *path) {
 	Gtk::TreeModel::iterator iter = tm->get_iter(path);
 	bool bold = (*iter)[cols.action_bold];
 	bool deactivated = (*iter)[cols.deactivated];
-	g_object_set(cell, "sensitive", !deactivated, "weight", bold ? 700 : 400, NULL);
+	g_object_set(cell, "sensitive", !deactivated, "weight", bold ? 700 : 400, nullptr);
 	CellRendererTextish *renderer = CELL_RENDERER_TEXTISH (cell);
 	if (!renderer)
 		return;
@@ -309,7 +312,7 @@ bool Actions::AppsStore::row_drop_possible_vfunc(const Gtk::TreeModel::Path &des
 	if (model != parent->tm)
 		return false;
 	Gtk::TreeIter dest_iter = parent->apps_model->get_iter(dest);
-	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
+	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)nullptr;
 	return actions && actions != parent->action_list;
 }
 
@@ -322,7 +325,7 @@ bool Actions::AppsStore::drag_data_received_vfunc(const Gtk::TreeModel::Path &de
 		return false;
 	Unique *src_id = (*parent->tm->get_iter(src))[parent->cols.id];
 	Gtk::TreeIter dest_iter = parent->apps_model->get_iter(dest);
-	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)NULL;
+	ActionListDiff *actions = dest_iter ? (*dest_iter)[parent->ca.actions] : (ActionListDiff *)nullptr;
 	if (!actions || actions == parent->action_list)
 		return false;
 	Glib::RefPtr<Gtk::TreeSelection> sel = parent->tv.get_selection();
@@ -507,6 +510,40 @@ void Actions::on_button_delete() {
 		action_list->remove(row[cols.id]);
 	}
 	update_action_list();
+	update_actions();
+	update_counts();
+}
+
+void Actions::on_button_dup() {
+	editing_new = true;
+	Unique *before = 0;
+	Glib::ustring name;
+	if (tv.get_selection()->count_selected_rows()) {
+		std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
+		Gtk::TreeIter i = tm->get_iter(paths[paths.size()-1]);
+		//i++;
+		//if (i != tm->children().end())
+		before = (*i)[cols.id];
+		name =  (*i)[cols.name];
+	}
+
+	RStrokeInfo src = action_list->get_info(before);
+
+	Gtk::TreeModel::Row row = *(tm->append());
+	StrokeInfo si;
+	si.action = src->action;
+	si.strokes = src->strokes;
+	Unique *id = action_list->add(si);
+	row[cols.id] = id;
+	action_list->set_name(id,name);
+	//std::string name;
+	/*if (action_list != actions.get_root())
+		name = action_list->name + " ";
+	name += Glib::ustring::compose(_("Gesture %1"), action_list->order_size());
+	action_list->set_name(id, name);*/
+
+	update_row(row);
+	focus(id, 1, true);
 	update_actions();
 	update_counts();
 }
@@ -752,7 +789,7 @@ void Actions::on_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewCo
 	}
 	RStrokeInfo si = action_list->get_info(row[cols.id]);
 	if (si)
-		del->set_sensitive(si->strokes.size());
+		del->set_sensitive(si->strokes.size() != 0);
 
 	OnStroke ps(this, dialog, row);
 	stroke_action.reset(new sigc::slot<void, RStroke>(sigc::mem_fun(ps, &OnStroke::delayed_run)));
@@ -789,6 +826,7 @@ void Actions::on_selection_changed() {
 	int n = tv.get_selection()->count_selected_rows();
 	button_record->set_sensitive(n == 1);
 	button_delete->set_sensitive(n >= 1);
+	button_dup->set_sensitive(n >= 1);
 	bool resettable = false;
 	if (n) {
 		std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
