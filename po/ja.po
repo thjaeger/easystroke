@@ -375,7 +375,7 @@ msgid "Show popups ("
 msgstr "ポップアップを表示 ("
 
 msgid "to the right of the cursor)"
-msgstr ""
+msgstr "カーソルの右側)"
 
 msgid "Show tray icon"
 msgstr "トレイアイコンを表示"
@@ -402,7 +402,7 @@ msgid "Preferences"
 msgstr "設定"
 
 msgid "Only enable easystroke for applications listed on 'Actions' tab"
-msgstr ""
+msgstr "アクションタブに登録されているアプリケーションのみ easystroke を有効にする"
 
 msgid "Timeout Gestures"
 msgstr "タイムアウト・ジェスチャ"

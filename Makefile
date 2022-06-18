@@ -12,23 +12,22 @@
 #  OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
 #  CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-DESTDIR  =
-PREFIX   = /usr/local
+#DESTDIR =
+PREFIX   ?= /usr/local
 BINDIR   = $(PREFIX)/bin
 ICONDIR  = $(PREFIX)/share/icons/hicolor/scalable/apps
 MENUDIR  = $(PREFIX)/share/applications
 LOCALEDIR= $(PREFIX)/share/locale
-DFLAGS   =
+#DFLAGS  =
 OFLAGS   = -O2
 AOFLAGS  = -O3
-STROKEFLAGS  = -Wall -std=c11 $(DFLAGS)
 CXXSTD = -std=c++11
 INCLUDES = $(shell pkg-config gtkmm-3.0 dbus-glib-1 --cflags)
-CXXFLAGS = $(CXXSTD) -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" $(INCLUDES)
-CFLAGS   = -std=c11 -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" $(INCLUDES) -DGETTEXT_PACKAGE='"easystroke"'
-LDFLAGS  = $(DFLAGS)
+CXXFLAGS += $(CXXSTD) -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" $(INCLUDES)
+CFLAGS   += -std=c11 -Wall $(DFLAGS) -DLOCALEDIR=\"$(LOCALEDIR)\" $(INCLUDES) -DGETTEXT_PACKAGE='"easystroke"'
+LDFLAGS  += $(DFLAGS)
 
-LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst `pkg-config gtkmm-3.0 dbus-glib-1 --libs`
+LIBS     = $(DFLAGS) -lboost_serialization -lX11 -lXext -lXi -lXfixes -lXtst $(shell pkg-config gtkmm-3.0 dbus-glib-1 --libs)
 
 BINARY   = easystroke
 ICON     = easystroke.svg
@@ -65,7 +64,7 @@ $(BINARY): $(OFILES)
 	$(CXX) $(LDFLAGS) -o $@ $(OFILES) $(LIBS)
 
 stroke.o: stroke.c
-	$(CC) $(STROKEFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
+	$(CC) $(CFLAGS) $(AOFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<
 
 %.o: %.c
 	$(CC) $(CFLAGS) $(OFLAGS) -MT $@ -MMD -MP -MF $*.Po -o $@ -c $<

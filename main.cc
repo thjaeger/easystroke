@@ -70,6 +70,7 @@ static Trace *init_trace() {
 			case TraceNone:
 				return new Trivial();
 			case TraceShape:
+			case TraceDefault:
 				return new Shape();
 			case TraceAnnotate:
 				return new Annotate();
@@ -320,6 +321,8 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
 			disabled.set(true);
 		} else if (!strcmp(arg[i], "enable")) {
 			disabled.set(false);
+		} else if (!strcmp(arg[i], "toggle")) {
+			disabled.set(!disabled.get());
 		} else if (!strcmp(arg[i], "about")) {
 			win->show_about();
 		} else if (!strcmp(arg[i], "quit")) {
@@ -437,6 +440,7 @@ void App::usage(const char *me) {
 	printf("  hide                   Hide configuration window\n");
 	printf("  disable                Disable easystroke\n");
 	printf("  enable                 Enable easystroke\n");
+	printf("  toggle                 Toggle easystroke\n");
 	printf("  about                  Show about dialog\n");
 	printf("  quit                   Quit easystroke\n");
 	printf("\n");

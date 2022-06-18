@@ -23,6 +23,8 @@
 #include <X11/extensions/XTest.h>
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
+#include <cmath>  // std::abs(float)
+using std::abs;
 
 XState *xstate = nullptr;
 
@@ -281,6 +283,17 @@ void XState::handle_xi2_event(XIDeviceEvent *event) {
 				break;
 			xinput_pressed.erase(event->detail);
 			in_proximity = get_axis(event->valuators, current_dev->proximity_axis);
+
+            if (experimental) //if device is disabled, but extra buttons followed, treat last extra button as the default button
+                for (std::set<std::string>::iterator i = prefs.excluded_devices.ref().begin(); i != prefs.excluded_devices.ref().end(); i++)
+                    if (! i->compare(grabber->get_xi_dev(event->deviceid)->name) ) //check if the grabbed device name is in disabled device list
+                    {
+
+                        if (  prefs.extra_buttons.ref().size() && (guint) event->detail == prefs.extra_buttons.ref().rbegin()->button) //check if the button is same as last extra button
+                            event->detail = 100+event->detail; //fake the default button
+                            //event->detail = prefs.button.ref().button; //fake the default button
+                    }
+
 			H->release(event->detail, create_triple(event->root_x, event->root_y, event->time));
 			break;
 		case XI_Motion:
@@ -533,8 +546,6 @@ public:
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
 
-static inline float abs(float x) { return x > 0 ? x : -x; }
-
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;
 	float last_x, last_y;
@@ -563,7 +574,7 @@ protected:
 	}
 protected:
 	void move_back() {
-		if (!prefs.move_back.get() || (xstate->current_dev && xstate->current_dev->absolute))
+		if (!prefs.move_back.get())
 			return;
 		XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig_x, orig_y, 0);
 	}
@@ -968,7 +979,14 @@ protected:
 	virtual void release(guint b, RTriple e) {
 		RStroke s = finish(0);
 
-		if (prefs.move_back.get() && !xstate->current_dev->absolute)
+        if (experimental) //button 1 should be treated as trigger 0, other trigger buttons copied from the event button b itself
+            if (b>100) 
+            {
+                b=b-100;
+                s->trigger = prefs.button.ref().button-1; 
+            }
+        
+		if (prefs.move_back.get())
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), orig->x, orig->y, 0);
 		else
 			XTestFakeMotionEvent(dpy, DefaultScreen(dpy), e->x, e->y, 0);

@@ -51,10 +51,11 @@ void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context)
 	context->set_icon(pb, pb->get_width(), pb->get_height());
 }
 
-bool negate(bool b) { return !b; }
-
 TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
-	get_selection()->set_select_function(sigc::group(&negate, sigc::ref(pending)));
+	get_selection()->set_select_function(
+		[this](Glib::RefPtr<Gtk::TreeModel> const&, Gtk::TreeModel::Path const&, bool) {
+			return !pending;
+		});
 }
 
 enum Type { COMMAND, KEY, TEXT, SCROLL, IGNORE, BUTTON, MISC };
@@ -131,6 +132,7 @@ Actions::Actions() :
 	Gtk::Button *button_add, *button_add_app, *button_add_group;
 	widgets->get_widget("button_add_action", button_add);
 	widgets->get_widget("button_delete_action", button_delete);
+	widgets->get_widget("button_dup_action", button_dup);
 	widgets->get_widget("button_record", button_record);
 	widgets->get_widget("button_add_app", button_add_app);
 	widgets->get_widget("button_add_group", button_add_group);
@@ -141,6 +143,7 @@ Actions::Actions() :
 	widgets->get_widget("vpaned_apps", vpaned_apps);
 	button_record->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_record));
 	button_delete->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_delete));
+	button_dup->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_dup));
 	button_add->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_button_new));
 	button_add_app->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_app));
 	button_add_group->signal_clicked().connect(sigc::mem_fun(*this, &Actions::on_add_group));
@@ -474,7 +477,7 @@ void Actions::on_type_edited(const Glib::ustring &path, const Glib::ustring &new
 		update_actions();
 	}
 	editing_new = false;
-	focus(row[cols.id], 3, edit);
+	if (new_type != MISC) focus(row[cols.id], 3, edit);
 }
 
 void Actions::on_button_delete() {
@@ -507,6 +510,40 @@ void Actions::on_button_delete() {
 		action_list->remove(row[cols.id]);
 	}
 	update_action_list();
+	update_actions();
+	update_counts();
+}
+
+void Actions::on_button_dup() {
+	editing_new = true;
+	Unique *before = 0;
+	Glib::ustring name;
+	if (tv.get_selection()->count_selected_rows()) {
+		std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
+		Gtk::TreeIter i = tm->get_iter(paths[paths.size()-1]);
+		//i++;
+		//if (i != tm->children().end())
+		before = (*i)[cols.id];
+		name =  (*i)[cols.name];
+	}
+
+	RStrokeInfo src = action_list->get_info(before);
+
+	Gtk::TreeModel::Row row = *(tm->append());
+	StrokeInfo si;
+	si.action = src->action;
+	si.strokes = src->strokes;
+	Unique *id = action_list->add(si);
+	row[cols.id] = id;
+	action_list->set_name(id,name);
+	//std::string name;
+	/*if (action_list != actions.get_root())
+		name = action_list->name + " ";
+	name += Glib::ustring::compose(_("Gesture %1"), action_list->order_size());
+	action_list->set_name(id, name);*/
+
+	update_row(row);
+	focus(id, 1, true);
 	update_actions();
 	update_counts();
 }
@@ -789,6 +826,7 @@ void Actions::on_selection_changed() {
 	int n = tv.get_selection()->count_selected_rows();
 	button_record->set_sensitive(n == 1);
 	button_delete->set_sensitive(n >= 1);
+	button_dup->set_sensitive(n >= 1);
 	bool resettable = false;
 	if (n) {
 		std::vector<Gtk::TreePath> paths = tv.get_selection()->get_selected_rows();
