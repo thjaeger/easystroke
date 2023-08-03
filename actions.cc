@@ -54,9 +54,9 @@ void TreeViewMulti::on_drag_begin(const Glib::RefPtr<Gdk::DragContext> &context)
 }
 
 TreeViewMulti::TreeViewMulti() : Gtk::TreeView(), pending(false) {
-	get_selection()->set_select_function( [](const Glib::RefPtr<Gtk::TreeModel>& model,
+	get_selection()->set_select_function( [this](const Glib::RefPtr<Gtk::TreeModel>& model,
 	        const Gtk::TreeModel::Path& path, bool path_currently_selected) -> bool {
-	            return !path_currently_selected;
+	            return !this->pending;
 	    } );
 }
 
