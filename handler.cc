@@ -77,7 +77,7 @@ void XState::handle_event(XEvent &ev) {
 	case ButtonPress:
 		if (verbosity >= 3)
 			printf("Press (master): %d (%d, %d) at t = %ld\n", ev.xbutton.button, ev.xbutton.x, ev.xbutton.y, ev.xbutton.time);
-			H->press_master(ev.xbutton.button, ev.xbutton.time);
+		H->press_master(ev.xbutton.button, ev.xbutton.time);
 		return;
 
 	case ClientMessage:
@@ -532,8 +532,6 @@ public:
 	virtual std::string name() { return "WaitForPong"; }
 	virtual Grabber::State grab_mode() { return parent->grab_mode(); }
 };
-
-static inline float abs(float x) { return x > 0 ? x : -x; }
 
 class AbstractScrollHandler : public Handler {
 	bool have_x, have_y;

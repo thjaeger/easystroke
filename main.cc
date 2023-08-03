@@ -298,7 +298,7 @@ void App::run_by_name(const char *str, const Glib::RefPtr<Gio::ApplicationComman
 		}
 	}
 	char *msg;
-	asprintf(&msg, _("Warning: No action \"%s\" defined\n"), str);
+	(void)asprintf(&msg, _("Warning: No action \"%s\" defined\n"), str);
 	cmd_line->print(msg);
 	free(msg);
 }
@@ -320,13 +320,15 @@ int App::on_command_line(const Glib::RefPtr<Gio::ApplicationCommandLine> &comman
 			disabled.set(true);
 		} else if (!strcmp(arg[i], "enable")) {
 			disabled.set(false);
+        } else if (!strcmp(arg[i], "toggle")) {
+            disabled.set(!disabled.get());
 		} else if (!strcmp(arg[i], "about")) {
 			win->show_about();
 		} else if (!strcmp(arg[i], "quit")) {
 			quit();
 		} else {
 			char *msg;
-			asprintf(&msg, "Warning: Unknown command \"%s\".\n", arg[i]);
+			(void)asprintf(&msg, "Warning: Unknown command \"%s\".\n", arg[i]);
 			command_line->print(msg);
 			free(msg);
 		}
